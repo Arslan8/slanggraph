@@ -1,0 +1,94 @@
+name: slangGraph security gates
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/slanggraph-security.yml"
+      - "libs/prebuilt/**"
+  push:
+    branches:
+      - course/security-modules
+    paths:
+      - ".github/workflows/slanggraph-security.yml"
+      - "libs/prebuilt/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: libs/prebuilt
+
+jobs:
+  security-quality:
+    name: Security package quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python 3.13
+        uses: ./.github/actions/uv_setup
+        with:
+          python-version: "3.13"
+          cache-suffix: slanggraph-security-quality
+          working-directory: libs/prebuilt
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run package lint
+        run: make lint
+      - name: Run strict security-package type check
+        run: >-
+          uv run mypy --strict --explicit-package-bases
+          langgraph/prebuilt/security
+
+  security-coverage:
+    name: Security package branch coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python 3.13
+        uses: ./.github/actions/uv_setup
+        with:
+          python-version: "3.13"
+          cache-suffix: slanggraph-security-coverage
+          working-directory: libs/prebuilt
+      - name: Install dependencies
+        run: uv sync --frozen --group test --no-dev
+      - name: Enforce security-package branch coverage
+        run: >-
+          uv run pytest tests/security
+          --cov=langgraph.prebuilt.security
+          --cov-branch
+          --cov-report=term-missing
+          --cov-fail-under=90
+
+  tool-node-benchmark:
+    name: ToolNode benchmark baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python 3.13
+        uses: ./.github/actions/uv_setup
+        with:
+          python-version: "3.13"
+          cache-suffix: slanggraph-tool-node-benchmark
+          working-directory: libs/prebuilt
+      - name: Install dependencies
+        run: uv sync --frozen --group test --no-dev
+      - name: Run benchmark
+        run: >-
+          uv run pytest benchmarks
+          --benchmark-only
+          --benchmark-warmup=on
+          --benchmark-warmup-iterations=100
+          --benchmark-disable-gc
+          --benchmark-json=tool-node-benchmark.json
+      - name: Upload benchmark result
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tool-node-benchmark-${{ github.sha }}
+          path: libs/prebuilt/tool-node-benchmark.json

@@ -38,6 +38,8 @@ Reddit = "https://www.reddit.com/r/LangChain/"
 test = [
     "pytest",
     "pytest-asyncio",
+    "pytest-benchmark",
+    "pytest-cov",
     "pytest-mock",
     "pytest-watcher",
     "langchain-core",
@@ -51,6 +53,7 @@ test = [
 lint = [
     "ruff",
     "codespell",
+    "mypy",
     "ty",
 ]
 dev = [

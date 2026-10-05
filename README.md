@@ -12,6 +12,14 @@
   <h3>Low-level orchestration framework for building stateful agents.</h3>
 </div>
 
+> [!IMPORTANT]
+> This branch is the development baseline for **slangGraph**, an LSM-style
+> security framework for LangGraph tool calls. Course development is pinned to
+> LangGraph `1.2.12` (`langgraph-prebuilt` `1.1.0`) and LangChain `1.4.3`.
+> See [`docs/VERIFIED.md`](docs/VERIFIED.md) for the source-level integration
+> checks and [`docs/BASELINES.md`](docs/BASELINES.md) for the week-one test and
+> performance baselines.
+
 <div align="center">
   <a href="https://opensource.org/licenses/MIT" target="_blank"><img src="https://img.shields.io/pypi/l/langgraph" alt="PyPI - License"></a>
   <a href="https://pypistats.org/packages/langgraph" target="_blank"><img src="https://img.shields.io/pepy/dt/langgraph" alt="PyPI - Downloads"></a>
