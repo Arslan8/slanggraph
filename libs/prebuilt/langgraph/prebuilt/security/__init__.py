@@ -1,7 +1,29 @@
 """Security framework for mediated tool calls.
 
-The public API is introduced in implementation step 2. This package exists in
-step 1 so strict type checking and coverage gates precede feature development.
+The package exposes tool descriptors and discretionary access-control metadata.
+Runtime mediation is added by the later security-framework modules.
 """
 
-__all__: tuple[str, ...] = ()
+from langgraph.prebuilt.security.descriptor import (
+    NORMALIZERS,
+    DacOverrides,
+    Effect,
+    ResourceArg,
+    ToolDac,
+    ToolDescriptor,
+    dac,
+    effects,
+    normalize_resource,
+)
+
+__all__ = (
+    "NORMALIZERS",
+    "DacOverrides",
+    "Effect",
+    "ResourceArg",
+    "ToolDac",
+    "ToolDescriptor",
+    "dac",
+    "effects",
+    "normalize_resource",
+)

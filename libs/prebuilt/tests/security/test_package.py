@@ -1,8 +1,18 @@
-"""Tests for the initial security-package scaffold."""
+"""Tests for the public descriptor and DAC API."""
 
 from langgraph.prebuilt import security
 
 
-def test_security_package_starts_with_no_public_api() -> None:
-    """Keep the step-one package scaffold intentionally empty."""
-    assert security.__all__ == ()
+def test_security_package_exports_descriptor_api() -> None:
+    """Keep the descriptor public surface deliberate."""
+    assert security.__all__ == (
+        "NORMALIZERS",
+        "DacOverrides",
+        "Effect",
+        "ResourceArg",
+        "ToolDac",
+        "ToolDescriptor",
+        "dac",
+        "effects",
+        "normalize_resource",
+    )
