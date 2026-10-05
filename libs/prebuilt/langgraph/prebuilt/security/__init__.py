@@ -4,6 +4,7 @@ The package exposes tool descriptors and discretionary access-control metadata.
 Runtime mediation is added by the later security-framework modules.
 """
 
+from langgraph.prebuilt.security.audit import MemoryAuditSink, SqliteAuditSink
 from langgraph.prebuilt.security.binding import (
     PRINCIPAL_CONFIG_KEY,
     SecurityBindingError,
@@ -56,12 +57,14 @@ __all__ = (
     "Decision",
     "Effect",
     "EscalationRequest",
+    "MemoryAuditSink",
     "Principal",
     "ResourceArg",
     "SecurityModule",
     "SecurityBindingError",
     "SecurityStack",
     "Slot",
+    "SqliteAuditSink",
     "Tool",
     "ToolCall",
     "ToolDac",
