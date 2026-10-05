@@ -22,6 +22,7 @@ from langgraph.prebuilt.security.introspect import (
     ToolInventoryEntry,
     introspect,
 )
+from langgraph.prebuilt.security.stack import CapModule, SecurityStack
 from langgraph.prebuilt.security.types import (
     Approval,
     AuditRecord,
@@ -42,6 +43,7 @@ __all__ = (
     "AuditRecord",
     "AuditSink",
     "Blobs",
+    "CapModule",
     "DacOverrides",
     "Decision",
     "Effect",
@@ -49,6 +51,7 @@ __all__ = (
     "Principal",
     "ResourceArg",
     "SecurityModule",
+    "SecurityStack",
     "Slot",
     "Tool",
     "ToolCall",
