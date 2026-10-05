@@ -10,6 +10,7 @@ from typing import Any
 
 from langgraph.prebuilt.security.descriptor import DacOverrides
 from langgraph.prebuilt.security.hooks import SecurityModule
+from langgraph.prebuilt.security.observability import SecurityObserver
 from langgraph.prebuilt.security.stack import SecurityStack
 from langgraph.prebuilt.security.types import AuditRecord, AuditSink, Tool, Verdict
 
@@ -21,6 +22,7 @@ class SecurityConfig:
     modules: Sequence[SecurityModule] = ()
     dac_overrides: DacOverrides | None = None
     audit_sink: AuditSink | None = None
+    observer: SecurityObserver | None = None
     policy_timeout_s: float = 2.0
     require_principal: bool = True
 
@@ -66,7 +68,12 @@ class SecurityConfig:
         if validate_overrides and unknown:
             names = ", ".join(sorted(unknown))
             raise ValueError(f"DAC overrides reference unknown tools: {names}")
-        stack = SecurityStack(self.modules, policy_timeout_s=self.policy_timeout_s)
+        stack = SecurityStack(
+            self.modules,
+            policy_timeout_s=self.policy_timeout_s,
+            observer=self.observer,
+            audit_sink=self.audit_sink,
+        )
         try:
             for name, security_tool in tuple(node._security_tools_by_name.items()):
                 policy = overrides.get(name, security_tool.dac)

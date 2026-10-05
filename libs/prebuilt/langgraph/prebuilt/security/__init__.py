@@ -36,6 +36,14 @@ from langgraph.prebuilt.security.introspect import (
     ToolInventoryEntry,
     introspect,
 )
+from langgraph.prebuilt.security.observability import (
+    LoggingSecurityObserver,
+    MemorySecurityObserver,
+    OpenTelemetrySecurityObserver,
+    SecurityEvent,
+    SecurityObserver,
+    langsmith_metadata,
+)
 from langgraph.prebuilt.security.stack import CapModule, SecurityStack
 from langgraph.prebuilt.security.types import (
     Approval,
@@ -64,9 +72,14 @@ __all__ = (
     "Effect",
     "EscalationRequest",
     "MemoryAuditSink",
+    "MemorySecurityObserver",
+    "LoggingSecurityObserver",
+    "OpenTelemetrySecurityObserver",
     "Principal",
     "ResourceArg",
     "SecurityModule",
+    "SecurityEvent",
+    "SecurityObserver",
     "SecurityBindingError",
     "SecurityConfig",
     "SecurityDeniedError",
@@ -88,6 +101,7 @@ __all__ = (
     "effects",
     "guarded_tool",
     "introspect",
+    "langsmith_metadata",
     "normalize_resource",
     "principal_from",
     "with_principal",

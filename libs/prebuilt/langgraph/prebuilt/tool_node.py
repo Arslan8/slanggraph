@@ -971,6 +971,8 @@ class ToolNode(RunnableCallable):
     ) -> None:
         if self._security_audit_sink is None:
             return
+        if self._security_stack is not None and self._security_stack.audit_events:
+            return
         encoded = json.dumps(
             dict(call.args), sort_keys=True, default=repr, separators=(",", ":")
         ).encode()
@@ -994,6 +996,23 @@ class ToolNode(RunnableCallable):
             tool_call_id=call["id"],
             status="error",
         )
+
+    def _security_trace_config(
+        self,
+        config: RunnableConfig,
+        call: SecurityToolCall | None,
+        decision: Decision,
+    ) -> RunnableConfig:
+        if call is None:
+            return config
+        metadata = dict(config.get("metadata") or {})
+        metadata["security"] = {
+            "tool_name": call.tool.name,
+            "call_index": call.call_index,
+            "verdict": decision.verdict.value,
+            "reason": decision.reason,
+        }
+        return cast("RunnableConfig", {**config, "metadata": metadata})
 
     def _resume_security(
         self,
@@ -1214,6 +1233,7 @@ class ToolNode(RunnableCallable):
             decision = self._resume_security(request.principal, security_call, decision)
         if decision.verdict is not Verdict.ALLOW:
             return self._security_denial(call, decision)
+        config = self._security_trace_config(config, security_call, decision)
         call = request.tool_call
         tool = request.tool
         if tool is None:
@@ -1397,6 +1417,7 @@ class ToolNode(RunnableCallable):
             )
         if decision.verdict is not Verdict.ALLOW:
             return self._security_denial(call, decision)
+        config = self._security_trace_config(config, security_call, decision)
         call = request.tool_call
         tool = request.tool
         if tool is None:

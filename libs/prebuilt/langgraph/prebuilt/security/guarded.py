@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import hashlib
 import inspect
-import json
 from collections.abc import Callable, Mapping, Sequence
 from itertools import count
 from threading import Lock
@@ -23,8 +21,6 @@ from langgraph.prebuilt.security.introspect import (
 )
 from langgraph.prebuilt.security.stack import SecurityStack
 from langgraph.prebuilt.security.types import (
-    AuditRecord,
-    Decision,
     Principal,
     Tool,
     ToolCall,
@@ -55,7 +51,10 @@ class _GuardedExecutor:
             descriptor.resources,
         )
         self.stack = SecurityStack(
-            security.modules, policy_timeout_s=security.policy_timeout_s
+            security.modules,
+            policy_timeout_s=security.policy_timeout_s,
+            observer=security.observer,
+            audit_sink=security.audit_sink,
         )
         for module in self.stack.modules:
             slot = self.tool.security.allocate(module.name)
@@ -78,10 +77,8 @@ class _GuardedExecutor:
     def invoke(self, args: Mapping[str, Any], config: RunnableConfig) -> Any:
         principal, call = self._prepare(args, config)
         decision, call = self.stack.prepare(principal, call)
-        self._audit(principal, call, "prepare", decision)
         if decision.verdict is Verdict.ALLOW:
             decision = self.stack.permission(principal, call)
-            self._audit(principal, call, "permission", decision)
         if decision.verdict is not Verdict.ALLOW:
             raise SecurityDeniedError(decision.reason)
         result: Any = None
@@ -89,16 +86,13 @@ class _GuardedExecutor:
             result = self.target.invoke(dict(call.args), config=config)
             return result
         finally:
-            post = self.stack.post(principal, call, result)
-            self._audit(principal, call, "post", post)
+            self.stack.post(principal, call, result)
 
     async def ainvoke(self, args: Mapping[str, Any], config: RunnableConfig) -> Any:
         principal, call = self._prepare(args, config)
         decision, call = await self.stack.aprepare(principal, call)
-        self._audit(principal, call, "prepare", decision)
         if decision.verdict is Verdict.ALLOW:
             decision = await self.stack.apermission(principal, call)
-            self._audit(principal, call, "permission", decision)
         if decision.verdict is not Verdict.ALLOW:
             raise SecurityDeniedError(decision.reason)
         result: Any = None
@@ -106,8 +100,7 @@ class _GuardedExecutor:
             result = await self.target.ainvoke(dict(call.args), config=config)
             return result
         finally:
-            post = await self.stack.apost(principal, call, result)
-            self._audit(principal, call, "post", post)
+            await self.stack.apost(principal, call, result)
 
     def _prepare(
         self, args: Mapping[str, Any], config: RunnableConfig
@@ -133,32 +126,6 @@ class _GuardedExecutor:
             f"guarded:{self.tool.name}:{call_index}",
             call_index,
             history,
-        )
-
-    def _audit(
-        self,
-        principal: Principal,
-        call: ToolCall,
-        stage: str,
-        decision: Decision,
-    ) -> None:
-        sink = self.security.audit_sink
-        if sink is None:
-            return
-        encoded = json.dumps(
-            dict(call.args), sort_keys=True, default=repr, separators=(",", ":")
-        ).encode()
-        sink.write(
-            AuditRecord(
-                call.call_index,
-                call.tool.name,
-                principal.user_id,
-                hashlib.sha256(encoded).hexdigest(),
-                stage,
-                stage,
-                decision.verdict,
-                decision.reason,
-            )
         )
 
 
@@ -228,7 +195,10 @@ class _DelegatedRunnable(Runnable[Any, Any]):
         self.scopes = scopes
         self.security = security
         self.stack = SecurityStack(
-            security.modules, policy_timeout_s=security.policy_timeout_s
+            security.modules,
+            policy_timeout_s=security.policy_timeout_s,
+            observer=security.observer,
+            audit_sink=security.audit_sink,
         )
 
     def invoke(

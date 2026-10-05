@@ -59,7 +59,7 @@ def _request(index: int) -> dict:
 def _assert_complete_audit(audit: MemoryAuditSink, count: int) -> None:
     records = audit.records()
     occurrences = Counter(record.call_index for record in records)
-    assert occurrences == Counter({index: 2 for index in range(count)})
+    assert occurrences == Counter({index: 4 for index in range(count)})
     assert audit.verify() == (True, None)
 
 
