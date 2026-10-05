@@ -18,6 +18,14 @@ uv add langgraph
 
 This library defines high-level APIs for creating and executing LangGraph agents and tools. It includes prebuilt components such as `create_react_agent`, `ToolNode`, validation helpers, and Agent Inbox schemas.
 
+## Tool security
+
+The optional security framework provides declared tool effects and DAC,
+restrictive policy modules, complete ToolNode mediation, durable approvals,
+auditing, and redacted observability. See the
+[security documentation](../../docs/security/README.md) and
+[10-line HOWTO](../../docs/security/HOWTO.md).
+
 ## 📖 Documentation
 
 For full documentation, see the [API reference](https://reference.langchain.com/python/langgraph.prebuilt/). For conceptual guides and tutorials, see the [LangGraph Docs](https://docs.langchain.com/oss/python/langgraph/overview).
