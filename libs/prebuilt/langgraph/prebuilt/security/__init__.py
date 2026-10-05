@@ -4,6 +4,13 @@ The package exposes tool descriptors and discretionary access-control metadata.
 Runtime mediation is added by the later security-framework modules.
 """
 
+from langgraph.prebuilt.security.binding import (
+    PRINCIPAL_CONFIG_KEY,
+    SecurityBindingError,
+    principal_from,
+    with_principal,
+)
+from langgraph.prebuilt.security.blobs import allocate_blobs, copy_blobs
 from langgraph.prebuilt.security.dac import dac_check
 from langgraph.prebuilt.security.descriptor import (
     NORMALIZERS,
@@ -39,6 +46,7 @@ from langgraph.prebuilt.security.types import (
 
 __all__ = (
     "NORMALIZERS",
+    "PRINCIPAL_CONFIG_KEY",
     "Approval",
     "AuditRecord",
     "AuditSink",
@@ -51,6 +59,7 @@ __all__ = (
     "Principal",
     "ResourceArg",
     "SecurityModule",
+    "SecurityBindingError",
     "SecurityStack",
     "Slot",
     "Tool",
@@ -60,9 +69,13 @@ __all__ = (
     "ToolInventory",
     "ToolInventoryEntry",
     "Verdict",
+    "allocate_blobs",
+    "copy_blobs",
     "dac",
     "dac_check",
     "effects",
     "introspect",
     "normalize_resource",
+    "principal_from",
+    "with_principal",
 )

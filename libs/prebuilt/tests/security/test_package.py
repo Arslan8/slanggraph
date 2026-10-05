@@ -7,6 +7,7 @@ def test_security_package_exports_descriptor_api() -> None:
     """Keep the descriptor public surface deliberate."""
     assert security.__all__ == (
         "NORMALIZERS",
+        "PRINCIPAL_CONFIG_KEY",
         "Approval",
         "AuditRecord",
         "AuditSink",
@@ -19,6 +20,7 @@ def test_security_package_exports_descriptor_api() -> None:
         "Principal",
         "ResourceArg",
         "SecurityModule",
+        "SecurityBindingError",
         "SecurityStack",
         "Slot",
         "Tool",
@@ -28,9 +30,13 @@ def test_security_package_exports_descriptor_api() -> None:
         "ToolInventory",
         "ToolInventoryEntry",
         "Verdict",
+        "allocate_blobs",
+        "copy_blobs",
         "dac",
         "dac_check",
         "effects",
         "introspect",
         "normalize_resource",
+        "principal_from",
+        "with_principal",
     )
