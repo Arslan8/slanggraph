@@ -53,6 +53,7 @@ class SecurityConfig:
             raise ValueError(f"DAC overrides reference unknown tools: {names}")
         for node in nodes:
             self.configure_tool_node(node, validate_overrides=False)
+        graph._security_config = self
 
     def configure_tool_node(
         self, node: Any, *, validate_overrides: bool = True

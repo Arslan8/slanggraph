@@ -25,6 +25,11 @@ from langgraph.prebuilt.security.descriptor import (
     effects,
     normalize_resource,
 )
+from langgraph.prebuilt.security.guarded import (
+    SecurityDeniedError,
+    delegate,
+    guarded_tool,
+)
 from langgraph.prebuilt.security.hooks import SecurityModule
 from langgraph.prebuilt.security.introspect import (
     ToolInventory,
@@ -64,6 +69,7 @@ __all__ = (
     "SecurityModule",
     "SecurityBindingError",
     "SecurityConfig",
+    "SecurityDeniedError",
     "SecurityStack",
     "Slot",
     "SqliteAuditSink",
@@ -78,7 +84,9 @@ __all__ = (
     "copy_blobs",
     "dac",
     "dac_check",
+    "delegate",
     "effects",
+    "guarded_tool",
     "introspect",
     "normalize_resource",
     "principal_from",

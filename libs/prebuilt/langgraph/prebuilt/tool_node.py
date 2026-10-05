@@ -92,7 +92,7 @@ from langgraph.graph.message import REMOVE_ALL_MESSAGES
 from langgraph.pregel._tools import _tool_call_writer
 from langgraph.runtime import ExecutionInfo, ServerInfo
 from langgraph.store.base import BaseStore
-from langgraph.types import Command, Send, StreamWriter
+from langgraph.types import Command, Send, StreamWriter, interrupt
 from pydantic import BaseModel, ValidationError
 from typing_extensions import TypeVar, Unpack
 
@@ -106,6 +106,7 @@ from langgraph.prebuilt.security.descriptor import (
 )
 from langgraph.prebuilt.security.stack import SecurityStack
 from langgraph.prebuilt.security.types import (
+    Approval,
     AuditRecord,
     AuditSink,
     Blobs,
@@ -893,6 +894,12 @@ class ToolNode(RunnableCallable):
             principal = Principal(
                 "__anonymous__", frozenset(), frozenset(), "anonymous"
             )
+        request = request.override(
+            descriptor=self._descriptors_by_name[name],
+            dac=self._dacs_by_name[name],
+            principal=principal,
+            security=security_tool.security,
+        )
         args = request.tool_call.get("args", {})
         with self._security_counter_lock:
             call_index = next(self._security_call_counter)
@@ -987,6 +994,57 @@ class ToolNode(RunnableCallable):
             tool_call_id=call["id"],
             status="error",
         )
+
+    def _resume_security(
+        self,
+        principal: Principal,
+        call: SecurityToolCall,
+        decision: Decision,
+    ) -> Decision:
+        stack = self._security_stack
+        escalation = decision.escalation
+        if stack is None or escalation is None:
+            return Decision(Verdict.DENY, "invalid_escalation")
+        response = interrupt(dict(escalation.to_payload()))
+        approval = self._coerce_approval(response, escalation.request_id)
+        resumed = stack.resume_permission(principal, approval)
+        self._audit_security(principal, call, "resume", resumed)
+        return resumed
+
+    async def _aresume_security(
+        self,
+        principal: Principal,
+        call: SecurityToolCall,
+        decision: Decision,
+    ) -> Decision:
+        stack = self._security_stack
+        escalation = decision.escalation
+        if stack is None or escalation is None:
+            return Decision(Verdict.DENY, "invalid_escalation")
+        response = interrupt(dict(escalation.to_payload()))
+        approval = self._coerce_approval(response, escalation.request_id)
+        resumed = await stack.aresume_permission(principal, approval)
+        self._audit_security(principal, call, "resume", resumed)
+        return resumed
+
+    def _coerce_approval(self, response: Any, request_id: str) -> Approval:
+        if isinstance(response, Approval):
+            if response.request_id != request_id:
+                return Approval(request_id, False, "framework", "request_id_mismatch")
+            return response
+        if isinstance(response, bool):
+            return Approval(request_id, response, "human")
+        if isinstance(response, Mapping):
+            response_id = str(response.get("request_id", request_id))
+            if response_id != request_id:
+                return Approval(request_id, False, "framework", "request_id_mismatch")
+            return Approval(
+                request_id,
+                response.get("approved") is True,
+                str(response.get("approver", "human")),
+                str(response.get("reason", "")),
+            )
+        return Approval(request_id, False, "framework", "invalid_response")
 
     def _func(
         self,
@@ -1148,6 +1206,12 @@ class ToolNode(RunnableCallable):
             raise TypeError(msg)
 
         decision, request, security_call = self._prepare_security_request(request)
+        if (
+            decision.verdict is Verdict.ESCALATE
+            and security_call is not None
+            and request.principal is not None
+        ):
+            decision = self._resume_security(request.principal, security_call, decision)
         if decision.verdict is not Verdict.ALLOW:
             return self._security_denial(call, decision)
         call = request.tool_call
@@ -1323,6 +1387,14 @@ class ToolNode(RunnableCallable):
             raise TypeError(msg)
 
         decision, request, security_call = self._prepare_security_request(request)
+        if (
+            decision.verdict is Verdict.ESCALATE
+            and security_call is not None
+            and request.principal is not None
+        ):
+            decision = await self._aresume_security(
+                request.principal, security_call, decision
+            )
         if decision.verdict is not Verdict.ALLOW:
             return self._security_denial(call, decision)
         call = request.tool_call
