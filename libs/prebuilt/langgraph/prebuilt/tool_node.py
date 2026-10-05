@@ -93,6 +93,12 @@ from langgraph.types import Command, Send, StreamWriter
 from pydantic import BaseModel, ValidationError
 from typing_extensions import TypeVar, Unpack
 
+from langgraph.prebuilt.security.descriptor import (
+    ToolDac,
+    ToolDescriptor,
+    security_for_tool,
+)
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -772,6 +778,8 @@ class ToolNode(RunnableCallable):
         super().__init__(self._func, self._afunc, name=name, tags=tags, trace=False)
         self._tools_by_name: dict[str, BaseTool] = {}
         self._injected_args: dict[str, _InjectedArgs] = {}
+        self._descriptors_by_name: dict[str, ToolDescriptor] = {}
+        self._dacs_by_name: dict[str, ToolDac] = {}
         self._handle_tool_errors = handle_tool_errors
         self._messages_key = messages_key
         self._wrap_tool_call = wrap_tool_call
@@ -782,6 +790,9 @@ class ToolNode(RunnableCallable):
             else:
                 tool_ = tool
             self._tools_by_name[tool_.name] = tool_
+            descriptor, tool_dac = security_for_tool(tool_)
+            self._descriptors_by_name[tool_.name] = descriptor
+            self._dacs_by_name[tool_.name] = tool_dac
             # Build injected args mapping once during initialization in a single pass
             self._injected_args[tool_.name] = _get_all_injected_args(tool_)
 
@@ -789,6 +800,16 @@ class ToolNode(RunnableCallable):
     def tools_by_name(self) -> dict[str, BaseTool]:
         """Mapping from tool name to BaseTool instance."""
         return self._tools_by_name
+
+    @property
+    def descriptors_by_name(self) -> dict[str, ToolDescriptor]:
+        """Mapping from tool name to its explicit or inferred descriptor."""
+        return self._descriptors_by_name
+
+    @property
+    def dacs_by_name(self) -> dict[str, ToolDac]:
+        """Mapping from tool name to its explicit or default-deny author DAC."""
+        return self._dacs_by_name
 
     def _func(
         self,
