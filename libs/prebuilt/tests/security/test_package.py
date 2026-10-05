@@ -27,6 +27,7 @@ def test_security_package_exports_descriptor_api() -> None:
         "ToolInventoryEntry",
         "Verdict",
         "dac",
+        "dac_check",
         "effects",
         "introspect",
         "normalize_resource",

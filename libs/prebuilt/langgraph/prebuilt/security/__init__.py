@@ -4,6 +4,7 @@ The package exposes tool descriptors and discretionary access-control metadata.
 Runtime mediation is added by the later security-framework modules.
 """
 
+from langgraph.prebuilt.security.dac import dac_check
 from langgraph.prebuilt.security.descriptor import (
     NORMALIZERS,
     DacOverrides,
@@ -57,6 +58,7 @@ __all__ = (
     "ToolInventoryEntry",
     "Verdict",
     "dac",
+    "dac_check",
     "effects",
     "introspect",
     "normalize_resource",
