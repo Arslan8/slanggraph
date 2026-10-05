@@ -22,6 +22,7 @@ def test_security_package_exports_descriptor_api() -> None:
         "ResourceArg",
         "SecurityModule",
         "SecurityBindingError",
+        "SecurityConfig",
         "SecurityStack",
         "Slot",
         "SqliteAuditSink",

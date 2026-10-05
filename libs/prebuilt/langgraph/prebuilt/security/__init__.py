@@ -12,6 +12,7 @@ from langgraph.prebuilt.security.binding import (
     with_principal,
 )
 from langgraph.prebuilt.security.blobs import allocate_blobs, copy_blobs
+from langgraph.prebuilt.security.config import SecurityConfig
 from langgraph.prebuilt.security.dac import dac_check
 from langgraph.prebuilt.security.descriptor import (
     NORMALIZERS,
@@ -62,6 +63,7 @@ __all__ = (
     "ResourceArg",
     "SecurityModule",
     "SecurityBindingError",
+    "SecurityConfig",
     "SecurityStack",
     "Slot",
     "SqliteAuditSink",

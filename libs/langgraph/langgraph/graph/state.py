@@ -1185,6 +1185,7 @@ class StateGraph(Generic[StateT, ContextT, InputT, OutputT]):
         debug: bool = False,
         name: str | None = None,
         transformers: Sequence[Callable[[tuple[str, ...]], Any]] | None = None,
+        security: Any | None = None,
     ) -> CompiledStateGraph[StateT, ContextT, InputT, OutputT]:
         """Compiles the `StateGraph` into a `CompiledStateGraph` object.
 
@@ -1224,11 +1225,21 @@ class StateGraph(Generic[StateT, ContextT, InputT, OutputT]):
                 the standard `StreamTransformer` constructor shape by
                 accepting `scope` as their first argument. Appended after the
                 built-in stream transformers.
+            security: Optional security configuration. The object must provide
+                `configure_graph(graph, *, checkpointer)`; LangGraph's prebuilt
+                `SecurityConfig` implements this protocol.
 
         Returns:
             CompiledStateGraph: The compiled `StateGraph`.
         """
         checkpointer = ensure_valid_checkpointer(checkpointer)
+        if security is not None:
+            configure_graph = getattr(security, "configure_graph", None)
+            if not callable(configure_graph):
+                raise TypeError(
+                    "security must provide configure_graph(graph, *, checkpointer)"
+                )
+            configure_graph(self, checkpointer=checkpointer)
 
         serde_allowlist: set[tuple[str, ...]] | None = None
         if _serde.STRICT_MSGPACK_ENABLED:

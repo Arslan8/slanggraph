@@ -97,6 +97,7 @@ from pydantic import BaseModel, ValidationError
 from typing_extensions import TypeVar, Unpack
 
 from langgraph.prebuilt.security.binding import principal_from
+from langgraph.prebuilt.security.config import SecurityConfig
 from langgraph.prebuilt.security.descriptor import (
     ToolDac,
     ToolDescriptor,
@@ -788,6 +789,7 @@ class ToolNode(RunnableCallable):
         messages_key: str = "messages",
         wrap_tool_call: ToolCallWrapper | None = None,
         awrap_tool_call: AsyncToolCallWrapper | None = None,
+        security: SecurityConfig | None = None,
     ) -> None:
         """Initialize `ToolNode` with tools and configuration.
 
@@ -802,6 +804,7 @@ class ToolNode(RunnableCallable):
                 Enables retries, caching, request modification, and control flow.
             awrap_tool_call: Async wrapper function to intercept tool execution.
                 If not provided, falls back to wrap_tool_call for async execution.
+            security: Optional restrictive security configuration.
         """
         super().__init__(self._func, self._afunc, name=name, tags=tags, trace=False)
         self._tools_by_name: dict[str, BaseTool] = {}
@@ -810,6 +813,7 @@ class ToolNode(RunnableCallable):
         self._dacs_by_name: dict[str, ToolDac] = {}
         self._security_tools_by_name: dict[str, SecurityTool] = {}
         self._security_stack: SecurityStack | None = None
+        self._security_config: SecurityConfig | None = None
         self._security_audit_sink: AuditSink | None = None
         self._security_require_principal = True
         self._security_call_counter = count()
@@ -835,6 +839,8 @@ class ToolNode(RunnableCallable):
             )
             # Build injected args mapping once during initialization in a single pass
             self._injected_args[tool_.name] = _get_all_injected_args(tool_)
+        if security is not None:
+            security.configure_tool_node(self)
 
     @property
     def tools_by_name(self) -> dict[str, BaseTool]:
