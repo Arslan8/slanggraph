@@ -15,6 +15,11 @@ from langgraph.prebuilt.security.descriptor import (
     effects,
     normalize_resource,
 )
+from langgraph.prebuilt.security.introspect import (
+    ToolInventory,
+    ToolInventoryEntry,
+    introspect,
+)
 
 __all__ = (
     "NORMALIZERS",
@@ -23,7 +28,10 @@ __all__ = (
     "ResourceArg",
     "ToolDac",
     "ToolDescriptor",
+    "ToolInventory",
+    "ToolInventoryEntry",
     "dac",
     "effects",
+    "introspect",
     "normalize_resource",
 )

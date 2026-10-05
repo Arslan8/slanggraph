@@ -12,7 +12,10 @@ def test_security_package_exports_descriptor_api() -> None:
         "ResourceArg",
         "ToolDac",
         "ToolDescriptor",
+        "ToolInventory",
+        "ToolInventoryEntry",
         "dac",
         "effects",
+        "introspect",
         "normalize_resource",
     )
