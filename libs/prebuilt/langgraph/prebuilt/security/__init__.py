@@ -45,6 +45,13 @@ from langgraph.prebuilt.security.observability import (
     langsmith_metadata,
 )
 from langgraph.prebuilt.security.stack import CapModule, SecurityStack
+from langgraph.prebuilt.security.taint import (
+    EscapeFinding,
+    EscapeKind,
+    EscapeSeverity,
+    TaintReport,
+    analyze_source,
+)
 from langgraph.prebuilt.security.types import (
     Approval,
     AuditRecord,
@@ -70,6 +77,9 @@ __all__ = (
     "DacOverrides",
     "Decision",
     "Effect",
+    "EscapeFinding",
+    "EscapeKind",
+    "EscapeSeverity",
     "EscalationRequest",
     "MemoryAuditSink",
     "MemorySecurityObserver",
@@ -92,8 +102,10 @@ __all__ = (
     "ToolDescriptor",
     "ToolInventory",
     "ToolInventoryEntry",
+    "TaintReport",
     "Verdict",
     "allocate_blobs",
+    "analyze_source",
     "copy_blobs",
     "dac",
     "dac_check",

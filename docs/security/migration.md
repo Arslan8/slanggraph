@@ -10,6 +10,13 @@ Run `introspect(compiled_graph)` and review every entry. Locate direct
 and child graphs. A partial inventory is a release blocker until dynamic tool
 sources are understood.
 
+Run `langgraph-security-taint src` over application source as well. Every
+`unmediated_node`, `unknown_callback`, `unknown_call`, `dynamic_dispatch`,
+`unprotected_compile`, `retained_capability`, and `undeclared_effect` finding
+requires removal, confinement, or an explicit security review. The analyzer
+treats unknown dynamic behavior as an escape; it is a review gate, not proof
+that Python is sandboxed.
+
 ## 2. Declare tools
 
 Add `@effects` and `@dac` to every tool. Treat inferred descriptors as migration

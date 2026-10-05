@@ -104,3 +104,17 @@ reason, latency, user, tool, and call index where applicable.
 `introspect(graph)` returns a `ToolInventory` for statically reachable nested
 ToolNodes and registered guarded tools. `complete` is false when middleware or a
 dynamic guarded tool can add tools that static analysis cannot enumerate.
+
+`analyze_source(*paths, exclude=...)` traces parameters of registered graph
+callbacks through local assignments and helpers. It reports unrestricted node
+boundaries, unresolved callbacks, graphs compiled without `security`, retained
+tool aliases, direct runnable invocation, dangerous resource APIs, dynamic
+dispatch, and tool behavior missing from `@effects` declarations. The command
+`langgraph-security-taint src --json` exits nonzero for findings or parse
+errors, making it suitable for CI.
+
+Static analysis cannot establish process-wide MAC for dynamic Python. Runtime
+reflection, native extensions, dynamically loaded code, callbacks hidden in
+containers, background work, and dependencies without source may evade source
+resolution. If graph-controlled code is untrusted, enforce filesystem, network,
+process, and credential policy outside the Python process as well.
