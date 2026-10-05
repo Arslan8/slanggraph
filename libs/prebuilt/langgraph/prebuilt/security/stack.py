@@ -104,6 +104,8 @@ class SecurityStack:
             return initial, call
         current = call
         for module in self.modules:
+            if type(module).tool_call_prepare is SecurityModule.tool_call_prepare:
+                continue
             decision = self._sync_decision(
                 module,
                 partial(module.tool_call_prepare, principal, current),
@@ -127,6 +129,8 @@ class SecurityStack:
             return initial, call
         current = call
         for module in self.modules:
+            if type(module).tool_call_prepare is SecurityModule.tool_call_prepare:
+                continue
             decision = await self._async_decision(
                 module,
                 partial(module.tool_call_prepare, principal, current),
@@ -174,6 +178,8 @@ class SecurityStack:
     def post(self, principal: Principal, call: ToolCall, result: Any) -> Decision:
         """Run every post hook; failures are reported but cannot alter the result."""
         for module in self.modules:
+            if type(module).tool_call_post is SecurityModule.tool_call_post:
+                continue
             future = self._executor.submit(
                 module.tool_call_post,
                 principal,
@@ -197,6 +203,8 @@ class SecurityStack:
     ) -> Decision:
         """Asynchronously run every post-execution hook."""
         for module in self.modules:
+            if type(module).tool_call_post is SecurityModule.tool_call_post:
+                continue
             loop = asyncio.get_running_loop()
             hook = partial(
                 module.tool_call_post,
@@ -240,6 +248,11 @@ class SecurityStack:
     def _sync_decision(
         self, module: SecurityModule, hook: Callable[[], Any]
     ) -> Decision:
+        if isinstance(module, CapModule):
+            result = hook()
+            if not isinstance(result, Decision):
+                return Decision(Verdict.DENY, "module_error:cap")
+            return result
         future = self._executor.submit(hook)
         try:
             result = future.result(timeout=self.policy_timeout_s)
@@ -255,6 +268,11 @@ class SecurityStack:
     async def _async_decision(
         self, module: SecurityModule, hook: Callable[[], Any]
     ) -> Decision:
+        if isinstance(module, CapModule):
+            result = hook()
+            if not isinstance(result, Decision):
+                return Decision(Verdict.DENY, "module_error:cap")
+            return result
         try:
             if inspect.iscoroutinefunction(hook):
                 result = await asyncio.wait_for(hook(), self.policy_timeout_s)
