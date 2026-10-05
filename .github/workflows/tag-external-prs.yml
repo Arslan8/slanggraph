@@ -16,7 +16,7 @@
 #    - ORG_MEMBERSHIP_APP_PRIVATE_KEY: Your app's private key
 #
 # The GitHub App token is required to check private organization membership.
-# Without it, the workflow will fail.
+# Forks without the app skip labeling so unrelated CI remains usable.
 
 name: Tag External PRs
 
@@ -36,9 +36,16 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+    env:
+      ORG_MEMBERSHIP_APP_CONFIGURED: ${{ secrets.ORG_MEMBERSHIP_APP_ID != '' && secrets.ORG_MEMBERSHIP_APP_PRIVATE_KEY != '' }}
 
     steps:
+      - name: Report unconfigured membership labeling
+        if: env.ORG_MEMBERSHIP_APP_CONFIGURED != 'true'
+        run: echo "Organization membership app is not configured; skipping labels."
+
       - name: Generate GitHub App token
+        if: env.ORG_MEMBERSHIP_APP_CONFIGURED == 'true'
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
