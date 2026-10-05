@@ -9,6 +9,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_CONFIGURED: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_RO_TOKEN != '' }}
     strategy:
       matrix:
         python-version:
@@ -32,7 +34,7 @@ jobs:
           working-directory: libs/langgraph
       - name: Login to Docker Hub
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-        if: ${{ !github.event.pull_request.head.repo.fork }}
+        if: env.DOCKERHUB_CONFIGURED == 'true'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_RO_TOKEN }}
