@@ -40,11 +40,14 @@ Typical Usage:
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import inspect
 import json
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from copy import copy, deepcopy
 from dataclasses import dataclass, field, replace
+from itertools import count
+from threading import Lock
 from types import UnionType
 from typing import (
     TYPE_CHECKING,
@@ -93,10 +96,27 @@ from langgraph.types import Command, Send, StreamWriter
 from pydantic import BaseModel, ValidationError
 from typing_extensions import TypeVar, Unpack
 
+from langgraph.prebuilt.security.binding import principal_from
 from langgraph.prebuilt.security.descriptor import (
     ToolDac,
     ToolDescriptor,
+    normalize_resource,
     security_for_tool,
+)
+from langgraph.prebuilt.security.stack import SecurityStack
+from langgraph.prebuilt.security.types import (
+    AuditRecord,
+    AuditSink,
+    Blobs,
+    Decision,
+    Principal,
+    Verdict,
+)
+from langgraph.prebuilt.security.types import (
+    Tool as SecurityTool,
+)
+from langgraph.prebuilt.security.types import (
+    ToolCall as SecurityToolCall,
 )
 
 if TYPE_CHECKING:
@@ -131,8 +151,12 @@ class _ToolCallRequestOverrides(TypedDict, total=False):
     """Possible overrides for ToolCallRequest.override() method."""
 
     tool_call: ToolCall
-    tool: BaseTool
+    tool: BaseTool | None
     state: Any
+    descriptor: ToolDescriptor | None
+    dac: ToolDac | None
+    principal: Principal | None
+    security: Blobs | None
 
 
 @dataclass
@@ -153,6 +177,10 @@ class ToolCallRequest:
     tool: BaseTool | None
     state: Any
     runtime: ToolRuntime
+    descriptor: ToolDescriptor | None = None
+    dac: ToolDac | None = None
+    principal: Principal | None = None
+    security: Blobs | None = None
 
     def __setattr__(self, name: str, value: Any) -> None:
         """Raise deprecation warning when setting attributes directly.
@@ -162,7 +190,7 @@ class ToolCallRequest:
         import warnings
 
         # Allow setting attributes during initialization
-        if not hasattr(self, "__dataclass_fields__") or not hasattr(self, name):
+        if not hasattr(self, "__dataclass_fields__") or name not in self.__dict__:
             object.__setattr__(self, name, value)
         else:
             warnings.warn(
@@ -780,6 +808,12 @@ class ToolNode(RunnableCallable):
         self._injected_args: dict[str, _InjectedArgs] = {}
         self._descriptors_by_name: dict[str, ToolDescriptor] = {}
         self._dacs_by_name: dict[str, ToolDac] = {}
+        self._security_tools_by_name: dict[str, SecurityTool] = {}
+        self._security_stack: SecurityStack | None = None
+        self._security_audit_sink: AuditSink | None = None
+        self._security_require_principal = True
+        self._security_call_counter = count()
+        self._security_counter_lock = Lock()
         self._handle_tool_errors = handle_tool_errors
         self._messages_key = messages_key
         self._wrap_tool_call = wrap_tool_call
@@ -793,6 +827,12 @@ class ToolNode(RunnableCallable):
             descriptor, tool_dac = security_for_tool(tool_)
             self._descriptors_by_name[tool_.name] = descriptor
             self._dacs_by_name[tool_.name] = tool_dac
+            self._security_tools_by_name[tool_.name] = SecurityTool(
+                name=tool_.name,
+                dac=tool_dac,
+                effects=descriptor.effects,
+                resources=descriptor.resources,
+            )
             # Build injected args mapping once during initialization in a single pass
             self._injected_args[tool_.name] = _get_all_injected_args(tool_)
 
@@ -810,6 +850,137 @@ class ToolNode(RunnableCallable):
     def dacs_by_name(self) -> dict[str, ToolDac]:
         """Mapping from tool name to its explicit or default-deny author DAC."""
         return self._dacs_by_name
+
+    def _configure_security(
+        self,
+        stack: SecurityStack,
+        *,
+        audit_sink: AuditSink | None = None,
+        require_principal: bool = True,
+    ) -> None:
+        """Configure mediation internally until the public constructor is added."""
+        self._security_stack = stack
+        self._security_audit_sink = audit_sink
+        self._security_require_principal = require_principal
+
+    def _security_check(self, request: ToolCallRequest) -> Decision:
+        """Return the innermost security decision for one physical execution."""
+        decision, _, _ = self._prepare_security_request(request)
+        return decision
+
+    def _prepare_security_request(
+        self, request: ToolCallRequest
+    ) -> tuple[Decision, ToolCallRequest, SecurityToolCall | None]:
+        stack = self._security_stack
+        if stack is None:
+            return Decision(Verdict.ALLOW, "security:disabled"), request, None
+        name = request.tool_call["name"]
+        security_tool = self._security_tools_by_name.get(name)
+        if security_tool is None:
+            return Decision(Verdict.DENY, "security:unknown_tool"), request, None
+        principal = request.principal
+        if principal is None:
+            principal = principal_from(request.runtime.config)
+        if principal is None:
+            if self._security_require_principal:
+                return Decision(Verdict.DENY, "no_principal"), request, None
+            principal = Principal(
+                "__anonymous__", frozenset(), frozenset(), "anonymous"
+            )
+        args = request.tool_call.get("args", {})
+        with self._security_counter_lock:
+            call_index = next(self._security_call_counter)
+        history = (
+            self._security_audit_sink.records()
+            if self._security_audit_sink is not None
+            else ()
+        )
+        try:
+            normalized = self._normalize_security_args(security_tool, args)
+        except Exception:
+            security_call = SecurityToolCall(
+                security_tool,
+                args,
+                {},
+                request.tool_call["id"],
+                call_index,
+                history,
+            )
+            decision = Decision(Verdict.DENY, "normalization_error")
+            self._audit_security(principal, security_call, "prepare", decision)
+            return decision, request, security_call
+        security_call = SecurityToolCall(
+            security_tool,
+            args,
+            normalized,
+            request.tool_call["id"],
+            call_index,
+            history,
+        )
+        prepared, security_call = stack.prepare(principal, security_call)
+        if prepared.verdict is not Verdict.ALLOW:
+            self._audit_security(principal, security_call, "prepare", prepared)
+            return prepared, request, security_call
+        permission = stack.permission(principal, security_call)
+        self._audit_security(principal, security_call, "permission", permission)
+        secured = request.override(
+            tool_call={**request.tool_call, "args": dict(security_call.args)},
+            descriptor=self._descriptors_by_name[name],
+            dac=self._dacs_by_name[name],
+            principal=principal,
+            security=security_tool.security,
+        )
+        return permission, secured, security_call
+
+    def _normalize_security_args(
+        self, tool: SecurityTool, args: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        normalized: dict[str, Any] = {}
+        for resource in tool.resources:
+            if resource.arg not in args:
+                continue
+            value = normalize_resource(resource, args[resource.arg])
+            normalized[resource.arg] = value
+            if resource.normalizer in {"domain", "email_domain"}:
+                normalized[f"{resource.arg}_domain"] = value
+            elif resource.normalizer == "sql_statement_kind":
+                normalized[f"{resource.arg}_statement_kind"] = value
+            elif resource.normalizer == "shell_argv0":
+                normalized[f"{resource.arg}_argv0"] = value
+        return normalized
+
+    def _audit_security(
+        self,
+        principal: Principal,
+        call: SecurityToolCall,
+        stage: str,
+        decision: Decision,
+    ) -> None:
+        if self._security_audit_sink is None:
+            return
+        encoded = json.dumps(
+            dict(call.args), sort_keys=True, default=repr, separators=(",", ":")
+        ).encode()
+        self._security_audit_sink.write(
+            AuditRecord(
+                call_index=call.call_index,
+                tool_name=call.tool.name,
+                user_id=principal.user_id,
+                args_hash=hashlib.sha256(encoded).hexdigest(),
+                stage=stage,
+                module=stage,
+                verdict=decision.verdict,
+                reason=decision.reason,
+            )
+        )
+
+    def _security_denial(self, call: ToolCall, decision: Decision) -> ToolMessage:
+        return ToolMessage(
+            content=f"Access denied by security: {decision.reason}",
+            name=call["name"],
+            tool_call_id=call["id"],
+            status="error",
+        )
 
     def _func(
         self,
@@ -970,10 +1141,19 @@ class ToolNode(RunnableCallable):
             msg = f"Tool {call['name']} is not registered with ToolNode"
             raise TypeError(msg)
 
+        decision, request, security_call = self._prepare_security_request(request)
+        if decision.verdict is not Verdict.ALLOW:
+            return self._security_denial(call, decision)
+        call = request.tool_call
+        tool = request.tool
+        if tool is None:
+            raise TypeError("security request lost its registered tool")
+
         # Inject state, store, and runtime right before invocation
         injected_call = self._inject_tool_args(call, request.runtime, tool)
         call_args = {**injected_call, "type": "tool_call"}
 
+        post_result: Any = None
         try:
             try:
                 response = tool.invoke(call_args, config)
@@ -987,9 +1167,10 @@ class ToolNode(RunnableCallable):
                 ) from exc
 
             # Inside try so validation errors route through _handle_tool_errors
-            return self._normalize_tool_response(
+            post_result = self._normalize_tool_response(
                 response, request.tool_call, input_type
             )
+            return post_result
 
         # GraphInterrupt is a special exception that will always be raised.
         # It can be triggered in the following scenarios,
@@ -1025,12 +1206,22 @@ class ToolNode(RunnableCallable):
 
             # Error is handled - create error ToolMessage
             content = _handle_tool_error(e, flag=self._handle_tool_errors)
-            return ToolMessage(
+            post_result = ToolMessage(
                 content=content,
                 name=call["name"],
                 tool_call_id=call["id"],
                 status="error",
             )
+            return post_result
+        finally:
+            stack = self._security_stack
+            if (
+                security_call is not None
+                and request.principal is not None
+                and stack is not None
+            ):
+                post = stack.post(request.principal, security_call, post_result)
+                self._audit_security(request.principal, security_call, "post", post)
 
     def _run_one(
         self,
@@ -1058,6 +1249,14 @@ class ToolNode(RunnableCallable):
             tool=tool,
             state=tool_runtime.state,
             runtime=tool_runtime,
+            descriptor=self._descriptors_by_name.get(call["name"]),
+            dac=self._dacs_by_name.get(call["name"]),
+            principal=principal_from(tool_runtime.config),
+            security=(
+                self._security_tools_by_name[call["name"]].security
+                if call["name"] in self._security_tools_by_name
+                else None
+            ),
         )
 
         config = tool_runtime.config
@@ -1117,10 +1316,19 @@ class ToolNode(RunnableCallable):
             msg = f"Tool {call['name']} is not registered with ToolNode"
             raise TypeError(msg)
 
+        decision, request, security_call = self._prepare_security_request(request)
+        if decision.verdict is not Verdict.ALLOW:
+            return self._security_denial(call, decision)
+        call = request.tool_call
+        tool = request.tool
+        if tool is None:
+            raise TypeError("security request lost its registered tool")
+
         # Inject state, store, and runtime right before invocation
         injected_call = self._inject_tool_args(call, request.runtime, tool)
         call_args = {**injected_call, "type": "tool_call"}
 
+        post_result: Any = None
         try:
             try:
                 response = await tool.ainvoke(call_args, config)
@@ -1134,9 +1342,10 @@ class ToolNode(RunnableCallable):
                 ) from exc
 
             # Inside try so validation errors route through _handle_tool_errors
-            return self._normalize_tool_response(
+            post_result = self._normalize_tool_response(
                 response, request.tool_call, input_type
             )
+            return post_result
 
         # GraphInterrupt is a special exception that will always be raised.
         # It can be triggered in the following scenarios,
@@ -1172,12 +1381,22 @@ class ToolNode(RunnableCallable):
 
             # Error is handled - create error ToolMessage
             content = _handle_tool_error(e, flag=self._handle_tool_errors)
-            return ToolMessage(
+            post_result = ToolMessage(
                 content=content,
                 name=call["name"],
                 tool_call_id=call["id"],
                 status="error",
             )
+            return post_result
+        finally:
+            stack = self._security_stack
+            if (
+                security_call is not None
+                and request.principal is not None
+                and stack is not None
+            ):
+                post = await stack.apost(request.principal, security_call, post_result)
+                self._audit_security(request.principal, security_call, "post", post)
 
     async def _arun_one(
         self,
@@ -1205,6 +1424,14 @@ class ToolNode(RunnableCallable):
             tool=tool,
             state=tool_runtime.state,
             runtime=tool_runtime,
+            descriptor=self._descriptors_by_name.get(call["name"]),
+            dac=self._dacs_by_name.get(call["name"]),
+            principal=principal_from(tool_runtime.config),
+            security=(
+                self._security_tools_by_name[call["name"]].security
+                if call["name"] in self._security_tools_by_name
+                else None
+            ),
         )
 
         config = tool_runtime.config

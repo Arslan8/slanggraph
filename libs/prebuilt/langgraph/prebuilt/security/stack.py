@@ -171,6 +171,56 @@ class SecurityStack:
             lambda module: module.resume_permission(principal, approval)
         )
 
+    def post(self, principal: Principal, call: ToolCall, result: Any) -> Decision:
+        """Run every post hook; failures are reported but cannot alter the result."""
+        for module in self.modules:
+            future = self._executor.submit(
+                module.tool_call_post,
+                principal,
+                call,
+                result,
+                call.tool.security.allocate(module.name),
+            )
+            try:
+                hook_result = future.result(timeout=self.policy_timeout_s)
+            except FutureTimeoutError:
+                future.cancel()
+                return Decision(Verdict.DENY, f"module_timeout:{module.name}")
+            except BaseException:
+                return Decision(Verdict.DENY, f"module_error:{module.name}")
+            if hook_result is not None:
+                return Decision(Verdict.DENY, f"module_error:{module.name}")
+        return Decision(Verdict.ALLOW, "post:complete")
+
+    async def apost(
+        self, principal: Principal, call: ToolCall, result: Any
+    ) -> Decision:
+        """Asynchronously run every post-execution hook."""
+        for module in self.modules:
+            loop = asyncio.get_running_loop()
+            hook = partial(
+                module.tool_call_post,
+                principal,
+                call,
+                result,
+                call.tool.security.allocate(module.name),
+            )
+            try:
+                hook_result = await asyncio.wait_for(
+                    loop.run_in_executor(self._executor, hook), self.policy_timeout_s
+                )
+                if inspect.isawaitable(hook_result):
+                    hook_result = await asyncio.wait_for(
+                        hook_result, self.policy_timeout_s
+                    )
+            except TimeoutError:
+                return Decision(Verdict.DENY, f"module_timeout:{module.name}")
+            except BaseException:
+                return Decision(Verdict.DENY, f"module_error:{module.name}")
+            if hook_result is not None:
+                return Decision(Verdict.DENY, f"module_error:{module.name}")
+        return Decision(Verdict.ALLOW, "post:complete")
+
     def _restrictive_sync(self, hook: Callable[[SecurityModule], Any]) -> Decision:
         for module in self.modules:
             decision = self._sync_decision(module, partial(hook, module))
