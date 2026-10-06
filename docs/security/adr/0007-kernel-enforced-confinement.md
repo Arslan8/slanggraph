@@ -1,6 +1,6 @@
 # 0007: Enforce tool grants outside the Python process
 
-Status: Proposed
+Status: Accepted
 
 ## Context
 
@@ -63,7 +63,10 @@ profile + principal envelope + shares
       Cedar operator forbids, per line
                   |
                   v
-        approval for surviving lines
+       assemble surviving call grant
+                  |
+                  v
+          one approval per call
                   |
                   v
          canonical, attributed Grant
@@ -123,6 +126,11 @@ returning the existing `ESCALATE` verdict. The escalation policy set is
 operator-owned and is consulted only after no mandatory policy forbids the
 candidate.
 
+A type or evaluation error in a student policy is attributed to the module and
+denies the affected line. A module used by every line can therefore deny the
+whole call when it is buggy. This availability cost is the intended fail-closed
+behavior.
+
 Cedar's symbolic compiler is used offline to validate properties of operator
 policy sets. It is not run as a per-request containment proof for module output.
 
@@ -138,8 +146,23 @@ as `(principal, tool)` and contains filesystem operations, TCP port operations,
 executable authority, syscall classes, resource limits, broker service rules,
 and provenance for every surviving line.
 
-The IR does not treat a `realpath()` string as filesystem authority. Filesystem
-lowering resolves an existing object relative to a trusted root with `openat2`
+The `Grant` also contains an explicit runtime baseline supplied by the selected
+backend before mandatory policy runs. On Python this normally includes
+read-only access to the interpreter's runtime libraries, standard library,
+declared tool artifact and dependencies, `/dev/urandom`, and timezone data;
+execute authority is limited to the interpreter. Native extension `.so` files
+need read access for `mmap`, not Landlock `EXECUTE`, which governs `execve`-style
+execution. A private per-worker temporary directory receives only the minimum
+read, write, create, truncate, and delete rights required by the profile.
+
+Baseline lines have backend provenance, pass through the same operator forbids,
+appear in the final `Grant`, and are included in the attestation and audit. A
+backend may not add hidden runtime authority during lowering. If its declared
+baseline is insufficient to start the runtime, execution fails rather than
+silently expanding the sandbox.
+
+The IR does not treat a `realpath()` string as filesystem authority. The trusted
+spawner resolves an existing object relative to a trusted root with `openat2`
 using `RESOLVE_BENEATH | RESOLVE_NO_MAGICLINKS`, opens an `O_PATH` descriptor,
 and supplies that descriptor as the Landlock rule's `parent_fd`. Create rights
 are attached to the resolved parent directory. Display paths may be retained
@@ -185,8 +208,8 @@ and a trusted supervisor:
 | UDP and raw sockets | denied by seccomp regardless of available Landlock ABI |
 | syscall allow-set | seccomp-BPF resolved for the worker architecture |
 | executable target | Landlock `EXECUTE`; seccomp only admits or rejects `execve` and `execveat` as syscall classes |
-| fork, clone, signal, ptrace | seccomp, Landlock scoping where available, PID isolation, and Yama |
-| CPU, memory, PIDs | cgroup v2 |
+| fork, clone, signal, ptrace | seccomp, Landlock scoping where available, and Yama; namespace isolation only when attested |
+| CPU, memory, PIDs | cgroup v2 when delegated; otherwise the supported rlimit subset |
 | open-file count | `RLIMIT_NOFILE` |
 | wall clock | supervisor timer followed by pidfd or cgroup termination |
 
@@ -196,23 +219,58 @@ number. TCP port rules require ABI 4 or later. Domain and destination-address
 policy is not represented as Landlock network authority; it requires the broker
 or an egress proxy.
 
-The trusted parent creates a result pipe and broker socketpair, prepares the
-cgroup, and forks the worker behind a synchronization barrier. The parent places
-the worker PID in the cgroup before releasing it. The worker uses inherited
-`O_PATH` descriptors to add Landlock rules, closes those rule descriptors and
-every descriptor except the result pipe and broker socket, installs
-`no_new_privs`, calls `restrict_self`, applies seccomp and rlimits, and only then
-imports the untrusted tool. Because files opened before Landlock confinement
-are not retroactively restricted, the clean descriptor table is mandatory.
+The framework process never forks. Phase one starts a dedicated single-threaded
+trusted spawner before the framework creates event loops, telemetry exporters,
+or any other threads. The spawner is the only component that forks workers. It
+contains no untrusted tool code and forks a fresh worker for every call.
+
+The spawner resolves paths, opens the `O_PATH` descriptors, creates the Landlock
+ruleset, adds every filesystem and network rule, and then closes the `O_PATH`
+descriptors. The worker inherits one ruleset descriptor, the result pipe, and
+the broker socket only. Where cgroup delegation is available, the spawner holds
+the worker behind a synchronization barrier until the worker PID is placed in
+its prepared cgroup. The worker installs `no_new_privs`, calls `restrict_self`,
+closes the ruleset descriptor, applies seccomp and rlimits, and only then imports
+the untrusted tool. Because files opened before Landlock confinement are not
+retroactively restricted, the clean descriptor table is mandatory.
+
+Phase one does not require Linux namespaces. PID isolation is a separately
+attested capability because unprivileged PID namespaces generally depend on a
+user namespace and host policy may prohibit their creation. Likewise, cgroup v2
+limits are capabilities only when the service manager delegated a subtree to
+the spawner. The backend detects delegation and `cgroup.kill` independently. If
+cgroup enforcement is unavailable, it reports the missing limit capabilities
+and may conservatively lower supported limits to `RLIMIT_CPU`, `RLIMIT_AS`,
+`RLIMIT_NPROC`, and `RLIMIT_NOFILE`. The capability contract decides whether the
+resulting strict subset may run.
+
+Seccomp denial actions are part of the compiled policy and attestation.
+Capability probes and ordinary denied operations, including `socket()` and
+`connect()`, return `EPERM` with `SECCOMP_RET_ERRNO` so the tool can terminate
+normally and expose the failure to the audit path. Escape and kernel-attack
+syscalls including `ptrace`, `process_vm_readv`, `bpf`, and `unshare` use
+`SECCOMP_RET_KILL_PROCESS`. The supervisor records signal and exit status even
+when no per-syscall kernel audit record exists.
 
 The worker inherits only the result descriptor and its authenticated broker
-descriptor. After confinement, seccomp denies `socket()` and `connect()` for
-broker-only tools. The worker communicates over the inherited socketpair; it
-does not create or connect a socket.
+descriptor. The socketpair is created with `SOCK_CLOEXEC`, or immediately
+marked `FD_CLOEXEC`, so an executed child cannot inherit broker authority.
+Explicitly delegable broker access requires a profile grant and a trusted
+launcher operation that deliberately transfers an authenticated child channel.
+After confinement, seccomp denies `socket()` and `connect()` for broker-only
+tools. The worker communicates over the inherited socketpair; it does not create
+or connect a socket.
 
 Landlock and seccomp restrictions stack and are inherited by permitted child
 processes. They can only tighten local kernel authority. This is defense in
 depth, not a replacement for evaluator and broker subset checks.
+
+Landlock denial audit records are a conditional capability rather than a
+baseline guarantee. Landlock kernel audit support begins with Linux 6.15 and may
+also depend on host audit configuration. The attestation states whether it is
+active. On older or non-auditing hosts, evidence consists of the worker-visible
+`errno`, attempted operation metadata available to the supervisor, and worker
+exit status; the audit must not claim a kernel-generated denial event.
 
 ## Broker and remote enforcement
 
@@ -242,12 +300,13 @@ grant and minted credential. A child must be no more authoritative than its
 parent. Inherited kernel restrictions reinforce this property only for local
 kernel resources.
 
-The default is one fresh worker per call. If benchmarks require pooling, a
-trusted template process with no untrusted tool code loaded forks a new child
-for each call. That child tightens to the call's grant before importing the
-tool. A reusable template is keyed by enforcement-envelope hash, subject, tool
-artifact hash, and taint class. Arbitrary tool state never crosses subjects or
-grant keys.
+The dedicated single-threaded spawner is the only worker creation path and
+always produces one fresh worker per call. It is part of phase one. If later
+benchmarks require multiple preinitialized spawners, each remains free of
+untrusted tool code and is keyed by enforcement-envelope hash, subject, tool
+artifact hash, and taint class. Every call still receives a fresh child that
+tightens to the call grant before importing the tool. Arbitrary tool state never
+crosses calls, subjects, or grant keys.
 
 ## Verified hook placement
 
@@ -307,7 +366,7 @@ Phase one is five weeks and contains:
 3. Cedar integration and reference mandatory policies;
 4. backend interface, capability contract, attestation, audit changes, and
    `advisory`; and
-5. the Linux Landlock backend.
+5. the dedicated spawner and Linux Landlock backend.
 
 Broker custody, MCP proxying, the native launcher, a second enforcing backend,
 and benchmark evaluation are phase two and are scoped after phase one.
