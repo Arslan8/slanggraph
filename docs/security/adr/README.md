@@ -6,3 +6,4 @@
 - [0004: Undeclared tools default deny](0004-default-deny.md)
 - [0005: Human approval is policy input](0005-approval-policy-input.md)
 - [0006: Policy failures and timeouts fail closed](0006-fail-closed.md)
+- [0007: Enforce tool grants outside the Python process](0007-kernel-enforced-confinement.md)
