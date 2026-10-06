@@ -661,11 +661,13 @@ class _ModuleAnalyzer:
         tainted: bool,
         message: str,
     ) -> None:
-        key = (node.lineno, node.col_offset, kind, symbol)
+        line = getattr(node, "lineno", 0)
+        column = getattr(node, "col_offset", 0)
+        key = (line, column, kind, symbol)
         self.findings[key] = EscapeFinding(
             self.path,
-            node.lineno,
-            node.col_offset,
+            line,
+            column,
             kind,
             severity,
             symbol,
@@ -805,7 +807,7 @@ class _FunctionAnalyzer(ast.NodeVisitor):
                 "graph-controlled value is used as a callable",
             )
 
-        if is_local:
+        if isinstance(node.func, ast.Name) and node.func.id in self.module.functions:
             self.local_calls.add(node.func.id)
 
         self.generic_visit(node)

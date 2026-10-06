@@ -10,7 +10,7 @@ from concurrent.futures import TimeoutError as FutureTimeoutError
 from dataclasses import replace
 from functools import partial
 from time import perf_counter
-from typing import Any
+from typing import Any, cast
 
 from langgraph.prebuilt.security.dac import dac_check
 from langgraph.prebuilt.security.descriptor import normalize_resource
@@ -263,12 +263,15 @@ class SecurityStack:
                 continue
             started = self._started()
             loop = asyncio.get_running_loop()
-            hook = partial(
-                module.tool_call_post,
-                principal,
-                call,
-                result,
-                call.tool.security.allocate(module.name),
+            hook = cast(
+                Callable[[], Any],
+                partial(
+                    module.tool_call_post,
+                    principal,
+                    call,
+                    result,
+                    call.tool.security.allocate(module.name),
+                ),
             )
             try:
                 hook_result = await asyncio.wait_for(

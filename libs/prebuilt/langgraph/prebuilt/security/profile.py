@@ -457,11 +457,16 @@ class ProfileDocument:
         dac_overrides: Mapping[str, ToolProfile] | DacOverrides | None = None,
     ) -> DacEvaluation:
         """Evaluate one call using this document's inbound shares."""
-        override_values = getattr(dac_overrides, "profiles", dac_overrides) or {}
-        try:
-            tool = override_values.get(tool_name, self.tools[tool_name])
-        except KeyError as exc:
-            raise ValueError(f"unknown tool profile: {tool_name}") from exc
+        from langgraph.prebuilt.security.descriptor import DacOverrides
+
+        override_values: Mapping[str, ToolProfile]
+        if isinstance(dac_overrides, DacOverrides):
+            override_values = dac_overrides.profiles
+        else:
+            override_values = dac_overrides or {}
+        tool = override_values.get(tool_name) or self.tools.get(tool_name)
+        if tool is None:
+            raise ValueError(f"unknown tool profile: {tool_name}")
         if tool.name != tool_name:
             tool = replace(tool, name=tool_name)
         try:
@@ -556,52 +561,53 @@ def evaluate_dac(
     services: list[BoundNamedRule] = []
     removed: list[RemovedLine] = []
 
-    for line in tool.fs:
-        requested = line.path.bind(normalized_args)
-        survivors: set[tuple[frozenset[str], BoundPath]] = set()
+    for fs_line in tool.fs:
+        requested_fs = fs_line.path.bind(normalized_args)
+        fs_survivors: set[tuple[frozenset[str], BoundPath]] = set()
         for operations, allowed in fs_envelope:
-            intersection = _intersect_path(requested, allowed)
-            common = line.operations & operations
+            intersection = _intersect_path(requested_fs, allowed)
+            common = fs_line.operations & operations
             if intersection is not None and common:
-                survivors.add((common, intersection))
-        if survivors:
+                fs_survivors.add((common, intersection))
+        if fs_survivors:
             fs.extend(
-                BoundFsRule(operations, path, line.location)
+                BoundFsRule(operations, path, fs_line.location)
                 for operations, path in sorted(
-                    survivors,
+                    fs_survivors,
                     key=lambda item: (item[1].value, item[1].subtree, sorted(item[0])),
                 )
             )
         else:
-            removed.append(_removed("fs", line))
+            removed.append(_removed("fs", fs_line))
 
-    for line in tool.net:
-        target = (line.operation, line.bind(normalized_args))
+    for net_line in tool.net:
+        target = (net_line.operation, net_line.bind(normalized_args))
         if target in net_envelope:
-            net.append(BoundNetRule(*target, source=line.location))
+            net.append(BoundNetRule(*target, source=net_line.location))
         else:
-            removed.append(_removed("net", line))
+            removed.append(_removed("net", net_line))
 
-    for line in tool.exec:
-        requested = line.path.bind(normalized_args)
-        survivors = {
+    for exec_line in tool.exec:
+        requested_exec = exec_line.path.bind(normalized_args)
+        exec_survivors = {
             intersection
             for allowed in exec_envelope
-            if (intersection := _intersect_path(requested, allowed)) is not None
+            if (intersection := _intersect_path(requested_exec, allowed)) is not None
         }
-        if survivors:
+        if exec_survivors:
             executable.extend(
-                BoundExecRule(path, line.location) for path in sorted(survivors)
+                BoundExecRule(path, exec_line.location)
+                for path in sorted(exec_survivors)
             )
         else:
-            removed.append(_removed("exec", line))
+            removed.append(_removed("exec", exec_line))
 
-    for line in tool.services:
-        requested = line.bind(normalized_args)
-        if requested in service_envelope:
-            services.append(requested)
+    for service_line in tool.services:
+        requested_service = service_line.bind(normalized_args)
+        if requested_service in service_envelope:
+            services.append(requested_service)
         else:
-            removed.append(_removed("service", line))
+            removed.append(_removed("service", service_line))
 
     grant = ConstructiveGrant(
         subject=(principal.name, tool.name),

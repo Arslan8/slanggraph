@@ -449,6 +449,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "codespell" },
+    { name = "hypothesis" },
     { name = "langchain-core" },
     { name = "langgraph", editable = "../langgraph" },
     { name = "langgraph-checkpoint", editable = "../checkpoint" },
@@ -473,6 +474,7 @@ lint = [
     { name = "ty" },
 ]
 test = [
+    { name = "hypothesis" },
     { name = "langchain-core" },
     { name = "langgraph", editable = "../langgraph" },
     { name = "langgraph-checkpoint", editable = "../checkpoint" },
