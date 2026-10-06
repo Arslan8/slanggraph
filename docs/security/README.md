@@ -7,8 +7,9 @@ tamper-evident auditing, and redacted observability. It is opt-in: omitting
 
 Start with the [10-line HOWTO](HOWTO.md), then use the
 [API and behavior reference](reference.md). Existing applications should follow
-the [migration guide](migration.md). The design rationale is recorded in the
-[`adr/`](adr/) directory.
+the [migration guide](migration.md). The constructive DAC language is specified
+by the [frozen `.slp` profile grammar](profiles.md). The design rationale is
+recorded in the [`adr/`](adr/) directory.
 
 ## Security boundary
 

@@ -11,6 +11,7 @@ from typing import Any
 from langgraph.prebuilt.security.descriptor import DacOverrides
 from langgraph.prebuilt.security.hooks import SecurityModule
 from langgraph.prebuilt.security.observability import SecurityObserver
+from langgraph.prebuilt.security.profile import ToolProfile
 from langgraph.prebuilt.security.stack import SecurityStack
 from langgraph.prebuilt.security.types import AuditRecord, AuditSink, Tool, Verdict
 
@@ -90,7 +91,10 @@ class SecurityConfig:
                 node._security_tools_by_name[name] = configured_tool
                 node._dacs_by_name[name] = policy
                 if name in overrides:
-                    self._audit_override(name, policy)
+                    self._audit_override(
+                        name,
+                        overrides.profiles.get(name, policy),
+                    )
             node._configure_security(
                 stack,
                 audit_sink=self.audit_sink,
@@ -104,15 +108,20 @@ class SecurityConfig:
     def _audit_override(self, tool_name: str, policy: Any) -> None:
         if self.audit_sink is None:
             return
-        encoded = json.dumps(
-            {
+        payload = (
+            policy.audit_payload()
+            if isinstance(policy, ToolProfile)
+            else {
                 "arg_grants": {
                     key: dict(value) for key, value in policy.arg_grants.items()
                 },
                 "grants": dict(policy.grants),
                 "owner": policy.owner,
                 "required_scopes": sorted(policy.required_scopes),
-            },
+            }
+        )
+        encoded = json.dumps(
+            payload,
             sort_keys=True,
             separators=(",", ":"),
         ).encode()

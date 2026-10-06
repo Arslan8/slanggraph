@@ -14,6 +14,7 @@ from langgraph.prebuilt.security import (
     SecurityConfig,
     SecurityModule,
     ToolDac,
+    ToolProfile,
     dac,
 )
 
@@ -49,6 +50,32 @@ def test_tool_node_constructor_applies_modules_and_operator_override() -> None:
     security_tool = node._security_tools_by_name["configured_tool"]
     assert security_tool.security["label"]["classification"] == "internal"
     assert audit.records()[0].stage == "compile"
+
+
+def test_full_profile_override_projects_call_dac_and_is_audited() -> None:
+    """A full replacement works on the existing call path during migration."""
+    profile = ToolProfile(
+        "configured_tool",
+        owner="operator",
+        call_grants={"operator"},
+        returns="sensitive",
+    )
+    audit = MemoryAuditSink()
+
+    node = ToolNode(
+        [configured_tool],
+        security=SecurityConfig(
+            dac_overrides=DacOverrides(profiles={"configured_tool": profile}),
+            audit_sink=audit,
+        ),
+    )
+
+    assert node.dacs_by_name["configured_tool"].owner == "operator"
+    assert node.dacs_by_name["configured_tool"].grants == {
+        "operator": "x",
+        "*": "-",
+    }
+    assert audit.records()[0].reason == "operator_override"
 
 
 def test_state_graph_compile_configures_reachable_tool_nodes() -> None:

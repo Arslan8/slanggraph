@@ -10,7 +10,7 @@ from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from types import MappingProxyType
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlsplit
 
 _SECURITY_KEY = "security"
@@ -23,6 +23,9 @@ _CONTROL_CHAR = re.compile(r"[\x00-\x1f\x7f]")
 
 _Decorated = TypeVar("_Decorated")
 Normalizer = Callable[[Any], str]
+
+if TYPE_CHECKING:
+    from langgraph.prebuilt.security.profile import ToolProfile
 
 
 class Effect(str, Enum):
@@ -132,19 +135,46 @@ class ToolDac:
 
 
 class DacOverrides(Mapping[str, ToolDac]):
-    """Immutable operator overrides that replace author DACs by tool name."""
+    """Immutable operator overrides that replace author DACs by tool name.
 
-    __slots__ = ("_values",)
+    Full profile overrides replace the corresponding parsed tool block wholesale.
+    Mapping access exposes their call authorization as a legacy `ToolDac` so the
+    existing hook path remains compatible while grant construction is introduced.
+    """
 
-    def __init__(self, values: Mapping[str, ToolDac] | None = None) -> None:
+    __slots__ = ("_profiles", "_values")
+
+    def __init__(
+        self,
+        values: Mapping[str, ToolDac] | None = None,
+        *,
+        profiles: Mapping[str, ToolProfile] | None = None,
+    ) -> None:
         copied = dict(values or {})
-        if any(not name for name in copied):
+        profile_values = dict(profiles or {})
+        if set(copied).intersection(profile_values):
+            msg = "a tool cannot have both a ToolDac and profile override"
+            raise ValueError(msg)
+        if any(not name for name in copied | profile_values):
             msg = "DAC override tool names must be non-empty"
             raise ValueError(msg)
         if not all(isinstance(value, ToolDac) for value in copied.values()):
             msg = "every DAC override must be a ToolDac"
             raise TypeError(msg)
+        if profile_values:
+            from langgraph.prebuilt.security.profile import ToolProfile
+
+            if not all(
+                isinstance(value, ToolProfile) for value in profile_values.values()
+            ):
+                msg = "every profile override must be a ToolProfile"
+                raise TypeError(msg)
+            copied.update(
+                (name, profile.as_tool_dac())
+                for name, profile in profile_values.items()
+            )
         self._values = MappingProxyType(copied)
+        self._profiles = MappingProxyType(profile_values)
 
     def __getitem__(self, key: str) -> ToolDac:
         return self._values[key]
@@ -154,6 +184,11 @@ class DacOverrides(Mapping[str, ToolDac]):
 
     def __len__(self) -> int:
         return len(self._values)
+
+    @property
+    def profiles(self) -> Mapping[str, ToolProfile]:
+        """Full tool-profile replacements, keyed by public tool name."""
+        return self._profiles
 
 
 def effects(
