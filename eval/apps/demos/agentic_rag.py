@@ -36,7 +36,7 @@ from resource_monitors.backends import ExactBrokerMediator, TFIDFRetrieverBacken
 from resource_monitors.retriever_worker import retrieve_blog_posts as broker_retrieve
 from resource_monitors.security import monitored_security
 from sklearn.feature_extraction.text import TfidfVectorizer
-from timing import ModelTiming
+from timing import ModelTiming, assert_tool_parity
 
 MODEL = {
     "name": "qwen3:8b",
@@ -103,17 +103,19 @@ def serial(value):
 
 def build(paths: list[Path], mode: str, model_timing: ModelTiming):
     documents = chunks(paths)
+    vectorizer = TfidfVectorizer(stop_words="english").fit(documents)
+    matrix = vectorizer.transform(documents)
+
+    @tool("retrieve_blog_posts")
+    def baseline_retrieve_blog_posts(query: str) -> str:
+        """Search and return information about the frozen blog posts."""
+        scores = (matrix @ vectorizer.transform([query]).T).toarray().ravel()
+        indices = scores.argsort()[-5:][::-1]
+        return "\n\n".join(documents[index] for index in indices)
+
     security = dispatcher = audit = None
     if mode == "Baseline":
-        vectorizer = TfidfVectorizer(stop_words="english").fit(documents)
-        matrix = vectorizer.transform(documents)
-
-        @tool("retrieve_blog_posts")
-        def retrieve_blog_posts(query: str) -> str:
-            """Search and return information about the frozen blog posts."""
-            scores = (matrix @ vectorizer.transform([query]).T).toarray().ravel()
-            indices = scores.argsort()[-5:][::-1]
-            return "\n\n".join(documents[index] for index in indices)
+        retrieve_blog_posts = baseline_retrieve_blog_posts
 
     else:
         resource = RETRIEVER.bind(
@@ -149,11 +151,10 @@ def build(paths: list[Path], mode: str, model_timing: ModelTiming):
         )
         retrieve_blog_posts = tool(
             "retrieve_blog_posts",
-            description=(
-                "Search and return information from Lilian Weng's frozen posts about "
-                "LLM agents, prompt engineering, and adversarial attacks."
-            ),
+            description=baseline_retrieve_blog_posts.description,
+            args_schema=baseline_retrieve_blog_posts.args_schema,
         )(broker_retrieve)
+        assert_tool_parity(baseline_retrieve_blog_posts, retrieve_blog_posts)
         security, audit = monitored_security(
             (retrieve_blog_posts,),
             dispatcher=dispatcher,

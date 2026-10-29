@@ -33,7 +33,7 @@ from resource_monitors.security import monitored_security
 from resource_monitors.sql_worker import list_tables as broker_list_tables
 from resource_monitors.sql_worker import query as broker_query
 from resource_monitors.sql_worker import schema as broker_schema
-from timing import ModelTiming
+from timing import ModelTiming, assert_tool_parity
 
 MODEL = {
     "name": "qwen3:8b",
@@ -110,12 +110,15 @@ def build(db_path: Path, events: Path, mode: str, model_timing: ModelTiming):
         callbacks=[Observer(events)],
     )
     db = SQLDatabase.from_uri(f"sqlite:///{db_path}")
+    tools = SQLDatabaseToolkit(db=db, llm=llm).get_tools()
+    baseline_list_tables = next(item for item in tools if item.name == "sql_db_list_tables")
+    baseline_get_schema = next(item for item in tools if item.name == "sql_db_schema")
+    baseline_run_query = next(item for item in tools if item.name == "sql_db_query")
     security = dispatcher = audit = None
     if mode == "Baseline":
-        tools = SQLDatabaseToolkit(db=db, llm=llm).get_tools()
-        list_tables_tool = next(item for item in tools if item.name == "sql_db_list_tables")
-        get_schema_tool = next(item for item in tools if item.name == "sql_db_schema")
-        run_query_tool = next(item for item in tools if item.name == "sql_db_query")
+        list_tables_tool = baseline_list_tables
+        get_schema_tool = baseline_get_schema
+        run_query_tool = baseline_run_query
     else:
         resource = SQL_DATABASE.bind(
             implementation=ReadOnlySQLBackend(db_path),
@@ -159,9 +162,27 @@ def build(db_path: Path, events: Path, mode: str, model_timing: ModelTiming):
             ),
             resources=(resource,),
         )
-        list_tables_tool = tool("sql_db_list_tables")(broker_list_tables)
-        get_schema_tool = tool("sql_db_schema")(broker_schema)
-        run_query_tool = tool("sql_db_query")(broker_query)
+        list_tables_tool = tool(
+            "sql_db_list_tables",
+            description=baseline_list_tables.description,
+            args_schema=baseline_list_tables.args_schema,
+        )(broker_list_tables)
+        get_schema_tool = tool(
+            "sql_db_schema",
+            description=baseline_get_schema.description,
+            args_schema=baseline_get_schema.args_schema,
+        )(broker_schema)
+        run_query_tool = tool(
+            "sql_db_query",
+            description=baseline_run_query.description,
+            args_schema=baseline_run_query.args_schema,
+        )(broker_query)
+        for baseline, protected in (
+            (baseline_list_tables, list_tables_tool),
+            (baseline_get_schema, get_schema_tool),
+            (baseline_run_query, run_query_tool),
+        ):
+            assert_tool_parity(baseline, protected)
         tool_set = (list_tables_tool, get_schema_tool, run_query_tool)
         security, audit = monitored_security(
             tool_set,

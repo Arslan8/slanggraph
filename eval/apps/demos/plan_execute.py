@@ -32,7 +32,7 @@ from resource_monitors.backends import ExactBrokerMediator, FrozenSearchBackend
 from resource_monitors.search_worker import frozen_search as broker_search
 from resource_monitors.security import monitored_security
 from sklearn.feature_extraction.text import TfidfVectorizer
-from timing import ModelTiming
+from timing import ModelTiming, assert_tool_parity
 from typing_extensions import TypedDict
 
 
@@ -89,20 +89,22 @@ def serial(value):
 
 def build(corpus_path: Path, mode: str, model_timing: ModelTiming):
     corpus = json.loads(corpus_path.read_text())
+    texts = [f"{item['title']} {item['content']}" for item in corpus]
+    vectorizer = TfidfVectorizer(stop_words="english").fit(texts)
+    matrix = vectorizer.transform(texts)
+
+    @tool("tavily_search_results_json")
+    def baseline_frozen_search(query: str) -> list[dict]:
+        """Search the frozen web corpus and return up to three relevant results."""
+        scores = (matrix @ vectorizer.transform([query]).T).toarray().ravel()
+        return [
+            {"url": corpus[index]["url"], "content": corpus[index]["content"]}
+            for index in scores.argsort()[-3:][::-1]
+        ]
+
     security = dispatcher = audit = None
     if mode == "Baseline":
-        texts = [f"{item['title']} {item['content']}" for item in corpus]
-        vectorizer = TfidfVectorizer(stop_words="english").fit(texts)
-        matrix = vectorizer.transform(texts)
-
-        @tool("tavily_search_results_json")
-        def frozen_search(query: str) -> list[dict]:
-            """Search the frozen web corpus and return up to three relevant results."""
-            scores = (matrix @ vectorizer.transform([query]).T).toarray().ravel()
-            return [
-                {"url": corpus[index]["url"], "content": corpus[index]["content"]}
-                for index in scores.argsort()[-3:][::-1]
-            ]
+        frozen_search = baseline_frozen_search
 
     else:
         resource = SEARCH.bind(
@@ -138,8 +140,10 @@ def build(corpus_path: Path, mode: str, model_timing: ModelTiming):
         )
         frozen_search = tool(
             "tavily_search_results_json",
-            description="Search the frozen web corpus and return relevant results.",
+            description=baseline_frozen_search.description,
+            args_schema=baseline_frozen_search.args_schema,
         )(broker_search)
+        assert_tool_parity(baseline_frozen_search, frozen_search)
         security, audit = monitored_security(
             (frozen_search,),
             dispatcher=dispatcher,

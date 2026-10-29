@@ -57,7 +57,7 @@ from resource_monitors.travel_worker import (
     update_ticket_to_new_flight as broker_update,
 )
 from sklearn.feature_extraction.text import TfidfVectorizer
-from timing import ModelTiming
+from timing import ModelTiming, assert_tool_parity
 from typing_extensions import TypedDict
 
 FROZEN_NOW = pd.Timestamp("2026-11-15T12:05:03.561731-04:00")
@@ -178,7 +178,7 @@ def build(
     vectorizer = TfidfVectorizer(stop_words="english").fit(faq_sections)
     matrix = vectorizer.transform(faq_sections)
 
-    @tool
+    @tool("lookup_policy")
     def baseline_lookup_policy(query: str) -> str:
         """Consult the company policies to check whether certain options are permitted."""
         scores = (matrix @ vectorizer.transform([query]).T).toarray().ravel()
@@ -190,12 +190,16 @@ def build(
         del query
         return []
 
+    baseline_fetch = namespace["fetch_user_flight_information"]
+    baseline_search = namespace["search_flights"]
+    baseline_update = namespace["update_ticket_to_new_flight"]
+    baseline_cancel = namespace["cancel_ticket"]
     dispatcher = security = audit = None
     if mode == "Baseline":
-        fetch = namespace["fetch_user_flight_information"]
-        search = namespace["search_flights"]
-        update = namespace["update_ticket_to_new_flight"]
-        cancel = namespace["cancel_ticket"]
+        fetch = baseline_fetch
+        search = baseline_search
+        update = baseline_update
+        cancel = baseline_cancel
         lookup_policy = baseline_lookup_policy
         frozen_search = baseline_frozen_search
     else:
@@ -267,28 +271,43 @@ def build(
         )
         fetch = tool(
             "fetch_user_flight_information",
-            description="Fetch all tickets and flight details for the signed-in passenger.",
+            description=baseline_fetch.description,
+            args_schema=baseline_fetch.args_schema,
         )(broker_fetch)
         search = tool(
             "search_flights",
-            description="Search flights by airports and optional departure-time range.",
+            description=baseline_search.description,
+            args_schema=baseline_search.args_schema,
         )(broker_flight_search)
         update = tool(
             "update_ticket_to_new_flight",
-            description="Update the signed-in passenger's ticket to a valid new flight.",
+            description=baseline_update.description,
+            args_schema=baseline_update.args_schema,
         )(broker_update)
         cancel = tool(
             "cancel_ticket",
-            description="Cancel a ticket owned by the signed-in passenger.",
+            description=baseline_cancel.description,
+            args_schema=baseline_cancel.args_schema,
         )(broker_cancel)
         lookup_policy = tool(
             "lookup_policy",
-            description="Consult the frozen airline policy corpus.",
+            description=baseline_lookup_policy.description,
+            args_schema=baseline_lookup_policy.args_schema,
         )(broker_lookup_policy)
         frozen_search = tool(
             "tavily_search_results_json",
-            description="Search the frozen travel web corpus.",
+            description=baseline_frozen_search.description,
+            args_schema=baseline_frozen_search.args_schema,
         )(broker_search)
+        for baseline, protected in (
+            (baseline_fetch, fetch),
+            (baseline_search, search),
+            (baseline_update, update),
+            (baseline_cancel, cancel),
+            (baseline_lookup_policy, lookup_policy),
+            (baseline_frozen_search, frozen_search),
+        ):
+            assert_tool_parity(baseline, protected)
         all_tools = (frozen_search, fetch, search, lookup_policy, update, cancel)
         security, audit = monitored_security(
             all_tools,

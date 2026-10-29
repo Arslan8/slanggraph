@@ -278,7 +278,10 @@ def new_correct(job: Job, record: dict, trial: Path, tasks: dict) -> bool:
                 "short-term" in text
                 and any(term in text for term in ("immediate", "working", "current")),
                 "long-term" in text
-                and any(term in text for term in ("persist", "future", "beyond")),
+                and any(
+                    term in text
+                    for term in ("persist", "future", "beyond", "extended", "indefinite")
+                ),
             ),
             3: (
                 "chain-of-thought" in text and any(term in text for term in ("step", "reason")),
@@ -293,7 +296,8 @@ def new_correct(job: Job, record: dict, trial: Path, tasks: dict) -> bool:
             ),
             5: (
                 "reason" in text and any(term in text for term in ("act", "tool", "action")),
-                "observation" in text and "reason" in text,
+                any(term in text for term in ("observation", "feedback", "new information"))
+                and "reason" in text,
             ),
         }[job.task]
         return all(required)

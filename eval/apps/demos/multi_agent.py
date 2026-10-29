@@ -40,7 +40,7 @@ from resource_monitors.python_worker import python_repl_tool as broker_python
 from resource_monitors.search_worker import frozen_search as broker_search
 from resource_monitors.security import monitored_security
 from sklearn.feature_extraction.text import TfidfVectorizer
-from timing import ModelTiming
+from timing import ModelTiming, assert_tool_parity
 
 
 def llm() -> ChatOpenAI:
@@ -197,12 +197,16 @@ def build(
         )
         tavily_tool = tool(
             "tavily_search",
-            description="Search the frozen GDP corpus and return relevant results.",
+            description=baseline_tavily_tool.description,
+            args_schema=baseline_tavily_tool.args_schema,
         )(broker_search)
         python_repl_tool = tool(
             "python_repl_tool",
-            description="Execute Python chart code in a persistent isolated session.",
+            description=baseline_python_repl_tool.description,
+            args_schema=baseline_python_repl_tool.args_schema,
         )(broker_python)
+        assert_tool_parity(baseline_tavily_tool, tavily_tool)
+        assert_tool_parity(baseline_python_repl_tool, python_repl_tool)
         security, audit = monitored_security(
             (tavily_tool, python_repl_tool),
             dispatcher=dispatcher,
