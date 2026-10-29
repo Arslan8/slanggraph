@@ -1,0 +1,49 @@
+{
+  "protocol": "five paired repetition blocks; modes shuffled within each block",
+  "shuffle_seed": 20261028,
+  "bootstrap_seed": 20261028,
+  "model": "qwen3:8b",
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "temperature": 0,
+  "generation_seed": 20261005,
+  "reasoning_effort": "none",
+  "upstream_commit": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+  "task_digest": "5518b7cbf4e22276cda21c8425543dd32ca508f56841f75d473df49818a6d725",
+  "fixture_digests": {
+    "eval/campaigns/langgraph-demos-v1/fixtures/sql/Chinook.db": "84f5d9143ac4deebdb81650ab650e226d909e660106846b119a5c47c33f94c13",
+    "eval/campaigns/langgraph-demos-v1/fixtures/search/olympics.json": "b632fff8595de75c304c1fc6136c3acc78e3022862de762d06ef89e15ad24cdb",
+    "eval/campaigns/langgraph-demos-v1/fixtures/search/world-bank-gdp-2019-2023.json": "d67c7c415b35004aaa809a822d544495ce46649b2c422a11d78ca88f29726f39",
+    "eval/campaigns/langgraph-demos-v1/fixtures/customer-support/travel2.sqlite": "7646259e80230dc9bd92914466e13874bba82f461473d6a66552e819898eb66b",
+    "eval/campaigns/langgraph-demos-v1/fixtures/rag/2023-06-23-agent.html": "03b6ed75b1dc0dedd200a077367d1f7737f0a18e08c104e7f653115e1f52b0ef",
+    "eval/campaigns/langgraph-demos-v1/fixtures/rag/2023-03-15-prompt-engineering.html": "8f9fa3bda887450231845d9fd5367ee66d5d1b6dd9ad9420ef94c953ecf4edd4",
+    "eval/campaigns/langgraph-demos-v1/fixtures/rag/2023-10-25-adv-attack-llm.html": "86612bf758100148105aea452ac1e0ea068f8d2dba7bd3caf9632d42fd2cd55c"
+  },
+  "source_digests": {
+    "eval/apps/demos/add_tools_protected.py": "fa0bec625dfea600c51aae85989bf1ccfa559225d96679a4f08a3b8e7862fddb",
+    "eval/apps/demos/tool_calling_protected.py": "f635021c3f30977d30ac007a7d0eb0fefa887b0cfbef92c8168746ef0d12fafd",
+    "eval/apps/demos/persistence_protected.py": "2268b79d3ae88f26db6369cef84ce8f2bb7081b77bd9f0aa41eab7788e30e0ff",
+    "eval/apps/demos/sql_agent.py": "d294e3e2d244a18a9c107b5ad63770f996179cc4fd2a4274b90bef5dc5ee7f10",
+    "eval/apps/demos/agentic_rag.py": "c52b33026957fc25bb621362541f0be6bb2bca09f3f899543a76135322bfdbd0",
+    "eval/apps/demos/plan_execute.py": "d3b0dabe0465b1ec67b7510f543a2bc4fcb9d15d866a8d30154dfabf3342a2a1",
+    "eval/apps/demos/multi_agent.py": "20b560ba862195b76357e26e9b4d2af684c6070a1b8ee4d4c8350aa2a2cab17c",
+    "eval/apps/demos/customer_support.py": "1ee3a935b9d75d7af60482aac38a26993e4842e57505e551691fd7ea21079643"
+  },
+  "worker_route_digest": "6097be9b7b84639959c7a0b9de31c79f23486e9f01bf1b6de575dfab25c7cb08",
+  "timeouts_seconds": {
+    "D1-D3_and_T1-T10": 180,
+    "D4-D5": 300
+  },
+  "primary_timer": "parent subprocess wall clock, including process startup",
+  "evaluated_revision": "00c46fe25189cd67df0ea98ced9186af024926ca",
+  "host": {
+    "hostname": "e5-cse-359-01",
+    "kernel": "6.17.0-1033-oem",
+    "cpu": "Intel(R) Xeon(R) w5-3435X",
+    "logical_cpus": 32,
+    "python": "3.11.14",
+    "uv": "0.9.18",
+    "ollama": "0.32.14"
+  },
+  "run_id": "optimized-matched-20261029-v3",
+  "repetitions": 5
+}

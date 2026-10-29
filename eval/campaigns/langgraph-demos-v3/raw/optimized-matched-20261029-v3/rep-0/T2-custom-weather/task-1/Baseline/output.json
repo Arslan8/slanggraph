@@ -1,0 +1,113 @@
+{
+  "demo": "custom-weather",
+  "mode": "Baseline",
+  "prompt": "What's the weather in San Francisco?",
+  "wall_ms": 1147.0029020565562,
+  "model_time_ms": 1056.5669109346345,
+  "model_calls": 2,
+  "answer": "The current weather in San Francisco is 60 degrees and foggy.",
+  "messages": [
+    {
+      "content": "What's the weather in San Francisco?",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "36d13b9b-e4e3-4ca9-97bb-14e2b8b04603"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 21,
+          "prompt_tokens": 145,
+          "total_tokens": 166,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-606",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a188a0-9328-7c10-a14f-4580480f517c-0",
+      "tool_calls": [
+        {
+          "name": "get_weather",
+          "args": {
+            "location": "San Francisco"
+          },
+          "id": "call_7f8udc57",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 145,
+        "output_tokens": 21,
+        "total_tokens": 166,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "It's 60 degrees and foggy.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "get_weather",
+      "id": "6ae01c9b-7aa3-4a92-b114-46f384690531",
+      "tool_call_id": "call_7f8udc57",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The current weather in San Francisco is 60 degrees and foggy.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 16,
+          "prompt_tokens": 187,
+          "total_tokens": 203,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-964",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a188a0-95b5-70f1-b111-db8b881ab465-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 187,
+        "output_tokens": 16,
+        "total_tokens": 203,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "executed_tools": [
+    "get_weather"
+  ],
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

@@ -57,7 +57,14 @@ def summarize_mode(records: list[dict]) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id", required=True)
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        help="Write generated outputs here instead of the campaign directory.",
+    )
     args = parser.parse_args()
+    output = args.output_dir or CAMPAIGN
+    output.mkdir(parents=True, exist_ok=True)
     raw = CAMPAIGN / "raw" / args.run_id
     records = json.loads((raw / "trials.json").read_text())
     applications = sorted({item["application"] for item in records})
@@ -172,7 +179,7 @@ def main() -> None:
             },
         },
     }
-    (CAMPAIGN / "statistics.json").write_text(
+    (output / "statistics.json").write_text(
         json.dumps(statistics_output, indent=2) + "\n"
     )
 
@@ -241,7 +248,7 @@ def main() -> None:
             "as useful speed.",
         )
     )
-    (CAMPAIGN / "RESULTS.md").write_text("\n".join(lines) + "\n")
+    (output / "RESULTS.md").write_text("\n".join(lines) + "\n")
 
     plotted = [item for item in applications if "ratio" in results[item]]
     values = [results[item]["ratio"] for item in plotted]
@@ -266,7 +273,7 @@ def main() -> None:
     axis.set_xticks(range(len(plotted)), plotted, rotation=45, ha="right")
     axis.set_title("Argus ordinary-demo overhead; paired repetition-block 95% intervals")
     figure.tight_layout()
-    figure.savefig(CAMPAIGN / "application-overhead.png", dpi=180)
+    figure.savefig(output / "application-overhead.png", dpi=180)
     plt.close(figure)
 
 

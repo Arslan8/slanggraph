@@ -1,0 +1,68 @@
+{
+  "demo": "parallel-weather",
+  "mode": "Baseline",
+  "prompt": "Execute the tutorial's fixed ToolNode calls.",
+  "wall_ms": 5.22495701443404,
+  "model_time_ms": 0.0,
+  "model_calls": 0,
+  "answer": "nyc, sf",
+  "messages": [
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "315e59f6-b945-48ad-8fc5-45fb968c748e",
+      "tool_calls": [
+        {
+          "name": "get_weather",
+          "args": {
+            "location": "San Francisco"
+          },
+          "id": "parallel-weather",
+          "type": "tool_call"
+        },
+        {
+          "name": "get_coolest_cities",
+          "args": {},
+          "id": "parallel-cities",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "It's 60 degrees and foggy.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "get_weather",
+      "id": "e0647eb5-562d-4239-88e9-05b176ff8de8",
+      "tool_call_id": "parallel-weather",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "nyc, sf",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "get_coolest_cities",
+      "id": "2c9de0c6-b4c8-4a55-adc4-e1f4849d3df4",
+      "tool_call_id": "parallel-cities",
+      "artifact": null,
+      "status": "success"
+    }
+  ],
+  "executed_tools": [
+    "get_weather",
+    "get_coolest_cities"
+  ],
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

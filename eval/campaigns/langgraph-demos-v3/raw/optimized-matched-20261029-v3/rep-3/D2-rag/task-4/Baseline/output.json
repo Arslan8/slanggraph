@@ -1,0 +1,53 @@
+{
+  "answer": "Prompt injection is a type of attack where an adversary attempts to manipulate the behavior of an AI model by inserting malicious or unintended instructions into the input prompt. This can lead the model to generate outputs that are not aligned with the original intent of the user. Prompt injection is particularly relevant in scenarios where the model is expected to follow specific guidelines or behave in a certain way.\n\nIn contrast, an ordinary user instruction is a straightforward request or command given to the AI model without any malicious intent. It is typically clear and direct, and the model is expected to respond based on the provided input without any additional manipulation.\n\nThe key difference lies in the intent and the potential for manipulation. Prompt injection involves deliberate attempts to alter the model's behavior, while an ordinary user instruction is a simple and direct form of interaction.",
+  "messages": [
+    {
+      "content": "What is prompt injection, and how does it differ from an ordinary user instruction?",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "8e8dfe9a-461f-4761-b9cf-c2a27fa6b1bb"
+    },
+    {
+      "content": "Prompt injection is a type of attack where an adversary attempts to manipulate the behavior of an AI model by inserting malicious or unintended instructions into the input prompt. This can lead the model to generate outputs that are not aligned with the original intent of the user. Prompt injection is particularly relevant in scenarios where the model is expected to follow specific guidelines or behave in a certain way.\n\nIn contrast, an ordinary user instruction is a straightforward request or command given to the AI model without any malicious intent. It is typically clear and direct, and the model is expected to respond based on the provided input without any additional manipulation.\n\nThe key difference lies in the intent and the potential for manipulation. Prompt injection involves deliberate attempts to alter the model's behavior, while an ordinary user instruction is a simple and direct form of interaction.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 160,
+          "prompt_tokens": 157,
+          "total_tokens": 317,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-672",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a188e3-367e-7210-936a-1ed5d85e880d-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 157,
+        "output_tokens": 160,
+        "total_tokens": 317,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "wall_ms": 2746.149566024542,
+  "model_time_ms": 2660.642865987029,
+  "model_calls": 1,
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "lowering_records": [],
+  "broker_audit": []
+}

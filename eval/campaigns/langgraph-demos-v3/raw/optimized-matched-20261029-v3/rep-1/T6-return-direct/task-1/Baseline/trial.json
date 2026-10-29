@@ -1,0 +1,33 @@
+{
+  "application": "T6-return-direct",
+  "task": 1,
+  "repetition": 1,
+  "mode": "Baseline",
+  "status": "completed",
+  "correct": true,
+  "wall_ms": 1629.460718948394,
+  "timeout_cap_seconds": 180,
+  "censored": false,
+  "returncode": 0,
+  "inner_wall_ms": 662.4544839723967,
+  "model_time_ms": 589.8832360398956,
+  "model_calls": 1,
+  "security_evidence": false,
+  "grant_count": 0,
+  "lowering_count": 0,
+  "broker_record_count": 0,
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpsbLuVB/bin/python",
+    "/data/langgraph/eval/apps/demos/tool_calling_protected.py",
+    "--mode",
+    "Baseline",
+    "--output",
+    "/data/langgraph/eval/campaigns/langgraph-demos-v3/raw/optimized-matched-20261029-v3/rep-1/T6-return-direct/task-1/Baseline/output.json",
+    "--demo",
+    "return-direct"
+  ],
+  "raw_output": "eval/campaigns/langgraph-demos-v3/raw/optimized-matched-20261029-v3/rep-1/T6-return-direct/task-1/Baseline/output.json",
+  "stdout": "",
+  "stderr": "",
+  "error": null
+}

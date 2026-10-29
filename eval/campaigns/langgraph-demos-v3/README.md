@@ -43,6 +43,14 @@ the Chinook and travel databases are not duplicated in the committed artifact: t
 frozen source fixtures and SHA-256 hashes are retained, and every D5 output records
 the before/after resource state. The runner recreates fresh copies for every trial.
 
+An optimized runtime rerun at revision
+`00c46fe25189cd67df0ea98ced9186af024926ca` is retained under
+`raw/optimized-matched-20261029-v3/`, with generated results and a before/after
+comparison in `optimized-20261029/`. Its harness, tasks, model, fixtures, timer,
+and resampling method match the primary artifact. Regenerate it with the command
+above plus `--run-id optimized-matched-20261029-v3 --output-dir
+eval/campaigns/langgraph-demos-v3/optimized-20261029`.
+
 Per-application overhead is the ratio of complete-cohort mean wall times. Its 95%
 interval resamples the five paired repetition blocks and keeps all tasks in a block
 together. The suite result is the geometric mean of valid per-application ratios.

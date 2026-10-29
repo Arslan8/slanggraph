@@ -1,0 +1,80 @@
+{
+  "demo": "forced-tool",
+  "mode": "Baseline",
+  "prompt": "Hi, I am Bob",
+  "wall_ms": 708.3866879693232,
+  "model_time_ms": 630.6343600153923,
+  "model_calls": 1,
+  "answer": "Hello Bob!",
+  "messages": [
+    {
+      "content": "Hi, I am Bob",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "ebffb997-4449-4345-8bf7-d19106cb7dec"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 21,
+          "prompt_tokens": 141,
+          "total_tokens": 162,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-90",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a188ac-5968-7a00-92af-0e131df6ca69-0",
+      "tool_calls": [
+        {
+          "name": "greet",
+          "args": {
+            "user_name": "Bob"
+          },
+          "id": "call_2sk87hdx",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 141,
+        "output_tokens": 21,
+        "total_tokens": 162,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "Hello Bob!",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "greet",
+      "id": "930ed325-bc5d-494b-9309-36d6a7e18e47",
+      "tool_call_id": "call_2sk87hdx",
+      "artifact": null,
+      "status": "success"
+    }
+  ],
+  "executed_tools": [
+    "greet"
+  ],
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

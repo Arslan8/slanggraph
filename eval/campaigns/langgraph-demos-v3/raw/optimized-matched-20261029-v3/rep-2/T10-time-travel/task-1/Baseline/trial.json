@@ -1,0 +1,33 @@
+{
+  "application": "T10-time-travel",
+  "task": 1,
+  "repetition": 2,
+  "mode": "Baseline",
+  "status": "completed",
+  "correct": true,
+  "wall_ms": 2711.2047689734027,
+  "timeout_cap_seconds": 180,
+  "censored": false,
+  "returncode": 0,
+  "inner_wall_ms": 1732.3553040041588,
+  "model_time_ms": 1657.0451349834912,
+  "model_calls": 3,
+  "security_evidence": false,
+  "grant_count": 0,
+  "lowering_count": 0,
+  "broker_record_count": 0,
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpsbLuVB/bin/python",
+    "/data/langgraph/eval/apps/demos/persistence_protected.py",
+    "--mode",
+    "Baseline",
+    "--output",
+    "/data/langgraph/eval/campaigns/langgraph-demos-v3/raw/optimized-matched-20261029-v3/rep-2/T10-time-travel/task-1/Baseline/output.json",
+    "--demo",
+    "time-travel"
+  ],
+  "raw_output": "eval/campaigns/langgraph-demos-v3/raw/optimized-matched-20261029-v3/rep-2/T10-time-travel/task-1/Baseline/output.json",
+  "stdout": "",
+  "stderr": "",
+  "error": null
+}

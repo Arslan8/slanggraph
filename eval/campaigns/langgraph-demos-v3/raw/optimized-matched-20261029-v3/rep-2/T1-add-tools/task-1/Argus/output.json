@@ -1,0 +1,526 @@
+{
+  "mode": "Argus",
+  "model": {
+    "name": "qwen3:8b",
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "temperature": 0,
+    "seed": 20261005,
+    "reasoning_effort": "none"
+  },
+  "wall_ms": 2387.524780991953,
+  "model_time_ms": 1500.4037670441903,
+  "model_calls": 2,
+  "answer": "The 1996 Summer Olympics were hosted by Atlanta, United States. The country used the US dollar (USD) at the time.",
+  "messages": [
+    {
+      "content": "You must use the search tool. Which city and country hosted the 1996 Summer Olympics, and what currency did that country use at the time?",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "c90cf06c-5160-4a9e-8320-b9376fec7b99"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 37,
+          "prompt_tokens": 178,
+          "total_tokens": 215,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-69",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a188cc-f6f9-75c3-813f-e5d261f4e98d-0",
+      "tool_calls": [
+        {
+          "name": "tavily_search",
+          "args": {
+            "query": "1996 Summer Olympics host city and country, currency used at the time"
+          },
+          "id": "call_091opje8",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 178,
+        "output_tokens": 37,
+        "total_tokens": 215,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "[{\"content\": \"The 1996 Summer Olympics were held in Atlanta, United States. The United States used the US dollar (USD).\", \"url\": \"https://www.olympics.com/en/olympic-games/atlanta-1996\"}, {\"content\": \"The 2000 Summer Olympics were held in Sydney, Australia. Australia used the Australian dollar (AUD).\", \"url\": \"https://www.olympics.com/en/olympic-games/sydney-2000\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "tavily_search",
+      "id": "8d63cff5-f248-4531-992b-dc95108dbdcb",
+      "tool_call_id": "call_091opje8",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The 1996 Summer Olympics were hosted by Atlanta, United States. The country used the US dollar (USD) at the time.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 30,
+          "prompt_tokens": 343,
+          "total_tokens": 373,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-334",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a188cc-fc50-75a0-ab65-10b8748171a4-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 343,
+        "output_tokens": 30,
+        "total_tokens": 373,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "executed_tools": [
+    "tavily_search"
+  ],
+  "authorization_decisions": [
+    {
+      "call_index": 0,
+      "tool_name": "tavily_search",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "",
+      "hash": "b13041b5366a6e24bf772a0d1c5188e9cefce6fe0efa59a8a3a8e05f959ea09f",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "0e8592c4ccdb5dbdd6069773f83a8000e8b1debe201bef00ea68567c189fab51",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "b13041b5366a6e24bf772a0d1c5188e9cefce6fe0efa59a8a3a8e05f959ea09f",
+      "hash": "f904e194d22d2ddbcfacefad058f57d8d083a6a71935caf074e7850138f1d864",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "bf9115e812d587658c7200ff9a0f1ef4ace871cc20eaecf4b9a68b6b137170bf",
+      "stage": "dispatch",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "f904e194d22d2ddbcfacefad058f57d8d083a6a71935caf074e7850138f1d864",
+      "hash": "25480399367a8bc0477fc5770f50238495e3bf04da628156106553003329a2df",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "35e1f3865d1666c0cedf8c337eff2d9e569990cc2dde2d914b3b2fdd6c8ae00d",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "25480399367a8bc0477fc5770f50238495e3bf04da628156106553003329a2df",
+      "hash": "a79f303b301d642014aa1d31563a337b199cc37739ece474211988b5314fdb4a",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "2f7abde822c46622ff08041a51a0a2d05182cd6a1852646fb7d5a8445c07f6b8",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "a79f303b301d642014aa1d31563a337b199cc37739ece474211988b5314fdb4a",
+      "hash": "5f2f4d62499dcc8ed600e74d0344ba82973a82504420ce47b521d025bcc9a9b9",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "c25b13ac5f3cbc766a7dc65343180ec0c5c284d11e75af466486a944dae2c0c9",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "5f2f4d62499dcc8ed600e74d0344ba82973a82504420ce47b521d025bcc9a9b9",
+      "hash": "102647db3304c3715f254c622aae31d61e74559e5cb7e9c354994fbb32007124",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "1516af7de9c68a34c8826dda3172e354dbcb61eea8437843796761aa18dda440",
+      "stage": "dispatch",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "102647db3304c3715f254c622aae31d61e74559e5cb7e9c354994fbb32007124",
+      "hash": "32f0993332200001c9cd06dfc8a5cb6089cf0e8e712a35db6c8def1d956e6517",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "94b0fe03ffb00bcc32072ce2b556ae9b2effc5b778096016b05749228154ee39",
+      "stage": "dispatch",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "32f0993332200001c9cd06dfc8a5cb6089cf0e8e712a35db6c8def1d956e6517",
+      "hash": "f93f97b50388a0890d3651b3bb38b6f87b60a77457f2c4edbb088adca333f575",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "tavily_search",
+      "user_id": "alice",
+      "args_hash": "f40fd71ae6f8dae83de7e6205abe5a4812c3ec3152ba6d34332517752f2e1507",
+      "stage": "prepare",
+      "module": "dac_initial",
+      "verdict": "allow",
+      "reason": "dac:allow",
+      "prev_hash": "f93f97b50388a0890d3651b3bb38b6f87b60a77457f2c4edbb088adca333f575",
+      "hash": "8458f27a0c7bb5110abc7d84c824113cb8dfc7af614eb4e0be8367b03e33ff73",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "tavily_search",
+      "user_id": "alice",
+      "args_hash": "f40fd71ae6f8dae83de7e6205abe5a4812c3ec3152ba6d34332517752f2e1507",
+      "stage": "prepare",
+      "module": "dac_final",
+      "verdict": "allow",
+      "reason": "dac:allow",
+      "prev_hash": "8458f27a0c7bb5110abc7d84c824113cb8dfc7af614eb4e0be8367b03e33ff73",
+      "hash": "0e82890415bc587047437b97aed1242dff176177fdf6ed0afec773a18d276c43",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "tavily_search",
+      "user_id": "alice",
+      "args_hash": "f40fd71ae6f8dae83de7e6205abe5a4812c3ec3152ba6d34332517752f2e1507",
+      "stage": "permission",
+      "module": "dac",
+      "verdict": "allow",
+      "reason": "dac:allow",
+      "prev_hash": "0e82890415bc587047437b97aed1242dff176177fdf6ed0afec773a18d276c43",
+      "hash": "1b818ea0dbc9787554bdaf029843cd4c9714a5110b4c15d4db85095481cbead4",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "tavily_search",
+      "user_id": "alice",
+      "args_hash": "f40fd71ae6f8dae83de7e6205abe5a4812c3ec3152ba6d34332517752f2e1507",
+      "stage": "permission",
+      "module": "cap",
+      "verdict": "allow",
+      "reason": "cap:allow",
+      "prev_hash": "1b818ea0dbc9787554bdaf029843cd4c9714a5110b4c15d4db85095481cbead4",
+      "hash": "08f2c6defd76838de8d4614b80a13ffd5be6e77b013fbd702c384c482c0b17c1",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "tavily_search",
+      "user_id": "alice",
+      "args_hash": "f40fd71ae6f8dae83de7e6205abe5a4812c3ec3152ba6d34332517752f2e1507",
+      "stage": "dispatch",
+      "module": "dispatch",
+      "verdict": "allow",
+      "reason": "dispatch:reserved",
+      "prev_hash": "08f2c6defd76838de8d4614b80a13ffd5be6e77b013fbd702c384c482c0b17c1",
+      "hash": "9ab85bab945fd14769bc68a77b22ce083d8782f56c70454e21c8ec8c265c21cb",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "tavily_search",
+      "user_id": "alice",
+      "args_hash": "f40fd71ae6f8dae83de7e6205abe5a4812c3ec3152ba6d34332517752f2e1507",
+      "stage": "activation",
+      "module": "activation",
+      "verdict": "allow",
+      "reason": "activation_receipt:{\"activated_obligations\":[],\"artifact_digest\":\"5966f383ee57670b3db7eb1255e9051dcb92ec56d7345b51924edafb772fa982\",\"context_digest\":\"c8d9f8ac8e5766e1a075ee9d3d956d31572d5a10813cd4722d66132d7845a586\",\"evidence\":[{\"activated_at\":1793296497.558198,\"adapter_id\":\"linux-bubblewrap-v1\",\"context_digest\":\"c8d9f8ac8e5766e1a075ee9d3d956d31572d5a10813cd4722d66132d7845a586\",\"expires_at\":1793296537.558198,\"native_plan_digest\":\"5c42f0fe9fcc0ef0aea12e5fe6efecf0fe96450b98a2da0e11e966c1f4abed8b\",\"nonce\":\"31437d058af732df5e722274d0815e85\",\"obligation_ids\":[\"domain:credential:deny_complement\",\"domain:delegation:deny_complement\",\"domain:filesystem:deny_complement\",\"domain:ipc:deny_complement\",\"domain:network:deny_complement\",\"domain:process:deny_complement\",\"domain:resource_limit:deny_complement\",\"domain:runtime:deny_complement\",\"domain:service:deny_complement\",\"rule:runtime:artifact:operate\",\"rule:runtime:env:no-bytecode:operate\",\"rule:runtime:env:no-locale-coercion:operate\",\"rule:runtime:env:no-user-site:operate\",\"rule:runtime:env:path:operate\",\"rule:runtime:env:safe-path:operate\",\"rule:runtime:env:unbuffered:operate\",\"rule:runtime:env:utf8:operate\",\"rule:runtime:interpreter-root:operate\",\"rule:runtime:interpreter:operate\",\"rule:runtime:limit:address_space_bytes:operate\",\"rule:runtime:limit:cpu_ms:operate\",\"rule:runtime:limit:file_size_bytes:operate\",\"rule:runtime:limit:nofile:operate\",\"rule:runtime:limit:pids:operate\",\"rule:runtime:limit:tmpfs_bytes:operate\",\"rule:runtime:limit:wall_ms:operate\",\"rule:runtime:protocol:diagnostic:operate\",\"rule:runtime:protocol:request:operate\",\"rule:runtime:protocol:response:operate\",\"rule:runtime:root:0:operate\",\"rule:runtime:tmp:create:operate\",\"rule:runtime:tmp:delete:operate\",\"rule:runtime:tmp:read:operate\",\"rule:runtime:tmp:truncate:operate\",\"rule:runtime:tmp:write:operate\",\"rule:runtime:urandom:operate\",\"rule:runtime:usr:operate\",\"rule:runtime:worker:operate\"],\"signature\":\"fe47901c6bc0fa62783e962368296b62e2a8c8179dc0cc435174374cdbe4d50f\"}],\"grant_digest\":\"bedd0d4c78b4e9151c5b496fd0a1886410aa44b587fdcd45e179184b874d7d38\",\"host_digest\":\"066d333c8ec905debe2b1d02a7a299f05170b75abf7686a8fcdc21a86a012ce7\",\"mode\":\"enforced\",\"nonce\":\"31437d058af732df5e722274d0815e85\",\"plan_digest\":\"2087aedc73a58c6f643b0732d3f1097329fe81b4a18b8afd48fe16da4e072d99\",\"rule_enforcement\":[],\"valid_until\":1793296537.3980448}",
+      "prev_hash": "9ab85bab945fd14769bc68a77b22ce083d8782f56c70454e21c8ec8c265c21cb",
+      "hash": "9dfbd727ba9bd0776600c940dbe5eb43b4b774781e2cb8c0b1daa537db0c3113",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "tavily_search",
+      "user_id": "alice",
+      "args_hash": "f40fd71ae6f8dae83de7e6205abe5a4812c3ec3152ba6d34332517752f2e1507",
+      "stage": "outcome",
+      "module": "outcome",
+      "verdict": "allow",
+      "reason": "execution:succeeded",
+      "prev_hash": "9dfbd727ba9bd0776600c940dbe5eb43b4b774781e2cb8c0b1daa537db0c3113",
+      "hash": "0b2a6c2e7e828515ca867f95a16918c14d57c7cf6341575c1c8485f6d14761f7",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": "succeeded"
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "35e1f3865d1666c0cedf8c337eff2d9e569990cc2dde2d914b3b2fdd6c8ae00d",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "0b2a6c2e7e828515ca867f95a16918c14d57c7cf6341575c1c8485f6d14761f7",
+      "hash": "0159222656a752a5fdd67a3520ba1fdb8bd84477d9293b965e757ac8887f314e",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "bc9feb05190ea0ccb2c2f32405aaf3e33fc1db96f30028e51d8c68158677c676",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "0159222656a752a5fdd67a3520ba1fdb8bd84477d9293b965e757ac8887f314e",
+      "hash": "633f98f29b392c0aaeaedcd1cc8f9a2fc1993acfa50409ffc9124019829df95e",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "d1fca727f03a14578920c8b3777ebafdcb88a4ca859f98b33db9c93156b4e46d",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "633f98f29b392c0aaeaedcd1cc8f9a2fc1993acfa50409ffc9124019829df95e",
+      "hash": "72f2e94fb7e267a7c94e6e5d52ac10d158c2a94cb3c946e339f52a4f11645daf",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "e2cdab59ca14f7fd86bbda1d5d694752ae57e53c7530e4d0d37935f11227ae6b",
+      "stage": "dispatch",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "72f2e94fb7e267a7c94e6e5d52ac10d158c2a94cb3c946e339f52a4f11645daf",
+      "hash": "05da926943ffb089e84d6af846e436f638fb7e327e4b09a17249d9230ef15b8c",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "35e1f3865d1666c0cedf8c337eff2d9e569990cc2dde2d914b3b2fdd6c8ae00d",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "05da926943ffb089e84d6af846e436f638fb7e327e4b09a17249d9230ef15b8c",
+      "hash": "5da44c143ec48c830b7627aec26fcf2e2824650f478868410f890e04a60903d9",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "c6a060469cf2d06bb07016aa5fe8a421cc92c43c86114fb1a2ae935533871f90",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "5da44c143ec48c830b7627aec26fcf2e2824650f478868410f890e04a60903d9",
+      "hash": "213e49f3b6563173d9ef9c434e5383250b9c118a86fb9a83ff119ea1bd045a72",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "1ff263ac668af4113f1e3d412d38153af3666665b306ec41a027d4209961e71e",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "213e49f3b6563173d9ef9c434e5383250b9c118a86fb9a83ff119ea1bd045a72",
+      "hash": "074176e284c5348472a00152b6e56e04cd308eaf1d56e3d86563c724187d26e0",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "f7d73dfd7b6b1edc78b89e574821fb2d59e24d1e6ae2a5ea9013cb7f71e68f59",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "074176e284c5348472a00152b6e56e04cd308eaf1d56e3d86563c724187d26e0",
+      "hash": "8f57b14178867612dd0aadcc4767ab0ccf9923620b8c80a8f2331890e1d4bde1",
+      "session_id": "add-tools-3502908ca87042aaa83e4da1bdf12fe4",
+      "outcome": null
+    }
+  ],
+  "authorization_grants": [
+    {
+      "principal_id": "alice",
+      "tool_name": "tavily_search",
+      "call_id": "call_091opje8",
+      "policy_digest": "a16c42dae4f1acc30da54a1d5b638dd4b43c1c42ba9506e2f56f2d27874df7eb",
+      "lines": [],
+      "enforcement_waivers": "{}"
+    }
+  ],
+  "activation_receipts": [
+    {
+      "grant_digest": "bedd0d4c78b4e9151c5b496fd0a1886410aa44b587fdcd45e179184b874d7d38",
+      "plan_digest": "2087aedc73a58c6f643b0732d3f1097329fe81b4a18b8afd48fe16da4e072d99",
+      "host_digest": "066d333c8ec905debe2b1d02a7a299f05170b75abf7686a8fcdc21a86a012ce7",
+      "context_digest": "c8d9f8ac8e5766e1a075ee9d3d956d31572d5a10813cd4722d66132d7845a586",
+      "nonce": "31437d058af732df5e722274d0815e85",
+      "mode": "enforced",
+      "evidence": [
+        {
+          "adapter_id": "linux-bubblewrap-v1",
+          "native_plan_digest": "5c42f0fe9fcc0ef0aea12e5fe6efecf0fe96450b98a2da0e11e966c1f4abed8b",
+          "context_digest": "c8d9f8ac8e5766e1a075ee9d3d956d31572d5a10813cd4722d66132d7845a586",
+          "nonce": "31437d058af732df5e722274d0815e85",
+          "obligation_ids": [
+            "domain:ipc:deny_complement",
+            "rule:runtime:interpreter-root:operate",
+            "rule:runtime:limit:cpu_ms:operate",
+            "rule:runtime:protocol:diagnostic:operate",
+            "rule:runtime:worker:operate",
+            "domain:filesystem:deny_complement",
+            "rule:runtime:urandom:operate",
+            "rule:runtime:env:path:operate",
+            "domain:service:deny_complement",
+            "rule:runtime:env:no-bytecode:operate",
+            "rule:runtime:limit:address_space_bytes:operate",
+            "rule:runtime:limit:pids:operate",
+            "rule:runtime:usr:operate",
+            "domain:runtime:deny_complement",
+            "rule:runtime:artifact:operate",
+            "domain:delegation:deny_complement",
+            "rule:runtime:limit:nofile:operate",
+            "domain:resource_limit:deny_complement",
+            "domain:network:deny_complement",
+            "rule:runtime:protocol:response:operate",
+            "rule:runtime:tmp:delete:operate",
+            "rule:runtime:tmp:create:operate",
+            "rule:runtime:tmp:read:operate",
+            "rule:runtime:root:0:operate",
+            "domain:credential:deny_complement",
+            "rule:runtime:tmp:write:operate",
+            "rule:runtime:env:utf8:operate",
+            "rule:runtime:limit:file_size_bytes:operate",
+            "rule:runtime:interpreter:operate",
+            "domain:process:deny_complement",
+            "rule:runtime:env:unbuffered:operate",
+            "rule:runtime:limit:wall_ms:operate",
+            "rule:runtime:env:no-locale-coercion:operate",
+            "rule:runtime:env:no-user-site:operate",
+            "rule:runtime:tmp:truncate:operate",
+            "rule:runtime:limit:tmpfs_bytes:operate",
+            "rule:runtime:protocol:request:operate",
+            "rule:runtime:env:safe-path:operate"
+          ],
+          "activated_at": 1793296497.558198,
+          "expires_at": 1793296537.558198,
+          "signature": "fe47901c6bc0fa62783e962368296b62e2a8c8179dc0cc435174374cdbe4d50f"
+        }
+      ],
+      "activated_obligations": [],
+      "valid_until": 1793296537.3980448,
+      "rule_enforcement": [],
+      "artifact_digest": "5966f383ee57670b3db7eb1255e9051dcb92ec56d7345b51924edafb772fa982",
+      "deployment_digest": "",
+      "runtime_digest": "",
+      "removed_wants": []
+    }
+  ],
+  "lowered_restrictions": [
+    "{'object_grant_digest': 'bedd0d4c78b4e9151c5b496fd0a1886410aa44b587fdcd45e179184b874d7d38', 'native_grant_digest': 'ff21d20530a87f90cdd6f57e88fc171bcf16d0d16327e89454b65ce35d49b94b', 'policy_digest': 'bedd0d4c78b4e9151c5b496fd0a1886410aa44b587fdcd45e179184b874d7d38', 'rules': [{'baseline': True, 'conditions': {'subtree': True, 'ephemeral': True}, 'domain': 'runtime', 'operation': 'read', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:tmp:read', 'selector': '/tmp'}, {'baseline': True, 'conditions': {'subtree': True, 'ephemeral': True}, 'domain': 'runtime', 'operation': 'write', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:tmp:write', 'selector': '/tmp'}, {'baseline': True, 'conditions': {'subtree': True, 'ephemeral': True}, 'domain': 'runtime', 'operation': 'create', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:tmp:create', 'selector': '/tmp'}, {'baseline': True, 'conditions': {'subtree': True, 'ephemeral': True}, 'domain': 'runtime', 'operation': 'delete', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:tmp:delete', 'selector': '/tmp'}, {'baseline': True, 'conditions': {'subtree': True, 'ephemeral': True}, 'domain': 'runtime', 'operation': 'truncate', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:tmp:truncate', 'selector': '/tmp'}, {'baseline': True, 'conditions': {}, 'domain': 'runtime', 'operation': 'read', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:urandom', 'selector': '/dev/urandom'}, {'baseline': True, 'conditions': {'sha256': 'a7f7c9d73d18496b91050a890f5514f5244311ea72aef86f421f15bff7772132'}, 'domain': 'runtime', 'operation': 'read', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:worker', 'selector': '/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/_linux_worker.py'}, {'baseline': True, 'conditions': {'sha256': '5966f383ee57670b3db7eb1255e9051dcb92ec56d7345b51924edafb772fa982'}, 'domain': 'runtime', 'operation': 'read', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:artifact', 'selector': '/data/langgraph/eval/apps/demos/frozen_search_worker.py'}, {'baseline': True, 'conditions': {'sha256': 'd41b33aaed48160ca115bc4436a8f2593287851bf649b66c1193f0a1d7e8a426'}, 'domain': 'runtime', 'operation': 'read', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:interpreter', 'selector': '/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/bin/python3.11'}, {'baseline': True, 'conditions': {'subtree': True}, 'domain': 'runtime', 'operation': 'read', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:interpreter-root', 'selector': '/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu'}, {'baseline': True, 'conditions': {'value': '/usr/bin'}, 'domain': 'runtime', 'operation': 'environment', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:env:path', 'selector': 'PATH'}, {'baseline': True, 'conditions': {'value': '1'}, 'domain': 'runtime', 'operation': 'environment', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:env:no-bytecode', 'selector': 'PYTHONDONTWRITEBYTECODE'}, {'baseline': True, 'conditions': {'value': '0'}, 'domain': 'runtime', 'operation': 'environment', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:env:no-locale-coercion', 'selector': 'PYTHONCOERCECLOCALE'}, {'baseline': True, 'conditions': {'value': '1'}, 'domain': 'runtime', 'operation': 'environment', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:env:no-user-site', 'selector': 'PYTHONNOUSERSITE'}, {'baseline': True, 'conditions': {'value': '1'}, 'domain': 'runtime', 'operation': 'environment', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:env:safe-path', 'selector': 'PYTHONSAFEPATH'}, {'baseline': True, 'conditions': {'value': '1'}, 'domain': 'runtime', 'operation': 'environment', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:env:unbuffered', 'selector': 'PYTHONUNBUFFERED'}, {'baseline': True, 'conditions': {'value': '1'}, 'domain': 'runtime', 'operation': 'environment', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:env:utf8', 'selector': 'PYTHONUTF8'}, {'baseline': True, 'conditions': {'descriptor': 0}, 'domain': 'ipc', 'operation': 'read', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:protocol:request', 'selector': 'parent-request-pipe'}, {'baseline': True, 'conditions': {'descriptor': 1}, 'domain': 'ipc', 'operation': 'write', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:protocol:response', 'selector': 'parent-response-pipe'}, {'baseline': True, 'conditions': {'descriptor': 2}, 'domain': 'ipc', 'operation': 'write', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:protocol:diagnostic', 'selector': 'parent-diagnostic-pipe'}, {'baseline': True, 'conditions': {'subtree': True}, 'domain': 'runtime', 'operation': 'read', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:usr', 'selector': '/usr'}, {'baseline': True, 'conditions': {'subtree': True}, 'domain': 'runtime', 'operation': 'read', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:root:0', 'selector': '/data/langgraph/eval/apps/demos'}, {'baseline': True, 'conditions': {'maximum': 1073741824}, 'domain': 'resource_limit', 'operation': 'limit', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:limit:address_space_bytes', 'selector': 'address_space_bytes'}, {'baseline': True, 'conditions': {'maximum': 30000}, 'domain': 'resource_limit', 'operation': 'limit', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:limit:cpu_ms', 'selector': 'cpu_ms'}, {'baseline': True, 'conditions': {'maximum': 67108864}, 'domain': 'resource_limit', 'operation': 'limit', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:limit:file_size_bytes', 'selector': 'file_size_bytes'}, {'baseline': True, 'conditions': {'maximum': 64}, 'domain': 'resource_limit', 'operation': 'limit', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:limit:nofile', 'selector': 'nofile'}, {'baseline': True, 'conditions': {'maximum': 1}, 'domain': 'resource_limit', 'operation': 'limit', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:limit:pids', 'selector': 'pids'}, {'baseline': True, 'conditions': {'maximum': 67108864}, 'domain': 'resource_limit', 'operation': 'limit', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:limit:tmpfs_bytes', 'selector': 'tmpfs_bytes'}, {'baseline': True, 'conditions': {'maximum': 30000}, 'domain': 'resource_limit', 'operation': 'limit', 'provenance': [], 'requirement': 'need', 'rule_id': 'runtime:limit:wall_ms', 'selector': 'wall_ms'}]}"
+  ],
+  "protections": {
+    "closed_admission": true,
+    "principal_authorization": true,
+    "sealed_operator_policy": true,
+    "linux_isolation": true,
+    "audit": true,
+    "lean_per_call": true
+  }
+}

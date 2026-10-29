@@ -1,0 +1,81 @@
+{
+  "demo": "return-direct",
+  "mode": "Baseline",
+  "prompt": "What's 3 + 5? Use the add tool.",
+  "wall_ms": 701.4896200271323,
+  "model_time_ms": 632.3363700066693,
+  "model_calls": 1,
+  "answer": "8",
+  "messages": [
+    {
+      "content": "What's 3 + 5? Use the add tool.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "0bbf7b83-7423-465f-a93d-0713fd42c13a"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 25,
+          "prompt_tokens": 153,
+          "total_tokens": 178,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-895",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a188e3-a800-7710-9e34-5d2a3b6cb9ee-0",
+      "tool_calls": [
+        {
+          "name": "add",
+          "args": {
+            "a": 3,
+            "b": 5
+          },
+          "id": "call_9vj1gigf",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 153,
+        "output_tokens": 25,
+        "total_tokens": 178,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "8",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "add",
+      "id": "f7afdb95-a476-4edb-a903-e4b218133e27",
+      "tool_call_id": "call_9vj1gigf",
+      "artifact": null,
+      "status": "success"
+    }
+  ],
+  "executed_tools": [
+    "add"
+  ],
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

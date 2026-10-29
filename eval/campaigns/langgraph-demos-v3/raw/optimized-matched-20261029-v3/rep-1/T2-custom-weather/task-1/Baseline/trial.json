@@ -1,0 +1,33 @@
+{
+  "application": "T2-custom-weather",
+  "task": 1,
+  "repetition": 1,
+  "mode": "Baseline",
+  "status": "completed",
+  "correct": true,
+  "wall_ms": 1986.646044999361,
+  "timeout_cap_seconds": 180,
+  "censored": false,
+  "returncode": 0,
+  "inner_wall_ms": 1031.8995129782706,
+  "model_time_ms": 960.5138819315471,
+  "model_calls": 2,
+  "security_evidence": false,
+  "grant_count": 0,
+  "lowering_count": 0,
+  "broker_record_count": 0,
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpsbLuVB/bin/python",
+    "/data/langgraph/eval/apps/demos/tool_calling_protected.py",
+    "--mode",
+    "Baseline",
+    "--output",
+    "/data/langgraph/eval/campaigns/langgraph-demos-v3/raw/optimized-matched-20261029-v3/rep-1/T2-custom-weather/task-1/Baseline/output.json",
+    "--demo",
+    "custom-weather"
+  ],
+  "raw_output": "eval/campaigns/langgraph-demos-v3/raw/optimized-matched-20261029-v3/rep-1/T2-custom-weather/task-1/Baseline/output.json",
+  "stdout": "",
+  "stderr": "",
+  "error": null
+}
