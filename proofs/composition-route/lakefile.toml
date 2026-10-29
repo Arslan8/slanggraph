@@ -1,0 +1,6 @@
+name = "composition-route"
+version = "0.1.0"
+defaultTargets = ["CompositionRoute"]
+
+[[lean_lib]]
+name = "CompositionRoute"

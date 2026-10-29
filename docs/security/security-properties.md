@@ -20,6 +20,21 @@ an information-flow guarantee only when configured labels bound everything an
 operation can actually read and every outward effect is mediated or confined.
 Neither mechanism proves safe model behavior or alignment with user intent.
 
+## Complete-mediation composition model
+
+The finite [Lean composition model](../../proofs/composition-route/README.md)
+proves that every physical tool invocation reachable in its transition system
+has first crossed either the route-selected language sandbox or the
+route-selected resource mediator. An unclassified route cannot invoke, and
+both classified routes have constructive successful traces.
+
+This is a path-coverage theorem, not a monitor-correctness theorem. Production
+use of the result requires a separate refinement argument showing that every
+physical Python tool entry point follows the modeled transition system, that
+route classification is exhaustive, and that no raw-callable or fallback path
+exists. The theorem does not establish policy correctness, monitor internals,
+runtime/compiler correspondence, or operating-system enforcement.
+
 ## Cross-call information flow and pooled authority
 
 A read-confined worker can return sensitive data to graph state and a later
