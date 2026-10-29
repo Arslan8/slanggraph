@@ -40,6 +40,16 @@ exists. The theorem does not establish policy correctness, completeness of the
 supplied obligation inventory, monitor internals, runtime/compiler
 correspondence, or operating-system enforcement.
 
+The extended semantic theorem additionally proves the paper's authority chain
+`E_{B,H}(c) ⊆ L_{B,H}(c) ⊆ G(c) ⊆ R(c)`. Requested authority includes the
+approved runtime baseline; authorization reuses the SLP/Cedar non-amplification
+and policy-compliance results; semantic `exact` lowerings are equivalent and
+`tightened` lowerings are subsets; and independently defined trace effects are
+confined by complete mediation plus grant-bound, activated local component
+guarantees. The production claim remains conditional on faithful translation
+and implementation refinement, authentic activation evidence, and primitive
+sandbox/mediator soundness.
+
 ## Cross-call information flow and pooled authority
 
 A read-confined worker can return sensitive data to graph state and a later

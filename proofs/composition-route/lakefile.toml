@@ -1,9 +1,20 @@
 name = "composition-route"
 version = "0.1.0"
-defaultTargets = ["CompositionRoute", "LayeredComposition"]
+defaultTargets = ["CompositionRoute", "LayeredComposition", "AuthorityPreservation"]
+
+[[require]]
+name = "slp-cedar"
+path = "../slp-cedar"
+
+[[require]]
+name = "worker-route"
+path = "../worker-route"
 
 [[lean_lib]]
 name = "CompositionRoute"
 
 [[lean_lib]]
 name = "LayeredComposition"
+
+[[lean_lib]]
+name = "AuthorityPreservation"
