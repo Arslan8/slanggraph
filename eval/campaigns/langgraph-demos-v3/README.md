@@ -20,12 +20,16 @@ uv run --python 3.11 --project eval \
   --with langchain-community --with langchain-experimental \
   --with matplotlib --with pytz \
   python eval/campaigns/langgraph-demos-v3/run_campaign.py \
-  --run-id parity-matched-20261029 --repetitions 5
+  --run-id reproduction-local --repetitions 5
 
 uv run --python 3.11 --project eval --with matplotlib \
   python eval/campaigns/langgraph-demos-v3/regenerate.py \
-  --run-id parity-matched-20261029
+  --run-id reproduction-local
 ```
+
+Choose a fresh run ID if `reproduction-local` already exists. To regenerate the
+committed paper outputs without rerunning trials, use
+`--run-id parity-matched-20261029` only with `regenerate.py`.
 
 The evaluated source revision is
 `d9b643785df06a3b9c9dc003098b340e11e170d0`. That revision adds a preflight
