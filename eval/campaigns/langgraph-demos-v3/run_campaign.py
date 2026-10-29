@@ -80,6 +80,10 @@ def common_metadata() -> dict:
         "temperature": 0,
         "generation_seed": 20261005,
         "reasoning_effort": "none",
+        "cedar_optimization": {
+            "typed_backend": "aggressive",
+            "object_authorizer": "exact-result cache (typed aggressive mode not on this route)",
+        },
         "upstream_commit": "23961cff61a42b52525f3b20b4094d8d2fba1744",
         "task_digest": sha256(tasks),
         "fixture_digests": {str(path.relative_to(ROOT)): sha256(path) for path in fixtures},
@@ -436,9 +440,7 @@ def main() -> None:
         for application in applications:
             task_ids = (1,) if application in OLD_DEMOS or args.smoke else range(1, 6)
             jobs.extend(
-                Job(application, task, repetition, mode)
-                for task in task_ids
-                for mode in MODES
+                Job(application, task, repetition, mode) for task in task_ids for mode in MODES
             )
         random.Random(SEED + repetition).shuffle(jobs)
         for job in jobs:

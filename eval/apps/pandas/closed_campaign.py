@@ -165,6 +165,13 @@ def main():
         "workflow_contract": manifest["workflow_contract"],
         "computation_api": manifest["computation_api"],
         "state_normalization": manifest.get("state_normalization"),
+        "cedar_optimization": {
+            "typed_backend": "aggressive",
+            "application_authorizer": (
+                "CedarObjectAuthorizer exact-result cache; typed aggressive mode "
+                "is not on the Pandas object-policy route"
+            ),
+        },
         "dataset": dataset,
         "timeout_s": 180,
         "cpu": min(os.sched_getaffinity(0)),
