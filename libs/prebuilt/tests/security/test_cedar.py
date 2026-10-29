@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -60,8 +61,21 @@ def _fake_cedar(tmp_path: Path, *, validation_error: bool = False) -> Path:
             if validation_error
             else "    print('VALID')\n    raise SystemExit(0)\n"
         )
-        + "request = json.loads(pathlib.Path(sys.argv[sys.argv.index('--request-json') + 1]).read_text())\n"
-        "policy = pathlib.Path(sys.argv[sys.argv.index('--policies') + 1]).read_text()\n"
+        + "policy = pathlib.Path(sys.argv[sys.argv.index('--policies') + 1]).read_text()\n"
+        "if sys.argv[1] == 'run-tests':\n"
+        "    tests = json.loads(pathlib.Path(sys.argv[sys.argv.index('--tests') + 1]).read_text())\n"
+        "    for test in tests:\n"
+        "        request = test['request']\n"
+        "        resource = request['resource']\n"
+        "        needle = f'resource == {resource}'\n"
+        "        matched = request['context']['matchedForbids']\n"
+        "        actual = 'allow' if needle in policy and not matched else 'deny'\n"
+        "        if actual != test['decision']:\n"
+        "            print(f\"{test['name']}: expected {test['decision']}, got {actual}\", file=sys.stderr)\n"
+        "            raise SystemExit(1)\n"
+        "    print(f'results: {len(tests)} passed, 0 failed')\n"
+        "    raise SystemExit(0)\n"
+        "request = json.loads(pathlib.Path(sys.argv[sys.argv.index('--request-json') + 1]).read_text())\n"
         "resource = request['resource']\n"
         "needle = f'resource == {resource}'\n"
         "matched = request['context']['matchedForbids']\n"
@@ -72,7 +86,7 @@ def _fake_cedar(tmp_path: Path, *, validation_error: bool = False) -> Path:
     return executable
 
 
-def test_cedar_validates_and_evaluates_one_ephemeral_permit_per_rule(
+def test_cedar_validates_and_batch_checks_ephemeral_permits(
     tmp_path: Path,
 ) -> None:
     first = GrantRule("one", AuthorityDomain.FILESYSTEM, "read", "/one")
@@ -94,9 +108,43 @@ def test_cedar_validates_and_evaluates_one_ephemeral_permit_per_rule(
     invocations = [
         json.loads(line) for line in (tmp_path / "cedar.log").read_text().splitlines()
     ]
+    assert [item[0] for item in invocations] == ["validate", "run-tests"]
+
+
+def test_normal_optimization_uses_individual_checks_and_cache(tmp_path: Path) -> None:
+    first = GrantRule("one", AuthorityDomain.FILESYSTEM, "read", "/one")
+    second = GrantRule("two", AuthorityDomain.FILESYSTEM, "read", "/two")
+    executable = _fake_cedar(tmp_path)
+    backend = CedarPolicyBackend(executable, optimization_level="normal")
+
+    backend.filter(_grant(first, second), _ledger(first, second), ())
+    backend.filter(_grant(first, second), _ledger(first, second), ())
+
+    invocations = [
+        json.loads(line) for line in (tmp_path / "cedar.log").read_text().splitlines()
+    ]
     assert [item[0] for item in invocations] == [
         "validate",
         "authorize",
+        "authorize",
+    ]
+
+
+def test_no_optimization_disables_batching_and_cache(tmp_path: Path) -> None:
+    rule = GrantRule("one", AuthorityDomain.FILESYSTEM, "read", "/one")
+    executable = _fake_cedar(tmp_path)
+    backend = CedarPolicyBackend(executable, optimization_level="no")
+
+    backend.filter(_grant(rule), _ledger(rule), ())
+    backend.filter(_grant(rule), _ledger(rule), ())
+
+    invocations = [
+        json.loads(line) for line in (tmp_path / "cedar.log").read_text().splitlines()
+    ]
+    assert [item[0] for item in invocations] == [
+        "validate",
+        "authorize",
+        "validate",
         "authorize",
     ]
 
@@ -113,7 +161,7 @@ def test_cedar_reuses_successful_policy_verification(tmp_path: Path) -> None:
     invocations = [
         json.loads(line) for line in (tmp_path / "cedar.log").read_text().splitlines()
     ]
-    assert [item[0] for item in invocations] == ["validate", "authorize"]
+    assert [item[0] for item in invocations] == ["validate", "run-tests"]
 
 
 def test_cedar_cache_can_be_disabled(tmp_path: Path) -> None:
@@ -129,9 +177,9 @@ def test_cedar_cache_can_be_disabled(tmp_path: Path) -> None:
     ]
     assert [item[0] for item in invocations] == [
         "validate",
-        "authorize",
+        "run-tests",
         "validate",
-        "authorize",
+        "run-tests",
     ]
 
 
@@ -151,6 +199,11 @@ def test_cedar_cache_is_invalidated_when_engine_changes(tmp_path: Path) -> None:
 def test_cedar_rejects_negative_cache_size() -> None:
     with pytest.raises(ValueError, match="cache size"):
         CedarPolicyBackend(cache_entries=-1)
+
+
+def test_cedar_rejects_unknown_optimization_level() -> None:
+    with pytest.raises(ValueError, match="optimization level"):
+        CedarPolicyBackend(optimization_level="turbo")  # type: ignore[arg-type]
 
 
 def test_missing_cedar_engine_denies() -> None:
@@ -181,6 +234,74 @@ def test_cedar_observes_forbid_wins_for_removed_want(tmp_path: Path) -> None:
     )
     assert result.allowed
     assert result.grant is not None and result.grant.rules == ()
+
+
+@pytest.mark.skipif(shutil.which("cedar") is None, reason="Cedar CLI required")
+def test_batch_format_is_accepted_by_real_cedar() -> None:
+    read = GrantRule("read", AuthorityDomain.FILESYSTEM, "read", "/safe")
+    network = GrantRule(
+        "network",
+        AuthorityDomain.NETWORK,
+        "connect",
+        "443",
+        requirement=Requirement.WANT,
+    )
+    constraint = ForbidConstraint(
+        "offline",
+        RulePredicate(domain=AuthorityDomain.NETWORK.value),
+        "no network",
+        "network",
+    )
+
+    result = CedarPolicyBackend().filter(
+        _grant(read, network), _ledger(read, network), (constraint,)
+    )
+
+    assert result.allowed
+    assert result.grant is not None
+    assert [rule.rule_id for rule in result.grant.rules] == ["read"]
+
+
+def test_typed_denial_is_literal_and_does_not_invoke_cedar(tmp_path: Path) -> None:
+    rule = GrantRule("network", AuthorityDomain.NETWORK, "connect", "443")
+    constraint = ForbidConstraint(
+        "offline",
+        RulePredicate(domain=AuthorityDomain.NETWORK.value),
+        "no network",
+        "network",
+    )
+
+    result = CedarPolicyBackend(_fake_cedar(tmp_path)).filter(
+        _grant(rule), _ledger(rule), (constraint,)
+    )
+
+    assert not result.allowed
+    assert result.reason == "required_authority_removed:source:network"
+    assert not (tmp_path / "cedar.log").exists()
+
+
+@pytest.mark.parametrize("optimization_level", ["no", "normal"])
+def test_non_aggressive_levels_recheck_typed_denial_with_cedar(
+    tmp_path: Path, optimization_level: str
+) -> None:
+    rule = GrantRule("network", AuthorityDomain.NETWORK, "connect", "443")
+    constraint = ForbidConstraint(
+        "offline",
+        RulePredicate(domain=AuthorityDomain.NETWORK.value),
+        "no network",
+        "network",
+    )
+
+    result = CedarPolicyBackend(
+        _fake_cedar(tmp_path),
+        optimization_level=optimization_level,  # type: ignore[arg-type]
+    ).filter(_grant(rule), _ledger(rule), (constraint,))
+
+    assert not result.allowed
+    invocations = [
+        json.loads(line) for line in (tmp_path / "cedar.log").read_text().splitlines()
+    ]
+    assert [item[0] for item in invocations] == ["validate", "authorize"]
 
 
 def test_cedar_validation_error_denies_and_names_stage(tmp_path: Path) -> None:

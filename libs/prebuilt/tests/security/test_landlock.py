@@ -41,10 +41,15 @@ def _fake_cedar(tmp_path: Path) -> Path:
         "if sys.argv[1] == 'validate':\n"
         "    print('VALID')\n"
         "    raise SystemExit(0)\n"
-        "request = json.loads(pathlib.Path(sys.argv[sys.argv.index('--request-json') + 1]).read_text())\n"
+        "tests = json.loads(pathlib.Path(sys.argv[sys.argv.index('--tests') + 1]).read_text())\n"
         "policy = pathlib.Path(sys.argv[sys.argv.index('--policies') + 1]).read_text()\n"
-        "needle = f\"resource == {request['resource']}\"\n"
-        "print('ALLOW' if needle in policy and not request['context']['matchedForbids'] else 'DENY')\n",
+        "for test in tests:\n"
+        "    request = test['request']\n"
+        "    needle = f\"resource == {request['resource']}\"\n"
+        "    actual = 'allow' if needle in policy and not request['context']['matchedForbids'] else 'deny'\n"
+        "    if actual != test['decision']:\n"
+        "        raise SystemExit(1)\n"
+        "print(f'results: {len(tests)} passed, 0 failed')\n",
         encoding="utf-8",
     )
     executable.chmod(0o755)

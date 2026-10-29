@@ -275,7 +275,7 @@ to the configured backend.
 | `ForbidCombination` | Rejects combinations such as sensitive reads plus outbound communication. |
 | `PolicyConstraint` | Union of the two accepted forbid-only constraint records. |
 | `MandatoryPolicyBackend` | Replaceable filtering interface used by Cedar or another policy engine. |
-| `CedarPolicyBackend` | Default fail-closed backend. It validates generated policies with the Cedar CLI, creates one ephemeral DAC permit per candidate line, combines them with module/operator forbids, and denies missing engines, diagnostics, timeouts, or malformed decisions. |
+| `CedarPolicyBackend` | Default fail-closed two-level backend. `optimization_level="no"` uses uncached individual Cedar checks for debugging, `"normal"` adds validation and exact-result caching, and the default `"aggressive"` returns typed denials directly and checks residual grants in one Cedar CLI batch. Missing engines, diagnostics, timeouts, or decision mismatches deny. |
 | `TypedPolicyBackend` | Built-in fail-closed reference backend with broad-path subtraction, conservative rejection of unrepresentable differences, aggregate checks, and requirement revalidation. |
 | `PolicyFilterResult` | Filtered no-broader grant, remapped requirement ledger, removals, and fail-closed diagnostics. |
 

@@ -13,6 +13,7 @@ from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
 from threading import RLock
+from typing import Literal
 
 from langgraph.prebuilt.security.enforcement import Grant, GrantRule, RequirementLedger
 from langgraph.prebuilt.security.policy import (
@@ -39,13 +40,18 @@ _SCHEMA = """namespace slangGraph {
 
 
 class CedarPolicyBackend:
-    """Validate and evaluate generated forbid-only policy with Cedar CLI.
+    """Validate and batch-check generated forbid-only policy with Cedar CLI.
 
     Typed constraints are first compiled into a monotone candidate grant. Cedar
-    then evaluates one request for every surviving rule against one ephemeral
-    DAC permit and the complete operator-forbid set. Missing executables,
-    validation errors, evaluation diagnostics, timeouts, and malformed output
-    all deny the call.
+    then checks every residual request in one process against one ephemeral DAC
+    permit per rule and the complete operator-forbid set. A denial proved by the
+    typed first level is returned literally without invoking Cedar. Missing
+    executables, validation errors, evaluation diagnostics, timeouts, and
+    malformed output all deny the call.
+
+    `optimization_level="no"` disables caches and uses individual Cedar
+    requests, `"normal"` adds validation and exact-result caching, and
+    `"aggressive"` additionally enables literal typed denials and batch checks.
     """
 
     def __init__(
@@ -54,14 +60,20 @@ class CedarPolicyBackend:
         *,
         timeout_s: float = 5.0,
         cache_entries: int = 128,
+        optimization_level: Literal["no", "normal", "aggressive"] = "aggressive",
     ) -> None:
         if timeout_s <= 0:
             raise ValueError("Cedar timeout must be positive")
         if cache_entries < 0:
             raise ValueError("Cedar cache size cannot be negative")
+        if optimization_level not in {"no", "normal", "aggressive"}:
+            raise ValueError(
+                "Cedar optimization level must be no, normal, or aggressive"
+            )
         self.executable = os.fspath(executable)
         self.timeout_s = timeout_s
         self.cache_entries = cache_entries
+        self.optimization_level = optimization_level
         self._verified: OrderedDict[str, None] = OrderedDict()
         self._cache_lock = RLock()
 
@@ -74,6 +86,13 @@ class CedarPolicyBackend:
         """Return only lines allowed by constructive DAC and every forbid."""
         candidate = TypedPolicyBackend().filter(grant, ledger, constraints)
         if candidate.diagnostics:
+            return candidate
+        # The typed backend is the first policy level. Forbids are monotone, so
+        # a complete denial here cannot become an allow at the Cedar level. Do
+        # not pay process, serialization, or filesystem costs to rediscover it.
+        if self.optimization_level == "aggressive" and (
+            not candidate.allowed or candidate.grant is None
+        ):
             return candidate
         executable = _resolve_executable(self.executable)
         if executable is None:
@@ -102,7 +121,12 @@ class CedarPolicyBackend:
             for rule in plan_rules
         )
         verification_key = _verification_key(
-            engine, policies, entities, requests, expected
+            engine,
+            policies,
+            entities,
+            requests,
+            expected,
+            self.optimization_level,
         )
         if self._cached(verification_key):
             return _cedar_result(candidate, policies)
@@ -111,68 +135,54 @@ class CedarPolicyBackend:
                 root = Path(directory)
                 policy_path = root / "policy.cedar"
                 schema_path = root / "schema.cedarschema"
-                entities_path = root / "entities.json"
                 policy_path.write_text(policies, encoding="utf-8")
                 schema_path.write_text(_SCHEMA, encoding="utf-8")
-                entities_path.write_text(
-                    json.dumps(entities, sort_keys=True, separators=(",", ":")),
-                    encoding="utf-8",
-                )
-                validation = self._run(
-                    executable,
-                    "validate",
-                    "--policies",
-                    os.fspath(policy_path),
-                    "--schema",
-                    os.fspath(schema_path),
-                    "--schema-format",
-                    "cedar",
-                )
-                if validation.returncode != 0:
-                    return _cedar_error(candidate, "validation", validation)
-                for rule, request in zip(plan_rules, requests, strict=True):
-                    request_path = root / "request.json"
-                    request_path.write_text(
-                        json.dumps(
-                            request,
-                            sort_keys=True,
-                            separators=(",", ":"),
-                        ),
-                        encoding="utf-8",
-                    )
-                    evaluation = self._run(
+                validation_key = _validation_key(engine, policies)
+                if not self._cached(validation_key):
+                    validation = self._run(
                         executable,
-                        "authorize",
+                        "validate",
                         "--policies",
                         os.fspath(policy_path),
-                        "--entities",
-                        os.fspath(entities_path),
-                        "--request-json",
-                        os.fspath(request_path),
+                        "--schema",
+                        os.fspath(schema_path),
+                        "--schema-format",
+                        "cedar",
                     )
-                    decision = evaluation.stdout.strip()
-                    if evaluation.returncode != 0 and decision != "DENY":
-                        return _cedar_error(candidate, "evaluation", evaluation)
-                    if decision not in {"ALLOW", "DENY"}:
-                        return PolicyFilterResult(
-                            None,
-                            candidate.ledger,
-                            "policy_error",
-                            candidate.removed_rule_ids,
-                            (f"cedar_error:malformed_decision:{decision[:120]}",),
-                        )
-                    allowed = decision == "ALLOW"
-                    if allowed != (rule.rule_id in expected):
-                        return PolicyFilterResult(
-                            None,
-                            candidate.ledger,
-                            f"cedar_decision_mismatch:{rule.rule_id}",
-                            candidate.removed_rule_ids,
-                            (
-                                "cedar_error:decision_mismatch:"
-                                f"{rule.rule_id}:{decision}",
-                            ),
-                        )
+                    if validation.returncode != 0:
+                        return _cedar_error(candidate, "validation", validation)
+                    self._remember(validation_key)
+                if self.optimization_level == "aggressive":
+                    error = self._run_batch(
+                        candidate,
+                        executable,
+                        root,
+                        policy_path,
+                        schema_path,
+                        plan_rules,
+                        entities,
+                        requests,
+                        expected,
+                        matches,
+                    )
+                else:
+                    entities_path = root / "entities.json"
+                    entities_path.write_text(
+                        json.dumps(entities, sort_keys=True, separators=(",", ":")),
+                        encoding="utf-8",
+                    )
+                    error = self._run_individual(
+                        candidate,
+                        executable,
+                        root,
+                        policy_path,
+                        entities_path,
+                        plan_rules,
+                        requests,
+                        expected,
+                    )
+                if error is not None:
+                    return error
         except (OSError, subprocess.SubprocessError) as exc:
             return PolicyFilterResult(
                 None,
@@ -185,7 +195,7 @@ class CedarPolicyBackend:
         return _cedar_result(candidate, policies)
 
     def _cached(self, key: str) -> bool:
-        if not self.cache_entries:
+        if self.optimization_level == "no" or not self.cache_entries:
             return False
         with self._cache_lock:
             if key not in self._verified:
@@ -194,13 +204,102 @@ class CedarPolicyBackend:
             return True
 
     def _remember(self, key: str) -> None:
-        if not self.cache_entries:
+        if self.optimization_level == "no" or not self.cache_entries:
             return
         with self._cache_lock:
             self._verified[key] = None
             self._verified.move_to_end(key)
             while len(self._verified) > self.cache_entries:
                 self._verified.popitem(last=False)
+
+    def _run_batch(
+        self,
+        candidate: PolicyFilterResult,
+        executable: str,
+        root: Path,
+        policy_path: Path,
+        schema_path: Path,
+        rules: Sequence[GrantRule],
+        entities: Sequence[dict[str, object]],
+        requests: Sequence[dict[str, object]],
+        expected: frozenset[str],
+        matches: dict[str, tuple[str, ...]],
+    ) -> PolicyFilterResult | None:
+        tests_path = root / "tests.json"
+        tests_path.write_text(
+            json.dumps(
+                _batch_tests(rules, entities, requests, expected, matches),
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+        evaluation = self._run(
+            executable,
+            "run-tests",
+            "--policies",
+            os.fspath(policy_path),
+            "--tests",
+            os.fspath(tests_path),
+            "--schema",
+            os.fspath(schema_path),
+            "--schema-format",
+            "cedar",
+        )
+        return (
+            _cedar_error(candidate, "evaluation", evaluation)
+            if evaluation.returncode != 0
+            else None
+        )
+
+    def _run_individual(
+        self,
+        candidate: PolicyFilterResult,
+        executable: str,
+        root: Path,
+        policy_path: Path,
+        entities_path: Path,
+        rules: Sequence[GrantRule],
+        requests: Sequence[dict[str, object]],
+        expected: frozenset[str],
+    ) -> PolicyFilterResult | None:
+        for rule, request in zip(rules, requests, strict=True):
+            request_path = root / "request.json"
+            request_path.write_text(
+                json.dumps(request, sort_keys=True, separators=(",", ":")),
+                encoding="utf-8",
+            )
+            evaluation = self._run(
+                executable,
+                "authorize",
+                "--policies",
+                os.fspath(policy_path),
+                "--entities",
+                os.fspath(entities_path),
+                "--request-json",
+                os.fspath(request_path),
+            )
+            decision = evaluation.stdout.strip()
+            if evaluation.returncode != 0 and decision != "DENY":
+                return _cedar_error(candidate, "evaluation", evaluation)
+            if decision not in {"ALLOW", "DENY"}:
+                return PolicyFilterResult(
+                    None,
+                    candidate.ledger,
+                    "policy_error",
+                    candidate.removed_rule_ids,
+                    (f"cedar_error:malformed_decision:{decision[:120]}",),
+                )
+            allowed = decision == "ALLOW"
+            if allowed != (rule.rule_id in expected):
+                return PolicyFilterResult(
+                    None,
+                    candidate.ledger,
+                    f"cedar_decision_mismatch:{rule.rule_id}",
+                    candidate.removed_rule_ids,
+                    (f"cedar_error:decision_mismatch:{rule.rule_id}:{decision}",),
+                )
+        return None
 
     def _run(
         self, executable: str, *arguments: str
@@ -227,6 +326,7 @@ def _verification_key(
     entities: Sequence[dict[str, object]],
     requests: Sequence[dict[str, object]],
     expected: frozenset[str],
+    optimization_level: str,
 ) -> str:
     """Identify one complete successful Cedar verification.
 
@@ -240,6 +340,7 @@ def _verification_key(
                 "engine": engine,
                 "entities": entities,
                 "expected": sorted(expected),
+                "optimization_level": optimization_level,
                 "policies": policies,
                 "requests": requests,
                 "schema": _SCHEMA,
@@ -248,6 +349,49 @@ def _verification_key(
             separators=(",", ":"),
         ).encode()
     ).hexdigest()
+
+
+def _validation_key(engine: tuple[str, int, int, int, int, int], policies: str) -> str:
+    """Identify validation of the static schema and generated policy set."""
+    return (
+        "validation:"
+        + hashlib.sha256(
+            json.dumps(
+                {"engine": engine, "policies": policies, "schema": _SCHEMA},
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode()
+        ).hexdigest()
+    )
+
+
+def _batch_tests(
+    rules: Sequence[GrantRule],
+    entities: Sequence[dict[str, object]],
+    requests: Sequence[dict[str, object]],
+    expected: frozenset[str],
+    matches: dict[str, tuple[str, ...]],
+) -> tuple[dict[str, object], ...]:
+    """Build one Cedar CLI batch that checks every residual decision."""
+    tests = []
+    for rule, request in zip(rules, requests, strict=True):
+        allowed = rule.rule_id in expected
+        reasons = (
+            [f"dac:{rule.rule_id}"]
+            if allowed
+            else [f"forbid:{identity}" for identity in matches.get(rule.rule_id, ())]
+        )
+        tests.append(
+            {
+                "decision": "allow" if allowed else "deny",
+                "entities": entities,
+                "name": rule.rule_id,
+                "num_errors": 0,
+                "reason": reasons,
+                "request": request,
+            }
+        )
+    return tuple(tests)
 
 
 def _engine_identity(executable: str) -> tuple[str, int, int, int, int, int] | None:
