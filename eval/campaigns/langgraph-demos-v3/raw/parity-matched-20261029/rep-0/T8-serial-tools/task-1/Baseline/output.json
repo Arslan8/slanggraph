@@ -1,0 +1,135 @@
+{
+  "demo": "serial-tools",
+  "mode": "Baseline",
+  "prompt": "What's 3 + 5 and 4 * 7? Use the tools for both calculations.",
+  "wall_ms": 1635.0747469696216,
+  "model_time_ms": 1564.0920959995128,
+  "model_calls": 2,
+  "answer": "The results are:\n\n- $3 + 5 = 8$\n- $4 \\times 7 = 28$",
+  "messages": [
+    {
+      "content": "What's 3 + 5 and 4 * 7? Use the tools for both calculations.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "055c3a23-e4b0-4ee9-92e9-25b7539613b3"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 50,
+          "prompt_tokens": 203,
+          "total_tokens": 253,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-308",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a185fb-17c3-7752-b6c8-bce3d013b093-0",
+      "tool_calls": [
+        {
+          "name": "add",
+          "args": {
+            "a": 3,
+            "b": 5
+          },
+          "id": "call_abmv2a01",
+          "type": "tool_call"
+        },
+        {
+          "name": "multiply",
+          "args": {
+            "a": 4,
+            "b": 7
+          },
+          "id": "call_rzktu0s1",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 203,
+        "output_tokens": 50,
+        "total_tokens": 253,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "8",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "add",
+      "id": "45f1ad32-791a-4128-b54b-7296a7f8dfb2",
+      "tool_call_id": "call_abmv2a01",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "28",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "multiply",
+      "id": "96aa9be1-78ba-4fc4-ac6d-da06ba377cb0",
+      "tool_call_id": "call_rzktu0s1",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The results are:\n\n- $3 + 5 = 8$\n- $4 \\times 7 = 28$",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 27,
+          "prompt_tokens": 268,
+          "total_tokens": 295,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-598",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a185fb-1b9f-7891-b4f5-f7542481d47e-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 268,
+        "output_tokens": 27,
+        "total_tokens": 295,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "executed_tools": [
+    "add",
+    "multiply"
+  ],
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

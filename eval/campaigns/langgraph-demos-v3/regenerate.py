@@ -115,6 +115,24 @@ def main() -> None:
         suite_bootstrap.append(
             math.exp(statistics.fmean(math.log(value) for value in sampled_ratios))
         )
+    utility_matched = [
+        application
+        for application in included
+        if results[application]["modes"]["Baseline"]["correct"]
+        == results[application]["modes"]["Argus"]["correct"]
+    ]
+    utility_ratio = math.exp(
+        statistics.fmean(math.log(results[item]["ratio"]) for item in utility_matched)
+    )
+    utility_bootstrap = []
+    for sample in resampled_blocks:
+        sampled_ratios = []
+        for application in utility_matched:
+            selected = [item for item in records if item["application"] == application]
+            sampled_ratios.append(ratio_for(selected, sample))
+        utility_bootstrap.append(
+            math.exp(statistics.fmean(math.log(value) for value in sampled_ratios))
+        )
     statistics_output = {
         "run_id": args.run_id,
         "primary_timer": "parent subprocess wall clock including process startup",
@@ -139,6 +157,19 @@ def main() -> None:
                 100 * (percentile(suite_bootstrap, 0.025) - 1),
                 100 * (percentile(suite_bootstrap, 0.975) - 1),
             ],
+            "utility_matched_secondary": {
+                "included": utility_matched,
+                "geometric_mean_ratio": utility_ratio,
+                "geometric_mean_overhead_percent": 100 * (utility_ratio - 1),
+                "ratio_ci95": [
+                    percentile(utility_bootstrap, 0.025),
+                    percentile(utility_bootstrap, 0.975),
+                ],
+                "overhead_ci95_percent": [
+                    100 * (percentile(utility_bootstrap, 0.025) - 1),
+                    100 * (percentile(utility_bootstrap, 0.975) - 1),
+                ],
+            },
         },
     }
     (CAMPAIGN / "statistics.json").write_text(
@@ -151,9 +182,9 @@ def main() -> None:
         f"Run `{args.run_id}` contains {len(records)} retained attempts in "
         f"{len(repetitions)} paired repetition blocks. The primary timer includes process startup.",
         "",
-        "| Application | Baseline success | Argus success | Baseline mean (ms) | "
-        "Argus mean (ms) | Ratio [95% CI] |",
-        "|---|---:|---:|---:|---:|---:|",
+        "| Application | Baseline success | Argus success | Status B/A | "
+        "Baseline mean (ms) | Argus mean (ms) | Ratio [95% CI] |",
+        "|---|---:|---:|---|---:|---:|---:|",
     ]
     for application in applications:
         item = results[application]
@@ -164,17 +195,28 @@ def main() -> None:
             if "ratio" in item
             else f"not reported ({item['exclusion']})"
         )
+        baseline_status = (
+            f"C{baseline['completed']}/F{baseline['compatibility_failures']}/"
+            f"E{baseline['execution_errors']}/T{baseline['timeouts']}"
+        )
+        argus_status = (
+            f"C{argus['completed']}/F{argus['compatibility_failures']}/"
+            f"E{argus['execution_errors']}/T{argus['timeouts']}"
+        )
         lines.append(
             f"| {application} | {baseline['correct']}/{baseline['attempts']} | "
-            f"{argus['correct']}/{argus['attempts']} | {baseline['mean_wall_ms']:.1f} | "
-            f"{argus['mean_wall_ms']:.1f} | {ratio} |"
+            f"{argus['correct']}/{argus['attempts']} | {baseline_status} / {argus_status} | "
+            f"{baseline['mean_wall_ms']:.1f} | {argus['mean_wall_ms']:.1f} | {ratio} |"
         )
     suite = statistics_output["suite"]
+    utility = suite["utility_matched_secondary"]
     lines.extend(
         (
             "",
             "The suite result is the geometric mean of per-application ratios, not a pooled "
             "ratio or arithmetic mean of percentages.",
+            "Status abbreviations: C=completed, F=compatibility failure, "
+            "E=execution error, T=timeout. D4 timeout durations are capped at 300 seconds.",
             "",
             f"Included applications: {', '.join(included)}.",
             f"Excluded applications: {', '.join(suite['excluded']) or 'none'}.",
@@ -182,6 +224,17 @@ def main() -> None:
             f"(95% paired-block CI {suite['ratio_ci95'][0]:.3f}-"
             f"{suite['ratio_ci95'][1]:.3f}); "
             f"overhead **{suite['geometric_mean_overhead_percent']:.1f}%**.",
+            "",
+            "No defensible overhead average exists over all 15 applications: D3 has no "
+            "completed trial in either mode and T10 has no completed Argus trial.",
+            "",
+            "As a secondary sensitivity analysis, applications with the same success count "
+            "in both modes have geometric-mean ratio "
+            f"**{utility['geometric_mean_ratio']:.3f}x** "
+            f"(95% CI {utility['ratio_ci95'][0]:.3f}-"
+            f"{utility['ratio_ci95'][1]:.3f}); overhead "
+            f"**{utility['geometric_mean_overhead_percent']:.1f}%** across "
+            f"{len(utility['included'])} applications.",
             "",
             "Timeout-capped attempts, failures, and refusals remain in the per-mode means. "
             "Success counts are reported separately so a failed fast run is not presented "

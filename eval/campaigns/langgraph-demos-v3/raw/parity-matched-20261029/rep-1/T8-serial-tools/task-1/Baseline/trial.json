@@ -1,0 +1,33 @@
+{
+  "application": "T8-serial-tools",
+  "task": 1,
+  "repetition": 1,
+  "mode": "Baseline",
+  "status": "completed",
+  "correct": true,
+  "wall_ms": 2530.292538984213,
+  "timeout_cap_seconds": 180,
+  "censored": false,
+  "returncode": 0,
+  "inner_wall_ms": 1568.976583017502,
+  "model_time_ms": 1498.5689560417086,
+  "model_calls": 2,
+  "security_evidence": false,
+  "grant_count": 0,
+  "lowering_count": 0,
+  "broker_record_count": 0,
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpAlej7W/bin/python",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/apps/demos/tool_calling_protected.py",
+    "--mode",
+    "Baseline",
+    "--output",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v3/raw/parity-matched-20261029/rep-1/T8-serial-tools/task-1/Baseline/output.json",
+    "--demo",
+    "serial-tools"
+  ],
+  "raw_output": "eval/campaigns/langgraph-demos-v3/raw/parity-matched-20261029/rep-1/T8-serial-tools/task-1/Baseline/output.json",
+  "stdout": "",
+  "stderr": "",
+  "error": null
+}

@@ -20,12 +20,24 @@ uv run --python 3.11 --project eval \
   --with langchain-community --with langchain-experimental \
   --with matplotlib --with pytz \
   python eval/campaigns/langgraph-demos-v3/run_campaign.py \
-  --run-id matched-20261028 --repetitions 5
+  --run-id parity-matched-20261029 --repetitions 5
 
 uv run --python 3.11 --project eval --with matplotlib \
   python eval/campaigns/langgraph-demos-v3/regenerate.py \
-  --run-id matched-20261028
+  --run-id parity-matched-20261029
 ```
+
+The evaluated source revision is
+`d9b643785df06a3b9c9dc003098b340e11e170d0`. That revision adds a preflight
+assertion requiring identical model-visible tool names, descriptions, and argument
+schemas across modes. The earlier preliminary run is excluded from the committed
+artifact because its protected D1-D5 adapters used different tool descriptions; it
+must not be used for paper results.
+
+The primary raw artifact is `raw/parity-matched-20261029/`. Per-trial reset copies of
+the Chinook and travel databases are not duplicated in the committed artifact: their
+frozen source fixtures and SHA-256 hashes are retained, and every D5 output records
+the before/after resource state. The runner recreates fresh copies for every trial.
 
 Per-application overhead is the ratio of complete-cohort mean wall times. Its 95%
 interval resamples the five paired repetition blocks and keeps all tasks in a block
