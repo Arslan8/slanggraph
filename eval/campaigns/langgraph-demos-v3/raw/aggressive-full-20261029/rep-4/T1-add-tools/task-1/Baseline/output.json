@@ -1,0 +1,125 @@
+{
+  "mode": "Baseline",
+  "model": {
+    "name": "qwen3:8b",
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "temperature": 0,
+    "seed": 20261005,
+    "reasoning_effort": "none"
+  },
+  "wall_ms": 2068.6060760053806,
+  "model_time_ms": 1997.7572750067338,
+  "model_calls": 2,
+  "answer": "The 1996 Summer Olympics were hosted by Atlanta, United States. The currency used in the United States at that time was the US dollar (USD).",
+  "messages": [
+    {
+      "content": "You must use the search tool. Which city and country hosted the 1996 Summer Olympics, and what currency did that country use at the time?",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "33d842c2-0bc7-4a7e-a91f-c5539341f446"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 37,
+          "prompt_tokens": 178,
+          "total_tokens": 215,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-70",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a189f1-b7a8-7572-b9dc-7bf78180f86c-0",
+      "tool_calls": [
+        {
+          "name": "tavily_search",
+          "args": {
+            "query": "1996 Summer Olympics host city and country, currency used at the time"
+          },
+          "id": "call_tb45rigq",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 178,
+        "output_tokens": 37,
+        "total_tokens": 215,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "[{\"url\": \"https://www.olympics.com/en/olympic-games/atlanta-1996\", \"content\": \"The 1996 Summer Olympics were held in Atlanta, United States. The United States used the US dollar (USD).\"}, {\"url\": \"https://www.olympics.com/en/olympic-games/sydney-2000\", \"content\": \"The 2000 Summer Olympics were held in Sydney, Australia. Australia used the Australian dollar (AUD).\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "tavily_search",
+      "id": "fc19287a-34ef-4ba4-bf32-ce63dffeb941",
+      "tool_call_id": "call_tb45rigq",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The 1996 Summer Olympics were hosted by Atlanta, United States. The currency used in the United States at that time was the US dollar (USD).",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 34,
+          "prompt_tokens": 343,
+          "total_tokens": 377,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-155",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a189f1-bc9c-7db1-86c9-14983133c66b-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 343,
+        "output_tokens": 34,
+        "total_tokens": 377,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "executed_tools": [
+    "tavily_search"
+  ],
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": [],
+  "protections": {
+    "closed_admission": false,
+    "principal_authorization": false,
+    "sealed_operator_policy": false,
+    "linux_isolation": false,
+    "audit": false,
+    "lean_per_call": false
+  }
+}

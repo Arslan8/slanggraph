@@ -12,6 +12,7 @@ import tempfile
 import time
 import uuid
 from pathlib import Path
+from typing import Literal
 
 from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
@@ -63,7 +64,13 @@ def _write(stream, row: dict) -> None:
     stream.flush()
 
 
-def run_session(output: Path, session: int, warmups: int, measured: int) -> None:
+def run_session(
+    output: Path,
+    session: int,
+    warmups: int,
+    measured: int,
+    optimization_level: Literal["no", "normal", "aggressive"],
+) -> None:
     """Run one independent process session."""
     output.parent.mkdir(parents=True, exist_ok=True)
     os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
@@ -91,6 +98,7 @@ principal alice {{
         checker = LeanLifecycleChecker(LEAN_BINARY, LEAN_SHA256)
         checker_setup_ms = (time.perf_counter_ns() - checker_start) / 1e6
         executor_start = time.perf_counter_ns()
+        policy_backend = CedarPolicyBackend(optimization_level=optimization_level)
         executor = LinuxSandboxExecutor(
             profiles,
             {
@@ -103,6 +111,7 @@ principal alice {{
             runtime_roots=(root,),
             default_wall_timeout_s=10,
             lifecycle_checker=checker,
+            policy_backend=policy_backend,
         )
         executor_setup_ms = (time.perf_counter_ns() - executor_start) / 1e6
         sink = SqliteAuditSink(root / "audit.sqlite")
@@ -188,6 +197,7 @@ principal alice {{
                         "profile": profile_text,
                         "lean_binary": LEAN_BINARY,
                         "lean_sha256": LEAN_SHA256,
+                        "cedar_optimization_level": optimization_level,
                     },
                 )
                 for index in range(1 + warmups + measured):
@@ -286,10 +296,21 @@ def main() -> None:
     parser.add_argument("--sessions", type=int, default=5)
     parser.add_argument("--warmups", type=int, default=10)
     parser.add_argument("--measured", type=int, default=20)
+    parser.add_argument(
+        "--optimization-level",
+        choices=("no", "normal", "aggressive"),
+        default="aggressive",
+    )
     parser.add_argument("--session", type=int)
     args = parser.parse_args()
     if args.session is not None:
-        run_session(args.output, args.session, args.warmups, args.measured)
+        run_session(
+            args.output,
+            args.session,
+            args.warmups,
+            args.measured,
+            args.optimization_level,
+        )
         return
     args.output.mkdir(parents=True, exist_ok=False)
     for session in range(args.sessions):
@@ -302,6 +323,8 @@ def main() -> None:
             str(args.warmups),
             "--measured",
             str(args.measured),
+            "--optimization-level",
+            args.optimization_level,
             "--session",
             str(session),
         ]

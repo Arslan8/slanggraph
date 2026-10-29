@@ -1,0 +1,33 @@
+{
+  "application": "T4-parallel-weather",
+  "task": 1,
+  "repetition": 3,
+  "mode": "Baseline",
+  "status": "completed",
+  "correct": true,
+  "wall_ms": 923.1959420139901,
+  "timeout_cap_seconds": 180,
+  "censored": false,
+  "returncode": 0,
+  "inner_wall_ms": 4.836099979002029,
+  "model_time_ms": 0.0,
+  "model_calls": 0,
+  "security_evidence": false,
+  "grant_count": 0,
+  "lowering_count": 0,
+  "broker_record_count": 0,
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpfwLMD8/bin/python",
+    "/data/langgraph/eval/apps/demos/tool_calling_protected.py",
+    "--mode",
+    "Baseline",
+    "--output",
+    "/data/langgraph/eval/campaigns/langgraph-demos-v3/raw/aggressive-full-20261029/rep-3/T4-parallel-weather/task-1/Baseline/output.json",
+    "--demo",
+    "parallel-weather"
+  ],
+  "raw_output": "eval/campaigns/langgraph-demos-v3/raw/aggressive-full-20261029/rep-3/T4-parallel-weather/task-1/Baseline/output.json",
+  "stdout": "",
+  "stderr": "",
+  "error": null
+}

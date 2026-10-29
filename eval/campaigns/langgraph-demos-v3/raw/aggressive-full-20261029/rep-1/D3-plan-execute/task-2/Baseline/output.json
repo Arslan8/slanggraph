@@ -1,0 +1,13 @@
+{
+  "answer": null,
+  "state": {},
+  "status": "execution_error",
+  "error": "IndexError: list index out of range",
+  "wall_ms": 7963.04926101584,
+  "model_time_ms": 7913.395100971684,
+  "model_calls": 9,
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "lowering_records": [],
+  "broker_audit": []
+}

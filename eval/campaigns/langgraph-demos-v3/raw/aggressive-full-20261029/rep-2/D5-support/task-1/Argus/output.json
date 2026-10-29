@@ -1,0 +1,2619 @@
+{
+  "before": {
+    "ticket": "7240005432906569",
+    "flight_ids": [
+      1459,
+      19250
+    ],
+    "owner": "3442 587242"
+  },
+  "after": {
+    "ticket": "7240005432906569",
+    "flight_ids": [
+      1459,
+      19250
+    ],
+    "owner": "3442 587242"
+  },
+  "interrupts": [],
+  "messages": [
+    {
+      "content": "Retrieve my existing flight details.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "c5a8f985-f6bf-4420-a14c-a12e68cf5fa5"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "d8e082e6-5c33-4ebf-a2ce-197b98ffc9f6",
+      "tool_calls": [
+        {
+          "name": "fetch_user_flight_information",
+          "args": {},
+          "id": "initial-user-info",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "[{\"arrival_airport\": \"BSL\", \"book_ref\": \"C46E9F\", \"departure_airport\": \"CDG\", \"fare_conditions\": \"Economy\", \"flight_id\": 19250, \"flight_no\": \"LX0112\", \"scheduled_arrival\": \"2026-11-15 13:39:03.561731-04:00\", \"scheduled_departure\": \"2026-11-15 12:09:03.561731-04:00\", \"seat_no\": \"18E\", \"ticket_no\": \"7240005432906569\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "fetch_user_flight_information",
+      "id": "b85e57e8-428d-48f5-93d7-eb011b7fc879",
+      "tool_call_id": "initial-user-info",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "Your existing flight details are as follows:\n\n- **Flight Number:** LX0112\n- **Flight ID:** 19250\n- **Departure Airport:** CDG\n- **Arrival Airport:** BSL\n- **Scheduled Departure:** 2026-11-15 12:09\n- **Scheduled Arrival:** 2026-11-15 13:39\n- **Seat Number:** 18E\n- **Ticket Number:** 7240005432906569\n- **Booking Reference:** C46E9F\n- **Fare Conditions:** Economy\n\nLet me know if you need any further assistance!",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 160,
+          "prompt_tokens": 954,
+          "total_tokens": 1114,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-300",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a189c4-9b26-73e2-ae58-ea09f2cea226-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 954,
+        "output_tokens": 160,
+        "total_tokens": 1114,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "wall_ms": 5034.566534974147,
+  "model_time_ms": 2727.163245959673,
+  "model_calls": 1,
+  "frozen_now": "2026-11-15T12:05:03.561731-04:00",
+  "authorization_decisions": [
+    {
+      "call_index": 0,
+      "tool_name": "tavily_search_results_json",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "",
+      "hash": "2aba483a14a2a8efc3f10639d2eff946289d81241c1db517e6a26fac074b82c5",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "2aba483a14a2a8efc3f10639d2eff946289d81241c1db517e6a26fac074b82c5",
+      "hash": "6df81d482aabaad3c8fa85a93f8a252dd3d0a55d66b10e2ad22c98a140a71a01",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "search_flights",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "6df81d482aabaad3c8fa85a93f8a252dd3d0a55d66b10e2ad22c98a140a71a01",
+      "hash": "8fb2ade602bf0dcbfb202446715b9df5a6319ffb8b49d3946978cf47d3f0a5e7",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "lookup_policy",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "8fb2ade602bf0dcbfb202446715b9df5a6319ffb8b49d3946978cf47d3f0a5e7",
+      "hash": "1ebaf4de2f0339f0f98618215e26dd1df37311ffdf39af67bdd27c7bc18c155c",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "update_ticket_to_new_flight",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "1ebaf4de2f0339f0f98618215e26dd1df37311ffdf39af67bdd27c7bc18c155c",
+      "hash": "4813bd735d55758026b62332fad5b214fb074b0288acf9bf51e8c23293f8d4c0",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "cancel_ticket",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "4813bd735d55758026b62332fad5b214fb074b0288acf9bf51e8c23293f8d4c0",
+      "hash": "1f23270885e118709507b137818d7fbb10e20444ca44fcd32de965156458df68",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "tavily_search_results_json",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "1f23270885e118709507b137818d7fbb10e20444ca44fcd32de965156458df68",
+      "hash": "d780ed268012b3448e6930848bf19d2f1ad37d3bd9412629e0e84764995066c6",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "d780ed268012b3448e6930848bf19d2f1ad37d3bd9412629e0e84764995066c6",
+      "hash": "89274017c57b676d0ef2909b41de21d900bcde16c7a0507e3438c0372b9244e5",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "search_flights",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "89274017c57b676d0ef2909b41de21d900bcde16c7a0507e3438c0372b9244e5",
+      "hash": "abab12a0ff3e20fd678a4ff9c3d1494bdfde83bf954a01f46ba740a9ad2dc809",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "lookup_policy",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "abab12a0ff3e20fd678a4ff9c3d1494bdfde83bf954a01f46ba740a9ad2dc809",
+      "hash": "a88e4e9cf734863f5f50543137ad1862c624eaad8bef2950d5b8ae85bc279f94",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "update_ticket_to_new_flight",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "a88e4e9cf734863f5f50543137ad1862c624eaad8bef2950d5b8ae85bc279f94",
+      "hash": "19e32e89cb80ff19c04844d2a1feae3f41c278d0bd97ddc10e3e918ac4224e1f",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "cancel_ticket",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "19e32e89cb80ff19c04844d2a1feae3f41c278d0bd97ddc10e3e918ac4224e1f",
+      "hash": "1a3c5a7b363e87f1971b387029ab81d83f0f10f54821015244b06bcb017d5148",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "tavily_search_results_json",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "1a3c5a7b363e87f1971b387029ab81d83f0f10f54821015244b06bcb017d5148",
+      "hash": "8239f66ddab23a6a01252a3824d86868f34634b68e80703ab9d838c5fa8a9384",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "8239f66ddab23a6a01252a3824d86868f34634b68e80703ab9d838c5fa8a9384",
+      "hash": "af7ce2d7bad2206c33ec3933a09f46410a9cda1c89f2e95467fd38a8f5493d54",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "search_flights",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "af7ce2d7bad2206c33ec3933a09f46410a9cda1c89f2e95467fd38a8f5493d54",
+      "hash": "6fab211b21e9a8abef6263c97be97ccf7747eb380114efeabefaa3627a73cbbf",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "lookup_policy",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "6fab211b21e9a8abef6263c97be97ccf7747eb380114efeabefaa3627a73cbbf",
+      "hash": "0e2e35b94b0efa561dc8845e28ad8b84e4ffb5d3a0be1bc544e105852db37e35",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "update_ticket_to_new_flight",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "0e2e35b94b0efa561dc8845e28ad8b84e4ffb5d3a0be1bc544e105852db37e35",
+      "hash": "b9be81d22bc99498138d8631fe6ad0f5cb99d07f897ef727e7b8511264a39b3f",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "cancel_ticket",
+      "user_id": "__operator__",
+      "args_hash": "d6d82edbdf2d8f2b559efa0f10cc7ff8f351efeee491fcce059df92c6abea4af",
+      "stage": "compile",
+      "module": "dac_override",
+      "verdict": "allow",
+      "reason": "operator_override",
+      "prev_hash": "b9be81d22bc99498138d8631fe6ad0f5cb99d07f897ef727e7b8511264a39b3f",
+      "hash": "15392650a1af7f6cd4e0b01348b485419096aa02c412332f8a20ddb6ffe1b258",
+      "session_id": "",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "b8d65d62bfcb30e8db8cb8852106eaeac05f24b332af1859b7a90c6950ba1cf7",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "15392650a1af7f6cd4e0b01348b485419096aa02c412332f8a20ddb6ffe1b258",
+      "hash": "ef882647912127a281399c4171616e67292adb2af5632095d64ca07924f9ab9f",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "4df2c1f4720532f56a0fa5a2ec9f84850671003f084bdeb713c5482c1d879316",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "ef882647912127a281399c4171616e67292adb2af5632095d64ca07924f9ab9f",
+      "hash": "60f352821865970f0b082bfef73fec9c19b2b314fa5225b996483d310e5efea9",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "71852f39f92410e62c90fbbf3ef08cffd66106d4203dc6baa77a9396ffd582ba",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "60f352821865970f0b082bfef73fec9c19b2b314fa5225b996483d310e5efea9",
+      "hash": "e0e66a4692ae01168ff437e0cda315caacb6839e5492d6a81f8367d4d4eda15a",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "fcce5ddabfc68cd3bda473de4956161da96052739c48ee667aead5c45625876d",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "e0e66a4692ae01168ff437e0cda315caacb6839e5492d6a81f8367d4d4eda15a",
+      "hash": "991760cc3ce882501b1531f9d883416b1d149f6b5e846fcab87072081e1837e0",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "5abfa10edac10bc4e4f4cca9b0cdf40b9f399200c3a4e3b91a1ee16f4a40b9ae",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "991760cc3ce882501b1531f9d883416b1d149f6b5e846fcab87072081e1837e0",
+      "hash": "d0b9d132f4281408c1d4a7ea293b40dc1285ce73b9252a1735f0c877dd372ac0",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "0e8592c4ccdb5dbdd6069773f83a8000e8b1debe201bef00ea68567c189fab51",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "d0b9d132f4281408c1d4a7ea293b40dc1285ce73b9252a1735f0c877dd372ac0",
+      "hash": "39c5676f2c6db5c50d59e135fd9d89b5303e2e574332086f97ec9d40f139c612",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "70592a898a0ca1a28d6ebc95659a507574e128810d88da49dd0dcdbc38e71527",
+      "stage": "dispatch",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "39c5676f2c6db5c50d59e135fd9d89b5303e2e574332086f97ec9d40f139c612",
+      "hash": "46e833a1f7935ec9fc3113688bc13d101b1f9822c909b33f1f8343a05a5d05a7",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "35e1f3865d1666c0cedf8c337eff2d9e569990cc2dde2d914b3b2fdd6c8ae00d",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "46e833a1f7935ec9fc3113688bc13d101b1f9822c909b33f1f8343a05a5d05a7",
+      "hash": "a26ea877a19a78f50b9fe79e6b07c2e7a3063525d85deaa12a0f6acc9f994545",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "2f7abde822c46622ff08041a51a0a2d05182cd6a1852646fb7d5a8445c07f6b8",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "a26ea877a19a78f50b9fe79e6b07c2e7a3063525d85deaa12a0f6acc9f994545",
+      "hash": "d2ffcc5e96a2ebee9d18a8ec60ec29e95c71795b1793bef16dd5077854fc3816",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "c25b13ac5f3cbc766a7dc65343180ec0c5c284d11e75af466486a944dae2c0c9",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "d2ffcc5e96a2ebee9d18a8ec60ec29e95c71795b1793bef16dd5077854fc3816",
+      "hash": "3354c98fc8bf140c168ffc0a367bc653e70df5497ca3efdbbc1c1492770c54fc",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "e777f68bc5d2c26e51afb6c9a3c8016fd4e1cbe6b28ada04d030ef65f42abeb5",
+      "stage": "dispatch",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "3354c98fc8bf140c168ffc0a367bc653e70df5497ca3efdbbc1c1492770c54fc",
+      "hash": "20cd92ccce279bbf557b556b02ce76d811952916e31ae9542da01cb1cf65b3a2",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "2798498aa938ac9cf49b2bfc6a475403fc3fc1ec24299383929491da8af9c6fb",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "20cd92ccce279bbf557b556b02ce76d811952916e31ae9542da01cb1cf65b3a2",
+      "hash": "549dcc067531d0ccef933252827bfbd34b82ac7a72b62ad346cb60546c7980c2",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "c3cceb7804ce812746c2345abb3d568049ec3278fc689c61f20e1c373f4ac722",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "549dcc067531d0ccef933252827bfbd34b82ac7a72b62ad346cb60546c7980c2",
+      "hash": "e02032fc16d94f8c38d26550dc7bdc892e347cd11e40e45f1f7e28db2a36982b",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "ce4165f2e2de19b94847b9cd7ec5d5b8dd4a7aded717f3c6f1bde10c66c13fc9",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "e02032fc16d94f8c38d26550dc7bdc892e347cd11e40e45f1f7e28db2a36982b",
+      "hash": "7253095e4873aab24ba0bed219d1629b88fd984656bc6d88d0aa57d29d101c98",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "84329ae2eb9a0193ff5d8ecff2459ade76b1f81f9fd3b77abc5d3cd33c59b8be",
+      "stage": "dispatch",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "7253095e4873aab24ba0bed219d1629b88fd984656bc6d88d0aa57d29d101c98",
+      "hash": "a4d3a2629b9266af4340eb41cd94202aa0ca4a2f823e0daccff7c527804421ea",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "alice",
+      "args_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "stage": "prepare",
+      "module": "dac_initial",
+      "verdict": "allow",
+      "reason": "dac:allow",
+      "prev_hash": "a4d3a2629b9266af4340eb41cd94202aa0ca4a2f823e0daccff7c527804421ea",
+      "hash": "86d70a3ac5f2c37f3f0299855d3f784181258205084d702166d92946cca27349",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "alice",
+      "args_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "stage": "prepare",
+      "module": "dac_final",
+      "verdict": "allow",
+      "reason": "dac:allow",
+      "prev_hash": "86d70a3ac5f2c37f3f0299855d3f784181258205084d702166d92946cca27349",
+      "hash": "7e471cbe66bd6ddb6a106235631dd00c51d3ace3ea2911d64f88c28a6c500eff",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "alice",
+      "args_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "stage": "permission",
+      "module": "dac",
+      "verdict": "allow",
+      "reason": "dac:allow",
+      "prev_hash": "7e471cbe66bd6ddb6a106235631dd00c51d3ace3ea2911d64f88c28a6c500eff",
+      "hash": "e5eff8178bdb59059c263dd528a36799dd1db19cabea2a8253bed9b09132a78c",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "alice",
+      "args_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "stage": "permission",
+      "module": "cap",
+      "verdict": "allow",
+      "reason": "cap:allow",
+      "prev_hash": "e5eff8178bdb59059c263dd528a36799dd1db19cabea2a8253bed9b09132a78c",
+      "hash": "a3dd3cf8164560a0ee0beec1a68b17676b8a9a7abcc832f5612f3a52e7fa1fcf",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "alice",
+      "args_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "stage": "dispatch",
+      "module": "dispatch",
+      "verdict": "allow",
+      "reason": "dispatch:reserved",
+      "prev_hash": "a3dd3cf8164560a0ee0beec1a68b17676b8a9a7abcc832f5612f3a52e7fa1fcf",
+      "hash": "03aa8e32eb412b0ab3737724a0540876cc77f1d6c5728a7e1a16c444b9badbee",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "alice",
+      "args_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "stage": "activation",
+      "module": "activation",
+      "verdict": "allow",
+      "reason": "activation_receipt:{\"activated_obligations\":[\"domain:credential:deny_complement\",\"domain:delegation:deny_complement\",\"domain:filesystem:deny_complement\",\"domain:ipc:deny_complement\",\"domain:network:deny_complement\",\"domain:process:deny_complement\",\"domain:resource_limit:deny_complement\",\"domain:runtime:deny_complement\",\"domain:service:deny_complement\",\"resource:fetch_user_flight_information:0:bypass\",\"resource:fetch_user_flight_information:0:channel\",\"resource:fetch_user_flight_information:0:custody\",\"rule:fetch_user_flight_information:0:operate\",\"rule:runtime:artifact:operate\",\"rule:runtime:env:no-bytecode:operate\",\"rule:runtime:env:no-user-site:operate\",\"rule:runtime:env:path:operate\",\"rule:runtime:env:tmpdir:operate\",\"rule:runtime:interpreter-root:operate\",\"rule:runtime:interpreter:operate\",\"rule:runtime:limit:address_space_bytes:operate\",\"rule:runtime:limit:cpu_ms:operate\",\"rule:runtime:limit:file_size_bytes:operate\",\"rule:runtime:limit:nofile:operate\",\"rule:runtime:limit:pids:operate\",\"rule:runtime:limit:wall_ms:operate\",\"rule:runtime:protocol:broker-read:operate\",\"rule:runtime:protocol:broker-write:operate\",\"rule:runtime:protocol:diagnostic:operate\",\"rule:runtime:protocol:request:operate\",\"rule:runtime:protocol:response:operate\",\"rule:runtime:root:0:operate\",\"rule:runtime:root:1:operate\",\"rule:runtime:root:2:operate\",\"rule:runtime:root:3:operate\",\"rule:runtime:root:4:operate\",\"rule:runtime:root:5:operate\",\"rule:runtime:root:6:operate\",\"rule:runtime:root:7:operate\",\"rule:runtime:syscalls:operate\",\"rule:runtime:tmp:create:operate\",\"rule:runtime:tmp:delete:operate\",\"rule:runtime:tmp:read:operate\",\"rule:runtime:tmp:truncate:operate\",\"rule:runtime:tmp:write:operate\",\"rule:runtime:urandom:operate\",\"rule:runtime:usr:operate\",\"rule:runtime:worker:operate\"],\"artifact_digest\":\"f5e50b58800db3835ea05bfa59dffebb04fe0138ee0a0cd1bfff51e1d517218c\",\"context_digest\":\"9bdab8a66c638ce3548f02d295ad1d04d997c3efb8f54101f00e8206a92095f1\",\"evidence\":[{\"activated_at\":1793312723.9432385,\"adapter_id\":\"demo.travel.sqlite.v1:7662336fc74775892fd5bb153ed1798e742da736ca617454\",\"context_digest\":\"9bdab8a66c638ce3548f02d295ad1d04d997c3efb8f54101f00e8206a92095f1\",\"expires_at\":1793312768.8729398,\"native_plan_digest\":\"292e165649d5923a0f1026bdda99f1db73c09934070bf94e18d8075825874a97\",\"nonce\":\"145aa13954e22028c47dd57bb152c704\",\"obligation_ids\":[\"resource:fetch_user_flight_information:0:custody\",\"rule:fetch_user_flight_information:0:operate\"],\"signature\":\"17471b3498a4a8a0e0b9377f7a4cfb96cc05ed6c374d815ef3e679313ba882e1\"},{\"activated_at\":1793312723.943315,\"adapter_id\":\"host:landlock-object-v1\",\"context_digest\":\"9bdab8a66c638ce3548f02d295ad1d04d997c3efb8f54101f00e8206a92095f1\",\"expires_at\":1793312768.8729398,\"native_plan_digest\":\"5656de34c028942aad29191ab5cd18163f10afdcfda2a66f3bb83c0839ed6703\",\"nonce\":\"145aa13954e22028c47dd57bb152c704\",\"obligation_ids\":[\"domain:credential:deny_complement\",\"domain:delegation:deny_complement\",\"domain:filesystem:deny_complement\",\"domain:ipc:deny_complement\",\"domain:network:deny_complement\",\"domain:process:deny_complement\",\"domain:resource_limit:deny_complement\",\"domain:runtime:deny_complement\",\"domain:service:deny_complement\",\"resource:fetch_user_flight_information:0:bypass\",\"resource:fetch_user_flight_information:0:channel\",\"rule:runtime:artifact:operate\",\"rule:runtime:env:no-bytecode:operate\",\"rule:runtime:env:no-user-site:operate\",\"rule:runtime:env:path:operate\",\"rule:runtime:env:tmpdir:operate\",\"rule:runtime:interpreter-root:operate\",\"rule:runtime:interpreter:operate\",\"rule:runtime:limit:address_space_bytes:operate\",\"rule:runtime:limit:cpu_ms:operate\",\"rule:runtime:limit:file_size_bytes:operate\",\"rule:runtime:limit:nofile:operate\",\"rule:runtime:limit:pids:operate\",\"rule:runtime:limit:wall_ms:operate\",\"rule:runtime:protocol:broker-read:operate\",\"rule:runtime:protocol:broker-write:operate\",\"rule:runtime:protocol:diagnostic:operate\",\"rule:runtime:protocol:request:operate\",\"rule:runtime:protocol:response:operate\",\"rule:runtime:root:0:operate\",\"rule:runtime:root:1:operate\",\"rule:runtime:root:2:operate\",\"rule:runtime:root:3:operate\",\"rule:runtime:root:4:operate\",\"rule:runtime:root:5:operate\",\"rule:runtime:root:6:operate\",\"rule:runtime:root:7:operate\",\"rule:runtime:syscalls:operate\",\"rule:runtime:tmp:create:operate\",\"rule:runtime:tmp:delete:operate\",\"rule:runtime:tmp:read:operate\",\"rule:runtime:tmp:truncate:operate\",\"rule:runtime:tmp:write:operate\",\"rule:runtime:urandom:operate\",\"rule:runtime:usr:operate\",\"rule:runtime:worker:operate\"],\"signature\":\"524532de9b983520fc500106d52591af5573316a07a77559bbfaebdff586e7d0\"}],\"grant_digest\":\"fe2c0e324e2efc41d0fad6de5caa3af16fd43bd195dab6e4fe8cd651b9543a66\",\"host_digest\":\"6aa1ba1dd47933a87798b39a5ff15643e14e08578ef96779af9b9b8cc38d3261\",\"mode\":\"enforced\",\"nonce\":\"145aa13954e22028c47dd57bb152c704\",\"plan_digest\":\"70bba1860192c863f6ac7aa62945b6923a09a47d590f71d00717ad1f8bccdd4b\",\"rule_enforcement\":[{\"mechanism\":\"demo.travel.sqlite.v1:7662336fc74775892fd5bb153ed1798e742da736ca617454\",\"rule_id\":\"fetch_user_flight_information:0\",\"support\":\"exact\"}],\"valid_until\":1793312768.8729398}",
+      "prev_hash": "03aa8e32eb412b0ab3737724a0540876cc77f1d6c5728a7e1a16c444b9badbee",
+      "hash": "8e88ab7137452b7aedbabbd0767184970150ee0f67b6c58066d47ae02f439d94",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 5,
+      "tool_name": "fetch_user_flight_information",
+      "user_id": "alice",
+      "args_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "stage": "outcome",
+      "module": "outcome",
+      "verdict": "allow",
+      "reason": "execution:succeeded",
+      "prev_hash": "8e88ab7137452b7aedbabbd0767184970150ee0f67b6c58066d47ae02f439d94",
+      "hash": "2ea5e9e3929be75058c9727ce398f55c908fcdbc70e6db6a9678aa3852ee3a13",
+      "session_id": "D5-resource-monitor",
+      "outcome": "succeeded"
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "35e1f3865d1666c0cedf8c337eff2d9e569990cc2dde2d914b3b2fdd6c8ae00d",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "2ea5e9e3929be75058c9727ce398f55c908fcdbc70e6db6a9678aa3852ee3a13",
+      "hash": "c4ca9b6a98c9ee334bb9dadc954b46740fc5c40ef09e32f6ce6672c80fbab822",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "f809e16444745c179641464538587338acca7d92ca43344df295576fa186b39d",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "c4ca9b6a98c9ee334bb9dadc954b46740fc5c40ef09e32f6ce6672c80fbab822",
+      "hash": "d385873b1f9b583c99326a28be6a4495a8de2dd1657ce69a28d3ee3644a2cda1",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "bc9feb05190ea0ccb2c2f32405aaf3e33fc1db96f30028e51d8c68158677c676",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "d385873b1f9b583c99326a28be6a4495a8de2dd1657ce69a28d3ee3644a2cda1",
+      "hash": "5dad08c91f42683933adb21a09e54e59d1c982a53d08d1ba450d6c18cd40f76c",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "d1fca727f03a14578920c8b3777ebafdcb88a4ca859f98b33db9c93156b4e46d",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "5dad08c91f42683933adb21a09e54e59d1c982a53d08d1ba450d6c18cd40f76c",
+      "hash": "23b6c6a914ad2f7b62dca5e02d75601e8931b9349bedd98800814ba2a3aa792e",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "b15eec612b4a0d358b05b2f2342429c551bca487572ffaa33d2285a2872940a9",
+      "stage": "dispatch",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "23b6c6a914ad2f7b62dca5e02d75601e8931b9349bedd98800814ba2a3aa792e",
+      "hash": "d647268aba02b8f48396a2d9d3e286805d3851c3688351a885e5d7b1f078a984",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "ff0c016fa3b86c0ba21a96f204c50093e78ca913e4b52d6f69b75b561e061fc9",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "d647268aba02b8f48396a2d9d3e286805d3851c3688351a885e5d7b1f078a984",
+      "hash": "8145c382dba971290a03343938561987ab3be8d859361240e57fd03e2bf475f3",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "62a7d33e932b74e30d805a015bc4edf9e320127058cc1643cf13014a9855a037",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "8145c382dba971290a03343938561987ab3be8d859361240e57fd03e2bf475f3",
+      "hash": "e545e26b0a6ada1bb595356965047985347a106ed63d0bb5fd13007873413d7b",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "22596625c21a4a0e209658c08ab9f1d30d84819cbb9ce7496ad3d7f5d176f081",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "e545e26b0a6ada1bb595356965047985347a106ed63d0bb5fd13007873413d7b",
+      "hash": "967fd5f9364e78d7f0585f22a45c5816942a34cc78773cb972f4e497b93c1af8",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "627c88215111ef440a46c6a00e0df7ed7776fbf5c9318e3b062d7077749afb16",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "967fd5f9364e78d7f0585f22a45c5816942a34cc78773cb972f4e497b93c1af8",
+      "hash": "cac575e2e74d084ebe256dbab5973f0e0e6116fbe272f5a95c772cff49c43d9e",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "d2d64593fe92934fa3801235f46dee3354deccf1546b148c5a18a0c9e97bb9f4",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "cac575e2e74d084ebe256dbab5973f0e0e6116fbe272f5a95c772cff49c43d9e",
+      "hash": "908a6d234bd6715f1df5903f03a9c67d13145244fd71fde6cc256ac72ea3e943",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "37a7dc4e57fcfd770182fb9d2bdc680a99d03415d4448830f21c4681d82f8d96",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "908a6d234bd6715f1df5903f03a9c67d13145244fd71fde6cc256ac72ea3e943",
+      "hash": "c58c6ede5bef9512e81bd0e528f30f2c98c08b499a136810201b51eb0a1482d1",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "c6a060469cf2d06bb07016aa5fe8a421cc92c43c86114fb1a2ae935533871f90",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "c58c6ede5bef9512e81bd0e528f30f2c98c08b499a136810201b51eb0a1482d1",
+      "hash": "bd04701f3d191b54a63d59d1383f2a081a78ca955fdc7a736b24b5a7fdec75e3",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "1ff263ac668af4113f1e3d412d38153af3666665b306ec41a027d4209961e71e",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "bd04701f3d191b54a63d59d1383f2a081a78ca955fdc7a736b24b5a7fdec75e3",
+      "hash": "2f2cfa387460be21d346546fe703e25bb6770a5c4d52e5513a366d98f1927471",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "9811648a63167e65a75add267abeeb142aaf750d58147b857244320bd730e1c9",
+      "stage": "dispatch",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "2f2cfa387460be21d346546fe703e25bb6770a5c4d52e5513a366d98f1927471",
+      "hash": "9d207ebeef4f56286e86ef932aa2d655cc67f1417bbc38d775247e55c4af56df",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "35e1f3865d1666c0cedf8c337eff2d9e569990cc2dde2d914b3b2fdd6c8ae00d",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "9d207ebeef4f56286e86ef932aa2d655cc67f1417bbc38d775247e55c4af56df",
+      "hash": "8dacd31d9a88004fadb1410294248d2cac0310784c82c106a261bdd378cb5fad",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "1707dd217ff0bb46c5adbfd1b0105ee0c93b0da602dbf7826d98107713f2c53a",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "8dacd31d9a88004fadb1410294248d2cac0310784c82c106a261bdd378cb5fad",
+      "hash": "b57fa209e2478e36da6e24ce5768aef06e55208cf3fe3392e62af530add7a626",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "5da0fda1b8d9ab41ba94d99e97ab854bd0ba96671384453366116043020c1ca8",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "b57fa209e2478e36da6e24ce5768aef06e55208cf3fe3392e62af530add7a626",
+      "hash": "91335b380971111f70a7947fbf742d4943b504b437acde7f3c7f7aae30b18aea",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__framework__",
+      "user_id": "alice",
+      "args_hash": "7727bfb17296daf7db271a449d7b0b3da0e9287b63ec22e4997b317d3ff9b2bb",
+      "stage": "state",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "91335b380971111f70a7947fbf742d4943b504b437acde7f3c7f7aae30b18aea",
+      "hash": "06a58560b47cbe780923c5f67a3b658eb2c2199467f665f7cd3e15e4f9cc23c1",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "367d181deb5829668855d3dcb704d355c9b99935ffa5b84cbf67225d022f818b",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "06a58560b47cbe780923c5f67a3b658eb2c2199467f665f7cd3e15e4f9cc23c1",
+      "hash": "6882bc481c826b1e73615f68d25e42b23c40e72166e96a7b37747fc5718572ec",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "f3f37e131f3503f436f3a790bbde6191dc0b5c1fd6286fb64f408015c8baf479",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "6882bc481c826b1e73615f68d25e42b23c40e72166e96a7b37747fc5718572ec",
+      "hash": "8dda15e1c20e779b2f05aeabf99f638aac4a366cbe1b0ca570d991b90913821e",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    },
+    {
+      "call_index": 0,
+      "tool_name": "__output__",
+      "user_id": "alice",
+      "args_hash": "c6e692522a83843f93a5dc5287ea1682cd5a065c44bdda76b57c602eb795b20a",
+      "stage": "output_emit",
+      "module": "object_manager",
+      "verdict": "allow",
+      "reason": "stack:allow",
+      "prev_hash": "8dda15e1c20e779b2f05aeabf99f638aac4a366cbe1b0ca570d991b90913821e",
+      "hash": "2adc161b986ea569962441ab1a7de18146743eac88f8b0b15ef48fb71af530ca",
+      "session_id": "D5-resource-monitor",
+      "outcome": null
+    }
+  ],
+  "authorization_grants": [
+    {
+      "principal_id": "alice",
+      "tool_name": "fetch_user_flight_information",
+      "call_id": "initial-user-info",
+      "policy_digest": "2226bdbe6f8e50592247f723d5e658524cb194680d29d2dc53d52cc54b0532d3",
+      "lines": [
+        {
+          "line_id": "fetch_user_flight_information:0",
+          "class_name": "travel_database",
+          "operation": "fetch_user",
+          "selector": "7662336fc74775892fd5bb153ed1798e742da736ca617454",
+          "attributes": "{}",
+          "requirement": "need",
+          "enforcer": "broker",
+          "lowering": "demo.travel.sqlite.v1",
+          "provenance": [
+            "<string>:42"
+          ]
+        }
+      ],
+      "enforcement_waivers": "{}"
+    }
+  ],
+  "lowering_records": [
+    {
+      "candidate": {
+        "principal_id": "alice",
+        "session_id": "D5-resource-monitor",
+        "tool_name": "fetch_user_flight_information",
+        "artifact_digest": "f5e50b58800db3835ea05bfa59dffebb04fe0138ee0a0cd1bfff51e1d517218c",
+        "call_id": "initial-user-info",
+        "normalized_intent_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "policy_digest": "73b5086007bae08a893ded9b9172ffde1b9a7cd976dc93d2f7e5c83087d7161f",
+        "rules": [
+          {
+            "rule_id": "fetch_user_flight_information:0",
+            "domain": "service",
+            "operation": "fetch_user",
+            "selector": "[\"travel_database\",\"7662336fc74775892fd5bb153ed1798e742da736ca617454\"]",
+            "conditions": "{'object': mappingproxy({'attributes': mappingproxy({}), 'class': 'travel_database', 'enforcer': 'broker', 'line_id': 'fetch_user_flight_information:0', 'lowering': 'demo.travel.sqlite.v1', 'operation': 'fetch_user', 'provenance': ('<string>:42',), 'requirement': 'need', 'selector': '7662336fc74775892fd5bb153ed1798e742da736ca617454'})}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": false
+          },
+          {
+            "rule_id": "runtime:artifact",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/tmp/slanggraph-artifact-tjxsaruh/tool.py",
+            "conditions": "{'subtree': False}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:env:no-bytecode",
+            "domain": "runtime",
+            "operation": "environment",
+            "selector": "PYTHONDONTWRITEBYTECODE",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:env:no-user-site",
+            "domain": "runtime",
+            "operation": "environment",
+            "selector": "PYTHONNOUSERSITE",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:env:path",
+            "domain": "runtime",
+            "operation": "environment",
+            "selector": "PATH",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:env:tmpdir",
+            "domain": "runtime",
+            "operation": "environment",
+            "selector": "TMPDIR",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:interpreter",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/bin/python3.11",
+            "conditions": "{'subtree': False}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:interpreter-root",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:address_space_bytes",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "address_space_bytes",
+            "conditions": "{'maximum': 1073741824}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:cpu_ms",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "cpu_ms",
+            "conditions": "{'maximum': 30000}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:file_size_bytes",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "file_size_bytes",
+            "conditions": "{'maximum': 67108864}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:nofile",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "nofile",
+            "conditions": "{'maximum': 64}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:pids",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "pids",
+            "conditions": "{'maximum': 1}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:wall_ms",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "wall_ms",
+            "conditions": "{'maximum': 30000}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:broker-read",
+            "domain": "ipc",
+            "operation": "read",
+            "selector": "broker-channel",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:broker-write",
+            "domain": "ipc",
+            "operation": "write",
+            "selector": "broker-channel",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:diagnostic",
+            "domain": "ipc",
+            "operation": "write",
+            "selector": "parent-diagnostic-pipe",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:request",
+            "domain": "ipc",
+            "operation": "read",
+            "selector": "parent-request-pipe",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:response",
+            "domain": "ipc",
+            "operation": "write",
+            "selector": "parent-response-pipe",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:0",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/eval/apps/demos",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:1",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/prebuilt",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:2",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/langgraph",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:3",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/checkpoint",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:4",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/sdk-py",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:5",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/.cache/uv/builds-v0/.tmpfwLMD8/lib/python3.11/site-packages",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:6",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/.cache/uv/archive-v0/AOFbUDVHjjM-I9KXMGaPQ/lib/python3.11/site-packages",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:7",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/eval/.venv/lib/python3.11/site-packages",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:syscalls",
+            "domain": "process",
+            "operation": "syscall_set",
+            "selector": "minimal",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:create",
+            "domain": "runtime",
+            "operation": "create",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:delete",
+            "domain": "runtime",
+            "operation": "delete",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:read",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:truncate",
+            "domain": "runtime",
+            "operation": "truncate",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:write",
+            "domain": "runtime",
+            "operation": "write",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:urandom",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/dev/urandom",
+            "conditions": "{'subtree': False}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:usr",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/usr",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:worker",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/_linux_worker.py",
+            "conditions": "{'subtree': False}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          }
+        ],
+        "deployment_digest": "",
+        "runtime_digest": ""
+      },
+      "grant": {
+        "principal_id": "alice",
+        "session_id": "D5-resource-monitor",
+        "tool_name": "fetch_user_flight_information",
+        "artifact_digest": "f5e50b58800db3835ea05bfa59dffebb04fe0138ee0a0cd1bfff51e1d517218c",
+        "call_id": "initial-user-info",
+        "normalized_intent_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "policy_digest": "73b5086007bae08a893ded9b9172ffde1b9a7cd976dc93d2f7e5c83087d7161f",
+        "rules": [
+          {
+            "rule_id": "fetch_user_flight_information:0",
+            "domain": "service",
+            "operation": "fetch_user",
+            "selector": "[\"travel_database\",\"7662336fc74775892fd5bb153ed1798e742da736ca617454\"]",
+            "conditions": "{'object': mappingproxy({'attributes': mappingproxy({}), 'class': 'travel_database', 'enforcer': 'broker', 'line_id': 'fetch_user_flight_information:0', 'lowering': 'demo.travel.sqlite.v1', 'operation': 'fetch_user', 'provenance': ('<string>:42',), 'requirement': 'need', 'selector': '7662336fc74775892fd5bb153ed1798e742da736ca617454'})}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": false
+          },
+          {
+            "rule_id": "runtime:artifact",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/tmp/slanggraph-artifact-tjxsaruh/tool.py",
+            "conditions": "{'subtree': False}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:env:no-bytecode",
+            "domain": "runtime",
+            "operation": "environment",
+            "selector": "PYTHONDONTWRITEBYTECODE",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:env:no-user-site",
+            "domain": "runtime",
+            "operation": "environment",
+            "selector": "PYTHONNOUSERSITE",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:env:path",
+            "domain": "runtime",
+            "operation": "environment",
+            "selector": "PATH",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:env:tmpdir",
+            "domain": "runtime",
+            "operation": "environment",
+            "selector": "TMPDIR",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:interpreter",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/bin/python3.11",
+            "conditions": "{'subtree': False}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:interpreter-root",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:address_space_bytes",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "address_space_bytes",
+            "conditions": "{'maximum': 1073741824}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:cpu_ms",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "cpu_ms",
+            "conditions": "{'maximum': 30000}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:file_size_bytes",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "file_size_bytes",
+            "conditions": "{'maximum': 67108864}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:nofile",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "nofile",
+            "conditions": "{'maximum': 64}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:pids",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "pids",
+            "conditions": "{'maximum': 1}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:limit:wall_ms",
+            "domain": "resource_limit",
+            "operation": "limit",
+            "selector": "wall_ms",
+            "conditions": "{'maximum': 30000}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:broker-read",
+            "domain": "ipc",
+            "operation": "read",
+            "selector": "broker-channel",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:broker-write",
+            "domain": "ipc",
+            "operation": "write",
+            "selector": "broker-channel",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:diagnostic",
+            "domain": "ipc",
+            "operation": "write",
+            "selector": "parent-diagnostic-pipe",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:request",
+            "domain": "ipc",
+            "operation": "read",
+            "selector": "parent-request-pipe",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:protocol:response",
+            "domain": "ipc",
+            "operation": "write",
+            "selector": "parent-response-pipe",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:0",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/eval/apps/demos",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:1",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/prebuilt",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:2",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/langgraph",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:3",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/checkpoint",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:4",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/sdk-py",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:5",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/.cache/uv/builds-v0/.tmpfwLMD8/lib/python3.11/site-packages",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:6",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/.cache/uv/archive-v0/AOFbUDVHjjM-I9KXMGaPQ/lib/python3.11/site-packages",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:root:7",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/eval/.venv/lib/python3.11/site-packages",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:syscalls",
+            "domain": "process",
+            "operation": "syscall_set",
+            "selector": "minimal",
+            "conditions": "{}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:create",
+            "domain": "runtime",
+            "operation": "create",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:delete",
+            "domain": "runtime",
+            "operation": "delete",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:read",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:truncate",
+            "domain": "runtime",
+            "operation": "truncate",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:tmp:write",
+            "domain": "runtime",
+            "operation": "write",
+            "selector": "/tmp/slanggraph-worker-51jge2v7",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:urandom",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/dev/urandom",
+            "conditions": "{'subtree': False}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:usr",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/usr",
+            "conditions": "{'subtree': True}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          },
+          {
+            "rule_id": "runtime:worker",
+            "domain": "runtime",
+            "operation": "read",
+            "selector": "/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/_linux_worker.py",
+            "conditions": "{'subtree': False}",
+            "requirement": "need",
+            "provenance": [],
+            "baseline": true
+          }
+        ],
+        "deployment_digest": "",
+        "runtime_digest": ""
+      },
+      "host": {
+        "issuer": "host:landlock-object-v1",
+        "nonce": "6613cadd43a03d90591c99044b90ca1b",
+        "boot_id": "e53cfa09-6d85-421c-a3a0-bc3694d4257a",
+        "platform": "linux",
+        "issued_at": 1793312723.8729398,
+        "expires_at": 1793312768.8729398,
+        "capabilities": [
+          "userns:unprivileged",
+          "broker:spawn-bound",
+          "lsm:bpf:unavailable",
+          "landlock:abi:7",
+          "cgroup:delegated:unavailable",
+          "cgroup:kill",
+          "pidfd:unavailable",
+          "seccomp:minimal",
+          "cgroup:v2",
+          "landlock:audit:unavailable",
+          "credentials:parent-only"
+        ],
+        "context": "{'supervisor_pid': '859086'}",
+        "evidence": "{'landlock_abi': 7, 'python_digest': 'd41b33aaed48160ca115bc4436a8f2593287851bf649b66c1193f0a1d7e8a426', 'worker_digest': 'a7f7c9d73d18496b91050a890f5514f5244311ea72aef86f421f15bff7772132', 'probe': mappingproxy({'bpf_lsm_source': '/sys/kernel/security/lsm', 'cgroup_path': '/sys/fs/cgroup/user.slice/user-7133428.slice/user@7133428.service/app.slice/app-org.chromium.Chromium-68527.scope', 'cgroup_controllers': (), 'landlock_abi_probe': 'landlock_create_ruleset(NULL,0,LANDLOCK_CREATE_RULESET_VERSION)', 'landlock_audit_probe': ('/sys/kernel/tracing/events/landlock', '/sys/kernel/debug/tracing/events/landlock'), 'userns_probe': 'unshare exit 0'})}",
+        "signature": "e3b2819a2c2ae8029ecb017fdf876e1f80b462782860973789bb34cd5b3658b2"
+      },
+      "obligations": [
+        {
+          "obligation_id": "rule:fetch_user_flight_information:0:operate",
+          "rule_id": "fetch_user_flight_information:0",
+          "kind": "operate",
+          "domain": "service",
+          "operation": "fetch_user",
+          "selector": "[\"travel_database\",\"7662336fc74775892fd5bb153ed1798e742da736ca617454\"]",
+          "conditions": "{'object': mappingproxy({'attributes': mappingproxy({}), 'class': 'travel_database', 'enforcer': 'broker', 'line_id': 'fetch_user_flight_information:0', 'lowering': 'demo.travel.sqlite.v1', 'operation': 'fetch_user', 'provenance': ('<string>:42',), 'requirement': 'need', 'selector': '7662336fc74775892fd5bb153ed1798e742da736ca617454'})}",
+          "dependencies": [
+            "resource:fetch_user_flight_information:0:channel",
+            "resource:fetch_user_flight_information:0:bypass",
+            "resource:fetch_user_flight_information:0:custody"
+          ],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:artifact:operate",
+          "rule_id": "runtime:artifact",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/tmp/slanggraph-artifact-tjxsaruh/tool.py",
+          "conditions": "{'subtree': False}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:env:no-bytecode:operate",
+          "rule_id": "runtime:env:no-bytecode",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "environment",
+          "selector": "PYTHONDONTWRITEBYTECODE",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:env:no-user-site:operate",
+          "rule_id": "runtime:env:no-user-site",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "environment",
+          "selector": "PYTHONNOUSERSITE",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:env:path:operate",
+          "rule_id": "runtime:env:path",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "environment",
+          "selector": "PATH",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:env:tmpdir:operate",
+          "rule_id": "runtime:env:tmpdir",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "environment",
+          "selector": "TMPDIR",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:interpreter:operate",
+          "rule_id": "runtime:interpreter",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/bin/python3.11",
+          "conditions": "{'subtree': False}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:interpreter-root:operate",
+          "rule_id": "runtime:interpreter-root",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:limit:address_space_bytes:operate",
+          "rule_id": "runtime:limit:address_space_bytes",
+          "kind": "resource_limit",
+          "domain": "resource_limit",
+          "operation": "limit",
+          "selector": "address_space_bytes",
+          "conditions": "{'maximum': 1073741824}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:limit:cpu_ms:operate",
+          "rule_id": "runtime:limit:cpu_ms",
+          "kind": "resource_limit",
+          "domain": "resource_limit",
+          "operation": "limit",
+          "selector": "cpu_ms",
+          "conditions": "{'maximum': 30000}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:limit:file_size_bytes:operate",
+          "rule_id": "runtime:limit:file_size_bytes",
+          "kind": "resource_limit",
+          "domain": "resource_limit",
+          "operation": "limit",
+          "selector": "file_size_bytes",
+          "conditions": "{'maximum': 67108864}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:limit:nofile:operate",
+          "rule_id": "runtime:limit:nofile",
+          "kind": "resource_limit",
+          "domain": "resource_limit",
+          "operation": "limit",
+          "selector": "nofile",
+          "conditions": "{'maximum': 64}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:limit:pids:operate",
+          "rule_id": "runtime:limit:pids",
+          "kind": "resource_limit",
+          "domain": "resource_limit",
+          "operation": "limit",
+          "selector": "pids",
+          "conditions": "{'maximum': 1}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:limit:wall_ms:operate",
+          "rule_id": "runtime:limit:wall_ms",
+          "kind": "resource_limit",
+          "domain": "resource_limit",
+          "operation": "limit",
+          "selector": "wall_ms",
+          "conditions": "{'maximum': 30000}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:protocol:broker-read:operate",
+          "rule_id": "runtime:protocol:broker-read",
+          "kind": "operate",
+          "domain": "ipc",
+          "operation": "read",
+          "selector": "broker-channel",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:protocol:broker-write:operate",
+          "rule_id": "runtime:protocol:broker-write",
+          "kind": "operate",
+          "domain": "ipc",
+          "operation": "write",
+          "selector": "broker-channel",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:protocol:diagnostic:operate",
+          "rule_id": "runtime:protocol:diagnostic",
+          "kind": "operate",
+          "domain": "ipc",
+          "operation": "write",
+          "selector": "parent-diagnostic-pipe",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:protocol:request:operate",
+          "rule_id": "runtime:protocol:request",
+          "kind": "operate",
+          "domain": "ipc",
+          "operation": "read",
+          "selector": "parent-request-pipe",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:protocol:response:operate",
+          "rule_id": "runtime:protocol:response",
+          "kind": "operate",
+          "domain": "ipc",
+          "operation": "write",
+          "selector": "parent-response-pipe",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:root:0:operate",
+          "rule_id": "runtime:root:0",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/data/langgraph/eval/apps/demos",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:root:1:operate",
+          "rule_id": "runtime:root:1",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/data/langgraph/libs/prebuilt",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:root:2:operate",
+          "rule_id": "runtime:root:2",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/data/langgraph/libs/langgraph",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:root:3:operate",
+          "rule_id": "runtime:root:3",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/data/langgraph/libs/checkpoint",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:root:4:operate",
+          "rule_id": "runtime:root:4",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/data/langgraph/libs/sdk-py",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:root:5:operate",
+          "rule_id": "runtime:root:5",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/data/.cache/uv/builds-v0/.tmpfwLMD8/lib/python3.11/site-packages",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:root:6:operate",
+          "rule_id": "runtime:root:6",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/data/.cache/uv/archive-v0/AOFbUDVHjjM-I9KXMGaPQ/lib/python3.11/site-packages",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:root:7:operate",
+          "rule_id": "runtime:root:7",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/data/langgraph/eval/.venv/lib/python3.11/site-packages",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:syscalls:operate",
+          "rule_id": "runtime:syscalls",
+          "kind": "operate",
+          "domain": "process",
+          "operation": "syscall_set",
+          "selector": "minimal",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:tmp:create:operate",
+          "rule_id": "runtime:tmp:create",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "create",
+          "selector": "/tmp/slanggraph-worker-51jge2v7",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:tmp:delete:operate",
+          "rule_id": "runtime:tmp:delete",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "delete",
+          "selector": "/tmp/slanggraph-worker-51jge2v7",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:tmp:read:operate",
+          "rule_id": "runtime:tmp:read",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/tmp/slanggraph-worker-51jge2v7",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:tmp:truncate:operate",
+          "rule_id": "runtime:tmp:truncate",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "truncate",
+          "selector": "/tmp/slanggraph-worker-51jge2v7",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:tmp:write:operate",
+          "rule_id": "runtime:tmp:write",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "write",
+          "selector": "/tmp/slanggraph-worker-51jge2v7",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:urandom:operate",
+          "rule_id": "runtime:urandom",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/dev/urandom",
+          "conditions": "{'subtree': False}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:usr:operate",
+          "rule_id": "runtime:usr",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/usr",
+          "conditions": "{'subtree': True}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "rule:runtime:worker:operate",
+          "rule_id": "runtime:worker",
+          "kind": "operate",
+          "domain": "runtime",
+          "operation": "read",
+          "selector": "/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/_linux_worker.py",
+          "conditions": "{'subtree': False}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "domain:filesystem:deny_complement",
+          "rule_id": "domain:filesystem",
+          "kind": "deny_complement",
+          "domain": "filesystem",
+          "operation": "deny_unlisted",
+          "selector": "*",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "domain:network:deny_complement",
+          "rule_id": "domain:network",
+          "kind": "deny_complement",
+          "domain": "network",
+          "operation": "deny_unlisted",
+          "selector": "*",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "domain:process:deny_complement",
+          "rule_id": "domain:process",
+          "kind": "deny_complement",
+          "domain": "process",
+          "operation": "deny_unlisted",
+          "selector": "*",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "domain:ipc:deny_complement",
+          "rule_id": "domain:ipc",
+          "kind": "deny_complement",
+          "domain": "ipc",
+          "operation": "deny_unlisted",
+          "selector": "*",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "domain:service:deny_complement",
+          "rule_id": "domain:service",
+          "kind": "deny_complement",
+          "domain": "service",
+          "operation": "deny_unlisted",
+          "selector": "*",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "domain:credential:deny_complement",
+          "rule_id": "domain:credential",
+          "kind": "deny_complement",
+          "domain": "credential",
+          "operation": "deny_unlisted",
+          "selector": "*",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "domain:runtime:deny_complement",
+          "rule_id": "domain:runtime",
+          "kind": "deny_complement",
+          "domain": "runtime",
+          "operation": "deny_unlisted",
+          "selector": "*",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "domain:delegation:deny_complement",
+          "rule_id": "domain:delegation",
+          "kind": "deny_complement",
+          "domain": "delegation",
+          "operation": "deny_unlisted",
+          "selector": "*",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "domain:resource_limit:deny_complement",
+          "rule_id": "domain:resource_limit",
+          "kind": "deny_complement",
+          "domain": "resource_limit",
+          "operation": "deny_unlisted",
+          "selector": "*",
+          "conditions": "{}",
+          "dependencies": [],
+          "waivable": false
+        },
+        {
+          "obligation_id": "resource:fetch_user_flight_information:0:bypass",
+          "rule_id": "fetch_user_flight_information:0",
+          "kind": "bypass_prevention",
+          "domain": "service",
+          "operation": "deny_direct_resource_access",
+          "selector": "7662336fc74775892fd5bb153ed1798e742da736ca617454",
+          "conditions": "{'protected_paths': ('/data/langgraph/eval/campaigns/langgraph-demos-v3/raw/aggressive-full-20261029/rep-2/D5-support/task-1/Argus/travel.sqlite',), 'required_capabilities': ('seccomp:minimal', 'broker:spawn-bound')}",
+          "dependencies": [
+            "domain:process:deny_complement",
+            "domain:network:deny_complement",
+            "domain:filesystem:deny_complement"
+          ],
+          "waivable": false
+        },
+        {
+          "obligation_id": "resource:fetch_user_flight_information:0:channel",
+          "rule_id": "fetch_user_flight_information:0",
+          "kind": "authenticated_channel",
+          "domain": "ipc",
+          "operation": "spawn_bound_broker",
+          "selector": "7662336fc74775892fd5bb153ed1798e742da736ca617454",
+          "conditions": "{}",
+          "dependencies": [
+            "domain:ipc:deny_complement"
+          ],
+          "waivable": false
+        },
+        {
+          "obligation_id": "resource:fetch_user_flight_information:0:custody",
+          "rule_id": "fetch_user_flight_information:0",
+          "kind": "credential_custody",
+          "domain": "credential",
+          "operation": "parent_owned_credentials",
+          "selector": "7662336fc74775892fd5bb153ed1798e742da736ca617454",
+          "conditions": "{}",
+          "dependencies": [
+            "resource:fetch_user_flight_information:0:channel",
+            "resource:fetch_user_flight_information:0:bypass"
+          ],
+          "waivable": false
+        }
+      ],
+      "plan": {
+        "grant_digest": "bf7a20818a3b8224f69b5bc2278c09975b4b27e6613072c5355ec15172f8f1e1",
+        "host_digest": "6aa1ba1dd47933a87798b39a5ff15643e14e08578ef96779af9b9b8cc38d3261",
+        "obligation_digest": "bc7b9341662cba2ef97e0d88d1c766b33d1f3b9bc64c4be5e46d80a85b1ce27d",
+        "mode": "enforced",
+        "assignments": [
+          {
+            "obligation_id": "domain:credential:deny_complement",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "domain:delegation:deny_complement",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "domain:filesystem:deny_complement",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "domain:ipc:deny_complement",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "domain:network:deny_complement",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "domain:process:deny_complement",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "domain:resource_limit:deny_complement",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "domain:runtime:deny_complement",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "domain:service:deny_complement",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "resource:fetch_user_flight_information:0:bypass",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "resource:fetch_user_flight_information:0:channel",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "resource:fetch_user_flight_information:0:custody",
+            "adapter_id": "demo.travel.sqlite.v1:7662336fc74775892fd5bb153ed1798e742da736ca617454",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:fetch_user_flight_information:0:operate",
+            "adapter_id": "demo.travel.sqlite.v1:7662336fc74775892fd5bb153ed1798e742da736ca617454",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:artifact:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:env:no-bytecode:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:env:no-user-site:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:env:path:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:env:tmpdir:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:interpreter-root:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:interpreter:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:limit:address_space_bytes:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "tightened"
+          },
+          {
+            "obligation_id": "rule:runtime:limit:cpu_ms:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "tightened"
+          },
+          {
+            "obligation_id": "rule:runtime:limit:file_size_bytes:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "tightened"
+          },
+          {
+            "obligation_id": "rule:runtime:limit:nofile:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:limit:pids:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "tightened"
+          },
+          {
+            "obligation_id": "rule:runtime:limit:wall_ms:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "tightened"
+          },
+          {
+            "obligation_id": "rule:runtime:protocol:broker-read:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:protocol:broker-write:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:protocol:diagnostic:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:protocol:request:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:protocol:response:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:root:0:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:root:1:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:root:2:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:root:3:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:root:4:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:root:5:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:root:6:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:root:7:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:syscalls:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:tmp:create:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:tmp:delete:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:tmp:read:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:tmp:truncate:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:tmp:write:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:urandom:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:usr:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          },
+          {
+            "obligation_id": "rule:runtime:worker:operate",
+            "adapter_id": "host:landlock-object-v1",
+            "support": "exact"
+          }
+        ],
+        "adapter_plans": [
+          {
+            "adapter_id": "demo.travel.sqlite.v1:7662336fc74775892fd5bb153ed1798e742da736ca617454",
+            "obligation_ids": [
+              "rule:fetch_user_flight_information:0:operate",
+              "resource:fetch_user_flight_information:0:custody"
+            ],
+            "native_plan_digest": "292e165649d5923a0f1026bdda99f1db73c09934070bf94e18d8075825874a97",
+            "payload": "{'grant': 'bf7a20818a3b8224f69b5bc2278c09975b4b27e6613072c5355ec15172f8f1e1', 'lines': (mappingproxy({'attributes': mappingproxy({}), 'class': 'travel_database', 'enforcer': 'broker', 'line_id': 'fetch_user_flight_information:0', 'lowering': 'demo.travel.sqlite.v1', 'operation': 'fetch_user', 'provenance': ('<string>:42',), 'requirement': 'need', 'selector': '7662336fc74775892fd5bb153ed1798e742da736ca617454'}),), 'assessments': mappingproxy({'fetch_user_flight_information:0': mappingproxy({'support': 'exact', 'reason': 'principal-bound travel reads and ticket mutations', 'witness': 'eval/tests/test_demo_resource_monitors.py', 'protected_paths': ('/data/langgraph/eval/campaigns/langgraph-demos-v3/raw/aggressive-full-20261029/rep-2/D5-support/task-1/Argus/travel.sqlite',), 'required_capabilities': ('broker:spawn-bound', 'seccomp:minimal')})})}"
+          },
+          {
+            "adapter_id": "host:landlock-object-v1",
+            "obligation_ids": [
+              "rule:runtime:limit:address_space_bytes:operate",
+              "rule:runtime:limit:cpu_ms:operate",
+              "rule:runtime:protocol:diagnostic:operate",
+              "rule:runtime:limit:nofile:operate",
+              "rule:runtime:protocol:request:operate",
+              "rule:runtime:root:5:operate",
+              "rule:runtime:usr:operate",
+              "rule:runtime:root:4:operate",
+              "rule:runtime:tmp:delete:operate",
+              "domain:runtime:deny_complement",
+              "domain:credential:deny_complement",
+              "resource:fetch_user_flight_information:0:channel",
+              "rule:runtime:tmp:truncate:operate",
+              "rule:runtime:syscalls:operate",
+              "resource:fetch_user_flight_information:0:bypass",
+              "rule:runtime:tmp:create:operate",
+              "domain:filesystem:deny_complement",
+              "rule:runtime:env:path:operate",
+              "rule:runtime:root:2:operate",
+              "rule:runtime:root:1:operate",
+              "rule:runtime:artifact:operate",
+              "rule:runtime:protocol:broker-write:operate",
+              "rule:runtime:interpreter:operate",
+              "rule:runtime:worker:operate",
+              "domain:process:deny_complement",
+              "rule:runtime:limit:wall_ms:operate",
+              "rule:runtime:tmp:read:operate",
+              "domain:resource_limit:deny_complement",
+              "rule:runtime:limit:file_size_bytes:operate",
+              "rule:runtime:root:6:operate",
+              "rule:runtime:root:7:operate",
+              "rule:runtime:protocol:broker-read:operate",
+              "rule:runtime:protocol:response:operate",
+              "domain:service:deny_complement",
+              "rule:runtime:tmp:write:operate",
+              "rule:runtime:root:3:operate",
+              "rule:runtime:env:no-user-site:operate",
+              "rule:runtime:urandom:operate",
+              "domain:network:deny_complement",
+              "domain:ipc:deny_complement",
+              "domain:delegation:deny_complement",
+              "rule:runtime:env:no-bytecode:operate",
+              "rule:runtime:interpreter-root:operate",
+              "rule:runtime:root:0:operate",
+              "rule:runtime:env:tmpdir:operate",
+              "rule:runtime:limit:pids:operate"
+            ],
+            "native_plan_digest": "5656de34c028942aad29191ab5cd18163f10afdcfda2a66f3bb83c0839ed6703",
+            "payload": "{'grant': 'bf7a20818a3b8224f69b5bc2278c09975b4b27e6613072c5355ec15172f8f1e1', 'host': '6aa1ba1dd47933a87798b39a5ff15643e14e08578ef96779af9b9b8cc38d3261', 'rules': (mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': False}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:artifact', 'selector': '/tmp/slanggraph-artifact-tjxsaruh/tool.py'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'runtime', 'operation': 'environment', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:env:no-bytecode', 'selector': 'PYTHONDONTWRITEBYTECODE'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'runtime', 'operation': 'environment', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:env:no-user-site', 'selector': 'PYTHONNOUSERSITE'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'runtime', 'operation': 'environment', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:env:path', 'selector': 'PATH'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'runtime', 'operation': 'environment', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:env:tmpdir', 'selector': 'TMPDIR'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': False}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:interpreter', 'selector': '/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/bin/python3.11'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:interpreter-root', 'selector': '/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'maximum': 1073741824}), 'domain': 'resource_limit', 'operation': 'limit', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:limit:address_space_bytes', 'selector': 'address_space_bytes'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'maximum': 30000}), 'domain': 'resource_limit', 'operation': 'limit', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:limit:cpu_ms', 'selector': 'cpu_ms'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'maximum': 67108864}), 'domain': 'resource_limit', 'operation': 'limit', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:limit:file_size_bytes', 'selector': 'file_size_bytes'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'maximum': 64}), 'domain': 'resource_limit', 'operation': 'limit', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:limit:nofile', 'selector': 'nofile'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'maximum': 1}), 'domain': 'resource_limit', 'operation': 'limit', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:limit:pids', 'selector': 'pids'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'maximum': 30000}), 'domain': 'resource_limit', 'operation': 'limit', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:limit:wall_ms', 'selector': 'wall_ms'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'ipc', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:protocol:broker-read', 'selector': 'broker-channel'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'ipc', 'operation': 'write', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:protocol:broker-write', 'selector': 'broker-channel'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'ipc', 'operation': 'write', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:protocol:diagnostic', 'selector': 'parent-diagnostic-pipe'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'ipc', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:protocol:request', 'selector': 'parent-request-pipe'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'ipc', 'operation': 'write', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:protocol:response', 'selector': 'parent-response-pipe'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:root:0', 'selector': '/data/langgraph/eval/apps/demos'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:root:1', 'selector': '/data/langgraph/libs/prebuilt'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:root:2', 'selector': '/data/langgraph/libs/langgraph'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:root:3', 'selector': '/data/langgraph/libs/checkpoint'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:root:4', 'selector': '/data/langgraph/libs/sdk-py'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:root:5', 'selector': '/data/.cache/uv/builds-v0/.tmpfwLMD8/lib/python3.11/site-packages'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:root:6', 'selector': '/data/.cache/uv/archive-v0/AOFbUDVHjjM-I9KXMGaPQ/lib/python3.11/site-packages'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:root:7', 'selector': '/data/langgraph/eval/.venv/lib/python3.11/site-packages'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({}), 'domain': 'process', 'operation': 'syscall_set', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:syscalls', 'selector': 'minimal'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'create', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:tmp:create', 'selector': '/tmp/slanggraph-worker-51jge2v7'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'delete', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:tmp:delete', 'selector': '/tmp/slanggraph-worker-51jge2v7'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:tmp:read', 'selector': '/tmp/slanggraph-worker-51jge2v7'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'truncate', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:tmp:truncate', 'selector': '/tmp/slanggraph-worker-51jge2v7'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'write', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:tmp:write', 'selector': '/tmp/slanggraph-worker-51jge2v7'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': False}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:urandom', 'selector': '/dev/urandom'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': True}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:usr', 'selector': '/usr'}), mappingproxy({'baseline': True, 'conditions': mappingproxy({'subtree': False}), 'domain': 'runtime', 'operation': 'read', 'provenance': (), 'requirement': 'need', 'rule_id': 'runtime:worker', 'selector': '/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/_linux_worker.py'})), 'obligations': (mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'credential', 'kind': 'deny_complement', 'obligation_id': 'domain:credential:deny_complement', 'operation': 'deny_unlisted', 'rule_id': 'domain:credential', 'selector': '*', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'delegation', 'kind': 'deny_complement', 'obligation_id': 'domain:delegation:deny_complement', 'operation': 'deny_unlisted', 'rule_id': 'domain:delegation', 'selector': '*', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'filesystem', 'kind': 'deny_complement', 'obligation_id': 'domain:filesystem:deny_complement', 'operation': 'deny_unlisted', 'rule_id': 'domain:filesystem', 'selector': '*', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'ipc', 'kind': 'deny_complement', 'obligation_id': 'domain:ipc:deny_complement', 'operation': 'deny_unlisted', 'rule_id': 'domain:ipc', 'selector': '*', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'network', 'kind': 'deny_complement', 'obligation_id': 'domain:network:deny_complement', 'operation': 'deny_unlisted', 'rule_id': 'domain:network', 'selector': '*', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'process', 'kind': 'deny_complement', 'obligation_id': 'domain:process:deny_complement', 'operation': 'deny_unlisted', 'rule_id': 'domain:process', 'selector': '*', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'resource_limit', 'kind': 'deny_complement', 'obligation_id': 'domain:resource_limit:deny_complement', 'operation': 'deny_unlisted', 'rule_id': 'domain:resource_limit', 'selector': '*', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'runtime', 'kind': 'deny_complement', 'obligation_id': 'domain:runtime:deny_complement', 'operation': 'deny_unlisted', 'rule_id': 'domain:runtime', 'selector': '*', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'service', 'kind': 'deny_complement', 'obligation_id': 'domain:service:deny_complement', 'operation': 'deny_unlisted', 'rule_id': 'domain:service', 'selector': '*', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'protected_paths': ('/data/langgraph/eval/campaigns/langgraph-demos-v3/raw/aggressive-full-20261029/rep-2/D5-support/task-1/Argus/travel.sqlite',), 'required_capabilities': ('seccomp:minimal', 'broker:spawn-bound')}), 'dependencies': ('domain:filesystem:deny_complement', 'domain:network:deny_complement', 'domain:process:deny_complement'), 'domain': 'service', 'kind': 'bypass_prevention', 'obligation_id': 'resource:fetch_user_flight_information:0:bypass', 'operation': 'deny_direct_resource_access', 'rule_id': 'fetch_user_flight_information:0', 'selector': '7662336fc74775892fd5bb153ed1798e742da736ca617454', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': ('domain:ipc:deny_complement',), 'domain': 'ipc', 'kind': 'authenticated_channel', 'obligation_id': 'resource:fetch_user_flight_information:0:channel', 'operation': 'spawn_bound_broker', 'rule_id': 'fetch_user_flight_information:0', 'selector': '7662336fc74775892fd5bb153ed1798e742da736ca617454', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': False}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:artifact:operate', 'operation': 'read', 'rule_id': 'runtime:artifact', 'selector': '/tmp/slanggraph-artifact-tjxsaruh/tool.py', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:env:no-bytecode:operate', 'operation': 'environment', 'rule_id': 'runtime:env:no-bytecode', 'selector': 'PYTHONDONTWRITEBYTECODE', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:env:no-user-site:operate', 'operation': 'environment', 'rule_id': 'runtime:env:no-user-site', 'selector': 'PYTHONNOUSERSITE', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:env:path:operate', 'operation': 'environment', 'rule_id': 'runtime:env:path', 'selector': 'PATH', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:env:tmpdir:operate', 'operation': 'environment', 'rule_id': 'runtime:env:tmpdir', 'selector': 'TMPDIR', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:interpreter-root:operate', 'operation': 'read', 'rule_id': 'runtime:interpreter-root', 'selector': '/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': False}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:interpreter:operate', 'operation': 'read', 'rule_id': 'runtime:interpreter', 'selector': '/home/faculty/abk6349/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/bin/python3.11', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'maximum': 1073741824}), 'dependencies': (), 'domain': 'resource_limit', 'kind': 'resource_limit', 'obligation_id': 'rule:runtime:limit:address_space_bytes:operate', 'operation': 'limit', 'rule_id': 'runtime:limit:address_space_bytes', 'selector': 'address_space_bytes', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'maximum': 30000}), 'dependencies': (), 'domain': 'resource_limit', 'kind': 'resource_limit', 'obligation_id': 'rule:runtime:limit:cpu_ms:operate', 'operation': 'limit', 'rule_id': 'runtime:limit:cpu_ms', 'selector': 'cpu_ms', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'maximum': 67108864}), 'dependencies': (), 'domain': 'resource_limit', 'kind': 'resource_limit', 'obligation_id': 'rule:runtime:limit:file_size_bytes:operate', 'operation': 'limit', 'rule_id': 'runtime:limit:file_size_bytes', 'selector': 'file_size_bytes', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'maximum': 64}), 'dependencies': (), 'domain': 'resource_limit', 'kind': 'resource_limit', 'obligation_id': 'rule:runtime:limit:nofile:operate', 'operation': 'limit', 'rule_id': 'runtime:limit:nofile', 'selector': 'nofile', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'maximum': 1}), 'dependencies': (), 'domain': 'resource_limit', 'kind': 'resource_limit', 'obligation_id': 'rule:runtime:limit:pids:operate', 'operation': 'limit', 'rule_id': 'runtime:limit:pids', 'selector': 'pids', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'maximum': 30000}), 'dependencies': (), 'domain': 'resource_limit', 'kind': 'resource_limit', 'obligation_id': 'rule:runtime:limit:wall_ms:operate', 'operation': 'limit', 'rule_id': 'runtime:limit:wall_ms', 'selector': 'wall_ms', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'ipc', 'kind': 'operate', 'obligation_id': 'rule:runtime:protocol:broker-read:operate', 'operation': 'read', 'rule_id': 'runtime:protocol:broker-read', 'selector': 'broker-channel', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'ipc', 'kind': 'operate', 'obligation_id': 'rule:runtime:protocol:broker-write:operate', 'operation': 'write', 'rule_id': 'runtime:protocol:broker-write', 'selector': 'broker-channel', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'ipc', 'kind': 'operate', 'obligation_id': 'rule:runtime:protocol:diagnostic:operate', 'operation': 'write', 'rule_id': 'runtime:protocol:diagnostic', 'selector': 'parent-diagnostic-pipe', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'ipc', 'kind': 'operate', 'obligation_id': 'rule:runtime:protocol:request:operate', 'operation': 'read', 'rule_id': 'runtime:protocol:request', 'selector': 'parent-request-pipe', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'ipc', 'kind': 'operate', 'obligation_id': 'rule:runtime:protocol:response:operate', 'operation': 'write', 'rule_id': 'runtime:protocol:response', 'selector': 'parent-response-pipe', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:root:0:operate', 'operation': 'read', 'rule_id': 'runtime:root:0', 'selector': '/data/langgraph/eval/apps/demos', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:root:1:operate', 'operation': 'read', 'rule_id': 'runtime:root:1', 'selector': '/data/langgraph/libs/prebuilt', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:root:2:operate', 'operation': 'read', 'rule_id': 'runtime:root:2', 'selector': '/data/langgraph/libs/langgraph', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:root:3:operate', 'operation': 'read', 'rule_id': 'runtime:root:3', 'selector': '/data/langgraph/libs/checkpoint', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:root:4:operate', 'operation': 'read', 'rule_id': 'runtime:root:4', 'selector': '/data/langgraph/libs/sdk-py', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:root:5:operate', 'operation': 'read', 'rule_id': 'runtime:root:5', 'selector': '/data/.cache/uv/builds-v0/.tmpfwLMD8/lib/python3.11/site-packages', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:root:6:operate', 'operation': 'read', 'rule_id': 'runtime:root:6', 'selector': '/data/.cache/uv/archive-v0/AOFbUDVHjjM-I9KXMGaPQ/lib/python3.11/site-packages', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:root:7:operate', 'operation': 'read', 'rule_id': 'runtime:root:7', 'selector': '/data/langgraph/eval/.venv/lib/python3.11/site-packages', 'waivable': False}), mappingproxy({'conditions': mappingproxy({}), 'dependencies': (), 'domain': 'process', 'kind': 'operate', 'obligation_id': 'rule:runtime:syscalls:operate', 'operation': 'syscall_set', 'rule_id': 'runtime:syscalls', 'selector': 'minimal', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:tmp:create:operate', 'operation': 'create', 'rule_id': 'runtime:tmp:create', 'selector': '/tmp/slanggraph-worker-51jge2v7', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:tmp:delete:operate', 'operation': 'delete', 'rule_id': 'runtime:tmp:delete', 'selector': '/tmp/slanggraph-worker-51jge2v7', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:tmp:read:operate', 'operation': 'read', 'rule_id': 'runtime:tmp:read', 'selector': '/tmp/slanggraph-worker-51jge2v7', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:tmp:truncate:operate', 'operation': 'truncate', 'rule_id': 'runtime:tmp:truncate', 'selector': '/tmp/slanggraph-worker-51jge2v7', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:tmp:write:operate', 'operation': 'write', 'rule_id': 'runtime:tmp:write', 'selector': '/tmp/slanggraph-worker-51jge2v7', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': False}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:urandom:operate', 'operation': 'read', 'rule_id': 'runtime:urandom', 'selector': '/dev/urandom', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': True}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:usr:operate', 'operation': 'read', 'rule_id': 'runtime:usr', 'selector': '/usr', 'waivable': False}), mappingproxy({'conditions': mappingproxy({'subtree': False}), 'dependencies': (), 'domain': 'runtime', 'kind': 'operate', 'obligation_id': 'rule:runtime:worker:operate', 'operation': 'read', 'rule_id': 'runtime:worker', 'selector': '/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/_linux_worker.py', 'waivable': False}))}"
+          }
+        ],
+        "waived_obligations": [],
+        "removed_wants": []
+      }
+    }
+  ],
+  "broker_audit": [
+    {
+      "principal_id": "alice",
+      "tool_name": "fetch_user_flight_information",
+      "grant_hash": "bf7a20818a3b8224f69b5bc2278c09975b4b27e6613072c5355ec15172f8f1e1",
+      "spawn_nonce": "ab35ff3a17869654f3537f8da1ae4218",
+      "service": "[\"travel_database\",\"7662336fc74775892fd5bb153ed1798e742da736ca617454\"]",
+      "operation": "fetch_user",
+      "rule_id": "fetch_user_flight_information:0",
+      "allowed": true,
+      "reason": "exact_object_grant"
+    }
+  ]
+}

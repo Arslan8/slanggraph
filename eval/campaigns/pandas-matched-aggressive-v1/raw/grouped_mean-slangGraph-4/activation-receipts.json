@@ -1,0 +1,221 @@
+[
+  {
+    "activated_obligations": [
+      "compute:0"
+    ],
+    "context_digest": "4ce1bc201aff864b8707c0f6ae8ae16f125c11aaf3145533d66bdf4933b831b4",
+    "evidence": [
+      {
+        "activated_at": 1793309047.2489042,
+        "adapter_id": "linux-bubblewrap-v1",
+        "context_digest": "4ce1bc201aff864b8707c0f6ae8ae16f125c11aaf3145533d66bdf4933b831b4",
+        "expires_at": 1793309087.2489042,
+        "native_plan_digest": "cec7314d76e99d03a01a9ec37299eae3ef189f17025a33f96ec45c8ac6e65637",
+        "nonce": "1805febee8bba9ae62f5a0531e9a447f",
+        "obligation_ids": [
+          "domain:credential:deny_complement",
+          "domain:delegation:deny_complement",
+          "domain:filesystem:deny_complement",
+          "domain:ipc:deny_complement",
+          "domain:network:deny_complement",
+          "domain:process:deny_complement",
+          "domain:resource_limit:deny_complement",
+          "domain:runtime:deny_complement",
+          "domain:service:deny_complement",
+          "rule:compute:0:operate",
+          "rule:runtime:artifact:operate",
+          "rule:runtime:env:no-bytecode:operate",
+          "rule:runtime:env:no-locale-coercion:operate",
+          "rule:runtime:env:no-user-site:operate",
+          "rule:runtime:env:path:operate",
+          "rule:runtime:env:safe-path:operate",
+          "rule:runtime:env:unbuffered:operate",
+          "rule:runtime:env:utf8:operate",
+          "rule:runtime:interpreter-root:operate",
+          "rule:runtime:interpreter:operate",
+          "rule:runtime:limit:address_space_bytes:operate",
+          "rule:runtime:limit:cpu_ms:operate",
+          "rule:runtime:limit:file_size_bytes:operate",
+          "rule:runtime:limit:nofile:operate",
+          "rule:runtime:limit:pids:operate",
+          "rule:runtime:limit:tmpfs_bytes:operate",
+          "rule:runtime:limit:wall_ms:operate",
+          "rule:runtime:protocol:diagnostic:operate",
+          "rule:runtime:protocol:request:operate",
+          "rule:runtime:protocol:response:operate",
+          "rule:runtime:root:0:operate",
+          "rule:runtime:root:1:operate",
+          "rule:runtime:tmp:create:operate",
+          "rule:runtime:tmp:delete:operate",
+          "rule:runtime:tmp:read:operate",
+          "rule:runtime:tmp:truncate:operate",
+          "rule:runtime:tmp:write:operate",
+          "rule:runtime:urandom:operate",
+          "rule:runtime:usr:operate",
+          "rule:runtime:worker:operate"
+        ],
+        "signature": "ed0ce2292a9e10181d02403728d9da55d1411d9b0af6f8630b80c29479718d22"
+      }
+    ],
+    "grant_digest": "68428b33e57ee8814a66920d79e85182471be0671d7353f6f7d8bd5817633274",
+    "host_digest": "bedb19e19ba70e00aa23d1368877ade20e552b6d4d5fd67b83c30f84002aeb5b",
+    "mode": "enforced",
+    "nonce": "1805febee8bba9ae62f5a0531e9a447f",
+    "plan_digest": "cc1f2fd58ce7534c0582985c20e389fca51b2a008e0ffdeb3caa33a0abc69519",
+    "rule_enforcement": [
+      {
+        "mechanism": "linux-bubblewrap-v1",
+        "rule_id": "compute:0",
+        "support": "exact"
+      }
+    ],
+    "valid_until": 1793309087.0820649,
+    "artifact_digest": "5d94a4de932cbab2ba9d89db9680044d72dff75041fb644879f0f77af9975ca6"
+  },
+  {
+    "activated_obligations": [
+      "compute:0"
+    ],
+    "context_digest": "d50d2575e3f3c35b63392cd207490ea7d18dce7322471dd880b198467479865a",
+    "evidence": [
+      {
+        "activated_at": 1793309052.8994994,
+        "adapter_id": "linux-bubblewrap-v1",
+        "context_digest": "d50d2575e3f3c35b63392cd207490ea7d18dce7322471dd880b198467479865a",
+        "expires_at": 1793309092.8994994,
+        "native_plan_digest": "cec7314d76e99d03a01a9ec37299eae3ef189f17025a33f96ec45c8ac6e65637",
+        "nonce": "b71ba0f34b56863ddbb8d821d3f1044e",
+        "obligation_ids": [
+          "domain:credential:deny_complement",
+          "domain:delegation:deny_complement",
+          "domain:filesystem:deny_complement",
+          "domain:ipc:deny_complement",
+          "domain:network:deny_complement",
+          "domain:process:deny_complement",
+          "domain:resource_limit:deny_complement",
+          "domain:runtime:deny_complement",
+          "domain:service:deny_complement",
+          "rule:compute:0:operate",
+          "rule:runtime:artifact:operate",
+          "rule:runtime:env:no-bytecode:operate",
+          "rule:runtime:env:no-locale-coercion:operate",
+          "rule:runtime:env:no-user-site:operate",
+          "rule:runtime:env:path:operate",
+          "rule:runtime:env:safe-path:operate",
+          "rule:runtime:env:unbuffered:operate",
+          "rule:runtime:env:utf8:operate",
+          "rule:runtime:interpreter-root:operate",
+          "rule:runtime:interpreter:operate",
+          "rule:runtime:limit:address_space_bytes:operate",
+          "rule:runtime:limit:cpu_ms:operate",
+          "rule:runtime:limit:file_size_bytes:operate",
+          "rule:runtime:limit:nofile:operate",
+          "rule:runtime:limit:pids:operate",
+          "rule:runtime:limit:tmpfs_bytes:operate",
+          "rule:runtime:limit:wall_ms:operate",
+          "rule:runtime:protocol:diagnostic:operate",
+          "rule:runtime:protocol:request:operate",
+          "rule:runtime:protocol:response:operate",
+          "rule:runtime:root:0:operate",
+          "rule:runtime:root:1:operate",
+          "rule:runtime:tmp:create:operate",
+          "rule:runtime:tmp:delete:operate",
+          "rule:runtime:tmp:read:operate",
+          "rule:runtime:tmp:truncate:operate",
+          "rule:runtime:tmp:write:operate",
+          "rule:runtime:urandom:operate",
+          "rule:runtime:usr:operate",
+          "rule:runtime:worker:operate"
+        ],
+        "signature": "b6ad47b327ad241524dce40b0d12be9772b02af613a3bd42f0fb276203e8642b"
+      }
+    ],
+    "grant_digest": "68428b33e57ee8814a66920d79e85182471be0671d7353f6f7d8bd5817633274",
+    "host_digest": "f6b547ab69fc17dab04a69972450536b594b72f37d3c4b108b94fe17ef87ce0e",
+    "mode": "enforced",
+    "nonce": "b71ba0f34b56863ddbb8d821d3f1044e",
+    "plan_digest": "e78a342e3a4f4502b930b5ef898aab5b574a2bea07747fa03021f29a37711870",
+    "rule_enforcement": [
+      {
+        "mechanism": "linux-bubblewrap-v1",
+        "rule_id": "compute:0",
+        "support": "exact"
+      }
+    ],
+    "valid_until": 1793309092.7300828,
+    "artifact_digest": "5d94a4de932cbab2ba9d89db9680044d72dff75041fb644879f0f77af9975ca6"
+  },
+  {
+    "activated_obligations": [
+      "compute:0"
+    ],
+    "context_digest": "7999e0c7ac6a0360ef1dd4ed5e459d342b562278fd5581b01484bbc1169b7de6",
+    "evidence": [
+      {
+        "activated_at": 1793309060.3615768,
+        "adapter_id": "linux-bubblewrap-v1",
+        "context_digest": "7999e0c7ac6a0360ef1dd4ed5e459d342b562278fd5581b01484bbc1169b7de6",
+        "expires_at": 1793309100.3615768,
+        "native_plan_digest": "cec7314d76e99d03a01a9ec37299eae3ef189f17025a33f96ec45c8ac6e65637",
+        "nonce": "75bf621d23c474d8cf443029a83f08f6",
+        "obligation_ids": [
+          "domain:credential:deny_complement",
+          "domain:delegation:deny_complement",
+          "domain:filesystem:deny_complement",
+          "domain:ipc:deny_complement",
+          "domain:network:deny_complement",
+          "domain:process:deny_complement",
+          "domain:resource_limit:deny_complement",
+          "domain:runtime:deny_complement",
+          "domain:service:deny_complement",
+          "rule:compute:0:operate",
+          "rule:runtime:artifact:operate",
+          "rule:runtime:env:no-bytecode:operate",
+          "rule:runtime:env:no-locale-coercion:operate",
+          "rule:runtime:env:no-user-site:operate",
+          "rule:runtime:env:path:operate",
+          "rule:runtime:env:safe-path:operate",
+          "rule:runtime:env:unbuffered:operate",
+          "rule:runtime:env:utf8:operate",
+          "rule:runtime:interpreter-root:operate",
+          "rule:runtime:interpreter:operate",
+          "rule:runtime:limit:address_space_bytes:operate",
+          "rule:runtime:limit:cpu_ms:operate",
+          "rule:runtime:limit:file_size_bytes:operate",
+          "rule:runtime:limit:nofile:operate",
+          "rule:runtime:limit:pids:operate",
+          "rule:runtime:limit:tmpfs_bytes:operate",
+          "rule:runtime:limit:wall_ms:operate",
+          "rule:runtime:protocol:diagnostic:operate",
+          "rule:runtime:protocol:request:operate",
+          "rule:runtime:protocol:response:operate",
+          "rule:runtime:root:0:operate",
+          "rule:runtime:root:1:operate",
+          "rule:runtime:tmp:create:operate",
+          "rule:runtime:tmp:delete:operate",
+          "rule:runtime:tmp:read:operate",
+          "rule:runtime:tmp:truncate:operate",
+          "rule:runtime:tmp:write:operate",
+          "rule:runtime:urandom:operate",
+          "rule:runtime:usr:operate",
+          "rule:runtime:worker:operate"
+        ],
+        "signature": "5ec134e1335dfb1680c9b64d0180cee5c57e282c08815e88f8155463a85948a3"
+      }
+    ],
+    "grant_digest": "68428b33e57ee8814a66920d79e85182471be0671d7353f6f7d8bd5817633274",
+    "host_digest": "6c88e478613e53bbeb94246f272592c39a379e05209b2da7f3b182df9f3472b4",
+    "mode": "enforced",
+    "nonce": "75bf621d23c474d8cf443029a83f08f6",
+    "plan_digest": "663657d0416c44d9987541f8fed36d7331992502e7f151607a63ae0ec87beb88",
+    "rule_enforcement": [
+      {
+        "mechanism": "linux-bubblewrap-v1",
+        "rule_id": "compute:0",
+        "support": "exact"
+      }
+    ],
+    "valid_until": 1793309100.1923332,
+    "artifact_digest": "5d94a4de932cbab2ba9d89db9680044d72dff75041fb644879f0f77af9975ca6"
+  }
+]

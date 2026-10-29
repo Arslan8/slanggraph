@@ -1,0 +1,75 @@
+[
+  {
+    "activated_obligations": [
+      "compute:0"
+    ],
+    "context_digest": "2440325b7ce8ac1564c6d99832209ebd4e603d30cb2c7aee5e7cadf011b4a014",
+    "evidence": [
+      {
+        "activated_at": 1793308576.3951032,
+        "adapter_id": "linux-bubblewrap-v1",
+        "context_digest": "2440325b7ce8ac1564c6d99832209ebd4e603d30cb2c7aee5e7cadf011b4a014",
+        "expires_at": 1793308616.3951032,
+        "native_plan_digest": "cec7314d76e99d03a01a9ec37299eae3ef189f17025a33f96ec45c8ac6e65637",
+        "nonce": "b27689b5e5ddcfb7ef3fc9eb3f9a141f",
+        "obligation_ids": [
+          "domain:credential:deny_complement",
+          "domain:delegation:deny_complement",
+          "domain:filesystem:deny_complement",
+          "domain:ipc:deny_complement",
+          "domain:network:deny_complement",
+          "domain:process:deny_complement",
+          "domain:resource_limit:deny_complement",
+          "domain:runtime:deny_complement",
+          "domain:service:deny_complement",
+          "rule:compute:0:operate",
+          "rule:runtime:artifact:operate",
+          "rule:runtime:env:no-bytecode:operate",
+          "rule:runtime:env:no-locale-coercion:operate",
+          "rule:runtime:env:no-user-site:operate",
+          "rule:runtime:env:path:operate",
+          "rule:runtime:env:safe-path:operate",
+          "rule:runtime:env:unbuffered:operate",
+          "rule:runtime:env:utf8:operate",
+          "rule:runtime:interpreter-root:operate",
+          "rule:runtime:interpreter:operate",
+          "rule:runtime:limit:address_space_bytes:operate",
+          "rule:runtime:limit:cpu_ms:operate",
+          "rule:runtime:limit:file_size_bytes:operate",
+          "rule:runtime:limit:nofile:operate",
+          "rule:runtime:limit:pids:operate",
+          "rule:runtime:limit:tmpfs_bytes:operate",
+          "rule:runtime:limit:wall_ms:operate",
+          "rule:runtime:protocol:diagnostic:operate",
+          "rule:runtime:protocol:request:operate",
+          "rule:runtime:protocol:response:operate",
+          "rule:runtime:root:0:operate",
+          "rule:runtime:root:1:operate",
+          "rule:runtime:tmp:create:operate",
+          "rule:runtime:tmp:delete:operate",
+          "rule:runtime:tmp:read:operate",
+          "rule:runtime:tmp:truncate:operate",
+          "rule:runtime:tmp:write:operate",
+          "rule:runtime:urandom:operate",
+          "rule:runtime:usr:operate",
+          "rule:runtime:worker:operate"
+        ],
+        "signature": "97daba459240c6a3fb35a60f65c5143119f264a0b48a781dbe633e42106b7cdf"
+      }
+    ],
+    "grant_digest": "68428b33e57ee8814a66920d79e85182471be0671d7353f6f7d8bd5817633274",
+    "host_digest": "d6abd16576578e3613eb1d150affa9eedcb460f25d870084330eab643e187135",
+    "mode": "enforced",
+    "nonce": "b27689b5e5ddcfb7ef3fc9eb3f9a141f",
+    "plan_digest": "0d9db7017977aab433f0f7406319e344386705b08d73ab2051b63c1347388131",
+    "rule_enforcement": [
+      {
+        "mechanism": "linux-bubblewrap-v1",
+        "rule_id": "compute:0",
+        "support": "exact"
+      }
+    ],
+    "valid_until": 1793308616.211738,
+    "artifact_digest": "5d94a4de932cbab2ba9d89db9680044d72dff75041fb644879f0f77af9975ca6"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "version": 4,
+  "status": "pilot-baseline-only",
+  "model": {
+    "name": "qwen3:8b",
+    "base_url": "http://localhost:11434/v1",
+    "temperature": 0,
+    "seed": 20261005,
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "timeout_seconds": 600,
+    "max_retries": 0,
+    "reasoning_effort": "none"
+  },
+  "configurations": {
+    "A": "Headless upstream backend with documented compatibility and local-model adaptation; original hosted-model UI baseline not reproduced.",
+    "B": "Not applicable to direct graph-node effects: no ToolNode dispatch. Any new mediated node adapter must be labeled as an added boundary.",
+    "C": "Unsupported integration: preserving upstream Pandas subprocess conflicts with minimal executor process-creation prohibition; SQL connection/service authority is unsupported. No protected run claimed."
+  },
+  "analysis": null,
+  "upstream_protections": "Preserved. See intake.json effect inventory.",
+  "ui_scope": "Backend only. UI authentication, file upload, rendering and session history excluded.",
+  "cpu_affinity": "one-available-cpu",
+  "amendment": "Separate local-model pilot setting: request reasoning_effort=none using the Ollama OpenAI-compatible API. No upstream prompt changes. Keep v1-v3 attempts separately; no pooled comparison. All A/B/C comparisons must share this model setting.",
+  "provider_reference": "https://docs.ollama.com/api/openai-compatibility"
+}

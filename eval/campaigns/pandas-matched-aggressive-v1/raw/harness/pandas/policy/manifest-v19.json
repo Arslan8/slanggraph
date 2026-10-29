@@ -1,0 +1,41 @@
+{
+  "version": 19,
+  "status": "Reusable period aggregation API; validation pending",
+  "model": {
+    "name": "qwen3:8b",
+    "base_url": "http://localhost:11434/v1",
+    "temperature": 0,
+    "seed": 20261005,
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "timeout_seconds": 600,
+    "max_retries": 0,
+    "reasoning_effort": "none"
+  },
+  "configurations": {
+    "A": "Upstream graph and subprocess sandbox with the common serializer repair; security disabled",
+    "B": "Added node dispatch and upstream subprocess sandbox with the common serializer repair",
+    "C": "Added node dispatch and LinuxSandboxExecutor with the same serializer repair inside the fresh worker"
+  },
+  "analysis": null,
+  "upstream_protections": "Import, execution, network and resource restrictions preserved; result serialization explicitly adapted.",
+  "ui_scope": "Backend only. UI authentication, file upload, rendering and session history excluded.",
+  "cpu_affinity": "one-available-cpu",
+  "amendment": "Preserve the original user request and exact chart values as in v11; add general period-boundary inclusion and explicit post-filter aggregation rules. No expected values, case identifiers, or oracle feedback are provided to the application. Execute all three framework packages from a cohort-owned source snapshot, with per-trial before/after hashes and retained source bytes. For all time-bucket tasks, group original rows by derived period keys before reindexing; forbid equality joins between period boundaries and raw timestamps. Restore the upstream bounded code-repair loop with three retries instead of the earlier zero-retry evaluation configuration. All computation attempts, errors and model calls remain in raw event logs; no oracle feedback is supplied. Add explicit recursive serialization for Pandas Period values and PeriodIndex keys; v1 retains its previous refusal behavior. Apply period aggregation guidance only to requested temporal grouping; date filtering alone must not introduce date grouping. Expose a general period aggregation helper in the restricted generated-code namespace across A/B/C. It computes from supplied data and column names, without task identities or oracle values. Make the helper import Pandas through the sandbox import guard; apply formatting. The v18 cohort retains its original frozen sources.",
+  "provider_reference": "https://docs.ollama.com/api/openai-compatibility",
+  "integration": true,
+  "policy_version": 3,
+  "integration_sources": {
+    "apps/backend.py": "38a15379f0d95d73c37a8291808cb82d770441076a4dee7fafa481f24817e4df",
+    "apps/pandas/integration.py": "cfc7437ec12d7d0fe3215b4559a7efdcbc783280203d18752f5849fdac2883f2",
+    "apps/pandas/worker.py": "33598d9fc0722f25c80507ab4740ccce4d392a0bd5f259ad035cbdd87bff9aba",
+    "apps/pandas/policy/compute-v3.slp.template": "649b1f812f652ceece691d3a47586fbdf3190e8d83e9fd392d2e3b366c014935",
+    "apps/pandas/sandbox_codec.py": "937ea0fa30eac65703605793b5b99d5fa455bdcad5082024f9e544cb4b0d6632",
+    "apps/pandas/workflow_contract.py": "5df59c1762962c6d889fad8323c477654ea13015c317366925981aa35a94e492"
+  },
+  "policy_template": "compute-v3.slp.template",
+  "sandbox_serialization": "recursive-json-v2",
+  "historical_manifest": "manifest-v18.json",
+  "workflow_contract": "preserve-request-v5",
+  "graph_retries": 3,
+  "computation_api": "period-aggregation-v1"
+}

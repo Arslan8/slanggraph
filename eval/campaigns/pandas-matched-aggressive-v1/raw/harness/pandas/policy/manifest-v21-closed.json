@@ -1,0 +1,80 @@
+{
+  "version": "21-closed",
+  "status": "C-closed pilot configuration (D11 closed admission); validation pending",
+  "model": {
+    "name": "qwen3:8b",
+    "base_url": "http://localhost:11434/v1",
+    "temperature": 0,
+    "seed": 20261005,
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "timeout_seconds": 600,
+    "max_retries": 0,
+    "reasoning_effort": "none"
+  },
+  "configurations": {
+    "C-closed": "Unchanged vendor graphs recompiled from their own builders under SecurityConfig(closed_admission=True) with pinned trusted_application_nodes/branches (D11); generated computation through the C route (closed-admitted ToolNode -> LinuxSandboxExecutor, Lean grant-v3 checker); input via dataset_read; graph output via OutputMediator"
+  },
+  "base_manifest": "manifest-v20-closed.json",
+  "upstream_protections": "Import, execution, network and resource restrictions preserved; result serialization explicitly adapted.",
+  "ui_scope": "Backend only. UI authentication, file upload, rendering and session history excluded.",
+  "cpu_affinity": "one-available-cpu",
+  "policy_version": 3,
+  "policy_template": "compute-v3.slp.template",
+  "sandbox_serialization": "recursive-json-v2",
+  "workflow_contract": "preserve-request-v5",
+  "computation_api": "period-aggregation-v1",
+  "graph_retries": 3,
+  "lean_worker": {
+    "binary": "/data/langgraph/proofs/worker-route/.lake/build/bin/workerRoute",
+    "sha256": "6097be9b7b84639959c7a0b9de31c79f23486e9f01bf1b6de575dfab25c7cb08",
+    "protocol": "worker-route-grant-v3",
+    "selection": "same audited binary and pin as raw/pandas-grant-v3-full-v1 (raw/checks/codex-grant-lean-audit-v2)"
+  },
+  "dataset": {
+    "dataset_id": "sales",
+    "sha256": "c123f404bad03177a7e52b67e37ff2f18fcbca6d4918f2585affb9ad492669d8",
+    "bytes": 212,
+    "max_bytes": 65536,
+    "format": "csv",
+    "principal": "alice"
+  },
+  "trusted_declarations": {
+    "pandas_data_analyst": {
+      "nodes": [
+        "data_visualization_agent",
+        "data_wrangling_agent",
+        "finalize_output",
+        "prepare_messages",
+        "routing_preprocessor"
+      ],
+      "branches": [
+        "data_wrangling_agent:branch:router_chart_or_table"
+      ]
+    },
+    "data_wrangling_agent": {
+      "nodes": [
+        "create_data_wrangler_code",
+        "execute_data_wrangler_code",
+        "fix_data_wrangler_code",
+        "report_agent_outputs"
+      ],
+      "branches": [
+        "execute_data_wrangler_code:branch:condition"
+      ]
+    },
+    "data_visualization_agent": {
+      "nodes": [
+        "chart_generator",
+        "chart_instructor",
+        "execute_data_visualization_code",
+        "fix_data_visualization_code",
+        "report_agent_outputs"
+      ],
+      "branches": [
+        "execute_data_visualization_code:branch:condition"
+      ]
+    }
+  },
+  "amendment": "v20-closed refused at runtime in its pilot (raw/pandas-closed-v1/pilot-v1): the closed outer graph's OutputMediator rejects the vendor's state on the first stream emission with output_data:string_key_required, because the vendor stores df.to_dict() (integer index keys, NaN for the missing sales value) as data_raw. v21 adds one adapter-side transport normalization, json-null-v1: data_raw read via dataset_read is passed to the vendor as json.loads(json.dumps(df.to_dict())) with NaN/Infinity mapped to null, and compute results returned by the C bridge get the same mapping. This mirrors the JSON transport C already applies to the compute payload. Vendor code, prompts, tasks, oracle, model, retries, policy and Lean binary are unchanged.",
+  "state_normalization": "json-null-v1"
+}

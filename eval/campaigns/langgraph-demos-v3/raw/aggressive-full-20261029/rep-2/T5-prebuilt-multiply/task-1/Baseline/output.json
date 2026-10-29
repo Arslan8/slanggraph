@@ -1,0 +1,114 @@
+{
+  "demo": "prebuilt-multiply",
+  "mode": "Baseline",
+  "prompt": "What's 42 x 7? Use the multiply tool.",
+  "wall_ms": 1126.731094031129,
+  "model_time_ms": 1057.159586052876,
+  "model_calls": 2,
+  "answer": "The result of $42 \\times 7$ is **294**.",
+  "messages": [
+    {
+      "content": "What's 42 x 7? Use the multiply tool.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "7ba8078f-06a8-4e89-80db-54c89cf15ac3"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 26,
+          "prompt_tokens": 154,
+          "total_tokens": 180,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-277",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a189c2-bad5-7762-b18a-d0aef149f169-0",
+      "tool_calls": [
+        {
+          "name": "multiply",
+          "args": {
+            "a": 42,
+            "b": 7
+          },
+          "id": "call_1ek6x631",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 154,
+        "output_tokens": 26,
+        "total_tokens": 180,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "294",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "multiply",
+      "id": "5d3f7a49-9354-4048-9875-7a12fc172047",
+      "tool_call_id": "call_1ek6x631",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The result of $42 \\times 7$ is **294**.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 19,
+          "prompt_tokens": 193,
+          "total_tokens": 212,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-69",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a189c2-bd36-7200-8c68-00570beec075-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 193,
+        "output_tokens": 19,
+        "total_tokens": 212,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "executed_tools": [
+    "multiply"
+  ],
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

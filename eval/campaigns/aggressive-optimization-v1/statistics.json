@@ -1,0 +1,446 @@
+{
+  "protocol": "5 fresh process sessions, 1 first use, 10 warmups, 20 measured calls per session",
+  "routes": {
+    "language": {
+      "applicability": "object/language authorizer; aggressive typed Cedar not applicable",
+      "measured_calls": 100,
+      "all_valid": true,
+      "elapsed_ms": {
+        "n_sessions": 5,
+        "mean": 11.7671354,
+        "ci95": [
+          11.485583348471229,
+          12.048687451528773
+        ]
+      },
+      "baseline_ms": {
+        "n_sessions": 5,
+        "mean": 0.045564190000000004,
+        "ci95": [
+          0.044694786710679606,
+          0.0464335932893204
+        ]
+      },
+      "added_ms": {
+        "n_sessions": 5,
+        "mean": 11.721571209999999,
+        "ci95": [
+          11.440426878522379,
+          12.002715541477619
+        ]
+      },
+      "runtime_multiple": {
+        "n_sessions": 5,
+        "mean": 258.2741786711059,
+        "ci95": [
+          252.4961240346312,
+          264.0522333075806
+        ]
+      },
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 58.748019,
+        "ci95": [
+          57.323835285257616,
+          60.17220271474238
+        ]
+      },
+      "phases": {
+        "authorization_ms": {
+          "n_sessions": 5,
+          "mean": 1.02860804,
+          "ci95": [
+            0.9010233929266696,
+            1.1561926870733303
+          ]
+        },
+        "activation_ms": {
+          "n_sessions": 5,
+          "mean": 0.13706245,
+          "ci95": [
+            0.12146464200262136,
+            0.15266025799737865
+          ]
+        },
+        "execution_ms": {
+          "n_sessions": 5,
+          "mean": 0.32900432999999996,
+          "ci95": [
+            0.2813642053466039,
+            0.376644454653396
+          ]
+        },
+        "audit_ms": {
+          "n_sessions": 5,
+          "mean": 7.25284722,
+          "ci95": [
+            7.1991596207604465,
+            7.306534819239553
+          ]
+        },
+        "framework_residual_ms": {
+          "n_sessions": 5,
+          "mean": 3.0196133599999997,
+          "ci95": [
+            2.9529769926295057,
+            3.0862497273704936
+          ]
+        }
+      },
+      "setup_records": 5,
+      "cedar_optimization_levels": []
+    },
+    "landlock-aggressive": {
+      "applicability": "typed Cedar aggressive",
+      "measured_calls": 100,
+      "all_valid": true,
+      "elapsed_ms": {
+        "n_sessions": 5,
+        "mean": 466.69676709,
+        "ci95": [
+          460.93676609913973,
+          472.45676808086023
+        ]
+      },
+      "baseline_ms": {
+        "n_sessions": 5,
+        "mean": 0.04605455,
+        "ci95": [
+          0.04494591756967301,
+          0.04716318243032699
+        ]
+      },
+      "added_ms": {
+        "n_sessions": 5,
+        "mean": 466.65071254,
+        "ci95": [
+          460.89134755452454,
+          472.4100775254754
+        ]
+      },
+      "runtime_multiple": {
+        "n_sessions": 5,
+        "mean": 10135.756413867068,
+        "ci95": [
+          9931.832698996735,
+          10339.6801287374
+        ]
+      },
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 511.7604488,
+        "ci95": [
+          507.7490228263612,
+          515.7718747736387
+        ]
+      },
+      "phases": {
+        "authorization_ms": {
+          "n_sessions": 5,
+          "mean": 0.68336164,
+          "ci95": [
+            0.3215837384647838,
+            1.0451395415352163
+          ]
+        },
+        "lean_ms": {
+          "n_sessions": 5,
+          "mean": 282.3029335,
+          "ci95": [
+            281.4158663811649,
+            283.1900006188351
+          ]
+        },
+        "activation_ms": {
+          "n_sessions": 5,
+          "mean": 99.14285845,
+          "ci95": [
+            96.82712106700635,
+            101.45859583299367
+          ]
+        },
+        "execution_ms": {
+          "n_sessions": 5,
+          "mean": 15.515602859999998,
+          "ci95": [
+            14.67280631656505,
+            16.358399403434944
+          ]
+        },
+        "audit_ms": {
+          "n_sessions": 5,
+          "mean": 13.625561349999998,
+          "ci95": [
+            10.890373425782801,
+            16.360749274217195
+          ]
+        },
+        "cleanup_ms": {
+          "n_sessions": 5,
+          "mean": 0.09293088000000001,
+          "ci95": [
+            0.0838857420838698,
+            0.10197601791613022
+          ]
+        },
+        "framework_residual_ms": {
+          "n_sessions": 5,
+          "mean": 55.33351840999999,
+          "ci95": [
+            54.95776969448516,
+            55.70926712551482
+          ]
+        }
+      },
+      "setup_records": 5,
+      "cedar_optimization_levels": [
+        "aggressive"
+      ]
+    },
+    "container": {
+      "applicability": "object authorizer; aggressive typed Cedar not applicable",
+      "measured_calls": 100,
+      "all_valid": true,
+      "elapsed_ms": {
+        "n_sessions": 5,
+        "mean": 148.24422521,
+        "ci95": [
+          147.31562338272806,
+          149.17282703727193
+        ]
+      },
+      "baseline_ms": {
+        "n_sessions": 5,
+        "mean": 0.05014952,
+        "ci95": [
+          0.04916463881996354,
+          0.05113440118003647
+        ]
+      },
+      "added_ms": {
+        "n_sessions": 5,
+        "mean": 148.19407569,
+        "ci95": [
+          147.2661755007998,
+          149.12197587920022
+        ]
+      },
+      "runtime_multiple": {
+        "n_sessions": 5,
+        "mean": 2956.4972738942824,
+        "ci95": [
+          2910.283116488942,
+          3002.7114312996227
+        ]
+      },
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 1643.3126486,
+        "ci95": [
+          1225.2188619772787,
+          2061.4064352227215
+        ]
+      },
+      "phases": {
+        "authorization_ms": {
+          "n_sessions": 5,
+          "mean": 0.8984505200000001,
+          "ci95": [
+            0.8715044989417683,
+            0.925396541058232
+          ]
+        },
+        "activation_ms": {
+          "n_sessions": 5,
+          "mean": 116.32330417633057,
+          "ci95": [
+            116.10449928163811,
+            116.54210907102302
+          ]
+        },
+        "execution_ms": {
+          "n_sessions": 5,
+          "mean": 19.250946893669436,
+          "ci95": [
+            18.967180579845788,
+            19.534713207493084
+          ]
+        },
+        "audit_ms": {
+          "n_sessions": 5,
+          "mean": 8.28923198,
+          "ci95": [
+            7.480422798402672,
+            9.098041161597328
+          ]
+        },
+        "framework_residual_ms": {
+          "n_sessions": 5,
+          "mean": 3.482291640000001,
+          "ci95": [
+            3.4452697654334075,
+            3.5193135145665946
+          ]
+        }
+      },
+      "setup_records": 5,
+      "cedar_optimization_levels": []
+    },
+    "broker": {
+      "applicability": "object authorizer; aggressive typed Cedar not applicable",
+      "measured_calls": 100,
+      "all_valid": true,
+      "elapsed_ms": {
+        "n_sessions": 5,
+        "mean": 140.84485601,
+        "ci95": [
+          140.20139876902016,
+          141.48831325097984
+        ]
+      },
+      "baseline_ms": {
+        "n_sessions": 5,
+        "mean": 0.11242942,
+        "ci95": [
+          0.11040508302199198,
+          0.11445375697800803
+        ]
+      },
+      "added_ms": {
+        "n_sessions": 5,
+        "mean": 140.73242659,
+        "ci95": [
+          140.0893762363081,
+          141.37547694369187
+        ]
+      },
+      "runtime_multiple": {
+        "n_sessions": 5,
+        "mean": 1252.9405744040998,
+        "ci95": [
+          1230.7854627171337,
+          1275.095686091066
+        ]
+      },
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 175.1360742,
+        "ci95": [
+          167.23631996343713,
+          183.03582843656287
+        ]
+      },
+      "phases": {
+        "authorization_ms": {
+          "n_sessions": 5,
+          "mean": 0.81965085,
+          "ci95": [
+            0.765708201583368,
+            0.873593498416632
+          ]
+        },
+        "activation_ms": {
+          "n_sessions": 5,
+          "mean": 116.107656955719,
+          "ci95": [
+            115.30422907190855,
+            116.91108483952944
+          ]
+        },
+        "execution_ms": {
+          "n_sessions": 5,
+          "mean": 0.21512478000000002,
+          "ci95": [
+            0.21374044533418882,
+            0.21650911466581121
+          ]
+        },
+        "audit_ms": {
+          "n_sessions": 5,
+          "mean": 7.73688441,
+          "ci95": [
+            7.492355244063007,
+            7.981413575936993
+          ]
+        },
+        "cleanup_ms": {
+          "n_sessions": 5,
+          "mean": 0.1555278,
+          "ci95": [
+            0.14751065034984961,
+            0.16354494965015037
+          ]
+        },
+        "framework_residual_ms": {
+          "n_sessions": 5,
+          "mean": 3.3972654200000014,
+          "ci95": [
+            3.3782983014336487,
+            3.416232538566354
+          ]
+        }
+      },
+      "setup_records": 5,
+      "cedar_optimization_levels": []
+    }
+  },
+  "landlock_optimization_comparison": {
+    "normal": {
+      "measured_ms": {
+        "n_sessions": 5,
+        "mean": 480.64007363,
+        "ci95": [
+          469.6317573006331,
+          491.6483899593669
+        ]
+      },
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 640.0597352000001,
+        "ci95": [
+          634.8205495329098,
+          645.2989208670904
+        ]
+      }
+    },
+    "aggressive": {
+      "measured_ms": {
+        "n_sessions": 5,
+        "mean": 466.69676709,
+        "ci95": [
+          460.93676609913973,
+          472.45676808086023
+        ]
+      },
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 511.7604488,
+        "ci95": [
+          507.7490228263612,
+          515.7718747736387
+        ]
+      }
+    },
+    "aggressive_over_normal_measured": {
+      "ratio": 0.9709901289863448,
+      "ci95": [
+        0.9536712746150989,
+        0.9846720093443423
+      ],
+      "method": "independent session bootstrap of ratio of means",
+      "seed": 20261029,
+      "resamples": 100000
+    },
+    "aggressive_over_normal_first_use": {
+      "ratio": 0.7995510741510552,
+      "ci95": [
+        0.7934959256948572,
+        0.8048065132590239
+      ],
+      "method": "independent session bootstrap of ratio of means",
+      "seed": 20261029,
+      "resamples": 100000
+    },
+    "caveat": "Modes were run sequentially, not interleaved; sessions are treated as independent."
+  }
+}

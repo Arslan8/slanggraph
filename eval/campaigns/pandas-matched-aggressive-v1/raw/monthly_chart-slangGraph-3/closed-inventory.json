@@ -1,0 +1,331 @@
+[
+  {
+    "graph": "pandas_data_analyst",
+    "descriptors": [
+      {
+        "kind": "trusted_application",
+        "name": "prepare_messages",
+        "identity": "4a8ba070ea801306b5a596474753ab208f5aa23591750c5ae3d3716a04a183da",
+        "source_sha256": "551114c501589dbb32b4f6f164dc59a063d74949c39fca3d2dca51ee6f2da434",
+        "details": {
+          "kind": "trusted_application",
+          "name": "prepare_messages",
+          "module": "ai_data_science_team.multiagents.pandas_data_analyst",
+          "qualname": "make_pandas_data_analyst.<locals>.prepare_messages",
+          "code_sha256": "551114c501589dbb32b4f6f164dc59a063d74949c39fca3d2dca51ee6f2da434",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "routing_preprocessor",
+        "identity": "e3072f4655485ce3c3b1628c560ff3e694004d85424695a936669f84955f9425",
+        "source_sha256": "7e1d4143ab78f4ac64c08b036839e7f7af2f4506a93283e43d8edcca6aadbae5",
+        "details": {
+          "kind": "trusted_application",
+          "name": "routing_preprocessor",
+          "module": "ai_data_science_team.multiagents.pandas_data_analyst",
+          "qualname": "make_pandas_data_analyst.<locals>.preprocess_routing",
+          "code_sha256": "7e1d4143ab78f4ac64c08b036839e7f7af2f4506a93283e43d8edcca6aadbae5",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "data_wrangling_agent",
+        "identity": "dc028c3d89b58862303065d5278022c236020a7dfb9ecb77a35de80baccef0bc",
+        "source_sha256": "58de806f97dd53a4978625c97b8581c2c4cde8a7d8157ed465017d3fa2f39e99",
+        "details": {
+          "kind": "trusted_application",
+          "name": "data_wrangling_agent",
+          "module": "ai_data_science_team.multiagents.pandas_data_analyst",
+          "qualname": "make_pandas_data_analyst.<locals>.invoke_data_wrangling_agent",
+          "code_sha256": "58de806f97dd53a4978625c97b8581c2c4cde8a7d8157ed465017d3fa2f39e99",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "data_visualization_agent",
+        "identity": "591d7be0032d845d5cc1f7bb3c0d765f12a8ef991a515698c841c7cae0cd1277",
+        "source_sha256": "b3a4c290f843f95804b480fdc0382c897fb46f303f60b7179763649291813169",
+        "details": {
+          "kind": "trusted_application",
+          "name": "data_visualization_agent",
+          "module": "ai_data_science_team.multiagents.pandas_data_analyst",
+          "qualname": "make_pandas_data_analyst.<locals>.invoke_data_visualization_agent",
+          "code_sha256": "b3a4c290f843f95804b480fdc0382c897fb46f303f60b7179763649291813169",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "finalize_output",
+        "identity": "c3917dedd33bcb52fb13302cfbb26fe953e6a3af657a1940dd84e880ec6da5af",
+        "source_sha256": "20fefe5254a4a257e74088e9687640d47356fecbe3718e5bbc365948f33a8378",
+        "details": {
+          "kind": "trusted_application",
+          "name": "finalize_output",
+          "module": "ai_data_science_team.multiagents.pandas_data_analyst",
+          "qualname": "make_pandas_data_analyst.<locals>.finalize_output",
+          "code_sha256": "20fefe5254a4a257e74088e9687640d47356fecbe3718e5bbc365948f33a8378",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application_branch",
+        "name": "data_wrangling_agent:branch:router_chart_or_table",
+        "identity": "e58f1a10917c6c08bb850da1e76c4d1541be9aee97ac375054a36309280232b5",
+        "source_sha256": "a43c9320a9ddbb86171429e5f463b2974b2c78ea548b26c5bd4ebcf7e30bc3f8",
+        "details": {
+          "kind": "trusted_application_branch",
+          "name": "data_wrangling_agent:branch:router_chart_or_table",
+          "module": "ai_data_science_team.multiagents.pandas_data_analyst",
+          "qualname": "make_pandas_data_analyst.<locals>.router_chart_or_table",
+          "code_sha256": "a43c9320a9ddbb86171429e5f463b2974b2c78ea548b26c5bd4ebcf7e30bc3f8",
+          "ends": [
+            [
+              "chart",
+              "data_visualization_agent"
+            ],
+            [
+              "table",
+              "finalize_output"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "graph": "data_wrangling_agent",
+    "descriptors": [
+      {
+        "kind": "trusted_application",
+        "name": "create_data_wrangler_code",
+        "identity": "1d8da8dbcd70057669adfbd0925185d5b5561745e0ac52c268288bda51a9bd63",
+        "source_sha256": "5906cba22c99fa8b3ace92cc1d9e675bca55e2bf830cfe3b7453c789f4f9422d",
+        "details": {
+          "kind": "trusted_application",
+          "name": "create_data_wrangler_code",
+          "module": "ai_data_science_team.agents.data_wrangling_agent",
+          "qualname": "make_data_wrangling_agent.<locals>.create_data_wrangler_code",
+          "code_sha256": "5906cba22c99fa8b3ace92cc1d9e675bca55e2bf830cfe3b7453c789f4f9422d",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "execute_data_wrangler_code",
+        "identity": "48f30da3411d9f9da189f3ab6b7259dd0216273f770455f7683309ab85fa0608",
+        "source_sha256": "aea819a5813c524e468343bdbff9b2647e15f0d6075f31e0ac923a2f66630037",
+        "details": {
+          "kind": "trusted_application",
+          "name": "execute_data_wrangler_code",
+          "module": "ai_data_science_team.agents.data_wrangling_agent",
+          "qualname": "make_data_wrangling_agent.<locals>.execute_data_wrangler_code",
+          "code_sha256": "aea819a5813c524e468343bdbff9b2647e15f0d6075f31e0ac923a2f66630037",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "fix_data_wrangler_code",
+        "identity": "c4e1d5a518e2a015cce6a44f38f45fa436326535e18e4ae7cb23ea0ccabe0761",
+        "source_sha256": "212919587a8e76e9c1b54fb2ea1f15a7c649df8e4d8c70bd7493d3bd3622a6f5",
+        "details": {
+          "kind": "trusted_application",
+          "name": "fix_data_wrangler_code",
+          "module": "ai_data_science_team.agents.data_wrangling_agent",
+          "qualname": "make_data_wrangling_agent.<locals>.fix_data_wrangler_code",
+          "code_sha256": "212919587a8e76e9c1b54fb2ea1f15a7c649df8e4d8c70bd7493d3bd3622a6f5",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "report_agent_outputs",
+        "identity": "53401b83190cb511f5bd016893051377d612ec9ce79adff73b5494bca0880982",
+        "source_sha256": "38b8dc7409acb9daf4ac0282834e43cef356b2e3072362f49b7a988b38db78cd",
+        "details": {
+          "kind": "trusted_application",
+          "name": "report_agent_outputs",
+          "module": "ai_data_science_team.agents.data_wrangling_agent",
+          "qualname": "make_data_wrangling_agent.<locals>.report_agent_outputs",
+          "code_sha256": "38b8dc7409acb9daf4ac0282834e43cef356b2e3072362f49b7a988b38db78cd",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application_branch",
+        "name": "execute_data_wrangler_code:branch:condition",
+        "identity": "425ffcfb25e874845a83da67b10801a14819d6b7481ded131bffe8cf4c99b232",
+        "source_sha256": "92ff5e2a2b4a199d25788e1586617cea1d6f56c0340bf68b7cab647565c7f619",
+        "details": {
+          "kind": "trusted_application_branch",
+          "name": "execute_data_wrangler_code:branch:condition",
+          "module": "ai_data_science_team.templates.agent_templates",
+          "qualname": "create_coding_agent_graph.<locals>.<lambda>",
+          "code_sha256": "92ff5e2a2b4a199d25788e1586617cea1d6f56c0340bf68b7cab647565c7f619",
+          "ends": [
+            [
+              "explain_code",
+              "report_agent_outputs"
+            ],
+            [
+              "fix_code",
+              "fix_data_wrangler_code"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "graph": "data_visualization_agent",
+    "descriptors": [
+      {
+        "kind": "trusted_application",
+        "name": "chart_generator",
+        "identity": "d60e94e5a392bde5b55977503476285a1a5a5f6e1eac0824d4c59cd143e69010",
+        "source_sha256": "717eb6cea673fe22f162afc73a972072c085aa94806ed74cf5cf9c0fd620b9be",
+        "details": {
+          "kind": "trusted_application",
+          "name": "chart_generator",
+          "module": "ai_data_science_team.agents.data_visualization_agent",
+          "qualname": "make_data_visualization_agent.<locals>.chart_generator",
+          "code_sha256": "717eb6cea673fe22f162afc73a972072c085aa94806ed74cf5cf9c0fd620b9be",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "execute_data_visualization_code",
+        "identity": "488e87c243f9092bc2446fdacf996110cfb3a31629d8bd92a9c2f66757bdba23",
+        "source_sha256": "94944c68238859611e0389e02d305e6fa337c03b326c8b298687e214a489863c",
+        "details": {
+          "kind": "trusted_application",
+          "name": "execute_data_visualization_code",
+          "module": "ai_data_science_team.agents.data_visualization_agent",
+          "qualname": "make_data_visualization_agent.<locals>.execute_data_visualization_code",
+          "code_sha256": "94944c68238859611e0389e02d305e6fa337c03b326c8b298687e214a489863c",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "fix_data_visualization_code",
+        "identity": "9544602ee2161000dd2b5917b7f26a76a156b9d075134f8a97ba49a2901ffd15",
+        "source_sha256": "9a3476a882cbceacfca43b19d5759cb86a94c3c1f7fcc8471e8481fb28b85ee6",
+        "details": {
+          "kind": "trusted_application",
+          "name": "fix_data_visualization_code",
+          "module": "ai_data_science_team.agents.data_visualization_agent",
+          "qualname": "make_data_visualization_agent.<locals>.fix_data_visualization_code",
+          "code_sha256": "9a3476a882cbceacfca43b19d5759cb86a94c3c1f7fcc8471e8481fb28b85ee6",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "chart_instructor",
+        "identity": "ddff3b6eaec7ab2be23d7fa5ab922af18aac8695b26cffeda882468b1ebb6372",
+        "source_sha256": "09b07148573949682010210ecc60b00076c9eca29e72c0018aaaabf2676dda77",
+        "details": {
+          "kind": "trusted_application",
+          "name": "chart_instructor",
+          "module": "ai_data_science_team.agents.data_visualization_agent",
+          "qualname": "make_data_visualization_agent.<locals>.chart_instructor",
+          "code_sha256": "09b07148573949682010210ecc60b00076c9eca29e72c0018aaaabf2676dda77",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application",
+        "name": "report_agent_outputs",
+        "identity": "e52979b95a141a10365fce9edbe7d20005de9bb53917403b360adfca168d21fd",
+        "source_sha256": "10c81b0288ece6fef5628b3bd18cd9eff717fe1d95a23e7b7060bb62bc6a3b04",
+        "details": {
+          "kind": "trusted_application",
+          "name": "report_agent_outputs",
+          "module": "ai_data_science_team.agents.data_visualization_agent",
+          "qualname": "make_data_visualization_agent.<locals>.report_agent_outputs",
+          "code_sha256": "10c81b0288ece6fef5628b3bd18cd9eff717fe1d95a23e7b7060bb62bc6a3b04",
+          "async": false,
+          "injected": []
+        }
+      },
+      {
+        "kind": "trusted_application_branch",
+        "name": "execute_data_visualization_code:branch:condition",
+        "identity": "2b01b7f598c91dbbc8138ff2f1874d8f33803bffc9ad7b9b705a492673b5fdb3",
+        "source_sha256": "92ff5e2a2b4a199d25788e1586617cea1d6f56c0340bf68b7cab647565c7f619",
+        "details": {
+          "kind": "trusted_application_branch",
+          "name": "execute_data_visualization_code:branch:condition",
+          "module": "ai_data_science_team.templates.agent_templates",
+          "qualname": "create_coding_agent_graph.<locals>.<lambda>",
+          "code_sha256": "92ff5e2a2b4a199d25788e1586617cea1d6f56c0340bf68b7cab647565c7f619",
+          "ends": [
+            [
+              "explain_code",
+              "report_agent_outputs"
+            ],
+            [
+              "fix_code",
+              "fix_data_visualization_code"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "graph": "compute_dispatch",
+    "descriptors": [
+      {
+        "kind": "native_deployment",
+        "name": "dispatch",
+        "identity": "a8c81a6a4379865c5990047938189139c05368844f49afb9190063784836c6f5",
+        "source_sha256": "b6b4f42ba4e6535e9fdb08633a0b7c943781e34edb8285c4170e078723f696c4",
+        "details": {
+          "kind": "native_deployment",
+          "tools": [
+            "compute"
+          ],
+          "host": "linux_object",
+          "runtime_roots": [
+            "/data/langgraph/eval/campaigns/pandas-matched-aggressive-v1/raw/harness/pandas",
+            "/data/slanggraph-eval-upstreams/ai-data-science-team/.venv/lib/python3.13/site-packages"
+          ],
+          "lean_worker_sha256": "6097be9b7b84639959c7a0b9de31c79f23486e9f01bf1b6de575dfab25c7cb08",
+          "specs": [
+            {
+              "tool": "compute",
+              "entrypoint": "worker:compute",
+              "artifact_path": "/data/langgraph/eval/campaigns/pandas-matched-aggressive-v1/raw/harness/pandas/worker.py",
+              "artifact_sha256": "5d94a4de932cbab2ba9d89db9680044d72dff75041fb644879f0f77af9975ca6",
+              "deployment": false
+            }
+          ],
+          "sources": [
+            "5d94a4de932cbab2ba9d89db9680044d72dff75041fb644879f0f77af9975ca6"
+          ]
+        }
+      }
+    ]
+  }
+]

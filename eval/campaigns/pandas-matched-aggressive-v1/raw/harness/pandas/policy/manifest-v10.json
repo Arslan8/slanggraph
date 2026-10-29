@@ -1,0 +1,37 @@
+{
+  "version": 10,
+  "status": "serialization regression verified; full-workflow utility pending",
+  "model": {
+    "name": "qwen3:8b",
+    "base_url": "http://localhost:11434/v1",
+    "temperature": 0,
+    "seed": 20261005,
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "timeout_seconds": 600,
+    "max_retries": 0,
+    "reasoning_effort": "none"
+  },
+  "configurations": {
+    "A": "Upstream graph and subprocess sandbox with the common serializer repair; security disabled",
+    "B": "Added node dispatch and upstream subprocess sandbox with the common serializer repair",
+    "C": "Added node dispatch and LinuxSandboxExecutor with the same serializer repair inside the fresh worker"
+  },
+  "analysis": null,
+  "upstream_protections": "Import, execution, network and resource restrictions preserved; result serialization explicitly adapted.",
+  "ui_scope": "Backend only. UI authentication, file upload, rendering and session history excluded.",
+  "cpu_affinity": "one-available-cpu",
+  "amendment": "Common A/B/C recursive JSON serialization repair for nested DataFrames, timestamps, NumPy scalars and missing values. New cohorts only; original frozen utility outcomes remain unchanged.",
+  "provider_reference": "https://docs.ollama.com/api/openai-compatibility",
+  "integration": true,
+  "policy_version": 3,
+  "integration_sources": {
+    "apps/backend.py": "c2ed318dc2d37468bc2e74a18289f37d3498b4cf4c5d2ddf811336ce2316324c",
+    "apps/pandas/integration.py": "dca9e035e0248ff4470cd08170242fd59e1d114648b5f1114960e8574fec2ff3",
+    "apps/pandas/worker.py": "6eb8c81eca38b537ff441c36adb572f716d947b0b456ba81a7bcbb244c076f0e",
+    "apps/pandas/policy/compute-v3.slp.template": "649b1f812f652ceece691d3a47586fbdf3190e8d83e9fd392d2e3b366c014935",
+    "apps/pandas/sandbox_codec.py": "9be4b6b009533a1da6fc57623dcc82fed152a1ea2bab352be68fc8c8d69f5122"
+  },
+  "policy_template": "compute-v3.slp.template",
+  "sandbox_serialization": "recursive-json-v1",
+  "historical_manifest": "manifest-v9.json"
+}

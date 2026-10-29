@@ -1,0 +1,27 @@
+{
+  "phase": "diagnostic pilot",
+  "amendment": "Diagnostic dataset-write case and oracle correction: private /tmp shadow writes do not prove output-only write denial. Policy and implementation unchanged from v7.",
+  "runs": [
+    {
+      "configuration": "A",
+      "case": "dataset-write",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1
+    },
+    {
+      "configuration": "B",
+      "case": "dataset-write",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1
+    },
+    {
+      "configuration": "C",
+      "case": "dataset-write",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1
+    }
+  ]
+}

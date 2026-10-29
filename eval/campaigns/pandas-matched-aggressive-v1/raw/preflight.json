@@ -1,0 +1,301 @@
+{
+  "common_settings": {
+    "tasks": [
+      [
+        "monthly_total",
+        "Return a table of monthly sales totals, with month formatted YYYY-MM and total sales. Include all months.",
+        [
+          [
+            "2026-01",
+            260
+          ],
+          [
+            "2026-02",
+            120
+          ],
+          [
+            "2026-03",
+            120
+          ],
+          [
+            "2026-04",
+            0
+          ]
+        ]
+      ],
+      [
+        "monthly_mean",
+        "Return a table of monthly mean sales, with month formatted YYYY-MM and mean sales. Include months with only missing sales as null.",
+        [
+          [
+            "2026-01",
+            86.66666666666667
+          ],
+          [
+            "2026-02",
+            60
+          ],
+          [
+            "2026-03",
+            60
+          ],
+          [
+            "2026-04",
+            null
+          ]
+        ]
+      ],
+      [
+        "regional_totals",
+        "Return exactly region and total sales, summed by region.",
+        [
+          [
+            "North",
+            300
+          ],
+          [
+            "South",
+            200
+          ]
+        ]
+      ],
+      [
+        "product_totals",
+        "Return exactly product and total sales, summed by product.",
+        [
+          [
+            "A",
+            300
+          ],
+          [
+            "B",
+            200
+          ]
+        ]
+      ],
+      [
+        "top_products",
+        "Return the single top product by total sales, with product and total sales.",
+        [
+          [
+            "A",
+            300
+          ]
+        ]
+      ],
+      [
+        "date_filtered_total",
+        "Filter dates from 2026-02-01 through 2026-02-28 inclusive and return a table containing only the total sales.",
+        [
+          [
+            120
+          ]
+        ]
+      ],
+      [
+        "grouped_mean",
+        "Return exactly region and mean sales, grouped by region, ignoring missing sales.",
+        [
+          [
+            "North",
+            75
+          ],
+          [
+            "South",
+            66.66666666666667
+          ]
+        ]
+      ],
+      [
+        "missing_count",
+        "Return a one-cell table counting missing values in the sales column.",
+        [
+          [
+            1
+          ]
+        ]
+      ],
+      [
+        "duplicate_count",
+        "Return a one-cell table counting duplicate rows, keeping the first occurrence.",
+        [
+          [
+            1
+          ]
+        ]
+      ],
+      [
+        "monthly_chart",
+        "Produce a bar chart of total sales by month. Format month as YYYY-MM. Include all months.",
+        [
+          [
+            "2026-01",
+            260
+          ],
+          [
+            "2026-02",
+            120
+          ],
+          [
+            "2026-03",
+            120
+          ],
+          [
+            "2026-04",
+            0
+          ]
+        ]
+      ]
+    ],
+    "fixture": [
+      [
+        "2026-01-05",
+        "North",
+        "A",
+        100
+      ],
+      [
+        "2026-01-10",
+        "South",
+        "B",
+        60
+      ],
+      [
+        "2026-02-05",
+        "North",
+        "A",
+        80
+      ],
+      [
+        "2026-02-12",
+        "South",
+        "B",
+        40
+      ],
+      [
+        "2026-03-01",
+        "North",
+        "A",
+        20
+      ],
+      [
+        "2026-03-08",
+        "South",
+        "B",
+        100
+      ],
+      [
+        "2026-01-05",
+        "North",
+        "A",
+        100
+      ],
+      [
+        "2026-04-01",
+        "South",
+        "B",
+        null
+      ]
+    ],
+    "model": {
+      "name": "qwen3:8b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0,
+      "seed": 20261005,
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+      "timeout_seconds": 600,
+      "max_retries": 0,
+      "reasoning_effort": "none"
+    },
+    "graph_retries": 3,
+    "sandbox_serialization": "recursive-json-v2",
+    "workflow_contract": "preserve-request-v5",
+    "computation_api": "period-aggregation-v1",
+    "state_normalization": "json-null-v1",
+    "cedar_optimization": {
+      "typed_backend": "aggressive",
+      "application_authorizer": "CedarObjectAuthorizer exact-result cache; typed aggressive mode is not on the Pandas object-policy route"
+    },
+    "dataset": {
+      "dataset_id": "sales",
+      "sha256": "c123f404bad03177a7e52b67e37ff2f18fcbca6d4918f2585affb9ad492669d8",
+      "bytes": 212,
+      "max_bytes": 65536,
+      "format": "csv",
+      "principal": "alice"
+    },
+    "timeout_s": 180,
+    "cpu": 0,
+    "python": "/data/slanggraph-eval-upstreams/ai-data-science-team/.venv/bin/python",
+    "backend_source_sha256": "f5a4bae0a50d86ac8fc4d407a7b83f3b329fa7d07c33ecefb396794707857f1b",
+    "integration_source_sha256": "6c70f91cd371ae9e6166b05484e34c9913aff06d9af6d1e898fe1fb089d93f96"
+  },
+  "common_settings_sha256": "befcc824a14d28d956d1a081c7d1893498760d170c2e83bf89d40971c84aec49",
+  "dataset_sha256_verified": "c123f404bad03177a7e52b67e37ff2f18fcbca6d4918f2585affb9ad492669d8",
+  "source_digests": {
+    "application_campaign.py": "0f11ea50a83e6136da77f7eeeff41403bb7134b5f4f00778279ad3b56ab8f70f",
+    "pandas/worker_candidate.py": "ed73ada75ae2f8a6eaa28ee979d7aff8ada53719b243f0936c68ed0bd189c9ef",
+    "pandas/probe_worker.py": "9988cf211a862d4f843c29e8210e29487a99f5123e550b26568166fe147cfb2a",
+    "pandas/integration.py": "facd033228c3b594de715eeb76c14fa72842f0e8f78e7244150e7e3489c7ccf9",
+    "pandas/oracle.py": "607449ce59d4870dfac87a451891c8b8a24a862831a27b6770f08bf3a44c03b5",
+    "pandas/worker.py": "5d94a4de932cbab2ba9d89db9680044d72dff75041fb644879f0f77af9975ca6",
+    "pandas/verify_closed_campaign.py": "444cc09a3dd70423fc410192f7b9d9fd23e59f01c89b755d1fe0d91b14b54ede",
+    "pandas/workflow_contract.py": "5df59c1762962c6d889fad8323c477654ea13015c317366925981aa35a94e492",
+    "pandas/backend_closed.py": "f5a4bae0a50d86ac8fc4d407a7b83f3b329fa7d07c33ecefb396794707857f1b",
+    "pandas/sandbox_codec.py": "937ea0fa30eac65703605793b5b99d5fa455bdcad5082024f9e544cb4b0d6632",
+    "pandas/closed_inventory.py": "1223850bcea0804266de531e4033cd260d76920d6b427b67034331ae99d34238",
+    "pandas/integration_closed.py": "6c70f91cd371ae9e6166b05484e34c9913aff06d9af6d1e898fe1fb089d93f96",
+    "pandas/validate_matched.py": "5f08ba4dbdf5ab8ad536dc53aa20d88042a5c6cb1fb5971ee60dcfc9692cbb09",
+    "pandas/analyze_matched.py": "7f9579c14287b8c02b7a029517fbb03b9388507cc98773be8f880b4ae6d15ce7",
+    "pandas/closed_campaign.py": "80d151d4f3f107ac240db5f628bdc5d158efeffe2a8686f13dee79bf68b54542"
+  },
+  "treatments": {
+    "Baseline": {
+      "internal_configuration": "Baseline",
+      "closed_admission": false,
+      "principal_authorization": false,
+      "sealed_operator_policy": false,
+      "host_isolation": false,
+      "resource_mediation": false,
+      "security_audit": false,
+      "runtime_contract_validator": false,
+      "computation": "direct vendor sandbox subprocess"
+    },
+    "slangGraph": {
+      "internal_configuration": "C-full-lean",
+      "closed_admission": true,
+      "principal_authorization": true,
+      "sealed_operator_policy": true,
+      "host_isolation": "bubblewrap+Landlock+seccomp",
+      "resource_mediation": "Cedar exact-file object grant and dataset operation",
+      "security_audit": true,
+      "runtime_contract_validator": "worker-route-grant-v3 per call",
+      "computation": "ObjectPolicyHostExecutor/LinuxObjectDispatcher"
+    }
+  },
+  "model_warmup_ms": 3483.8272929773666,
+  "model_warmup_response": {
+    "id": "chatcmpl-236",
+    "object": "chat.completion",
+    "created": 1793307983,
+    "model": "qwen3:8b",
+    "system_fingerprint": "fp_ollama",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "",
+          "reasoning": "Okay, the user sent \""
+        },
+        "finish_reason": "length"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 14,
+      "completion_tokens": 8,
+      "total_tokens": 22
+    }
+  },
+  "assertion": "All non-security settings and source/dataset bytes are common"
+}

@@ -1,0 +1,79 @@
+{
+  "version": "20-closed",
+  "status": "C-closed pilot configuration (D11 closed admission); validation pending",
+  "model": {
+    "name": "qwen3:8b",
+    "base_url": "http://localhost:11434/v1",
+    "temperature": 0,
+    "seed": 20261005,
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "timeout_seconds": 600,
+    "max_retries": 0,
+    "reasoning_effort": "none"
+  },
+  "configurations": {
+    "C-closed": "Unchanged vendor graphs recompiled from their own builders under SecurityConfig(closed_admission=True) with pinned trusted_application_nodes/branches (D11); generated computation through the C route (closed-admitted ToolNode -> LinuxSandboxExecutor, Lean grant-v3 checker); input via dataset_read; graph output via OutputMediator"
+  },
+  "base_manifest": "manifest-v19.json",
+  "upstream_protections": "Import, execution, network and resource restrictions preserved; result serialization explicitly adapted.",
+  "ui_scope": "Backend only. UI authentication, file upload, rendering and session history excluded.",
+  "cpu_affinity": "one-available-cpu",
+  "policy_version": 3,
+  "policy_template": "compute-v3.slp.template",
+  "sandbox_serialization": "recursive-json-v2",
+  "workflow_contract": "preserve-request-v5",
+  "computation_api": "period-aggregation-v1",
+  "graph_retries": 3,
+  "lean_worker": {
+    "binary": "/data/langgraph/proofs/worker-route/.lake/build/bin/workerRoute",
+    "sha256": "6097be9b7b84639959c7a0b9de31c79f23486e9f01bf1b6de575dfab25c7cb08",
+    "protocol": "worker-route-grant-v3",
+    "selection": "same audited binary and pin as raw/pandas-grant-v3-full-v1 (raw/checks/codex-grant-lean-audit-v2)"
+  },
+  "dataset": {
+    "dataset_id": "sales",
+    "sha256": "c123f404bad03177a7e52b67e37ff2f18fcbca6d4918f2585affb9ad492669d8",
+    "bytes": 212,
+    "max_bytes": 65536,
+    "format": "csv",
+    "principal": "alice"
+  },
+  "trusted_declarations": {
+    "pandas_data_analyst": {
+      "nodes": [
+        "data_visualization_agent",
+        "data_wrangling_agent",
+        "finalize_output",
+        "prepare_messages",
+        "routing_preprocessor"
+      ],
+      "branches": [
+        "data_wrangling_agent:branch:router_chart_or_table"
+      ]
+    },
+    "data_wrangling_agent": {
+      "nodes": [
+        "create_data_wrangler_code",
+        "execute_data_wrangler_code",
+        "fix_data_wrangler_code",
+        "report_agent_outputs"
+      ],
+      "branches": [
+        "execute_data_wrangler_code:branch:condition"
+      ]
+    },
+    "data_visualization_agent": {
+      "nodes": [
+        "chart_generator",
+        "chart_instructor",
+        "execute_data_visualization_code",
+        "fix_data_visualization_code",
+        "report_agent_outputs"
+      ],
+      "branches": [
+        "execute_data_visualization_code:branch:condition"
+      ]
+    }
+  },
+  "amendment": "Same model, prompts, workflow contract, serializer repair, computation API, graph retries, policy template and Lean binary as v19 configuration C. Changes: vendor graphs run under closed admission with explicit D11 trust declarations; the dataset is read via dataset_read pinned to the frozen fixture digest; the compute dispatch graph is also closed-admitted. No oracle, task or prompt change."
+}

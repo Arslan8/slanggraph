@@ -1,0 +1,211 @@
+{
+  "demo": "add-memory",
+  "mode": "Baseline",
+  "wall_ms": 2634.032078029122,
+  "model_time_ms": 2554.678911983501,
+  "model_calls": 4,
+  "first_answer": "The 2012 Summer Olympics were hosted by London, United Kingdom.",
+  "answer": "The United Kingdom used the pound sterling (GBP) during the 2012 Summer Olympics.",
+  "messages": [
+    {
+      "content": "You must use the search tool. Which city and country hosted the 2012 Summer Olympics?",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "1e9e905e-ff21-4a7c-af3d-5fa8869a4dd9"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 35,
+          "prompt_tokens": 167,
+          "total_tokens": 202,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-436",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a189ef-3a2b-73d2-9afe-ccc8412d3297-0",
+      "tool_calls": [
+        {
+          "name": "tavily_search",
+          "args": {
+            "query": "Which city and country hosted the 2012 Summer Olympics?"
+          },
+          "id": "call_3dnhmj8e",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 167,
+        "output_tokens": 35,
+        "total_tokens": 202,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "[{\"url\": \"https://www.olympics.com/en/olympic-games/london-2012\", \"content\": \"The 2012 Summer Olympics were held in London, United Kingdom. The United Kingdom used pound sterling (GBP).\"}, {\"url\": \"https://www.olympics.com/en/olympic-games/sydney-2000\", \"content\": \"The 2000 Summer Olympics were held in Sydney, Australia. Australia used the Australian dollar (AUD).\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "tavily_search",
+      "id": "4a1d3d45-5be4-4ab5-b311-2d15816270d3",
+      "tool_call_id": "call_3dnhmj8e",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The 2012 Summer Olympics were hosted by London, United Kingdom.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 17,
+          "prompt_tokens": 328,
+          "total_tokens": 345,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-747",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a189ef-3d15-7851-bbbf-f132681e04f8-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 328,
+        "output_tokens": 17,
+        "total_tokens": 345,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "What currency did that country use at the time? Use the search tool.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "f070e472-adb8-4fd7-822c-f498ab690cf7"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 36,
+          "prompt_tokens": 369,
+          "total_tokens": 405,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-8",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a189ef-3ef7-7be3-b001-94cee7bb121b-0",
+      "tool_calls": [
+        {
+          "name": "tavily_search",
+          "args": {
+            "query": "Currency used in the United Kingdom during the 2012 Summer Olympics"
+          },
+          "id": "call_o94qq3la",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 369,
+        "output_tokens": 36,
+        "total_tokens": 405,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "[{\"url\": \"https://www.olympics.com/en/olympic-games/london-2012\", \"content\": \"The 2012 Summer Olympics were held in London, United Kingdom. The United Kingdom used pound sterling (GBP).\"}, {\"url\": \"https://www.olympics.com/en/olympic-games/atlanta-1996\", \"content\": \"The 1996 Summer Olympics were held in Atlanta, United States. The United States used the US dollar (USD).\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "tavily_search",
+      "id": "22c463b6-bc88-47f9-94c1-10441744b77b",
+      "tool_call_id": "call_o94qq3la",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The United Kingdom used the pound sterling (GBP) during the 2012 Summer Olympics.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 21,
+          "prompt_tokens": 534,
+          "total_tokens": 555,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-434",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a189ef-4219-7852-bc71-16bca04dadeb-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 534,
+        "output_tokens": 21,
+        "total_tokens": 555,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "executed_tools": [
+    "tavily_search",
+    "tavily_search"
+  ],
+  "thread_id": "7cc47dcd178e4571b725c132fbcc3999",
+  "history_size": 0,
+  "replayed": false,
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

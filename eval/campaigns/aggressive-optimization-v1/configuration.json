@@ -1,0 +1,32 @@
+{
+  "framework_revision": "62875ce699533e81842bf084025ab494469cbbbd",
+  "aggressive_implementation_revision": "f35c79aadedf48712bdb669b4fa53548e3ea4504",
+  "host": {
+    "hostname": "e5-cse-359-01",
+    "kernel": "Linux 6.17.0-1033-oem x86_64",
+    "cpu": "Intel(R) Xeon(R) w5-3435X",
+    "logical_cpus": 32,
+    "affinity": "one available CPU per process"
+  },
+  "python": "3.13.11",
+  "uv": "0.9.18",
+  "cedar_executable": "/home/faculty/abk6349/.cargo/bin/cedar",
+  "lean_worker_sha256": "6097be9b7b84639959c7a0b9de31c79f23486e9f01bf1b6de575dfab25c7cb08",
+  "container_image": "sha256:3bcfa1622e24814afee022c71236dadd92e31a5fff41ad99a23925bc98311504",
+  "protocol": {
+    "sessions": 5,
+    "first_use_calls_per_session": 1,
+    "warmups_per_session": 10,
+    "measured_calls_per_session": 20
+  },
+  "headline_mode": "aggressive",
+  "comparison_mode": "normal",
+  "applicability": {
+    "landlock": "CedarPolicyBackend: direct optimization experiment",
+    "language": "object/language authorizer: control",
+    "container": "object authorizer: control",
+    "broker": "object authorizer: control",
+    "pandas": "CedarObjectAuthorizer: control",
+    "ordinary_demos": "object authorizer: control"
+  }
+}

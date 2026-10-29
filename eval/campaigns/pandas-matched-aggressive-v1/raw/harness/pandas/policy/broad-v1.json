@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "profile": "broad",
+  "status": "intent-only; not enforced by A",
+  "principal": "synthetic-analyst",
+  "run_mutation_allowed": false,
+  "permissions": {
+    "sales": "read",
+    "outputs": "write",
+    "payroll": "read",
+    "unrelated_file": "deny"
+  },
+  "scope": "Sales pilot only; not a deployable slangGraph policy"
+}
