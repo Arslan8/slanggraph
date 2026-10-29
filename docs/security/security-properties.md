@@ -24,16 +24,21 @@ Neither mechanism proves safe model behavior or alignment with user intent.
 
 The finite [Lean composition model](../../proofs/composition-route/README.md)
 proves that every physical tool invocation reachable in its transition system
-has first crossed either the route-selected language sandbox or the
-route-selected resource mediator. An unclassified route cannot invoke, and
-both classified routes have constructive successful traces.
+has first crossed either the route-selected language sandbox or an activated
+host sandbox. A host route accepts only a nonempty obligation inventory lowered
+entirely as `exact` or `tightened`. Any route-selected semantic resource
+mediators have exact roster coverage and compose with, rather than replace, the
+execution sandbox. Unclassified routes and unsupported host lowerings cannot
+invoke; language and combined host-plus-resource routes have constructive
+successful witnesses.
 
 This is a path-coverage theorem, not a monitor-correctness theorem. Production
 use of the result requires a separate refinement argument showing that every
 physical Python tool entry point follows the modeled transition system, that
 route classification is exhaustive, and that no raw-callable or fallback path
-exists. The theorem does not establish policy correctness, monitor internals,
-runtime/compiler correspondence, or operating-system enforcement.
+exists. The theorem does not establish policy correctness, completeness of the
+supplied obligation inventory, monitor internals, runtime/compiler
+correspondence, or operating-system enforcement.
 
 ## Cross-call information flow and pooled authority
 
