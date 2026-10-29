@@ -158,6 +158,24 @@ def test_replayed_checkpoint_is_refused() -> None:
         graph.checkpointer.get_tuple(_config())
 
 
+@pytest.mark.parametrize("asynchronous", [False, True])
+async def test_graph_can_continue_from_checkpoint_tip_issued_by_same_host(
+    asynchronous: bool,
+) -> None:
+    graph = _graph(InMemorySaver())
+    config = _config()
+
+    if asynchronous:
+        first = await graph.ainvoke({"value": 1}, config)
+        second = await graph.ainvoke({"value": first["value"]}, config)
+    else:
+        first = graph.invoke({"value": 1}, config)
+        second = graph.invoke({"value": first["value"]}, config)
+
+    assert first["value"] == 2
+    assert second["value"] == 3
+
+
 def test_checkpoint_write_uses_effective_authorized_value() -> None:
     saver = InMemorySaver()
     builder = StateGraph(CheckpointState)

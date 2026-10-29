@@ -257,6 +257,15 @@ class MediatedCheckpointer(BaseCheckpointSaver):
             previous_hash=previous_hash,
             payload=effective,
         )
+        self.router.state(
+            principal,
+            StateRequest(
+                StateOperation.CHECKPOINT_WRITE,
+                f"checkpoint:{envelope.checkpoint_id}:issued",
+                principal.user_id,
+                value=envelope,
+            ),
+        )
         secured = dict(metadata)
         secured[_SECURITY_METADATA] = _envelope_metadata(envelope)  # type: ignore[typeddict-unknown-key]
         return effective, cast(CheckpointMetadata, secured)
@@ -293,6 +302,15 @@ class MediatedCheckpointer(BaseCheckpointSaver):
             sequence=sequence,
             previous_hash=previous_hash,
             payload=effective,
+        )
+        await self.router.astate(
+            principal,
+            StateRequest(
+                StateOperation.CHECKPOINT_WRITE,
+                f"checkpoint:{envelope.checkpoint_id}:issued",
+                principal.user_id,
+                value=envelope,
+            ),
         )
         secured = dict(metadata)
         secured[_SECURITY_METADATA] = _envelope_metadata(envelope)  # type: ignore[typeddict-unknown-key]

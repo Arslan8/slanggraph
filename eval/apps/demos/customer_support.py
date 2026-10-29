@@ -4,25 +4,58 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
+import enum
+import hashlib
 import json
 import re
 import shutil
 import sqlite3
+import sys
 import time
 import uuid
 from pathlib import Path
 from typing import Annotated
 
 import pandas as pd
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import Runnable, RunnableConfig
+from langchain_core.runnables import Runnable, RunnableConfig, RunnableLambda
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import AnyMessage, add_messages
-from langgraph.prebuilt import tools_condition
+from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.prebuilt.security import (
+    LinuxToolSpec,
+    ObjectBrokerDispatcher,
+    Principal,
+    install_mac_policy,
+    with_principal,
+)
+from resource_monitors.api import POLICY, SEARCH, TRAVEL
+from resource_monitors.backends import (
+    EmptySearchBackend,
+    ExactBrokerMediator,
+    TFIDFRetrieverBackend,
+    TravelSQLiteBackend,
+)
+from resource_monitors.policy_worker import lookup_policy as broker_lookup_policy
+from resource_monitors.search_worker import frozen_search as broker_search
+from resource_monitors.security import monitored_security
+from resource_monitors.travel_worker import (
+    cancel_ticket as broker_cancel,
+)
+from resource_monitors.travel_worker import (
+    fetch_user_flight_information as broker_fetch,
+)
+from resource_monitors.travel_worker import (
+    search_flights as broker_flight_search,
+)
+from resource_monitors.travel_worker import (
+    update_ticket_to_new_flight as broker_update,
+)
 from sklearn.feature_extraction.text import TfidfVectorizer
 from typing_extensions import TypedDict
 
@@ -98,7 +131,23 @@ class Assistant:
                 return {"messages": result}
 
 
-def build(database: Path, notebook: Path, faq_path: Path):
+def serial(value):
+    if dataclasses.is_dataclass(value):
+        return {
+            field.name: serial(getattr(value, field.name)) for field in dataclasses.fields(value)
+        }
+    if isinstance(value, enum.Enum):
+        return value.value
+    if isinstance(value, dict):
+        return {str(key): serial(item) for key, item in value.items()}
+    if isinstance(value, tuple | list | set | frozenset):
+        return [serial(item) for item in value]
+    if value is None or isinstance(value, str | bool | int | float):
+        return value
+    return str(value)
+
+
+def build(database: Path, notebook: Path, faq_path: Path, mode: str):
     namespace = dict(globals())
     namespace.update({"db": str(database), "tool": tool})
     cells = json.loads(notebook.read_text())["cells"]
@@ -117,21 +166,132 @@ def build(database: Path, notebook: Path, faq_path: Path):
     matrix = vectorizer.transform(faq_sections)
 
     @tool
-    def lookup_policy(query: str) -> str:
+    def baseline_lookup_policy(query: str) -> str:
         """Consult the company policies to check whether certain options are permitted."""
         scores = (matrix @ vectorizer.transform([query]).T).toarray().ravel()
         return "\n\n".join(faq_sections[index] for index in scores.argsort()[-2:][::-1])
 
     @tool("tavily_search_results_json")
-    def frozen_search(query: str) -> list[dict]:
+    def baseline_frozen_search(query: str) -> list[dict]:
         """Search the frozen travel corpus with the tutorial's search schema."""
         del query
         return []
 
-    fetch = namespace["fetch_user_flight_information"]
-    search = namespace["search_flights"]
-    update = namespace["update_ticket_to_new_flight"]
-    cancel = namespace["cancel_ticket"]
+    dispatcher = security = audit = None
+    if mode == "Baseline":
+        fetch = namespace["fetch_user_flight_information"]
+        search = namespace["search_flights"]
+        update = namespace["update_ticket_to_new_flight"]
+        cancel = namespace["cancel_ticket"]
+        lookup_policy = baseline_lookup_policy
+        frozen_search = baseline_frozen_search
+    else:
+        travel_resource = TRAVEL.bind(
+            implementation=TravelSQLiteBackend(database, PASSENGER, FROZEN_NOW.to_pydatetime()),
+            mediator=ExactBrokerMediator(
+                "principal-bound travel reads and ticket mutations",
+                "eval/tests/test_demo_resource_monitors.py",
+                (database,),
+            ),
+        )
+        policy_resource = POLICY.bind(
+            implementation=TFIDFRetrieverBackend(faq_sections, limit=2),
+            mediator=ExactBrokerMediator(
+                "query-only access to the frozen airline policy index",
+                "eval/tests/test_demo_resource_monitors.py",
+                (faq_path,),
+            ),
+        )
+        search_resource = SEARCH.bind(
+            implementation=EmptySearchBackend(),
+            mediator=ExactBrokerMediator(
+                "query-only access to the frozen empty travel search fixture",
+                "eval/tests/test_demo_resource_monitors.py",
+            ),
+        )
+        monitor_dir = Path(__file__).with_name("resource_monitors")
+        travel_worker = monitor_dir / "travel_worker.py"
+        policy_worker = monitor_dir / "policy_worker.py"
+        search_worker = monitor_dir / "search_worker.py"
+        specs = {
+            name: LinuxToolSpec(
+                f"resource_monitors.travel_worker:{entrypoint}",
+                travel_worker,
+                hashlib.sha256(travel_worker.read_bytes()).hexdigest(),
+            )
+            for name, entrypoint in {
+                "fetch_user_flight_information": "fetch_user_flight_information",
+                "search_flights": "search_flights",
+                "update_ticket_to_new_flight": "update_ticket_to_new_flight",
+                "cancel_ticket": "cancel_ticket",
+            }.items()
+        }
+        specs["lookup_policy"] = LinuxToolSpec(
+            "resource_monitors.policy_worker:lookup_policy",
+            policy_worker,
+            hashlib.sha256(policy_worker.read_bytes()).hexdigest(),
+        )
+        specs["tavily_search_results_json"] = LinuxToolSpec(
+            "resource_monitors.search_worker:frozen_search",
+            search_worker,
+            hashlib.sha256(search_worker.read_bytes()).hexdigest(),
+        )
+        dispatcher = ObjectBrokerDispatcher(
+            specs,
+            runtime_roots=(
+                Path(__file__).resolve().parent,
+                Path(__file__).resolve().parents[3] / "libs/prebuilt",
+                Path(__file__).resolve().parents[3] / "libs/langgraph",
+                Path(__file__).resolve().parents[3] / "libs/checkpoint",
+                Path(__file__).resolve().parents[3] / "libs/sdk-py",
+                *(
+                    Path(item).resolve()
+                    for item in sys.path
+                    if item and "site-packages" in item and Path(item).is_dir()
+                ),
+            ),
+            resources=(travel_resource, policy_resource, search_resource),
+        )
+        fetch = tool(
+            "fetch_user_flight_information",
+            description="Fetch all tickets and flight details for the signed-in passenger.",
+        )(broker_fetch)
+        search = tool(
+            "search_flights",
+            description="Search flights by airports and optional departure-time range.",
+        )(broker_flight_search)
+        update = tool(
+            "update_ticket_to_new_flight",
+            description="Update the signed-in passenger's ticket to a valid new flight.",
+        )(broker_update)
+        cancel = tool(
+            "cancel_ticket",
+            description="Cancel a ticket owned by the signed-in passenger.",
+        )(broker_cancel)
+        lookup_policy = tool(
+            "lookup_policy",
+            description="Consult the frozen airline policy corpus.",
+        )(broker_lookup_policy)
+        frozen_search = tool(
+            "tavily_search_results_json",
+            description="Search the frozen travel web corpus.",
+        )(broker_search)
+        all_tools = (frozen_search, fetch, search, lookup_policy, update, cancel)
+        security, audit = monitored_security(
+            all_tools,
+            dispatcher=dispatcher,
+            resources=(travel_resource, policy_resource, search_resource),
+            permissions={
+                "fetch_user_flight_information": (travel_resource.permission("fetch_user"),),
+                "search_flights": (travel_resource.permission("search_flights"),),
+                "update_ticket_to_new_flight": (travel_resource.permission("update_ticket"),),
+                "cancel_ticket": (travel_resource.permission("cancel_ticket"),),
+                "lookup_policy": (policy_resource.permission("search"),),
+                "tavily_search_results_json": (search_resource.permission("search"),),
+            },
+            trusted_nodes=("request_user_info", "format_user_info", "assistant"),
+            trusted_branches=("assistant:branch:route_tools",),
+        )
     safe_tools = [frozen_search, fetch, search, lookup_policy]
     sensitive_tools = [update, cancel]
     sensitive_names = {item.name for item in sensitive_tools}
@@ -159,12 +319,39 @@ def build(database: Path, notebook: Path, faq_path: Path):
         ]
     ).partial(time=FROZEN_NOW.isoformat())
     assistant = prompt | model.bind_tools(safe_tools + sensitive_tools)
-    tool_node = namespace["create_tool_node_with_fallback"]
     builder = StateGraph(State)
 
-    def user_info(state: State):
+    def assistant_node(state: State, config: RunnableConfig):
+        return Assistant(assistant)(state, config)
+
+    def request_user_info(state: State):
         del state
-        return {"user_info": fetch.invoke({})}
+        return {
+            "messages": [
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "fetch_user_flight_information",
+                            "args": {},
+                            "id": "initial-user-info",
+                            "type": "tool_call",
+                        }
+                    ],
+                )
+            ]
+        }
+
+    def format_user_info(state: State):
+        return {"user_info": str(state["messages"][-1].content)}
+
+    def tool_node():
+        tools = safe_tools + sensitive_tools
+        if security:
+            return ToolNode(tools, security=security)
+        return ToolNode(tools).with_fallbacks(
+            [RunnableLambda(namespace["handle_tool_error"])], exception_key="error"
+        )
 
     def route_tools(state: State):
         next_node = tools_condition(state)
@@ -173,19 +360,32 @@ def build(database: Path, notebook: Path, faq_path: Path):
         first = state["messages"][-1].tool_calls[0]
         return "sensitive_tools" if first["name"] in sensitive_names else "safe_tools"
 
-    builder.add_node("fetch_user_info", user_info)
-    builder.add_edge(START, "fetch_user_info")
-    builder.add_node("assistant", Assistant(assistant))
-    builder.add_node("safe_tools", tool_node(safe_tools))
-    builder.add_node("sensitive_tools", tool_node(sensitive_tools))
-    builder.add_edge("fetch_user_info", "assistant")
+    builder.add_node("request_user_info", request_user_info)
+    builder.add_edge(START, "request_user_info")
+    builder.add_node("fetch_user_info", tool_node())
+    builder.add_node("format_user_info", format_user_info)
+    builder.add_node("assistant", assistant_node)
+    builder.add_node("safe_tools", tool_node())
+    builder.add_node("sensitive_tools", tool_node())
+    builder.add_edge("request_user_info", "fetch_user_info")
+    builder.add_edge("fetch_user_info", "format_user_info")
+    builder.add_edge("format_user_info", "assistant")
     builder.add_conditional_edges("assistant", route_tools, ["safe_tools", "sensitive_tools", END])
     builder.add_edge("safe_tools", "assistant")
     builder.add_edge("sensitive_tools", "assistant")
-    return builder.compile(checkpointer=InMemorySaver(), interrupt_before=["sensitive_tools"])
+    return (
+        builder.compile(
+            checkpointer=InMemorySaver(),
+            interrupt_before=["sensitive_tools"],
+            security=security,
+        ),
+        security,
+        dispatcher,
+        audit,
+    )
 
 
-def drive(graph, task_id: int) -> dict:
+def drive(graph, task_id: int, security=None) -> dict:
     prompts = {
         1: ["Retrieve my existing flight details."],
         2: [
@@ -203,13 +403,20 @@ def drive(graph, task_id: int) -> dict:
     }[task_id]
     approve = task_id in {3, 5}
     config = {"configurable": {"passenger_id": PASSENGER, "thread_id": str(uuid.uuid4())}}
+    if security is not None:
+        config = with_principal(
+            config,
+            Principal("alice", frozenset(), frozenset(), "D5-resource-monitor"),
+            modules=security.modules,
+        )
     interrupts = []
     final = None
     for prompt in prompts:
         final = graph.invoke({"messages": [("user", prompt)]}, config)
-        state = graph.get_state(config)
-        while state.next:
-            call = state.values["messages"][-1].tool_calls[0]
+        while final["messages"][-1].tool_calls:
+            call = final["messages"][-1].tool_calls[0]
+            if call["name"] not in {"update_ticket_to_new_flight", "cancel_ticket"}:
+                break
             interrupts.append({"tool_call": call, "approved": approve})
             if approve:
                 final = graph.invoke(None, config)
@@ -225,7 +432,6 @@ def drive(graph, task_id: int) -> dict:
                     },
                     config,
                 )
-            state = graph.get_state(config)
     return {"state": final, "interrupts": interrupts}
 
 
@@ -242,12 +448,10 @@ def main() -> None:
     prepare_database(args.source_database, args.database)
     before = snapshot(args.database)
     if args.mode == "Argus":
-        raise RuntimeError(
-            "argus:unsupported: D5 ToolNodes close over a mutable SQLite path and the "
-            "production route has no registered adapter preserving checkpointed interrupt/resume access"
-        )
+        install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
     started = time.perf_counter()
-    result = drive(build(args.database, args.notebook, args.faq), args.task_id)
+    graph, security, dispatcher, audit = build(args.database, args.notebook, args.faq, args.mode)
+    result = drive(graph, args.task_id, security)
     after = snapshot(args.database)
     state = result["state"] or {"messages": []}
     args.output.write_text(
@@ -259,6 +463,20 @@ def main() -> None:
                 "messages": [message.model_dump() for message in state.get("messages", [])],
                 "wall_ms": (time.perf_counter() - started) * 1000,
                 "frozen_now": FROZEN_NOW.isoformat(),
+                "authorization_decisions": [serial(item) for item in audit.records()]
+                if audit
+                else [],
+                "authorization_grants": [
+                    serial(item) for item in security.host_executor.authorization_grants()
+                ]
+                if security
+                else [],
+                "lowering_records": [serial(item) for item in dispatcher.lowering_records()]
+                if dispatcher
+                else [],
+                "broker_audit": [serial(item) for item in dispatcher.audit_records()]
+                if dispatcher
+                else [],
             },
             default=str,
             indent=2,

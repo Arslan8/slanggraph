@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpc87ccS/bin/python",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/apps/demos/customer_support.py",
+    "--source-database",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v1/fixtures/customer-support/travel2.sqlite",
+    "--database",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v2/raw/smoke-20261028/D5-1/travel.sqlite",
+    "--notebook",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v1/upstream/docs/docs/tutorials/customer-support/customer-support.ipynb",
+    "--faq",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v1/fixtures/customer-support/swiss_faq.md",
+    "--task-id",
+    "1",
+    "--output",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v2/raw/smoke-20261028/D5-1/output.json",
+    "--mode",
+    "Argus"
+  ],
+  "returncode": 0,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpc87ccS/bin/python",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/apps/demos/plan_execute.py",
+    "--corpus",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v1/fixtures/search/olympics.json",
+    "--prompt",
+    "For the Summer Olympics held in 1996, what was the host city, its country, and that country's currency at the time of the Games?",
+    "--output",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v2/raw/smoke-20261028/D3-1/output.json",
+    "--mode",
+    "Argus"
+  ],
+  "returncode": 0,
+  "stdout": "",
+  "stderr": ""
+}

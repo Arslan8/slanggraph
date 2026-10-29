@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
+import enum
+import hashlib
 import json
+import sys
 import time
 from pathlib import Path
 from typing import Literal
@@ -12,9 +16,23 @@ from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage
+from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt.security import (
+    LinuxToolSpec,
+    ObjectBrokerDispatcher,
+    Principal,
+    install_mac_policy,
+    with_principal,
+)
+from resource_monitors.api import SQL_DATABASE
+from resource_monitors.backends import ExactBrokerMediator, ReadOnlySQLBackend
+from resource_monitors.security import monitored_security
+from resource_monitors.sql_worker import list_tables as broker_list_tables
+from resource_monitors.sql_worker import query as broker_query
+from resource_monitors.sql_worker import schema as broker_schema
 
 MODEL = {
     "name": "qwen3:8b",
@@ -62,7 +80,23 @@ class Observer(BaseCallbackHandler):
         self._write({"kind": "tool_end", "monotonic": time.perf_counter(), "output": str(output)})
 
 
-def build(db_path: Path, events: Path):
+def serial(value):
+    if dataclasses.is_dataclass(value):
+        return {
+            field.name: serial(getattr(value, field.name)) for field in dataclasses.fields(value)
+        }
+    if isinstance(value, enum.Enum):
+        return value.value
+    if isinstance(value, dict):
+        return {str(key): serial(item) for key, item in value.items()}
+    if isinstance(value, tuple | list | set | frozenset):
+        return [serial(item) for item in value]
+    if value is None or isinstance(value, str | bool | int | float):
+        return value
+    return str(value)
+
+
+def build(db_path: Path, events: Path, mode: str):
     llm = ChatOpenAI(
         model=MODEL["name"],
         base_url=MODEL["base_url"],
@@ -75,11 +109,82 @@ def build(db_path: Path, events: Path):
         callbacks=[Observer(events)],
     )
     db = SQLDatabase.from_uri(f"sqlite:///{db_path}")
-    tools = SQLDatabaseToolkit(db=db, llm=llm).get_tools()
-    get_schema_tool = next(tool for tool in tools if tool.name == "sql_db_schema")
-    get_schema_node = ToolNode([get_schema_tool], name="get_schema")
-    run_query_tool = next(tool for tool in tools if tool.name == "sql_db_query")
-    run_query_node = ToolNode([run_query_tool], name="run_query")
+    security = dispatcher = audit = None
+    if mode == "Baseline":
+        tools = SQLDatabaseToolkit(db=db, llm=llm).get_tools()
+        list_tables_tool = next(item for item in tools if item.name == "sql_db_list_tables")
+        get_schema_tool = next(item for item in tools if item.name == "sql_db_schema")
+        run_query_tool = next(item for item in tools if item.name == "sql_db_query")
+    else:
+        resource = SQL_DATABASE.bind(
+            implementation=ReadOnlySQLBackend(db_path),
+            mediator=ExactBrokerMediator(
+                "read-only SQL metadata and SELECT execution",
+                "eval/tests/test_demo_resource_monitors.py",
+                (db_path,),
+            ),
+        )
+        worker = Path(__file__).with_name("resource_monitors") / "sql_worker.py"
+        specs = {
+            "sql_db_list_tables": LinuxToolSpec(
+                "resource_monitors.sql_worker:list_tables",
+                worker,
+                hashlib.sha256(worker.read_bytes()).hexdigest(),
+            ),
+            "sql_db_schema": LinuxToolSpec(
+                "resource_monitors.sql_worker:schema",
+                worker,
+                hashlib.sha256(worker.read_bytes()).hexdigest(),
+            ),
+            "sql_db_query": LinuxToolSpec(
+                "resource_monitors.sql_worker:query",
+                worker,
+                hashlib.sha256(worker.read_bytes()).hexdigest(),
+            ),
+        }
+        dispatcher = ObjectBrokerDispatcher(
+            specs,
+            runtime_roots=(
+                Path(__file__).resolve().parent,
+                Path(__file__).resolve().parents[3] / "libs/prebuilt",
+                Path(__file__).resolve().parents[3] / "libs/langgraph",
+                Path(__file__).resolve().parents[3] / "libs/checkpoint",
+                Path(__file__).resolve().parents[3] / "libs/sdk-py",
+                *(
+                    Path(item).resolve()
+                    for item in sys.path
+                    if item and "site-packages" in item and Path(item).is_dir()
+                ),
+            ),
+            resources=(resource,),
+        )
+        list_tables_tool = tool("sql_db_list_tables")(broker_list_tables)
+        get_schema_tool = tool("sql_db_schema")(broker_schema)
+        run_query_tool = tool("sql_db_query")(broker_query)
+        tool_set = (list_tables_tool, get_schema_tool, run_query_tool)
+        security, audit = monitored_security(
+            tool_set,
+            dispatcher=dispatcher,
+            resources=(resource,),
+            permissions={
+                "sql_db_list_tables": (resource.permission("list_tables"),),
+                "sql_db_schema": (resource.permission("schema"),),
+                "sql_db_query": (resource.permission("query"),),
+            },
+            trusted_nodes=(
+                "request_list_tables",
+                "format_list_tables",
+                "call_get_schema",
+                "generate_query",
+                "check_query",
+            ),
+            trusted_branches=("generate_query:branch:should_continue",),
+        )
+    node_tools = (
+        tool_set if mode == "Argus" else (list_tables_tool, get_schema_tool, run_query_tool)
+    )
+    get_schema_node = ToolNode(node_tools, name="get_schema", security=security)
+    run_query_node = ToolNode(node_tools, name="run_query", security=security)
 
     def list_tables(state: MessagesState):
         del state
@@ -90,7 +195,6 @@ def build(db_path: Path, events: Path):
             "type": "tool_call",
         }
         tool_call_message = AIMessage(content="", tool_calls=[tool_call])
-        list_tables_tool = next(tool for tool in tools if tool.name == "sql_db_list_tables")
         tool_message = list_tables_tool.invoke(tool_call)
         response = AIMessage(f"Available tables: {tool_message.content}")
         return {"messages": [tool_call_message, tool_message, response]}
@@ -150,20 +254,56 @@ You will call the appropriate tool to execute the query after running this check
         return "check_query" if state["messages"][-1].tool_calls else END
 
     builder = StateGraph(MessagesState)
-    builder.add_node(list_tables)
+    if mode == "Baseline":
+        builder.add_node(list_tables)
+        list_tables_tail = "list_tables"
+    else:
+
+        def request_list_tables(state: MessagesState):
+            del state
+            return {
+                "messages": [
+                    AIMessage(
+                        content="",
+                        tool_calls=[
+                            {
+                                "name": "sql_db_list_tables",
+                                "args": {},
+                                "id": "list-tables",
+                                "type": "tool_call",
+                            }
+                        ],
+                    )
+                ]
+            }
+
+        def format_list_tables(state: MessagesState):
+            return {"messages": [AIMessage(f"Available tables: {state['messages'][-1].content}")]}
+
+        builder.add_node("request_list_tables", request_list_tables)
+        builder.add_node(
+            "list_tables",
+            ToolNode(node_tools, security=security),
+        )
+        builder.add_node("format_list_tables", format_list_tables)
+        builder.add_edge(START, "request_list_tables")
+        builder.add_edge("request_list_tables", "list_tables")
+        builder.add_edge("list_tables", "format_list_tables")
+        list_tables_tail = "format_list_tables"
     builder.add_node(call_get_schema)
     builder.add_node(get_schema_node, "get_schema")
     builder.add_node(generate_query)
     builder.add_node(check_query)
     builder.add_node(run_query_node, "run_query")
-    builder.add_edge(START, "list_tables")
-    builder.add_edge("list_tables", "call_get_schema")
+    if mode == "Baseline":
+        builder.add_edge(START, "list_tables")
+    builder.add_edge(list_tables_tail, "call_get_schema")
     builder.add_edge("call_get_schema", "get_schema")
     builder.add_edge("get_schema", "generate_query")
     builder.add_conditional_edges("generate_query", should_continue)
     builder.add_edge("check_query", "run_query")
     builder.add_edge("run_query", "generate_query")
-    return builder.compile()
+    return builder.compile(security=security), security, dispatcher, audit
 
 
 def main() -> None:
@@ -175,18 +315,37 @@ def main() -> None:
     parser.add_argument("--mode", choices=("Baseline", "Argus"), required=True)
     args = parser.parse_args()
     if args.mode == "Argus":
-        raise RuntimeError(
-            "argus:unsupported: D1 list_tables directly invokes SQLDatabase in a trusted "
-            "orchestration node; no registered SQL resource adapter can lower this access "
-            "without changing the upstream graph"
+        install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
+    started = time.perf_counter()
+    graph, security, dispatcher, audit = build(args.database.resolve(), args.events, args.mode)
+    config = {"recursion_limit": 50}
+    if security is not None:
+        config = with_principal(
+            config,
+            Principal("alice", frozenset(), frozenset(), "D1-resource-monitor"),
+            modules=security.modules,
         )
-    graph = build(args.database.resolve(), args.events)
-    result = graph.invoke({"messages": [("user", args.prompt)]}, config={"recursion_limit": 50})
+    result = graph.invoke({"messages": [("user", args.prompt)]}, config=config)
     args.output.write_text(
         json.dumps(
             {
                 "messages": [message.model_dump() for message in result["messages"]],
                 "answer": str(result["messages"][-1].content),
+                "wall_ms": (time.perf_counter() - started) * 1000,
+                "authorization_decisions": [serial(item) for item in audit.records()]
+                if audit
+                else [],
+                "authorization_grants": [
+                    serial(item) for item in security.host_executor.authorization_grants()
+                ]
+                if security
+                else [],
+                "lowering_records": [serial(item) for item in dispatcher.lowering_records()]
+                if dispatcher
+                else [],
+                "broker_audit": [serial(item) for item in dispatcher.audit_records()]
+                if dispatcher
+                else [],
             },
             default=str,
             indent=2,

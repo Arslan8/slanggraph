@@ -212,7 +212,11 @@ class ObjectManagerHost:
         self._state: dict[tuple[str, str, str, str], LabeledValue] = {}
         self._store: dict[str, StoreResource] = {}
         self._tools: dict[str, Tool] = dict(tools or {})
-        self._restored: dict[tuple[str, str], tuple[int, str]] = {}
+        # restored sequence/digest followed by the latest locally issued
+        # sequence/digest.  Tracking both lets a later invocation restore the
+        # tip that this host sealed while still rejecting a second restore of
+        # that tip as a replay.
+        self._restored: dict[tuple[str, str], tuple[int, str, int, str]] = {}
         self._lock = RLock()
 
     def dispatch(self, principal: Principal, request: FrameworkRequest) -> object:
@@ -363,6 +367,11 @@ class ObjectManagerHost:
                 raise PermissionError("checkpoint:malformed")
             self._verify_checkpoint(principal, request.value)
             return request.value.payload
+        if request.operation is StateOperation.CHECKPOINT_WRITE and isinstance(
+            request.value, CheckpointEnvelope
+        ):
+            self._register_checkpoint(principal, request.value)
+            return request.value
         if request.operation in (
             StateOperation.CHECKPOINT_READ,
             StateOperation.CHECKPOINT_WRITE,
@@ -413,14 +422,49 @@ class ObjectManagerHost:
         key = (principal.user_id, principal.session_id)
         prior = self._restored.get(key)
         if prior is not None:
-            sequence, digest = prior
-            if checkpoint.sequence <= sequence:
+            restored_sequence, restored_digest, issued_sequence, issued_digest = prior
+            if checkpoint.sequence <= restored_sequence:
                 raise PermissionError("checkpoint:replay")
-            if checkpoint.previous_hash != digest:
+            issued_tip = (
+                checkpoint.sequence == issued_sequence
+                and checkpoint.digest == issued_digest
+            )
+            direct_child = checkpoint.previous_hash == restored_digest
+            if not issued_tip and not direct_child:
                 raise PermissionError("checkpoint:broken_chain")
         elif checkpoint.sequence and not checkpoint.previous_hash:
             raise PermissionError("checkpoint:broken_chain")
-        self._restored[key] = (checkpoint.sequence, checkpoint.digest)
+        issued_sequence = prior[2] if prior is not None else checkpoint.sequence
+        issued_digest = prior[3] if prior is not None else checkpoint.digest
+        self._restored[key] = (
+            checkpoint.sequence,
+            checkpoint.digest,
+            issued_sequence,
+            issued_digest,
+        )
+
+    def _register_checkpoint(
+        self, principal: Principal, checkpoint: CheckpointEnvelope
+    ) -> None:
+        authenticate_checkpoint(self._checkpoint_key, checkpoint, principal)
+        key = (principal.user_id, principal.session_id)
+        prior = self._restored.get(key)
+        if prior is None:
+            if checkpoint.sequence != 0 or checkpoint.previous_hash:
+                raise PermissionError("checkpoint:broken_chain")
+            self._restored[key] = (-1, "", checkpoint.sequence, checkpoint.digest)
+            return
+        restored_sequence, restored_digest, issued_sequence, issued_digest = prior
+        if checkpoint.sequence != issued_sequence + 1:
+            raise PermissionError("checkpoint:invalid_sequence")
+        if checkpoint.previous_hash != issued_digest:
+            raise PermissionError("checkpoint:broken_chain")
+        self._restored[key] = (
+            restored_sequence,
+            restored_digest,
+            checkpoint.sequence,
+            checkpoint.digest,
+        )
 
 
 def seal_checkpoint(

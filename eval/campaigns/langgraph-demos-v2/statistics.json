@@ -1,0 +1,21 @@
+{
+  "scope": "protected integration preflight; not a performance estimate",
+  "run_id": "smoke-20261028",
+  "trials": [
+    {"demo": "D1", "task": 1, "status": "completed", "correct": true, "wall_ms": 5667.413792980369, "grants": 3, "lowerings": 3, "broker_records": 3},
+    {"demo": "D2", "task": 1, "status": "completed", "correct": true, "wall_ms": 3509.8791790078394, "grants": 1, "lowerings": 1, "broker_records": 1},
+    {"demo": "D3", "task": 1, "status": "execution_error", "correct": false, "wall_ms": 27426.931641995907, "grants": 2, "lowerings": 2, "broker_records": 2, "error_class": "GraphRecursionError"},
+    {"demo": "D4", "task": 1, "status": "completed", "correct": true, "wall_ms": 13483.22441300843, "grants": 2, "lowerings": 2, "broker_records": 2},
+    {"demo": "D5", "task": 1, "status": "completed", "correct": true, "wall_ms": 7895.782173029147, "grants": 1, "lowerings": 1, "broker_records": 1}
+  ],
+  "additional_mutation_preflight": {
+    "demo": "D5",
+    "task": 3,
+    "status": "completed",
+    "correct": true,
+    "wall_ms": 10500.267307972535,
+    "interrupts": 1,
+    "grants": 3,
+    "final_flight_ids": [1472, 1472]
+  }
+}

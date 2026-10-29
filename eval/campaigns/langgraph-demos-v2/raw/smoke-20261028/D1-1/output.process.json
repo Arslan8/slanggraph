@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpc87ccS/bin/python",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/apps/demos/sql_agent.py",
+    "--database",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v2/raw/smoke-20261028/D1-1/Chinook.db",
+    "--prompt",
+    "How many tracks are in the database?",
+    "--events",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v2/raw/smoke-20261028/D1-1/events.jsonl",
+    "--output",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v2/raw/smoke-20261028/D1-1/output.json",
+    "--mode",
+    "Argus"
+  ],
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/apps/demos/sql_agent.py:15: DeprecationWarning: `langchain-community` is being sunset and is no longer actively maintained. See https://github.com/langchain-ai/langchain-community/issues/674 for details and migration guidance toward standalone integration packages.\n  from langchain_community.agent_toolkits import SQLDatabaseToolkit\n"
+}

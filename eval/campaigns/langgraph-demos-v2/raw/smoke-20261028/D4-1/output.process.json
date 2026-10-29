@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpc87ccS/bin/python",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/apps/demos/multi_agent.py",
+    "--gdp",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v1/fixtures/search/world-bank-gdp-2019-2023.json",
+    "--prompt",
+    "Find the United Kingdom annual GDP values for 2019 through 2023 in current US dollars and produce a line chart.",
+    "--artifact",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v2/raw/smoke-20261028/D4-1/chart.png",
+    "--observer",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v2/raw/smoke-20261028/D4-1/observer.json",
+    "--output",
+    "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/campaigns/langgraph-demos-v2/raw/smoke-20261028/D4-1/output.json",
+    "--mode",
+    "Argus"
+  ],
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "/home/faculty/abk6349/.codex/worktrees/consolidated-evaluation/langgraph/eval/apps/demos/multi_agent.py:22: DeprecationWarning: `langchain-experimental` is being sunset and is no longer actively maintained. See https://github.com/langchain-ai/langchain-experimental/issues/87 for details.\n  from langchain_experimental.utilities import PythonREPL\n"
+}
