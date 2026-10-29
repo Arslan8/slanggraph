@@ -7,6 +7,7 @@ restrictions before importing the operator-selected tool entry point.
 from __future__ import annotations
 
 import asyncio
+import builtins
 import contextlib
 import ctypes
 import errno
@@ -290,6 +291,9 @@ def _invoke(
     module = ModuleType(module_name)
     module.__file__ = artifact_path
     module.__package__ = module_name.rpartition(".")[0]
+    importer = _worker_importer(request)
+    if importer is not None:
+        module.__dict__["__builtins__"] = {**vars(builtins), "__import__": importer}
     sys.modules[module_name] = module
     with open(artifact_path, "rb") as source:
         code = compile(source.read(), artifact_path, "exec", dont_inherit=True)
@@ -322,6 +326,125 @@ def _invoke(
                 raise RuntimeError("async result requires an async worker")
             return event_loop.run_until_complete(result)
         return result
+
+
+class _RecordsClient:
+    """Minimal worker-side client for the built-in record mediator."""
+
+    __slots__ = ()
+
+    def read(self, record: str) -> dict[str, object]:
+        _text(record, "record")
+        result = _broker_request(_record_service(record), "read", {})
+        if (
+            type(result) is not dict
+            or set(result) != {"found", "value"}
+            or type(result["found"]) is not bool
+            or not (result["value"] is None or type(result["value"]) is str)
+        ):
+            raise TypeError("invalid db_record.read result")
+        return result
+
+    def write(self, record: str, value: str) -> dict[str, bool]:
+        _text(record, "record")
+        _text(value, "value")
+        return _record_mutation(
+            _broker_request(_record_service(record), "write", {"value": value}),
+            "write",
+        )
+
+    def delete(self, record: str) -> dict[str, bool]:
+        _text(record, "record")
+        return _record_mutation(
+            _broker_request(_record_service(record), "delete", {}), "delete"
+        )
+
+
+def _worker_importer(request: Mapping[str, Any]):
+    raw = request.get("broker_client_imports", [])
+    if not isinstance(raw, list) or any(type(item) is not str for item in raw):
+        raise TypeError("broker_client_imports must be a list of module names")
+    supported = "langgraph.prebuilt.security.mediators.records"
+    if any(item != supported for item in raw):
+        raise ValueError("unsupported broker client import")
+    if supported not in raw:
+        return None
+    records_module = ModuleType(supported)
+    records_module.records = _RecordsClient()
+
+    def importing(name, globals=None, locals=None, fromlist=(), level=0):
+        if name == supported and level == 0 and fromlist:
+            return records_module
+        return builtins.__import__(name, globals, locals, fromlist, level)
+
+    return importing
+
+
+def _record_service(record: str) -> str:
+    return json.dumps(["db_record", record], separators=(",", ":"))
+
+
+def _record_mutation(result: Any, operation: str) -> dict[str, bool]:
+    if (
+        type(result) is not dict
+        or set(result) != {"ok"}
+        or type(result["ok"]) is not bool
+    ):
+        raise TypeError(f"invalid db_record.{operation} result")
+    return result
+
+
+def _text(value: object, name: str) -> None:
+    if type(value) is not str:
+        raise TypeError(f"{name} requires str")
+
+
+def _broker_request(service: str, operation: str, payload: Mapping[str, Any]) -> Any:
+    """Use the inherited spawn-bound channel without importing the host package."""
+    raw_fd = os.environ.get("SLANGGRAPH_BROKER_FD")
+    if raw_fd is None:
+        raise PermissionError("broker:channel_unavailable")
+    try:
+        descriptor = int(raw_fd)
+    except ValueError as exc:
+        raise PermissionError("broker:invalid_channel") from exc
+    encoded = json.dumps(
+        {"operation": operation, "payload": dict(payload), "service": service},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    if len(encoded) + 1 > _MAX_FRAME:
+        raise ValueError("broker request exceeds frame limit")
+    duplicate = os.dup(descriptor)
+    try:
+        pending = memoryview(encoded + b"\n")
+        while pending:
+            written = os.write(duplicate, pending)
+            if written <= 0:
+                raise PermissionError("broker:channel_closed")
+            pending = pending[written:]
+        response = bytearray()
+        while len(response) <= _MAX_FRAME:
+            chunk = os.read(duplicate, min(65_536, _MAX_FRAME + 1 - len(response)))
+            if not chunk:
+                break
+            response.extend(chunk)
+            if response.endswith(b"\n"):
+                break
+        frame = bytes(response)
+        if not frame or len(frame) > _MAX_FRAME or not frame.endswith(b"\n"):
+            raise PermissionError("broker:invalid_response")
+        result = json.loads(frame)
+        if not isinstance(result, dict) or result.get("status") != "ok":
+            reason = (
+                result.get("error", "broker:denied")
+                if isinstance(result, dict)
+                else "broker:invalid_response"
+            )
+            raise PermissionError(str(reason))
+        return result.get("result")
+    finally:
+        os.close(duplicate)
 
 
 def _json_value(value: object) -> Any:

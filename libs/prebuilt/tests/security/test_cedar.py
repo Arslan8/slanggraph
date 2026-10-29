@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from langgraph.prebuilt.security.cedar import CedarPolicyBackend
 from langgraph.prebuilt.security.enforcement import (
     AuthorityDomain,
@@ -97,6 +99,58 @@ def test_cedar_validates_and_evaluates_one_ephemeral_permit_per_rule(
         "authorize",
         "authorize",
     ]
+
+
+def test_cedar_reuses_successful_policy_verification(tmp_path: Path) -> None:
+    rule = GrantRule("one", AuthorityDomain.FILESYSTEM, "read", "/one")
+    executable = _fake_cedar(tmp_path)
+    backend = CedarPolicyBackend(executable)
+
+    first = backend.filter(_grant(rule), _ledger(rule), ())
+    second = backend.filter(_grant(rule), _ledger(rule), ())
+
+    assert first == second
+    invocations = [
+        json.loads(line) for line in (tmp_path / "cedar.log").read_text().splitlines()
+    ]
+    assert [item[0] for item in invocations] == ["validate", "authorize"]
+
+
+def test_cedar_cache_can_be_disabled(tmp_path: Path) -> None:
+    rule = GrantRule("one", AuthorityDomain.FILESYSTEM, "read", "/one")
+    executable = _fake_cedar(tmp_path)
+    backend = CedarPolicyBackend(executable, cache_entries=0)
+
+    backend.filter(_grant(rule), _ledger(rule), ())
+    backend.filter(_grant(rule), _ledger(rule), ())
+
+    invocations = [
+        json.loads(line) for line in (tmp_path / "cedar.log").read_text().splitlines()
+    ]
+    assert [item[0] for item in invocations] == [
+        "validate",
+        "authorize",
+        "validate",
+        "authorize",
+    ]
+
+
+def test_cedar_cache_is_invalidated_when_engine_changes(tmp_path: Path) -> None:
+    rule = GrantRule("one", AuthorityDomain.FILESYSTEM, "read", "/one")
+    executable = _fake_cedar(tmp_path)
+    backend = CedarPolicyBackend(executable)
+    assert backend.filter(_grant(rule), _ledger(rule), ()).allowed
+
+    _fake_cedar(tmp_path, validation_error=True)
+    result = backend.filter(_grant(rule), _ledger(rule), ())
+
+    assert not result.allowed
+    assert result.diagnostics == ("cedar_error:validation:type error in module forbid",)
+
+
+def test_cedar_rejects_negative_cache_size() -> None:
+    with pytest.raises(ValueError, match="cache size"):
+        CedarPolicyBackend(cache_entries=-1)
 
 
 def test_missing_cedar_engine_denies() -> None:

@@ -311,21 +311,17 @@ def main() -> None:
         "All intervals are 95% Student-t intervals over five independent session means. "
         "Warmups are excluded and first-use calls are reported separately.",
         "",
-        "| Route | Measured calls | Mean ms [95% CI] | Runtime multiple | "
-        "Overhead | First use ms |",
-        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        "## Absolute route latency",
+        "",
+        "| Route | Measured calls | Mean ms [95% CI] | First use ms |",
+        "| --- | ---: | ---: | ---: |",
     ]
     for row in routes:
         elapsed = row["elapsed_ms"]
-        multiple = row["runtime_multiple"]
-        overhead = row["percent_overhead"]
         first = row["first_use_ms"]
         lines.append(
             f"| {row['route']} | {row['measured_calls']} | "
             f"{elapsed['mean']:.3f} [{elapsed['ci95'][0]:.3f}, {elapsed['ci95'][1]:.3f}] | "
-            f"{multiple['mean']:.2f}x [{multiple['ci95'][0]:.2f}, "
-            f"{multiple['ci95'][1]:.2f}] | {overhead['mean']:.1f}% "
-            f"[{overhead['ci95'][0]:.1f}, {overhead['ci95'][1]:.1f}] | "
             f"{first['mean']:.3f} [{first['ci95'][0]:.3f}, {first['ci95'][1]:.3f}] |"
         )
     lines += [
@@ -368,6 +364,32 @@ def main() -> None:
             f"| {row['route']} | {mean('authorization_ms')} | {mean('lean_ms')} | "
             f"{mean('activation_ms')} | {mean('execution_ms')} | {mean('audit_ms')} | "
             f"{mean('cleanup_ms')} | {mean('framework_residual_ms')} |"
+        )
+    lines += [
+        "",
+        "For the broker route, `execution_ms` includes isolated Python startup, "
+        "trusted-module import, the Unix-socket broker round trip, and the tool body. "
+        "It is not a transport-only measurement.",
+        "",
+        "## Appendix: primitive-relative ratios",
+        "",
+        "The ratios below divide whole protected calls by in-process primitive "
+        "baselines. They are retained for completeness and are not the headline "
+        "comparison for an LLM-driven tool invocation.",
+        "",
+        "| Route | Baseline ms [95% CI] | Runtime multiple | Overhead |",
+        "| --- | ---: | ---: | ---: |",
+    ]
+    for row in routes:
+        baseline = row["baseline_ms"]
+        multiple = row["runtime_multiple"]
+        overhead = row["percent_overhead"]
+        lines.append(
+            f"| {row['route']} | {baseline['mean']:.6f} "
+            f"[{baseline['ci95'][0]:.6f}, {baseline['ci95'][1]:.6f}] | "
+            f"{multiple['mean']:.2f}x [{multiple['ci95'][0]:.2f}, "
+            f"{multiple['ci95'][1]:.2f}] | {overhead['mean']:.1f}% "
+            f"[{overhead['ci95'][0]:.1f}, {overhead['ci95'][1]:.1f}] |"
         )
     lines += ["", "## Pandas utility and wall time", ""]
     for title, key in (("Matched v19 A/B/C", "pandas_v19"), ("C-closed v21", "pandas_closed")):

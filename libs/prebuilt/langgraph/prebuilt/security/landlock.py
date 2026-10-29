@@ -373,6 +373,10 @@ class LandlockSandboxExecutor:
                 "startup_challenge": secrets.token_hex(16),
                 "tool_name": call.tool.name,
             }
+            extras = self._worker_request_extras(grant)
+            if set(request).intersection(extras):
+                raise HostExecutionDenied("host:worker_protocol_extension_conflict")
+            request.update(extras)
             if worker_broker_fd is not None:
                 request["broker_fd"] = worker_broker_fd
             encoded = _encode_worker_request(request)
@@ -390,6 +394,7 @@ class LandlockSandboxExecutor:
                 active_error=sys.exc_info()[1],
             )
             raise
+
         environment = {
             "PATH": "/usr/bin",
             "PYTHONCOERCECLOCALE": "0",
@@ -629,6 +634,10 @@ class LandlockSandboxExecutor:
                     termination_confirmed=termination_confirmed,
                 ) from None
             raise HostExecutionDenied("host:worker_cleanup_unconfirmed") from None
+
+    def _worker_request_extras(self, grant: Any) -> Mapping[str, Any]:
+        """Return trusted worker protocol extensions for specialized subclasses."""
+        return {}
 
     def _compile_grant(
         self, principal: Principal, call: ToolCall, spec: Any, private_tmp: Path

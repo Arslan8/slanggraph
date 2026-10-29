@@ -8,9 +8,11 @@ import os
 import shutil
 import subprocess
 import tempfile
+from collections import OrderedDict
 from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
+from threading import RLock
 
 from langgraph.prebuilt.security.enforcement import Grant, GrantRule, RequirementLedger
 from langgraph.prebuilt.security.policy import (
@@ -51,11 +53,17 @@ class CedarPolicyBackend:
         executable: str | Path = "cedar",
         *,
         timeout_s: float = 5.0,
+        cache_entries: int = 128,
     ) -> None:
         if timeout_s <= 0:
             raise ValueError("Cedar timeout must be positive")
+        if cache_entries < 0:
+            raise ValueError("Cedar cache size cannot be negative")
         self.executable = os.fspath(executable)
         self.timeout_s = timeout_s
+        self.cache_entries = cache_entries
+        self._verified: OrderedDict[str, None] = OrderedDict()
+        self._cache_lock = RLock()
 
     def filter(
         self,
@@ -76,10 +84,28 @@ class CedarPolicyBackend:
                 candidate.removed_rule_ids,
                 ("cedar_error:executable_unavailable",),
             )
+        engine = _engine_identity(executable)
+        if engine is None:
+            return PolicyFilterResult(
+                None,
+                candidate.ledger,
+                "policy_error",
+                candidate.removed_rule_ids,
+                ("cedar_error:executable_unavailable",),
+            )
         plan_rules, expected, matches = _evaluation_plan(grant, candidate, constraints)
         policy_grant = replace(grant, rules=plan_rules)
         policies = _policies(policy_grant, constraints)
         entities = _entities(policy_grant)
+        requests = tuple(
+            _request(grant, rule.rule_id, matches.get(rule.rule_id, ()))
+            for rule in plan_rules
+        )
+        verification_key = _verification_key(
+            engine, policies, entities, requests, expected
+        )
+        if self._cached(verification_key):
+            return _cedar_result(candidate, policies)
         try:
             with tempfile.TemporaryDirectory(prefix="slanggraph-cedar-") as directory:
                 root = Path(directory)
@@ -104,15 +130,11 @@ class CedarPolicyBackend:
                 )
                 if validation.returncode != 0:
                     return _cedar_error(candidate, "validation", validation)
-                for rule in plan_rules:
+                for rule, request in zip(plan_rules, requests, strict=True):
                     request_path = root / "request.json"
                     request_path.write_text(
                         json.dumps(
-                            _request(
-                                grant,
-                                rule.rule_id,
-                                matches.get(rule.rule_id, ()),
-                            ),
+                            request,
                             sort_keys=True,
                             separators=(",", ":"),
                         ),
@@ -159,24 +181,26 @@ class CedarPolicyBackend:
                 candidate.removed_rule_ids,
                 (f"cedar_error:{type(exc).__name__}",),
             )
-        if not candidate.allowed or candidate.grant is None:
-            return candidate
-        digest = hashlib.sha256(
-            json.dumps(
-                {
-                    "backend": "cedar-cli",
-                    "candidate": candidate.grant.policy_digest,
-                    "policies": policies,
-                },
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode()
-        ).hexdigest()
-        return replace(
-            candidate,
-            grant=replace(candidate.grant, policy_digest=digest),
-            reason="allow:cedar",
-        )
+        self._remember(verification_key)
+        return _cedar_result(candidate, policies)
+
+    def _cached(self, key: str) -> bool:
+        if not self.cache_entries:
+            return False
+        with self._cache_lock:
+            if key not in self._verified:
+                return False
+            self._verified.move_to_end(key)
+            return True
+
+    def _remember(self, key: str) -> None:
+        if not self.cache_entries:
+            return
+        with self._cache_lock:
+            self._verified[key] = None
+            self._verified.move_to_end(key)
+            while len(self._verified) > self.cache_entries:
+                self._verified.popitem(last=False)
 
     def _run(
         self, executable: str, *arguments: str
@@ -195,6 +219,72 @@ def _resolve_executable(executable: str) -> str | None:
         path = Path(executable)
         return os.fspath(path) if path.is_file() and os.access(path, os.X_OK) else None
     return shutil.which(executable)
+
+
+def _verification_key(
+    engine: tuple[str, int, int, int, int, int],
+    policies: str,
+    entities: Sequence[dict[str, object]],
+    requests: Sequence[dict[str, object]],
+    expected: frozenset[str],
+) -> str:
+    """Identify one complete successful Cedar verification.
+
+    The cache stores only successful engine checks. It includes every Cedar
+    input and the typed backend's expected decisions, so neither a changed
+    policy nor a changed request can reuse an earlier result.
+    """
+    return hashlib.sha256(
+        json.dumps(
+            {
+                "engine": engine,
+                "entities": entities,
+                "expected": sorted(expected),
+                "policies": policies,
+                "requests": requests,
+                "schema": _SCHEMA,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+
+
+def _engine_identity(executable: str) -> tuple[str, int, int, int, int, int] | None:
+    """Bind cached checks to the executable file that produced them."""
+    try:
+        status = os.stat(executable)
+    except OSError:
+        return None
+    return (
+        executable,
+        status.st_dev,
+        status.st_ino,
+        status.st_size,
+        status.st_mtime_ns,
+        status.st_ctime_ns,
+    )
+
+
+def _cedar_result(candidate: PolicyFilterResult, policies: str) -> PolicyFilterResult:
+    if not candidate.allowed or candidate.grant is None:
+        return candidate
+    digest = hashlib.sha256(
+        json.dumps(
+            {
+                "backend": "cedar-cli",
+                "candidate": candidate.grant.policy_digest,
+                "policies": policies,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+    return replace(
+        candidate,
+        grant=replace(candidate.grant, policy_digest=digest),
+        reason="allow:cedar",
+    )
 
 
 def _policies(grant: Grant, constraints: Sequence[PolicyConstraint]) -> str:

@@ -229,6 +229,17 @@ class _ObjectWorker(LandlockSandboxExecutor):
         )
         return grant, ledger
 
+    def _worker_request_extras(self, grant: Grant) -> Mapping[str, Any]:
+        imports = []
+        if any(
+            line.class_name == "db_record"
+            and line.lowering == "sqlite.record.v1"
+            and line.enforcer is EnforcementKind.BROKER
+            for line in self.object_grant.lines
+        ):
+            imports.append("langgraph.prebuilt.security.mediators.records")
+        return {"broker_client_imports": imports} if imports else {}
+
     def _prepare_grant(self, grant, ledger):
         self.host_adapter = _LandlockObjectAdapter(self, grant)
         host = self.host_adapter.attest(secrets.token_hex(16))

@@ -13,7 +13,7 @@ for a parent call and the following mutually exclusive phases:
 | Cedar authorization | canonical Cedar request is ready | ALLOW/DENY and exact grant are returned | request normalization and grant activation |
 | Lean checking | sealed checker invocation starts | the required phase response is parsed | surrounding worker setup or execution; each checker call is retained separately and also summed once |
 | activation | host starts route activation | receipt has been validated and the worker is released to run | Lean checker subprocess time |
-| execution | worker/interpreter is released | complete result or refusal is received | activation and cleanup |
+| execution | worker/interpreter is released | complete result or refusal is received | activation and cleanup; for a fresh Python broker worker this includes module import, the Unix-socket request/response, and the tool body |
 | audit | finalized record is presented to the sink | durable sink acknowledges the hash-chained record | policy and execution |
 | cleanup | result/refusal is fixed and teardown begins | termination/removal/release is confirmed or marked indeterminate | post-cleanup Lean release check, which stays in Lean |
 

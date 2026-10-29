@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import shutil
 import stat
+import subprocess
 import time
 from pathlib import Path
 
@@ -95,6 +96,18 @@ class _IncompleteDispatcher(_Dispatcher):
     def invoke(self, principal, call, grant):
         self.grants.append(grant)
         return HostExecutionResult("brokered report", _receipt(grant.digest, ()))
+
+
+class _CountingCedarObjectAuthorizer(CedarObjectAuthorizer):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.run_count = 0
+
+    def _run(
+        self, executable: str, *arguments: str
+    ) -> subprocess.CompletedProcess[str]:
+        self.run_count += 1
+        return super()._run(executable, *arguments)
 
 
 def test_manifest_registers_classes_and_expands_normalized_lines() -> None:
@@ -365,6 +378,108 @@ def test_authorizer_intersects_owner_envelope_and_mac(tmp_path: Path) -> None:
     assert (artifact_dir / "entities.json").is_file()
     assert list(artifact_dir.glob("owner-*.request.json"))
     assert list(artifact_dir.glob("envelope-*.request.json"))
+
+
+def test_authorizer_reuses_exact_cedar_results_and_retains_artifacts(
+    tmp_path: Path,
+) -> None:
+    cedar = _fake_cedar(tmp_path)
+    manifest = parse_security_manifest(
+        MANIFEST,
+        enforcers={EnforcementKind.BROKER: _Broker()},
+    )
+    permit = "permit(principal, action, resource);"
+    authorizer = _CountingCedarObjectAuthorizer(
+        manifest,
+        CedarPolicySet({"run_report": permit}, permit),
+        executable=cedar,
+    )
+    inputs = {
+        "principal_id": "alice",
+        "roles": {"analyst"},
+        "tool_name": "run_report",
+        "tool_owner": "reporting",
+        "arguments": {"quarter": "Q4"},
+    }
+
+    first = authorizer.authorize(call_id="call-1", **inputs)
+    first_run_count = authorizer.run_count
+    second = authorizer.authorize(call_id="call-2", **inputs)
+
+    assert first_run_count > 0
+    assert authorizer.run_count == first_run_count
+    assert first.call_id == "call-1"
+    assert second.call_id == "call-2"
+    assert len(authorizer.authorization_artifacts()) == 2
+    assert list(authorizer.authorization_artifacts()[1].glob("owner-*.request.json"))
+
+
+def test_authorizer_cache_tracks_cedar_executable_identity(tmp_path: Path) -> None:
+    cedar = _fake_cedar(tmp_path)
+    manifest = parse_security_manifest(
+        MANIFEST,
+        enforcers={EnforcementKind.BROKER: _Broker()},
+    )
+    permit = "permit(principal, action, resource);"
+    authorizer = _CountingCedarObjectAuthorizer(
+        manifest,
+        CedarPolicySet({"run_report": permit}, permit),
+        executable=cedar,
+    )
+    inputs = {
+        "principal_id": "alice",
+        "roles": (),
+        "tool_name": "run_report",
+        "tool_owner": "reporting",
+        "arguments": {"quarter": "Q4"},
+    }
+
+    authorizer.authorize(call_id="call-1", **inputs)
+    first_run_count = authorizer.run_count
+    cedar.write_text(cedar.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+    authorizer.authorize(call_id="call-2", **inputs)
+
+    assert authorizer.run_count > first_run_count
+
+
+def test_authorizer_cache_can_be_disabled(tmp_path: Path) -> None:
+    cedar = _fake_cedar(tmp_path)
+    manifest = parse_security_manifest(
+        MANIFEST,
+        enforcers={EnforcementKind.BROKER: _Broker()},
+    )
+    permit = "permit(principal, action, resource);"
+    authorizer = _CountingCedarObjectAuthorizer(
+        manifest,
+        CedarPolicySet({"run_report": permit}, permit),
+        executable=cedar,
+        cache_entries=0,
+    )
+    inputs = {
+        "principal_id": "alice",
+        "roles": (),
+        "tool_name": "run_report",
+        "tool_owner": "reporting",
+        "arguments": {"quarter": "Q4"},
+    }
+
+    authorizer.authorize(call_id="call-1", **inputs)
+    first_run_count = authorizer.run_count
+    authorizer.authorize(call_id="call-2", **inputs)
+
+    assert authorizer.run_count > first_run_count
+
+
+def test_authorizer_rejects_negative_cache_size() -> None:
+    manifest = parse_security_manifest(MANIFEST)
+    permit = "permit(principal, action, resource);"
+
+    with pytest.raises(ValueError, match="cache size"):
+        CedarObjectAuthorizer(
+            manifest,
+            CedarPolicySet({"run_report": permit}, permit),
+            cache_entries=-1,
+        )
 
 
 def test_authorizer_uses_cedar_cli_request_encoding() -> None:

@@ -18,7 +18,7 @@ import subprocess
 import tempfile
 import time
 import warnings
-from collections import deque
+from collections import OrderedDict, deque
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
@@ -530,14 +530,20 @@ class CedarObjectAuthorizer:
         *,
         executable: str | Path = "cedar",
         timeout_s: float = 5.0,
+        cache_entries: int = 1024,
         enforcement_waivers: Mapping[str, str] | None = None,
     ) -> None:
         if timeout_s <= 0:
             raise ValueError("Cedar timeout must be positive")
+        if cache_entries < 0:
+            raise ValueError("Cedar cache size cannot be negative")
         self.manifest = manifest
         self.policies = policies
         self.executable = os.fspath(executable)
         self.timeout_s = timeout_s
+        self.cache_entries = cache_entries
+        self._cedar_cache: OrderedDict[str, bool] = OrderedDict()
+        self._cache_lock = RLock()
         self._artifact_root = Path(
             tempfile.mkdtemp(prefix="slanggraph-cedar-artifacts-")
         )
@@ -585,6 +591,9 @@ class CedarObjectAuthorizer:
         executable = _resolve_executable(self.executable)
         if executable is None:
             raise ObjectPolicyDenied("cedar:executable_unavailable")
+        engine = _engine_identity(executable)
+        if engine is None:
+            raise ObjectPolicyDenied("cedar:executable_unavailable")
         owner_policy = self.policies.owner_permits.get(tool_name)
         if owner_policy is None:
             raise ObjectPolicyDenied(f"cedar:owner_policy_missing:{tool_name}")
@@ -611,7 +620,8 @@ class CedarObjectAuthorizer:
             schema_path = root / "schema.cedarschema"
             entities_path = root / "entities.json"
             schema_path.write_text(schema, encoding="utf-8")
-            entities_path.write_text(_json(entities), encoding="utf-8")
+            entities_json = _json(entities)
+            entities_path.write_text(entities_json, encoding="utf-8")
             policy_parts = {
                 "owner": owner_policy,
                 "envelope": envelope_policy,
@@ -620,23 +630,34 @@ class CedarObjectAuthorizer:
             for name, source in policy_parts.items():
                 if not source.strip() and name == "mac":
                     continue
-                self._validate(executable, root, schema_path, name, source)
+                self._validate(
+                    executable, engine, root, schema_path, schema, name, source
+                )
             if operator_forbids:
                 # Operator vocabulary spans graphs. A graph-local schema cannot
                 # reject a forbid merely because its action belongs to another
                 # graph; Cedar still parses it and fails closed on evaluation errors.
                 operator_path = root / "operator-mac.cedar"
                 operator_path.write_text(operator_forbids, encoding="utf-8")
-                parsed = self._run(
-                    executable, "check-parse", "--policies", os.fspath(operator_path)
-                )
-                if parsed.returncode != 0:
-                    raise ObjectPolicyDenied("cedar:validation:operator-mac")
+                parse_key = _cedar_cache_key(engine, "parse", operator_forbids)
+                cached, _ = self._cached(parse_key)
+                if not cached:
+                    parsed = self._run(
+                        executable,
+                        "check-parse",
+                        "--policies",
+                        os.fspath(operator_path),
+                    )
+                    if parsed.returncode != 0:
+                        raise ObjectPolicyDenied("cedar:validation:operator-mac")
+                    self._remember(parse_key, True)
             call_request = _call_request(principal_id, tool_name)
             if not self._allows(
                 executable,
+                engine,
                 root,
                 entities_path,
+                entities_json,
                 "owner-call",
                 owner_policy,
                 call_request,
@@ -650,8 +671,10 @@ class CedarObjectAuthorizer:
             # from.
             if not candidates and not self._allows(
                 executable,
+                engine,
                 root,
                 entities_path,
+                entities_json,
                 "envelope-call",
                 self.policies.principal_permits,
                 call_request,
@@ -659,8 +682,10 @@ class CedarObjectAuthorizer:
                 raise ObjectPolicyDenied(f"dac:envelope_call:{tool_name}")
             if mandatory_forbids.strip() and not self._allows(
                 executable,
+                engine,
                 root,
                 entities_path,
+                entities_json,
                 "mac-call",
                 _call_permit(principal_id, tool_name) + mandatory_forbids,
                 call_request,
@@ -674,15 +699,24 @@ class CedarObjectAuthorizer:
                     line,
                 )
                 if not self._allows(
-                    executable, root, entities_path, "owner", owner_policy, request
+                    executable,
+                    engine,
+                    root,
+                    entities_path,
+                    entities_json,
+                    "owner",
+                    owner_policy,
+                    request,
                 ):
                     if line.requirement is Requirement.NEED:
                         raise ObjectPolicyDenied(f"dac:owner:{line.line_id}")
                     continue
                 if not self._allows(
                     executable,
+                    engine,
                     root,
                     entities_path,
+                    entities_json,
                     "envelope",
                     envelope_policy,
                     request,
@@ -692,7 +726,14 @@ class CedarObjectAuthorizer:
                     continue
                 mac_policy = _candidate_permit(principal_id, line) + mandatory_forbids
                 if not self._allows(
-                    executable, root, entities_path, "mac-eval", mac_policy, request
+                    executable,
+                    engine,
+                    root,
+                    entities_path,
+                    entities_json,
+                    "mac-eval",
+                    mac_policy,
+                    request,
                 ):
                     if line.requirement is Requirement.NEED:
                         raise ObjectPolicyDenied(f"mac:forbid:{line.line_id}")
@@ -736,13 +777,19 @@ class CedarObjectAuthorizer:
     def _validate(
         self,
         executable: str,
+        engine: tuple[str, int, int, int, int, int],
         root: Path,
         schema_path: Path,
+        schema: str,
         name: str,
         source: str,
     ) -> None:
         policy_path = root / f"{name}.cedar"
         policy_path.write_text(source, encoding="utf-8")
+        cache_key = _cedar_cache_key(engine, "validate", schema, source)
+        cached, _ = self._cached(cache_key)
+        if cached:
+            return
         result = self._run(
             executable,
             "validate",
@@ -755,12 +802,15 @@ class CedarObjectAuthorizer:
         )
         if result.returncode != 0:
             raise ObjectPolicyDenied(f"cedar:validation:{name}")
+        self._remember(cache_key, True)
 
     def _allows(
         self,
         executable: str,
+        engine: tuple[str, int, int, int, int, int],
         root: Path,
         entities_path: Path,
+        entities_json: str,
         name: str,
         source: str,
         request: Mapping[str, object],
@@ -771,6 +821,12 @@ class CedarObjectAuthorizer:
         request_path = root / f"{name}-{request_id}.request.json"
         policy_path.write_text(source, encoding="utf-8")
         request_path.write_text(request_json, encoding="utf-8")
+        cache_key = _cedar_cache_key(
+            engine, "authorize", entities_json, source, request_json
+        )
+        cached, allowed = self._cached(cache_key)
+        if cached:
+            return allowed
         result = self._run(
             executable,
             "authorize",
@@ -786,7 +842,28 @@ class CedarObjectAuthorizer:
             raise ObjectPolicyDenied(f"cedar:evaluation:{name}")
         if result.returncode != 0 and decision != "DENY":
             raise ObjectPolicyDenied(f"cedar:evaluation:{name}")
-        return decision == "ALLOW"
+        allowed = decision == "ALLOW"
+        self._remember(cache_key, allowed)
+        return allowed
+
+    def _cached(self, key: str) -> tuple[bool, bool]:
+        if not self.cache_entries:
+            return False, False
+        with self._cache_lock:
+            if key not in self._cedar_cache:
+                return False, False
+            value = self._cedar_cache[key]
+            self._cedar_cache.move_to_end(key)
+            return True, value
+
+    def _remember(self, key: str, value: bool) -> None:
+        if not self.cache_entries:
+            return
+        with self._cache_lock:
+            self._cedar_cache[key] = value
+            self._cedar_cache.move_to_end(key)
+            while len(self._cedar_cache) > self.cache_entries:
+                self._cedar_cache.popitem(last=False)
 
     def _run(
         self, executable: str, *arguments: str
@@ -1827,6 +1904,33 @@ def _resolve_executable(executable: str) -> str | None:
         path = Path(executable)
         return os.fspath(path) if path.is_file() and os.access(path, os.X_OK) else None
     return shutil.which(executable)
+
+
+def _engine_identity(executable: str) -> tuple[str, int, int, int, int, int] | None:
+    """Bind cached Cedar results to the exact executable that produced them."""
+    try:
+        status = os.stat(executable)
+    except OSError:
+        return None
+    return (
+        executable,
+        status.st_dev,
+        status.st_ino,
+        status.st_size,
+        status.st_mtime_ns,
+        status.st_ctime_ns,
+    )
+
+
+def _cedar_cache_key(
+    engine: tuple[str, int, int, int, int, int],
+    operation: str,
+    *inputs: str,
+) -> str:
+    """Identify a Cedar result by engine, operation, and every semantic input."""
+    return hashlib.sha256(
+        _json({"engine": engine, "operation": operation, "inputs": inputs}).encode()
+    ).hexdigest()
 
 
 __all__ = (
