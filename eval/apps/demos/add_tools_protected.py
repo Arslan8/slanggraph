@@ -37,6 +37,7 @@ from langgraph.prebuilt.security import (
 )
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.object_policy import _language_sandbox_owner_policy
+from timing import ModelTiming
 from typing_extensions import TypedDict
 
 HERE = Path(__file__).resolve().parent
@@ -116,7 +117,7 @@ def security(worker_route: Path):
     return config, dispatcher, audit
 
 
-def build(mode: str, worker_route: Path | None):
+def build(mode: str, worker_route: Path | None, model_timing: ModelTiming):
     model = ChatOpenAI(
         model="qwen3:8b",
         base_url="http://127.0.0.1:11434/v1",
@@ -136,7 +137,7 @@ def build(mode: str, worker_route: Path | None):
     builder = StateGraph(State)
 
     def chatbot(state: State):
-        return {"messages": [model_with_tools.invoke(state["messages"])]}
+        return {"messages": [model_timing.invoke(model_with_tools, state["messages"])]}
 
     def route_tools(state: State):
         return "tools" if state["messages"][-1].tool_calls else END
@@ -159,7 +160,8 @@ def main() -> None:
     if args.mode == "Argus":
         install_mac_policy(OPERATOR_POLICY)
     started = time.perf_counter()
-    graph, selected, dispatcher, audit = build(args.mode, args.worker_route)
+    model_timing = ModelTiming()
+    graph, selected, dispatcher, audit = build(args.mode, args.worker_route, model_timing)
     principal = Principal("alice", frozenset(), frozenset(), f"add-tools-{uuid.uuid4().hex}")
     config = {"recursion_limit": 20}
     if selected is not None:
@@ -179,6 +181,8 @@ def main() -> None:
                     "reasoning_effort": "none",
                 },
                 "wall_ms": elapsed,
+                "model_time_ms": model_timing.wall_ms,
+                "model_calls": model_timing.calls,
                 "answer": str(result["messages"][-1].content),
                 "messages": [message.model_dump() for message in result["messages"]],
                 "executed_tools": [message.name for message in tool_messages],

@@ -24,6 +24,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import Principal, install_mac_policy, with_principal
+from timing import ModelTiming
 from typing_extensions import TypedDict
 
 
@@ -47,7 +48,7 @@ def serial(value):
     return str(value)
 
 
-def build(mode: str, worker_route: Path | None):
+def build(mode: str, worker_route: Path | None, model_timing: ModelTiming):
     selected = dispatcher = audit = None
     if mode == "Argus":
         if worker_route is None:
@@ -66,7 +67,7 @@ def build(mode: str, worker_route: Path | None):
     builder = StateGraph(State)
 
     def chatbot(state: State):
-        return {"messages": [llm.invoke(state["messages"])]}
+        return {"messages": [model_timing.invoke(llm, state["messages"])]}
 
     def route_tools(state: State):
         return "tools" if state["messages"][-1].tool_calls else END
@@ -90,10 +91,14 @@ def main() -> None:
     if args.mode == "Argus":
         install_mac_policy(OPERATOR_POLICY)
     started = time.perf_counter()
-    graph, selected, dispatcher, audit = build(args.mode, args.worker_route)
+    model_timing = ModelTiming()
+    graph, selected, dispatcher, audit = build(args.mode, args.worker_route, model_timing)
     thread_id = uuid.uuid4().hex
     principal = Principal("alice", frozenset(), frozenset(), f"{args.demo}-{uuid.uuid4().hex}")
-    config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 20}
+    config = {
+        "configurable": {"thread_id": thread_id},
+        "recursion_limit": 20,
+    }
     if selected is not None:
         config = with_principal(config, principal, modules=selected.modules)
     first = graph.invoke(
@@ -144,6 +149,8 @@ def main() -> None:
                 "demo": args.demo,
                 "mode": args.mode,
                 "wall_ms": wall_ms,
+                "model_time_ms": model_timing.wall_ms,
+                "model_calls": model_timing.calls,
                 "first_answer": str(first["messages"][-1].content),
                 "answer": str(all_messages[-1].content),
                 "messages": [message.model_dump() for message in all_messages],

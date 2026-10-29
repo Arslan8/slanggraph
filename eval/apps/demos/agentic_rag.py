@@ -36,6 +36,7 @@ from resource_monitors.backends import ExactBrokerMediator, TFIDFRetrieverBacken
 from resource_monitors.retriever_worker import retrieve_blog_posts as broker_retrieve
 from resource_monitors.security import monitored_security
 from sklearn.feature_extraction.text import TfidfVectorizer
+from timing import ModelTiming
 
 MODEL = {
     "name": "qwen3:8b",
@@ -100,7 +101,7 @@ def serial(value):
     return str(value)
 
 
-def build(paths: list[Path], mode: str):
+def build(paths: list[Path], mode: str, model_timing: ModelTiming):
     documents = chunks(paths)
     security = dispatcher = audit = None
     if mode == "Baseline":
@@ -180,18 +181,20 @@ Give a binary score 'yes' or 'no' score to indicate whether the document is rele
         )
         chain = prompt | model().with_structured_output(Grade)
         messages = state["messages"]
-        score = chain.invoke(
+        score = model_timing.invoke(
+            chain,
             {"question": messages[0].content, "context": messages[-1].content}
         ).binary_score
         return "generate" if score == "yes" else "rewrite"
 
     def agent(state):
-        response = model().bind_tools(tools).invoke(state["messages"])
+        response = model_timing.invoke(model().bind_tools(tools), state["messages"])
         return {"messages": [response]}
 
     def rewrite(state):
         question = state["messages"][0].content
-        response = model().invoke(
+        response = model_timing.invoke(
+            model(),
             [
                 HumanMessage(
                     content=f"""Look at the input and reason about the underlying semantic intent.
@@ -209,7 +212,8 @@ Question: {question}
 Context: {context}
 Answer:"""
         )
-        response = (prompt | model()).invoke(
+        response = model_timing.invoke(
+            prompt | model(),
             {"context": messages[-1].content, "question": messages[0].content}
         )
         return {"messages": [response]}
@@ -241,7 +245,8 @@ def main() -> None:
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
     started = time.perf_counter()
-    graph, security, dispatcher, audit = build(args.documents, args.mode)
+    model_timing = ModelTiming()
+    graph, security, dispatcher, audit = build(args.documents, args.mode, model_timing)
     config = {"recursion_limit": 50}
     if security is not None:
         config = with_principal(
@@ -256,6 +261,8 @@ def main() -> None:
                 "answer": str(result["messages"][-1].content),
                 "messages": [message.model_dump() for message in result["messages"]],
                 "wall_ms": (time.perf_counter() - started) * 1000,
+                "model_time_ms": model_timing.wall_ms,
+                "model_calls": model_timing.calls,
                 "authorization_decisions": [serial(item) for item in audit.records()]
                 if audit
                 else [],

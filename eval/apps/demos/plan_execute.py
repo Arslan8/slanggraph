@@ -32,6 +32,7 @@ from resource_monitors.backends import ExactBrokerMediator, FrozenSearchBackend
 from resource_monitors.search_worker import frozen_search as broker_search
 from resource_monitors.security import monitored_security
 from sklearn.feature_extraction.text import TfidfVectorizer
+from timing import ModelTiming
 from typing_extensions import TypedDict
 
 
@@ -86,7 +87,7 @@ def serial(value):
     return str(value)
 
 
-def build(corpus_path: Path, mode: str):
+def build(corpus_path: Path, mode: str, model_timing: ModelTiming):
     corpus = json.loads(corpus_path.read_text())
     security = dispatcher = audit = None
     if mode == "Baseline":
@@ -187,7 +188,7 @@ If no more steps are needed, respond to the user. Otherwise return only steps st
         return {"messages": [("user", task_formatted)]}
 
     async def agent_model(state: PlanExecute):
-        return {"messages": [await bound.ainvoke(state["messages"])]}
+        return {"messages": [await model_timing.ainvoke(bound, state["messages"])]}
 
     def route_agent(state: PlanExecute):
         return "agent_tools" if state["messages"][-1].tool_calls else "capture_step"
@@ -196,11 +197,13 @@ If no more steps are needed, respond to the user. Otherwise return only steps st
         return {"past_steps": [(state["plan"][0], state["messages"][-1].content)]}
 
     async def plan_step(state: PlanExecute):
-        plan = await planner.ainvoke({"messages": [("user", state["input"])]})
+        plan = await model_timing.ainvoke(
+            planner, {"messages": [("user", state["input"])]}
+        )
         return {"plan": plan.steps}
 
     async def replan_step(state: PlanExecute):
-        output = await replanner.ainvoke(state)
+        output = await model_timing.ainvoke(replanner, state)
         if isinstance(output.action, Response):
             return {"response": output.action.response}
         return {"plan": output.action.steps}
@@ -232,7 +235,8 @@ async def run(args) -> None:
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
     started = time.perf_counter()
-    graph, security, dispatcher, audit = build(args.corpus, args.mode)
+    model_timing = ModelTiming()
+    graph, security, dispatcher, audit = build(args.corpus, args.mode, model_timing)
     config = {"recursion_limit": 50}
     if security is not None:
         config = with_principal(
@@ -265,6 +269,8 @@ async def run(args) -> None:
                 "status": status,
                 "error": error,
                 "wall_ms": (time.perf_counter() - started) * 1000,
+                "model_time_ms": model_timing.wall_ms,
+                "model_calls": model_timing.calls,
                 "authorization_decisions": [serial(item) for item in audit.records()]
                 if audit
                 else [],

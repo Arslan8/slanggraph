@@ -16,7 +16,7 @@ from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, MessagesState, StateGraph
-from langgraph.prebuilt import ToolNode, create_react_agent
+from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
     CedarObjectAuthorizer,
     CedarPolicySet,
@@ -35,6 +35,7 @@ from langgraph.prebuilt.security import (
 )
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.object_policy import _language_sandbox_owner_policy
+from timing import ModelTiming
 from tool_calling_worker import add as worker_add
 from tool_calling_worker import get_coolest_cities as worker_get_coolest_cities
 from tool_calling_worker import get_weather as worker_get_weather
@@ -164,13 +165,13 @@ def security(
     return config, dispatcher, audit
 
 
-def custom_weather_graph(selected):
+def custom_weather_graph(selected, model_timing: ModelTiming):
     chosen = [get_weather]
     bound = model().bind_tools(chosen)
     builder = StateGraph(MessagesState)
 
     def call_model(state: MessagesState):
-        return {"messages": [bound.invoke(state["messages"])]}
+        return {"messages": [model_timing.invoke(bound, state["messages"])]}
 
     def should_continue(state: MessagesState):
         return "tools" if state["messages"][-1].tool_calls else END
@@ -183,12 +184,12 @@ def custom_weather_graph(selected):
     return builder.compile(security=selected)
 
 
-def build(demo: str, mode: str, worker_route: Path | None):
+def build(demo: str, mode: str, worker_route: Path | None, model_timing: ModelTiming):
     definitions = {
         "prebuilt-multiply": (
             ("multiply",),
-            frozenset({"agent"}),
-            frozenset({"agent:branch:should_continue"}),
+            frozenset({"call_model"}),
+            frozenset({"call_model:branch:should_continue"}),
         ),
         "custom-weather": (
             ("get_weather",),
@@ -203,33 +204,28 @@ def build(demo: str, mode: str, worker_route: Path | None):
         ),
         "return-direct": (
             ("add",),
-            frozenset({"agent"}),
+            frozenset({"call_model"}),
             frozenset(
                 {
-                    "agent:branch:should_continue",
-                    "tools:branch:route_tool_responses",
+                    "call_model:branch:should_continue",
+                    "tools:branch:after_tools",
                 }
             ),
         ),
         "forced-tool": (
             ("greet",),
-            frozenset({"agent"}),
+            frozenset({"call_model"}),
             frozenset(
                 {
-                    "agent:branch:should_continue",
-                    "tools:branch:route_tool_responses",
+                    "call_model:branch:should_continue",
+                    "tools:branch:after_tools",
                 }
             ),
         ),
         "serial-tools": (
             ("add", "multiply"),
-            frozenset({"agent"}),
-            frozenset(
-                {
-                    "agent:branch:should_continue",
-                    "tools:branch:route_tool_responses",
-                }
-            ),
+            frozenset({"call_model"}),
+            frozenset({"call_model:branch:should_continue"}),
         ),
     }
     names, trusted_nodes, trusted_branches = definitions[demo]
@@ -247,7 +243,7 @@ def build(demo: str, mode: str, worker_route: Path | None):
     if demo == "return-direct":
         chosen = [add_direct]
     if demo == "custom-weather":
-        graph = custom_weather_graph(selected)
+        graph = custom_weather_graph(selected, model_timing)
         prompt = "What's the weather in San Francisco?"
     elif demo in {"fixed-weather", "parallel-weather"}:
         builder = StateGraph(MessagesState)
@@ -256,7 +252,7 @@ def build(demo: str, mode: str, worker_route: Path | None):
         graph = builder.compile(security=selected)
         prompt = "Execute the tutorial's fixed ToolNode calls."
     else:
-        selected_model = model()
+        selected_model = model().bind_tools(chosen)
         if demo == "forced-tool":
             selected_model = selected_model.bind_tools(
                 chosen, tool_choice={"type": "tool", "name": "greet"}
@@ -269,7 +265,26 @@ def build(demo: str, mode: str, worker_route: Path | None):
             prompt = "What's 3 + 5? Use the add tool."
         else:
             prompt = "What's 42 x 7? Use the multiply tool."
-        graph = create_react_agent(selected_model, chosen, security=selected)
+        builder = StateGraph(MessagesState)
+
+        def call_model(state: MessagesState):
+            return {"messages": [model_timing.invoke(selected_model, state["messages"])]}
+
+        def should_continue(state: MessagesState):
+            return "tools" if state["messages"][-1].tool_calls else END
+
+        def after_tools(_state: MessagesState):
+            return END if demo in {"return-direct", "forced-tool"} else "call_model"
+
+        builder.add_node("call_model", call_model)
+        builder.add_node("tools", ToolNode(chosen, security=selected))
+        builder.add_edge(START, "call_model")
+        builder.add_conditional_edges("call_model", should_continue, ["tools", END])
+        if demo in {"return-direct", "forced-tool"}:
+            builder.add_conditional_edges("tools", after_tools, ["call_model", END])
+        else:
+            builder.add_edge("tools", "call_model")
+        graph = builder.compile(security=selected)
     return graph, prompt, selected, dispatcher, audit
 
 
@@ -295,7 +310,10 @@ def main() -> None:
     if args.mode == "Argus":
         install_mac_policy(OPERATOR_POLICY)
     started = time.perf_counter()
-    graph, prompt, selected, dispatcher, audit = build(args.demo, args.mode, args.worker_route)
+    model_timing = ModelTiming()
+    graph, prompt, selected, dispatcher, audit = build(
+        args.demo, args.mode, args.worker_route, model_timing
+    )
     principal = Principal("alice", frozenset(), frozenset(), f"{args.demo}-{uuid.uuid4().hex}")
     config = {"recursion_limit": 20}
     if selected is not None:
@@ -351,6 +369,8 @@ def main() -> None:
                 "mode": args.mode,
                 "prompt": prompt,
                 "wall_ms": wall_ms,
+                "model_time_ms": model_timing.wall_ms,
+                "model_calls": model_timing.calls,
                 "answer": str(messages[-1].content),
                 "messages": [message.model_dump() for message in messages],
                 "executed_tools": [message.name for message in tool_messages],

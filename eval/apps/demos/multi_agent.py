@@ -40,6 +40,7 @@ from resource_monitors.python_worker import python_repl_tool as broker_python
 from resource_monitors.search_worker import frozen_search as broker_search
 from resource_monitors.security import monitored_security
 from sklearn.feature_extraction.text import TfidfVectorizer
+from timing import ModelTiming
 
 
 def llm() -> ChatOpenAI:
@@ -82,7 +83,13 @@ def serial(value):
     return str(value)
 
 
-def build(gdp_path: Path, artifact: Path, observer: Path, mode: str):
+def build(
+    gdp_path: Path,
+    artifact: Path,
+    observer: Path,
+    mode: str,
+    model_timing: ModelTiming,
+):
     payload = json.loads(gdp_path.read_text())[1]
     documents = []
     for code in ("GBR", "FRA", "DEU", "JPN", "CAN"):
@@ -220,13 +227,21 @@ def build(gdp_path: Path, artifact: Path, observer: Path, mode: str):
         prompt = make_system_prompt(
             "You can only do research. You are working with a chart generator colleague."
         )
-        return {"messages": [research_model.invoke([("system", prompt), *state["messages"]])]}
+        return {
+            "messages": [
+                model_timing.invoke(research_model, [("system", prompt), *state["messages"]])
+            ]
+        }
 
     def chart_node(state: MessagesState):
         prompt = make_system_prompt(
             "You can only generate charts. You are working with a researcher colleague."
         )
-        return {"messages": [chart_model.invoke([("system", prompt), *state["messages"]])]}
+        return {
+            "messages": [
+                model_timing.invoke(chart_model, [("system", prompt), *state["messages"]])
+            ]
+        }
 
     def route_research(state: MessagesState):
         return "research_tools" if state["messages"][-1].tool_calls else "research_handoff"
@@ -289,8 +304,9 @@ def main() -> None:
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
     started = time.perf_counter()
+    model_timing = ModelTiming()
     graph, security, dispatcher, audit, python_backend = build(
-        args.gdp, args.artifact, args.observer, args.mode
+        args.gdp, args.artifact, args.observer, args.mode, model_timing
     )
     config = {"recursion_limit": 150}
     if security is not None:
@@ -312,6 +328,8 @@ def main() -> None:
                 "artifact": str(args.artifact),
                 "observer": str(args.observer),
                 "wall_ms": (time.perf_counter() - started) * 1000,
+                "model_time_ms": model_timing.wall_ms,
+                "model_calls": model_timing.calls,
                 "authorization_decisions": [serial(item) for item in audit.records()]
                 if audit
                 else [],

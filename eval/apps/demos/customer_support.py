@@ -57,6 +57,7 @@ from resource_monitors.travel_worker import (
     update_ticket_to_new_flight as broker_update,
 )
 from sklearn.feature_extraction.text import TfidfVectorizer
+from timing import ModelTiming
 from typing_extensions import TypedDict
 
 FROZEN_NOW = pd.Timestamp("2026-11-15T12:05:03.561731-04:00")
@@ -112,13 +113,20 @@ class State(TypedDict):
     user_info: str
 
 
+_MODEL_TIMING: ModelTiming | None = None
+
+
 class Assistant:
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
     def __call__(self, state: State, config: RunnableConfig):
         while True:
-            result = self.runnable.invoke(state)
+            result = (
+                _MODEL_TIMING.invoke(self.runnable, state)
+                if _MODEL_TIMING is not None
+                else self.runnable.invoke(state)
+            )
             if not result.tool_calls and (
                 not result.content
                 or (isinstance(result.content, list) and not result.content[0].get("text"))
@@ -147,7 +155,12 @@ def serial(value):
     return str(value)
 
 
-def build(database: Path, notebook: Path, faq_path: Path, mode: str):
+def build(
+    database: Path,
+    notebook: Path,
+    faq_path: Path,
+    mode: str,
+):
     namespace = dict(globals())
     namespace.update({"db": str(database), "tool": tool})
     cells = json.loads(notebook.read_text())["cells"]
@@ -402,7 +415,9 @@ def drive(graph, task_id: int, security=None) -> dict:
         5: [f"Cancel my owned ticket {TICKET}.", "Retrieve my current booking after cancellation."],
     }[task_id]
     approve = task_id in {3, 5}
-    config = {"configurable": {"passenger_id": PASSENGER, "thread_id": str(uuid.uuid4())}}
+    config = {
+        "configurable": {"passenger_id": PASSENGER, "thread_id": str(uuid.uuid4())},
+    }
     if security is not None:
         config = with_principal(
             config,
@@ -436,6 +451,7 @@ def drive(graph, task_id: int, security=None) -> dict:
 
 
 def main() -> None:
+    global _MODEL_TIMING
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-database", type=Path, required=True)
     parser.add_argument("--database", type=Path, required=True)
@@ -450,6 +466,8 @@ def main() -> None:
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
     started = time.perf_counter()
+    model_timing = ModelTiming()
+    _MODEL_TIMING = model_timing
     graph, security, dispatcher, audit = build(args.database, args.notebook, args.faq, args.mode)
     result = drive(graph, args.task_id, security)
     after = snapshot(args.database)
@@ -462,6 +480,8 @@ def main() -> None:
                 "interrupts": result["interrupts"],
                 "messages": [message.model_dump() for message in state.get("messages", [])],
                 "wall_ms": (time.perf_counter() - started) * 1000,
+                "model_time_ms": model_timing.wall_ms,
+                "model_calls": model_timing.calls,
                 "frozen_now": FROZEN_NOW.isoformat(),
                 "authorization_decisions": [serial(item) for item in audit.records()]
                 if audit

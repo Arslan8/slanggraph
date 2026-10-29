@@ -33,6 +33,7 @@ from resource_monitors.security import monitored_security
 from resource_monitors.sql_worker import list_tables as broker_list_tables
 from resource_monitors.sql_worker import query as broker_query
 from resource_monitors.sql_worker import schema as broker_schema
+from timing import ModelTiming
 
 MODEL = {
     "name": "qwen3:8b",
@@ -96,7 +97,7 @@ def serial(value):
     return str(value)
 
 
-def build(db_path: Path, events: Path, mode: str):
+def build(db_path: Path, events: Path, mode: str, model_timing: ModelTiming):
     llm = ChatOpenAI(
         model=MODEL["name"],
         base_url=MODEL["base_url"],
@@ -201,7 +202,7 @@ def build(db_path: Path, events: Path, mode: str):
 
     def call_get_schema(state: MessagesState):
         model = llm.bind_tools([get_schema_tool], tool_choice="any")
-        return {"messages": [model.invoke(state["messages"])]}
+        return {"messages": [model_timing.invoke(model, state["messages"])]}
 
     generate_prompt = f"""
 You are an agent designed to interact with a SQL database.
@@ -219,7 +220,8 @@ DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the databa
 
     def generate_query(state: MessagesState):
         model = llm.bind_tools([run_query_tool])
-        response = model.invoke(
+        response = model_timing.invoke(
+            model,
             [{"role": "system", "content": generate_prompt}] + state["messages"]
         )
         return {"messages": [response]}
@@ -246,7 +248,9 @@ You will call the appropriate tool to execute the query after running this check
         tool_call = state["messages"][-1].tool_calls[0]
         user_message = {"role": "user", "content": tool_call["args"]["query"]}
         model = llm.bind_tools([run_query_tool], tool_choice="any")
-        response = model.invoke([{"role": "system", "content": check_prompt}, user_message])
+        response = model_timing.invoke(
+            model, [{"role": "system", "content": check_prompt}, user_message]
+        )
         response.id = state["messages"][-1].id
         return {"messages": [response]}
 
@@ -317,7 +321,10 @@ def main() -> None:
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
     started = time.perf_counter()
-    graph, security, dispatcher, audit = build(args.database.resolve(), args.events, args.mode)
+    model_timing = ModelTiming()
+    graph, security, dispatcher, audit = build(
+        args.database.resolve(), args.events, args.mode, model_timing
+    )
     config = {"recursion_limit": 50}
     if security is not None:
         config = with_principal(
@@ -332,6 +339,8 @@ def main() -> None:
                 "messages": [message.model_dump() for message in result["messages"]],
                 "answer": str(result["messages"][-1].content),
                 "wall_ms": (time.perf_counter() - started) * 1000,
+                "model_time_ms": model_timing.wall_ms,
+                "model_calls": model_timing.calls,
                 "authorization_decisions": [serial(item) for item in audit.records()]
                 if audit
                 else [],
