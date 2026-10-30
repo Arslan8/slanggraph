@@ -333,6 +333,41 @@ def test_activation_failure_cleans_up_before_tool_import(setup):
 
 
 @pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+def test_preflight_runs_before_activation_and_cleans_up_on_failure(setup):
+    dispatcher, principal, call, grant, seen = setup
+    lifecycle = []
+
+    def preflight(lines, context):
+        lifecycle.append(("preflight", lines, context))
+
+    def activate(lines, context):
+        lifecycle.append(("activate", lines, context))
+        raise RuntimeError("resource unavailable")
+
+    def release(context):
+        lifecycle.append(("release", (), context))
+
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        runtime_roots=dispatcher.runtime_roots,
+        mediators=(
+            replace(
+                dispatcher.mediators[0],
+                preflight=preflight,
+                activate=activate,
+                release=release,
+            ),
+        ),
+    )
+    with pytest.raises(HostExecutionDenied, match="activation_failed"):
+        dispatcher.invoke(principal, call, grant)
+    assert not seen
+    assert [item[0] for item in lifecycle] == ["preflight", "activate", "release"]
+    assert lifecycle[0][1] == grant.lines
+    assert lifecycle[0][2] == lifecycle[1][2] == lifecycle[2][2]
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
 def test_resource_support_rechecked_on_each_request(setup):
     dispatcher, principal, call, grant, seen = setup
     original = dispatcher.mediators[0]

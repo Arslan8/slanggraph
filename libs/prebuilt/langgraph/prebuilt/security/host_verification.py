@@ -40,6 +40,7 @@ _REBIND_SENSITIVE: dict[str, tuple[str, ...]] = {
     "_cleanup_worker": ("cancellation_lifetime",),
     "_apply_seccomp": ("activation_before_execution",),
     "_apply_limits": ("activation_before_execution",),
+    "_prepare_invocation": ("activation_before_execution",),
     "_invoke": ("activation_before_execution",),
     "main": ("activation_before_execution", "channel_identity"),
 }
@@ -76,8 +77,8 @@ SCOPE = (
     "(5) have cheap mitigations applied in `hardening_applied`."
 )
 KNOWN_EVASIONS = (
-    "(1) worker `main()` is exempt from the payload-loading scan, so tool "
-    "code can load before seccomp inside main",
+    "(1) exact loader spellings and the expected prepare/invoke functions are "
+    "checked, but aliases and equivalent loading APIs can evade the scan",
     "(2) loader detection is an exact-spelling set, so runpy/builtins.exec/eval pass",
     "(3) `_apply_seccomp` can be neutered while the checker still reports a "
     "deny default (only `seccomp_init` args are folded)",
@@ -98,16 +99,17 @@ KNOWN_EVASIONS = (
     "(12) a ready frame written before seccomp is unchecked",
 )
 HARDENING_APPLIED = (
-    "(a) worker `main` is included in the payload-loading scan; `_invoke` "
-    "calls are accepted only inside `main`",
+    "(a) worker `main` is included in the payload-loading scan; "
+    "`_prepare_invocation` and `_invoke` calls are accepted only in the "
+    "ordered preflight/GO/execute sequence in `main`",
     "(b) both `sys.exc_info()` and `sys.exception()` in the cleanup call are "
     "the ambient-exception lifetime defect",
     "(c) any `*`/`**` argument or any `waivers`/`owners` keyword at the "
     "negotiate call fails grant lowering",
     "(d) a module-level `Assign`/`AugAssign`/`AnnAssign` whose target is "
     "`_run_worker`, `_cleanup_worker`, `_apply_seccomp`, `_apply_limits`, "
-    "`_invoke` or `main` (as a name or attribute) fails the corresponding "
-    "checks",
+    "`_prepare_invocation`, `_invoke` or `main` (as a name or attribute) "
+    "fails the corresponding checks",
 )
 
 
@@ -280,21 +282,40 @@ def _check_activation(
     body = getattr(_main_try(fns.get("main")), "body", [])
     seccomp = _index(body, lambda s: _called(s) == "_apply_seccomp")
     limits = _index(body, lambda s: _called(s) == "_apply_limits")
+    prepare = _index(body, lambda s: _called(s) == "_prepare_invocation")
+    gate = _index(
+        body,
+        lambda s: isinstance(s, ast.If) and "'GO\\n'" in ast.unparse(s.test),
+    )
     payload = _index(body, lambda s: _called(s) == "_invoke")
-    if payload < 0 or not (0 <= seccomp < payload and 0 <= limits < payload):
+    if not (
+        0 <= seccomp < prepare < gate < payload
+        and 0 <= limits < prepare
+        and "_invoke(prepared, event_loop)" in ast.unparse(body[payload])
+    ):
         issues.append(
-            "activation: unconditional _apply_seccomp/_apply_limits do not precede _invoke in main"
+            "activation: seccomp/limits/preflight/GO/invoke ordering is missing in main"
         )
         ok = False
     for name, fn in fns.items():
-        if name == "_invoke":
-            continue
         for node in ast.walk(fn):
             if not isinstance(node, ast.Call):
                 continue
             callee = ast.unparse(node.func)
-            if callee in _LOADERS or (callee == "_invoke" and name != "main"):
-                issues.append(f"activation: payload loading outside _invoke in {name}")
+            loader_allowed = (name, callee) in {
+                ("_prepare_invocation", "compile"),
+                ("_invoke", "exec"),
+            }
+            phase_call_allowed = name == "main" and callee in {
+                "_prepare_invocation",
+                "_invoke",
+            }
+            if (callee in _LOADERS and not loader_allowed) or (
+                callee in {"_prepare_invocation", "_invoke"} and not phase_call_allowed
+            ):
+                issues.append(
+                    f"activation: payload loading outside its worker phase in {name}"
+                )
                 ok = False
     allowed = _tuple_strings(worker, "_ALLOWED_SYSCALLS")
     if allowed is None or allowed & _PROCESS_CREATION:

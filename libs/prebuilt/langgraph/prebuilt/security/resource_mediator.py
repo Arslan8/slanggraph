@@ -99,15 +99,21 @@ class ResourceMediatorAdapter:
 
     `assess` must inspect the complete line, including selector, attributes and
     lowering strategy, against this host. `invoke` receives the authorized line
-    and authenticated invocation; payloads are untrusted. `activate`, when set,
-    establishes resource-side state before worker import. `release` tears it
-    down after the worker stops. Callbacks must bound I/O and must not leave
-    background work. Credentials and clients belong in these parent callbacks.
+    and authenticated invocation; payloads are untrusted. `preflight`, when set,
+    prepares immutable or invocation-local state before activation and worker
+    release. `activate`, when set, establishes resource-side authority after a
+    successful preflight. `release` tears lifecycle state down after the worker
+    stops, including when preflight or activation fails. Callbacks must bound I/O
+    and must not leave background work. Credentials and clients belong in these
+    parent callbacks.
     """
 
     adapter_id: str
     assess: Callable[[ObjectGrantLine, HostAttestation], ResourceSupport]
     invoke: Callable[[ObjectGrantLine, Mapping[str, Any], ResourceInvocation], Any]
+    preflight: (
+        Callable[[tuple[ObjectGrantLine, ...], ResourceInvocation], None] | None
+    ) = None
     activate: (
         Callable[[tuple[ObjectGrantLine, ...], ResourceInvocation], None] | None
     ) = None
@@ -124,7 +130,7 @@ class ResourceMediatorAdapter:
             )
         if any(
             callback is not None and not callable(callback)
-            for callback in (self.activate, self.release)
+            for callback in (self.preflight, self.activate, self.release)
         ):
             raise ValueError("mediator lifecycle hooks must be callable")
 
@@ -398,6 +404,8 @@ class _BoundMediator(_LocalEvidence):
         for line in lines:
             if self.assess_line(line) != self.assessments[line.line_id]:
                 raise ValueError("resource support changed before activation")
+        if self.mediator.preflight is not None:
+            self.mediator.preflight(lines, self.invocation)
         if self.mediator.activate is not None:
             self.mediator.activate(lines, self.invocation)
         self.enabled = True

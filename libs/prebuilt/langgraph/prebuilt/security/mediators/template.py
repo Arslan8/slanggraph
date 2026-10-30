@@ -68,6 +68,13 @@ class ExampleMediator:
 def example_resource() -> ResourceContract[ExampleAPI]:
     """Build an unimplemented tutorial adapter; it grants no resource authority."""
 
+    def preflight(
+        lines: tuple[ObjectGrantLine, ...], context: ResourceInvocation
+    ) -> None:
+        # TODO: Prepare immutable schemas, clients, or invocation-local caches
+        # before activation and before the worker is released.
+        raise NotImplementedError("tutorial mediator preflight is not implemented")
+
     def activate(
         lines: tuple[ObjectGrantLine, ...], context: ResourceInvocation
     ) -> None:
@@ -83,6 +90,7 @@ def example_resource() -> ResourceContract[ExampleAPI]:
     return EXAMPLE.bind(
         implementation=ExampleBackend(),
         mediator=ExampleMediator(),
+        preflight=preflight,
         activate=activate,
         release=release,
     )

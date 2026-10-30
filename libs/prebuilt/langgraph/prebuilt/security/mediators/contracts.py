@@ -46,6 +46,7 @@ _clients: dict[int, ClientBinding] = {}
 _exports: dict[str, ClientBinding] = {}
 
 ResourceAssessment = Callable[[ObjectGrantLine, HostAttestation], ResourceSupport]
+ResourcePreflight = Callable[[tuple[ObjectGrantLine, ...], ResourceInvocation], None]
 ResourceActivation = Callable[[tuple[ObjectGrantLine, ...], ResourceInvocation], None]
 ResourceRelease = Callable[[ResourceInvocation], None]
 
@@ -92,21 +93,46 @@ def _native_dictionary(value: Any) -> dict[str, Any]:
     return result
 
 
-def _check_value(value: Any, annotation: Any) -> bool:
+def _compile_value_validator(annotation: Any) -> tuple[Any, ...]:
+    """Compile trusted type metadata into an immutable runtime validator."""
     if annotation in _SCALARS:
-        return type(value) is annotation
+        return ("scalar", annotation)
     if annotation is type(None):
-        return value is None
+        return ("none",)
     if get_origin(annotation) in (Union, types.UnionType):
-        return any(_check_value(value, item) for item in get_args(annotation))
+        return (
+            "union",
+            tuple(_compile_value_validator(item) for item in get_args(annotation)),
+        )
     if is_typeddict(annotation):
         fields = get_type_hints(annotation)
+        return (
+            "typed_dict",
+            tuple(
+                (name, _compile_value_validator(field))
+                for name, field in fields.items()
+            ),
+        )
+    raise TypeError("unsupported resource result annotation")
+
+
+def _check_compiled_value(value: Any, validator: tuple[Any, ...]) -> bool:
+    kind = validator[0]
+    if kind == "scalar":
+        return type(value) is validator[1]
+    if kind == "none":
+        return value is None
+    if kind == "union":
+        return any(_check_compiled_value(value, item) for item in validator[1])
+    if kind == "typed_dict":
         try:
             snapshot = _native_dictionary(value)
         except TypeError:
             return False
-        return set(snapshot) == set(fields) and all(
-            _check_value(snapshot[name], kind) for name, kind in fields.items()
+        fields = validator[1]
+        return len(snapshot) == len(fields) and all(
+            name in snapshot and _check_compiled_value(snapshot[name], field)
+            for name, field in fields
         )
     return False
 
@@ -129,6 +155,7 @@ class MethodContract:
     signature: inspect.Signature
     parameters: Mapping[str, type]
     result: Any
+    result_validator: tuple[Any, ...]
 
     def arguments(
         self, args: tuple[Any, ...], kwargs: Mapping[str, Any]
@@ -136,11 +163,15 @@ class MethodContract:
         bound = self.signature.bind(*args, **kwargs)
         values = dict(bound.arguments)
         for name, value in values.items():
-            if not _check_value(value, self.parameters[name]):
+            if type(value) is not self.parameters[name]:
                 raise TypeError(
                     f"{self.name}.{name} requires {self.parameters[name].__name__}"
                 )
         return values
+
+    def accepts_result(self, value: Any) -> bool:
+        """Validate a result without repeating trusted annotation introspection."""
+        return _check_compiled_value(value, self.result_validator)
 
 
 @dataclass(frozen=True)
@@ -235,6 +266,7 @@ class ResourceContract(Generic[T]):
         implementation: T | None = None,
         mediator: ResourceMediator | None = None,
         assess: ResourceAssessment | None = None,
+        preflight: ResourcePreflight | None = None,
         activate: ResourceActivation | None = None,
         release: ResourceRelease | None = None,
     ) -> None:
@@ -300,6 +332,7 @@ class ResourceContract(Generic[T]):
                 signature,
                 MappingProxyType({p.name: hints[p.name] for p in parameters[1:]}),
                 result,
+                _compile_value_validator(result),
             )
         if not methods:
             raise TypeError("resource interface has no operations")
@@ -320,7 +353,8 @@ class ResourceContract(Generic[T]):
             object.__setattr__(self, name, value)
         if implementation is None:
             if any(
-                value is not None for value in (mediator, assess, activate, release)
+                value is not None
+                for value in (mediator, assess, preflight, activate, release)
             ):
                 raise ValueError("binding options require an implementation")
         else:
@@ -362,6 +396,7 @@ class ResourceContract(Generic[T]):
                     self.lowering + (":" + self._object_id if self._object_id else ""),
                     assess_contract,
                     invoke,
+                    preflight=preflight,
                     activate=activate,
                     release=release,
                 ),
@@ -395,6 +430,7 @@ class ResourceContract(Generic[T]):
         implementation: T,
         assess: ResourceAssessment | None = None,
         mediator: ResourceMediator | None = None,
+        preflight: ResourcePreflight | None = None,
         activate: ResourceActivation | None = None,
         release: ResourceRelease | None = None,
     ) -> ResourceContract[T]:
@@ -408,6 +444,7 @@ class ResourceContract(Generic[T]):
             implementation=implementation,
             mediator=mediator,
             assess=assess,
+            preflight=preflight,
             activate=activate,
             release=release,
         )
@@ -496,7 +533,7 @@ class ResourceContract(Generic[T]):
                     result = object_request(
                         self.class_name, method.name, selector, values
                     )
-                if not _check_value(result, method.result):
+                if not method.accepts_result(result):
                     raise TypeError(f"invalid {self.class_name}.{method.name} result")
                 return result
 
@@ -591,7 +628,7 @@ class ResourceContract(Generic[T]):
                             "custom mediator must return None or raise to reject"
                         )
                 result = handlers[line.operation](**values)
-                if not _check_value(result, method.result):
+                if not method.accepts_result(result):
                     raise TypeError("backend returned an invalid typed result")
                 return result
             finally:

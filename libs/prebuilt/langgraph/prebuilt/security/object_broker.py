@@ -89,11 +89,25 @@ class _ObjectBroker(CredentialBroker):
         self.bindings = dict(bindings or {})
         self.grant = grant
         self.routes: dict[str, _BoundMediator] = {}
+        self._lines_by_request: dict[tuple[str, str], ObjectGrantLine | None] = {}
         self.spawn: SpawnRecord | None = None
         self._audit: deque[BrokerAuditRecord] = deque(maxlen=4096)
         self._lock = RLock()
 
     def open_session(self, spawn, grant):
+        active: dict[str, set[tuple[str, str]]] = {}
+        for rule in grant.rules:
+            if rule.domain is AuthorityDomain.SERVICE:
+                active.setdefault(rule.rule_id, set()).add(
+                    (rule.selector, rule.operation)
+                )
+        indexed: dict[tuple[str, str], ObjectGrantLine | None] = {}
+        for line in self.grant.lines:
+            key = (_service(line.class_name, line.selector), line.operation)
+            if key not in active.get(line.line_id, set()):
+                continue
+            indexed[key] = None if key in indexed else line
+        self._lines_by_request = indexed
         session = super().open_session(spawn, grant)
         self.spawn = spawn
         return session
@@ -125,24 +139,10 @@ class _ObjectBroker(CredentialBroker):
         except (ValueError, UnicodeError, RecursionError):
             return {"status": "denied", "error": "broker:invalid_request"}
         service = self.bindings.get(service, service)
-        active = {
-            rule.rule_id
-            for rule in grant.rules
-            if rule.domain is AuthorityDomain.SERVICE
-            and rule.selector == service
-            and rule.operation == operation
-        }
-        lines = [
-            line
-            for line in self.grant.lines
-            if line.line_id in active
-            and _service(line.class_name, line.selector) == service
-            and line.operation == operation
-        ]
-        if len(lines) != 1:
+        line = self._lines_by_request.get((service, operation))
+        if line is None:
             self._record(spawn, service, operation, "", False, "not_granted")
             return {"status": "denied", "error": "broker:not_granted"}
-        line = lines[0]
         try:
             result = self.routes[line.line_id].invoke(line, payload, spawn)
         except Exception:

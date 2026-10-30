@@ -18,6 +18,7 @@ import os
 import resource
 import sys
 from collections.abc import Mapping
+from dataclasses import dataclass
 from types import ModuleType
 from typing import Any
 
@@ -110,6 +111,30 @@ _KILL_SYSCALLS = (
 )
 
 
+class _DiscardTextIO(io.TextIOBase):
+    """Accept tool text without retaining it in the protocol process."""
+
+    def write(self, value: str) -> int:
+        if not isinstance(value, str):
+            raise TypeError("tool output must be text")
+        return len(value)
+
+
+_DISCARD_OUTPUT = _DiscardTextIO()
+
+
+@dataclass(slots=True)
+class _PreparedInvocation:
+    """Side-effect-free worker preparation completed before the release barrier."""
+
+    request: Mapping[str, Any]
+    module: ModuleType
+    code: Any
+    attribute_path: tuple[str, ...]
+    args: dict[str, Any]
+    call: dict[str, Any]
+
+
 def main() -> int:
     """Run one request after a parent-verified startup barrier."""
     protocol_output = sys.stdout
@@ -131,6 +156,7 @@ def main() -> int:
         if bool(request.get("asynchronous")):
             event_loop = asyncio.new_event_loop()
         _apply_seccomp()
+        prepared = _prepare_invocation(request)
         _write(
             protocol_output,
             {
@@ -141,8 +167,8 @@ def main() -> int:
         )
         if sys.stdin.readline(16) != "GO\n":
             return 73
-        result = _invoke(request, event_loop)
-        _write(protocol_output, {"result": _json_value(result), "status": "ok"})
+        result = _invoke(prepared, event_loop)
+        _write_result(protocol_output, result)
         return 0
     except BaseException as exc:
         try:
@@ -270,11 +296,12 @@ def _apply_seccomp() -> None:
         library.seccomp_release(context)
 
 
-def _invoke(
-    request: Mapping[str, Any], event_loop: asyncio.AbstractEventLoop | None
-) -> Any:
+def _prepare_invocation(request: Mapping[str, Any]) -> _PreparedInvocation:
+    """Read and compile pinned tool bytes without executing tool code."""
     entrypoint = str(request["entrypoint"])
     module_name, _, attribute_path = entrypoint.partition(":")
+    if not module_name or not attribute_path:
+        raise ValueError("tool entrypoint must name a module and attribute")
     artifact_path = str(request["artifact_path"])
     runtime_roots = request["runtime_roots"]
     if not isinstance(runtime_roots, list) or any(
@@ -297,10 +324,6 @@ def _invoke(
     sys.modules[module_name] = module
     with open(artifact_path, "rb") as source:
         code = compile(source.read(), artifact_path, "exec", dont_inherit=True)
-    exec(code, module.__dict__)
-    target: Any = module
-    for part in attribute_path.split("."):
-        target = getattr(target, part)
     args = request["args"]
     if not isinstance(args, dict):
         raise TypeError("tool arguments must be an object")
@@ -310,17 +333,30 @@ def _invoke(
         "name": str(request["tool_name"]),
         "type": "tool_call",
     }
+    return _PreparedInvocation(
+        request, module, code, tuple(attribute_path.split(".")), args, call
+    )
+
+
+def _invoke(
+    prepared: _PreparedInvocation, event_loop: asyncio.AbstractEventLoop | None
+) -> Any:
+    request = prepared.request
     with (
-        contextlib.redirect_stdout(io.StringIO()),
-        contextlib.redirect_stderr(io.StringIO()),
+        contextlib.redirect_stdout(_DISCARD_OUTPUT),
+        contextlib.redirect_stderr(_DISCARD_OUTPUT),
     ):
+        exec(prepared.code, prepared.module.__dict__)
+        target: Any = prepared.module
+        for part in prepared.attribute_path:
+            target = getattr(target, part)
         if bool(request.get("asynchronous")) and hasattr(target, "ainvoke"):
             if event_loop is None:
                 raise RuntimeError("async worker event loop is unavailable")
-            return event_loop.run_until_complete(target.ainvoke(call))
+            return event_loop.run_until_complete(target.ainvoke(prepared.call))
         if hasattr(target, "invoke"):
-            return target.invoke(call)
-        result = target(**args)
+            return target.invoke(prepared.call)
+        result = target(**prepared.args)
         if inspect.isawaitable(result):
             if event_loop is None:
                 raise RuntimeError("async result requires an async worker")
@@ -447,16 +483,33 @@ def _broker_request(service: str, operation: str, payload: Mapping[str, Any]) ->
         os.close(duplicate)
 
 
-def _json_value(value: object) -> Any:
-    if value is None or type(value) in {bool, int, float, str}:
-        return value
-    if isinstance(value, list | tuple) and type(value) in {list, tuple}:
-        return [_json_value(item) for item in value]
-    if isinstance(value, dict) and type(value) is dict:
+def _encode_json_value(value: object) -> str:
+    """Validate and encode exact result data in one recursive pass."""
+    kind = type(value)
+    if value is None or kind in {bool, int, float, str}:
+        return json.dumps(value, separators=(",", ":"))
+    if isinstance(value, list | tuple) and kind in {list, tuple}:
+        return "[" + ",".join(_encode_json_value(item) for item in value) + "]"
+    if isinstance(value, dict) and kind is dict:
         if any(type(key) is not str for key in value):
             raise ValueError("result mappings require string keys")
-        return {key: _json_value(item) for key, item in value.items()}
-    raise TypeError(f"result type is not supported:{type(value).__name__}")
+        return (
+            "{"
+            + ",".join(
+                json.dumps(key) + ":" + _encode_json_value(value[key])
+                for key in sorted(value)
+            )
+            + "}"
+        )
+    raise TypeError(f"result type is not supported:{kind.__name__}")
+
+
+def _write_result(stream: Any, result: object) -> None:
+    encoded = '{"result":' + _encode_json_value(result) + ',"status":"ok"}'
+    if len(encoded) > _MAX_FRAME:
+        raise ValueError("response frame exceeds limit")
+    stream.write(encoded + "\n")
+    stream.flush()
 
 
 def _write(stream: Any, value: Mapping[str, Any]) -> None:

@@ -6,6 +6,7 @@ import time
 
 import pytest
 
+from langgraph.prebuilt.security._linux_worker import _encode_json_value
 from langgraph.prebuilt.security.linux import _readline_json
 
 
@@ -54,3 +55,13 @@ def test_frame_can_arrive_in_fragments() -> None:
         assert _readline_json(process, 2) == {"status": "ok"}
     finally:
         process.communicate()
+
+
+def test_worker_result_encoder_validates_without_normalized_copy() -> None:
+    assert _encode_json_value({"z": (1, True), "a": [None, "text"]}) == (
+        '{"a":[null,"text"],"z":[1,true]}'
+    )
+    with pytest.raises(ValueError, match="string keys"):
+        _encode_json_value({1: "unsupported"})
+    with pytest.raises(TypeError, match="not supported:set"):
+        _encode_json_value(set())

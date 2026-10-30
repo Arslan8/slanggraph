@@ -154,7 +154,7 @@ execution. Unsupported `want` lines are removed, including their broker routes;
 `receipt.removed_wants` and `dispatcher.lowering_records()` expose the reduction.
 Ambiguous adapter ownership denies execution.
 
-`ResourceMediatorAdapter(assess=..., invoke=..., activate=..., release=...)`
+`ResourceMediatorAdapter(assess=..., invoke=..., preflight=..., activate=..., release=...)`
 is the extension point for resources the host cannot interpret. `assess`
 receives the complete canonical line and host attestation and returns
 `ResourceSupport` with `EXACT`, useful `STRICTER`, or `UNSUPPORTED`.
@@ -166,7 +166,8 @@ The host rejects declared paths overlapping runtime or file grants. Operators
 must also exclude aliases/hardlinks and undeclared resource access from readable
 code roots; a pathname declaration does not discover them automatically.
 
-`activate` can establish resource-side state before tool import; `release`
+`preflight` can prepare immutable or invocation-local state before activation;
+`activate` can establish resource-side authority before tool import; `release`
 tears it down after worker and broker activity stops. `invoke` receives a
 parent-authenticated `ResourceInvocation` and untrusted JSON payload.
 Support is rechecked before activation and each request. Bare handler maps are

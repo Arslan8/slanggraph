@@ -105,14 +105,21 @@ def test_known_unsafe_pattern_match_still_proves_nothing() -> None:
     [
         (
             "worker",
-            "        _apply_seccomp()\n        _write(",
-            "        _write(",
+            "        _apply_seccomp()\n        prepared = _prepare_invocation(request)\n",
+            "        prepared = _prepare_invocation(request)\n",
             "activation_before_execution",
         ),
         (
             "worker",
-            "        result = _invoke(request, event_loop)\n",
+            "        result = _invoke(prepared, event_loop)\n",
             "",
+            "activation_before_execution",
+        ),
+        (
+            "worker",
+            '        code = compile(source.read(), artifact_path, "exec", dont_inherit=True)\n',
+            '        code = compile(source.read(), artifact_path, "exec", dont_inherit=True)\n'
+            "        exec(code, module.__dict__)\n",
             "activation_before_execution",
         ),
         (
