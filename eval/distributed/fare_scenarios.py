@@ -77,8 +77,7 @@ STANDARD_MANIFESTS = {
     "quick_fare": "runs linux\nreturns normal",
 }
 NEGATIVE_MANIFEST = (
-    "runs linux\nreturns normal\n"
-    "fs write @{marker} need\nfs truncate @{marker} need"
+    "runs linux\nreturns normal\nfs write @{marker} need\nfs truncate @{marker} need"
 )
 WORKER = Path(__file__).with_name("fare_worker.py")
 WORKER_DIGEST = hashlib.sha256(WORKER.read_bytes()).hexdigest()
@@ -119,8 +118,7 @@ negative_quick_fare = StructuredTool.from_function(
 def _serial(value):
     if dataclasses.is_dataclass(value):
         return {
-            field.name: _serial(getattr(value, field.name))
-            for field in dataclasses.fields(value)
+            field.name: _serial(getattr(value, field.name)) for field in dataclasses.fields(value)
         }
     if isinstance(value, enum.Enum):
         return value.value
@@ -156,20 +154,16 @@ def _security(
             for name, endpoint in endpoints.items()
         },
         runtime_roots=(WORKER.parent,),
+        integrity_recheck="preflight-only",
     )
-    manifest_text = "\n".join(
-        f"tool {name} {{\n{body}\n}}" for name, body in manifests.items()
-    )
+    manifest_text = "\n".join(f"tool {name} {{\n{body}\n}}" for name, body in manifests.items())
     parsed = parse_security_manifest(
         manifest_text,
         enforcers={EnforcementKind.KERNEL: dispatcher},
         classes=(FS_CLASS,),
     )
     policies = CedarPolicySet(
-        {
-            name: _language_sandbox_owner_policy(parsed.tools[name])
-            for name in manifests
-        },
+        {name: _language_sandbox_owner_policy(parsed.tools[name]) for name in manifests},
         PRINCIPAL_POLICY,
     )
     authorizer = CedarObjectAuthorizer(parsed, policies)
@@ -180,9 +174,7 @@ def _security(
     )
     security = SecurityConfig(
         host_executor=executor,
-        dac_overrides=DacOverrides(
-            {name: ToolDac("__cedar__", {"*": "x"}) for name in manifests}
-        ),
+        dac_overrides=DacOverrides({name: ToolDac("__cedar__", {"*": "x"}) for name in manifests}),
         audit_sink=audit,
         closed_admission=True,
         trusted_application_nodes=trusted_nodes,
@@ -360,9 +352,7 @@ def trial(scenario: str, order: str, *, fixed: bool, repetition: int) -> dict:
     messages = _initial_messages(order)
     if fixed:
         sequence = (
-            ["metro_fare", "quick_fare"]
-            if order == "metro_quick"
-            else ["quick_fare", "metro_fare"]
+            ["metro_fare", "quick_fare"] if order == "metro_quick" else ["quick_fare", "metro_fare"]
         )
         messages.append(
             AIMessage(
@@ -389,9 +379,7 @@ def trial(scenario: str, order: str, *, fixed: bool, repetition: int) -> dict:
         try:
             result = graph.invoke(
                 {"messages": messages},
-                config=with_principal(
-                    {"recursion_limit": 12}, principal, modules=security.modules
-                ),
+                config=with_principal({"recursion_limit": 12}, principal, modules=security.modules),
             )
         except Exception as exc:
             invocation_failure = {"type": type(exc).__name__, "message": str(exc)}
@@ -427,14 +415,10 @@ def trial(scenario: str, order: str, *, fixed: bool, repetition: int) -> dict:
         "Access denied by security" in failure_text or "object_policy:" in failure_text
     )
     activation_failure = bool(
-        not authorization_failure
-        and invocation_failure
-        and len(grants) > len(receipts)
+        not authorization_failure and invocation_failure and len(grants) > len(receipts)
     )
     execution_failure = bool(
-        not authorization_failure
-        and not activation_failure
-        and (invocation_failure or tool_errors)
+        not authorization_failure and not activation_failure and (invocation_failure or tool_errors)
     )
     return {
         "selected_tools": selected,
@@ -526,12 +510,8 @@ def negative_control(output: Path, repetitions: int = 5) -> list[dict]:
                 "authorization_grants": [
                     _serial(item) for item in security.host_executor.authorization_grants()
                 ],
-                "activation_receipts": [
-                    _serial(item) for item in dispatcher.activation_receipts()
-                ],
-                "lowered_restrictions": [
-                    _serial(item) for item in dispatcher.lowering_records()
-                ],
+                "activation_receipts": [_serial(item) for item in dispatcher.activation_receipts()],
+                "lowered_restrictions": [_serial(item) for item in dispatcher.lowering_records()],
                 "marker_before": "NOT_EXECUTED",
                 "marker_after": marker_value,
                 "body_executed": marker_value != "NOT_EXECUTED",
@@ -631,13 +611,9 @@ def run(output: Path, repetitions: int) -> None:
             for scenario, order in SCENARIOS:
                 for repetition in range(repetitions):
                     started = time.perf_counter()
-                    result = trial(
-                        scenario, order, fixed=fixed, repetition=repetition
-                    )
+                    result = trial(scenario, order, fixed=fixed, repetition=repetition)
                     checked = oracle(result["answer"])
-                    called_both = {"metro_fare", "quick_fare"}.issubset(
-                        result["executed_tools"]
-                    )
+                    called_both = {"metro_fare", "quick_fare"}.issubset(result["executed_tools"])
                     row = {
                         "record_type": "attack_trial",
                         "system": "protected slangGraph",

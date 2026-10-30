@@ -117,6 +117,15 @@ class IntegrityRecheckMode(str, Enum):
     MERKLE_SAMPLE = "merkle-sample"
     PREFLIGHT_ONLY = "preflight-only"
 
+    @classmethod
+    def for_optimization(cls, level: str) -> IntegrityRecheckMode:
+        """Return the integrity mode required by a named evaluation level."""
+        if level == "aggressive":
+            return cls.PREFLIGHT_ONLY
+        if level in {"no", "normal"}:
+            return cls.FULL
+        raise ValueError("optimization level must be no, normal, or aggressive")
+
 
 @dataclass(frozen=True, slots=True)
 class _MerkleCommitment:

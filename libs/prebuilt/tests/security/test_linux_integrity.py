@@ -21,6 +21,17 @@ class _FixedRandom:
         return [self.selected]
 
 
+def test_highest_optimization_level_requires_preflight_only() -> None:
+    assert (
+        IntegrityRecheckMode.for_optimization("aggressive")
+        is IntegrityRecheckMode.PREFLIGHT_ONLY
+    )
+    assert IntegrityRecheckMode.for_optimization("normal") is IntegrityRecheckMode.FULL
+    assert IntegrityRecheckMode.for_optimization("no") is IntegrityRecheckMode.FULL
+    with pytest.raises(ValueError, match="optimization level"):
+        IntegrityRecheckMode.for_optimization("unknown")
+
+
 def test_merkle_sample_detects_selected_chunk_and_size_changes(
     tmp_path: Path, monkeypatch
 ) -> None:

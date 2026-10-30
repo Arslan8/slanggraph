@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """Run the upstream add-tools prebuilt ToolNode demo with or without Argus."""
 
 from __future__ import annotations
@@ -91,6 +90,7 @@ def security(worker_route: Path):
         {"tavily_search": LinuxToolSpec("frozen_search_worker:search", WORKER, WORKER_DIGEST)},
         runtime_roots=(HERE,),
         lifecycle_checker=checker,
+        integrity_recheck="preflight-only",
     )
     parsed = parse_security_manifest(
         "tool tavily_search {\nruns linux\nreturns normal\n}",

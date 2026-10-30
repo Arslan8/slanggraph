@@ -113,6 +113,7 @@ def run(output: Path, repetitions: int) -> None:
         dispatcher = LinuxObjectDispatcher(
             {"write_report": LinuxToolSpec("document_writer:write_report", writer, writer_digest)},
             runtime_roots=(writer.parent,),
+            integrity_recheck="preflight-only",
         )
         writer_security = replace(
             cedar_security(

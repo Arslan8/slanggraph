@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """Run ordinary frozen LangGraph tool-calling examples under Baseline or Argus."""
 
 from __future__ import annotations
@@ -138,6 +137,7 @@ def security(
         },
         runtime_roots=(HERE,),
         lifecycle_checker=checker,
+        integrity_recheck="preflight-only",
     )
     manifest = "\n".join(f"tool {name} {{\nruns linux\nreturns normal\n}}" for name in tool_names)
     parsed = parse_security_manifest(

@@ -336,6 +336,7 @@ def install_compute(request, audit):
         runtime_roots=(artifact.parent, source.parents[2]),
         wall_timeout_s=15,
         lifecycle_checker=checker,
+        integrity_recheck="preflight-only",
     )
     (events.parent / "lifecycle-selection.json").write_text(
         json.dumps(request.get("lean_worker"), indent=2) + "\n"

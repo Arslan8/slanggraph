@@ -172,6 +172,7 @@ def main():
                 "is not on the Pandas object-policy route"
             ),
         },
+        "integrity_recheck": "preflight-only",
         "dataset": dataset,
         "timeout_s": 180,
         "cpu": min(os.sched_getaffinity(0)),
@@ -203,6 +204,7 @@ def main():
             "resource_mediation": "Cedar exact-file object grant and dataset operation",
             "security_audit": True,
             "runtime_contract_validator": "worker-route-grant-v3 per call",
+            "integrity_recheck": "preflight-only",
             "computation": "ObjectPolicyHostExecutor/LinuxObjectDispatcher",
         },
     }

@@ -109,9 +109,7 @@ class PreparedPolicy:
 
     @property
     def digest(self) -> str:
-        encoded = json.dumps(
-            self.canonical(), sort_keys=True, separators=(",", ":")
-        ).encode()
+        encoded = json.dumps(self.canonical(), sort_keys=True, separators=(",", ":")).encode()
         return hashlib.sha256(encoded).hexdigest()
 
 
@@ -174,9 +172,7 @@ def compile_for_host(prepared: PreparedPolicy, dispatcher) -> SecurityConfig:
     assert authorizer.policies is prepared.policies
     return SecurityConfig(
         host_executor=executor,
-        dac_overrides=DacOverrides(
-            {"common_read": ToolDac("__cedar__", {"*": "x"})}
-        ),
+        dac_overrides=DacOverrides({"common_read": ToolDac("__cedar__", {"*": "x"})}),
         closed_admission=True,
     )
 
@@ -208,8 +204,7 @@ def run(output: Path) -> None:
         artifact = hashlib.sha256(source.read_bytes()).hexdigest()
         prepared = prepare(artifact)
         (output / "prepared.json").write_text(
-            json.dumps({**prepared.canonical(), "sha256": prepared.digest}, indent=2)
-            + "\n"
+            json.dumps({**prepared.canonical(), "sha256": prepared.digest}, indent=2) + "\n"
         )
         profiles = {
             "linux": {
@@ -225,12 +220,11 @@ def run(output: Path) -> None:
                 "filesystem": False,
             },
         }
-        (output / "host-profiles.json").write_text(
-            json.dumps(profiles, indent=2) + "\n"
-        )
+        (output / "host-profiles.json").write_text(json.dumps(profiles, indent=2) + "\n")
         linux = LinuxObjectDispatcher(
             {"common_read": LinuxToolSpec("common_worker:run", source, artifact)},
             runtime_roots=(tool_root,),
+            integrity_recheck="preflight-only",
         )
         container = DockerObjectDispatcher(
             {"common_read": LinuxToolSpec("common_worker:run", source, artifact)},
@@ -244,27 +238,20 @@ def run(output: Path) -> None:
             for host, dispatcher in dispatchers.items():
                 security = compile_for_host(prepared, dispatcher)
                 for case, other in (("allowed", None), ("forbidden_probe", forbidden)):
-                    result = security.host_executor.invoke(
-                        principal, _call(allowed, other), ()
-                    )
+                    result = security.host_executor.invoke(principal, _call(allowed, other), ())
                     rows.append(
                         {
                             "host": host,
                             "case_id": case,
                             "prepared_sha256": prepared.digest,
                             "prepared_tool_object_reused": (
-                                security.host_executor.authorizer.manifest.tools[
-                                    "common_read"
-                                ]
+                                security.host_executor.authorizer.manifest.tools["common_read"]
                                 is prepared.tool
                             ),
                             "prepared_policy_object_reused": (
-                                security.host_executor.authorizer.policies
-                                is prepared.policies
+                                security.host_executor.authorizer.policies is prepared.policies
                             ),
-                            "grant": serial(
-                                security.host_executor.authorization_grants()[-1]
-                            ),
+                            "grant": serial(security.host_executor.authorization_grants()[-1]),
                             "generated_restrictions": serial(
                                 dispatcher.lowering_records()
                                 if hasattr(dispatcher, "lowering_records")
@@ -284,9 +271,7 @@ def run(output: Path) -> None:
             missing_error = None
             try:
                 missing_security = compile_for_host(prepared, missing)
-                missing_security.host_executor.invoke(
-                    principal, _call(allowed, None), ()
-                )
+                missing_security.host_executor.invoke(principal, _call(allowed, None), ())
             except Exception as exc:
                 missing_error = {"type": type(exc).__name__, "message": str(exc)}
             rows.append(

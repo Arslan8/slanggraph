@@ -121,6 +121,7 @@ def _execute(path: Path, name: str, *, host_isolated: bool) -> dict:
                 runtime_roots=tuple(
                     Path(item).resolve() for item in sys.path if item and Path(item).is_dir()
                 ),
+                integrity_recheck="preflight-only",
             )
             if host_isolated
             else None

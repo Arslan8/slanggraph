@@ -84,6 +84,7 @@ def common_metadata() -> dict:
             "typed_backend": "aggressive",
             "object_authorizer": "exact-result cache (typed aggressive mode not on this route)",
         },
+        "integrity_recheck": "preflight-only",
         "upstream_commit": "23961cff61a42b52525f3b20b4094d8d2fba1744",
         "task_digest": sha256(tasks),
         "fixture_digests": {str(path.relative_to(ROOT)): sha256(path) for path in fixtures},

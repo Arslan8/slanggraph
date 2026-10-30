@@ -465,7 +465,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--integrity-recheck",
         choices=[item.value for item in IntegrityRecheckMode],
-        default=IntegrityRecheckMode.FULL.value,
+        default=IntegrityRecheckMode.for_optimization("aggressive").value,
     )
     arguments = parser.parse_args()
     if arguments.session is None:

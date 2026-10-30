@@ -21,6 +21,7 @@ from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
     DacOverrides,
     Effect,
+    IntegrityRecheckMode,
     LeanLifecycleChecker,
     LinuxSandboxExecutor,
     LinuxToolSpec,
@@ -44,7 +45,9 @@ from langgraph.prebuilt.security.lean_lifecycle import (
 
 LEAN_BINARY = "/data/langgraph/proofs/worker-route/.lake/build/lib/libargus_worker_route.so"
 LEAN_SHA256 = "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2"
-LEAN_RUNTIME = "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so"
+LEAN_RUNTIME = (
+    "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so"
+)
 LEAN_RUNTIME_SHA256 = "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
 SOURCE = """from pathlib import Path
 
@@ -119,6 +122,7 @@ principal alice {{
             default_wall_timeout_s=10,
             lifecycle_checker=checker,
             policy_backend=policy_backend,
+            integrity_recheck=IntegrityRecheckMode.for_optimization(optimization_level),
         )
         executor_setup_ms = (time.perf_counter_ns() - executor_start) / 1e6
         sink = SqliteAuditSink(root / "audit.sqlite")
@@ -208,6 +212,9 @@ principal alice {{
                         "lean_runtime_sha256": LEAN_RUNTIME_SHA256,
                         "lean_execution": "sealed-inline-native-library",
                         "cedar_optimization_level": optimization_level,
+                        "integrity_recheck": IntegrityRecheckMode.for_optimization(
+                            optimization_level
+                        ).value,
                     },
                 )
                 for index in range(1 + warmups + measured):
