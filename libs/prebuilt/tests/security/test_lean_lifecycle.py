@@ -56,6 +56,31 @@ def checker(binary):
     )
 
 
+@pytest.fixture(scope="session")
+def native_checker():
+    root = Path(__file__).resolve().parents[4]
+    library = Path(
+        os.environ.get(
+            "LANGGRAPH_NATIVE_WORKER_LIBRARY",
+            str(root / "proofs/worker-route/.lake/build/lib/libargus_worker_route.so"),
+        )
+    )
+    manifest_path = library.with_suffix(library.suffix + ".json")
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.is_file() else {}
+    runtime_value = os.environ.get(
+        "LANGGRAPH_NATIVE_WORKER_RUNTIME", manifest.get("native_runtime", "")
+    )
+    runtime = Path(runtime_value) if runtime_value else Path("/missing-native-runtime")
+    if not library.is_file() or not runtime.is_file():
+        pytest.skip("build the inline worker-route library and provide its runtime")
+    return LeanLifecycleChecker(
+        str(library),
+        hashlib.sha256(library.read_bytes()).hexdigest(),
+        str(runtime),
+        hashlib.sha256(runtime.read_bytes()).hexdigest(),
+    )
+
+
 def binding():
     return {
         "principal": "alice",
@@ -221,6 +246,35 @@ def trace(bound):
         {"kind": "result", "binding": bound, "accepted": True},
         {"kind": "cleanup", "confirmed": True},
     ]
+
+
+def test_inline_native_checker_runs_without_per_decision_process(
+    native_checker, monkeypatch
+):
+    def unexpected(*args, **kwargs):
+        raise AssertionError("inline checker must not launch a subprocess")
+
+    monkeypatch.setattr(subprocess, "run", unexpected)
+    bound = binding()
+    proof = certificate(bound)
+    native_checker.require_grant(proof["grant"], proof["obligations"])
+    native_checker.require(bound, trace(bound)[:3], "running", certificate=proof)
+    native_checker.require(bound, trace(bound), "ready", certificate=proof)
+
+    changed = copy.deepcopy(bound)
+    changed["nonce"] = "different"
+    with pytest.raises(HostExecutionDenied, match="lean_lifecycle_refused"):
+        native_checker.require(changed, trace(bound)[:3], "running", certificate=proof)
+
+
+def test_inline_native_checker_pins_generated_runtime(native_checker):
+    with pytest.raises(HostExecutionDenied, match="lean_binary_unavailable_or_changed"):
+        LeanLifecycleChecker(
+            native_checker.binary_path,
+            native_checker.binary_sha256,
+            native_checker.runtime_path,
+            "0" * 64,
+        )
 
 
 def raw_check(binary, payload):

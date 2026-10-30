@@ -433,6 +433,14 @@ private def check (input : String) : Except String Json := do
   return Json.mkObj [("protocol", toJson "worker-route-grant-v3"),
     ("schema", toJson (3 : Nat)), ("phase", toJson phase)]
 
+/-- Native-library entry point. An empty response is a fail-closed parse or
+    decision failure; successful responses use the exact CLI protocol. -/
+@[export argus_worker_route_check]
+def checkNative (input : String) : String :=
+  match check input with
+  | .error _ => ""
+  | .ok response => response.compress
+
 def main : IO UInt32 := do
   let some input ← readInput (← IO.getStdin) | return 2
   match check input with

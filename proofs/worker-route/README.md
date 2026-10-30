@@ -93,6 +93,22 @@ retained evidence, run from the repository root:
 python3 proofs/worker-route/check.py --output /absolute/path/to/new-worker-audit
 ```
 
+The same checked decision procedure can be exported as an inline native
+library, eliminating per-transition process creation:
+
+```sh
+python3 proofs/worker-route/build_native.py \
+  --lake /absolute/path/to/pinned/lake \
+  --output /absolute/path/to/libargus_worker_route.so
+```
+
+The build emits a manifest containing the library, generated-code runtime, and
+source digests. The Python bridge pins and loads both artifacts from sealed
+memfds once, then invokes the decision procedure through the narrow C ABI. This
+removes the per-decision executable copy, process launch, and response pipe. It
+does not prove the Lean compiler, generated C, C shim, dynamic loader, or Python
+FFI correspondence; those remain explicit trusted assumptions.
+
 The directory must be new. The driver snapshots the sources and build
 configuration, checks the `leanprover/lean4:v4.34.1` pin, builds in that snapshot,
 and typechecks **72 fixed semantic obligations** in generated `KernelAudit.lean`.

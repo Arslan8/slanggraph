@@ -42,8 +42,10 @@ from langgraph.prebuilt.security.lean_lifecycle import (
     LeanLifecycleSession,
 )
 
-LEAN_BINARY = "/data/langgraph/proofs/worker-route/.lake/build/bin/workerRoute"
-LEAN_SHA256 = "6097be9b7b84639959c7a0b9de31c79f23486e9f01bf1b6de575dfab25c7cb08"
+LEAN_BINARY = "/data/langgraph/proofs/worker-route/.lake/build/lib/libargus_worker_route.so"
+LEAN_SHA256 = "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2"
+LEAN_RUNTIME = "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so"
+LEAN_RUNTIME_SHA256 = "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
 SOURCE = """from pathlib import Path
 
 def run(path):
@@ -95,7 +97,12 @@ principal alice {{
 """
         profiles = parse_profiles(profile_text, source="landlock-cost.slp")
         checker_start = time.perf_counter_ns()
-        checker = LeanLifecycleChecker(LEAN_BINARY, LEAN_SHA256)
+        checker = LeanLifecycleChecker(
+            LEAN_BINARY,
+            LEAN_SHA256,
+            LEAN_RUNTIME,
+            LEAN_RUNTIME_SHA256,
+        )
         checker_setup_ms = (time.perf_counter_ns() - checker_start) / 1e6
         executor_start = time.perf_counter_ns()
         policy_backend = CedarPolicyBackend(optimization_level=optimization_level)
@@ -197,6 +204,9 @@ principal alice {{
                         "profile": profile_text,
                         "lean_binary": LEAN_BINARY,
                         "lean_sha256": LEAN_SHA256,
+                        "lean_runtime": LEAN_RUNTIME,
+                        "lean_runtime_sha256": LEAN_RUNTIME_SHA256,
+                        "lean_execution": "sealed-inline-native-library",
                         "cedar_optimization_level": optimization_level,
                     },
                 )

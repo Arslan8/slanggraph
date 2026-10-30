@@ -36,8 +36,50 @@ from langgraph.prebuilt.security.enforcement import (
 from langgraph.prebuilt.security.execution import HostExecutionDenied
 
 _MAX_BINARY = 128 * 1024 * 1024
+_MAX_NATIVE_RUNTIME = 256 * 1024 * 1024
 _MAX_REQUEST = 1_048_576
 _PROTOCOL = "worker-route-grant-v3"
+
+
+def _pinned_image(path: str, digest: str, *, maximum: int = _MAX_BINARY) -> bytes:
+    descriptor = None
+    image = None
+    try:
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        metadata = os.fstat(descriptor)
+        if stat.S_ISREG(metadata.st_mode) and 0 < metadata.st_size <= maximum:
+            with os.fdopen(descriptor, "rb", closefd=False) as source:
+                image = source.read(maximum + 1)
+    except OSError:
+        pass
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+    if (
+        image is None
+        or len(image) > maximum
+        or hashlib.sha256(image).hexdigest() != digest
+    ):
+        raise HostExecutionDenied("host:lean_binary_unavailable_or_changed")
+    return image
+
+
+def _sealed_library(image: bytes, *, global_symbols: bool) -> tuple[ctypes.CDLL, int]:
+    if fcntl is None:
+        raise OSError("sealed native libraries require fcntl")
+    descriptor = _memfd()
+    try:
+        with os.fdopen(descriptor, "wb", closefd=False) as target:
+            target.write(image)
+            target.flush()
+        fcntl.fcntl(descriptor, 1033, 15)
+        if fcntl.fcntl(descriptor, 1034) & 15 != 15:
+            raise OSError("native checker sealing unconfirmed")
+        mode = os.RTLD_NOW | (os.RTLD_GLOBAL if global_symbols else os.RTLD_LOCAL)
+        return ctypes.CDLL(f"/proc/self/fd/{descriptor}", mode=mode), descriptor
+    except BaseException:
+        os.close(descriptor)
+        raise
 
 
 def _memfd() -> int:
@@ -359,16 +401,25 @@ def _response_pairs(pairs: list) -> dict:
 
 @dataclass(frozen=True, slots=True)
 class LeanLifecycleChecker:
-    """Operator-selected executable of the proved core, with pinned bytes.
+    """Operator-selected native form of the proved core, with pinned bytes.
 
     A matching digest identifies bytes; it is not a proof of their build. Use
     the proof project's checked build output and retain its artifact manifest.
-    Arbitrary executables or forged build records are outside this contract.
+    An executable uses the legacy sealed subprocess protocol. A `.so` library
+    and its pinned generated-code runtime are loaded from sealed memfds once and
+    invoked inline. Arbitrary artifacts or forged build records are outside
+    this contract.
     """
 
     binary_path: str
     binary_sha256: str
+    runtime_path: str | None = None
+    runtime_sha256: str | None = None
     _image: bytes = field(init=False, repr=False, compare=False)
+    _native_libraries: tuple[ctypes.CDLL, ...] = field(
+        init=False, repr=False, compare=False, default=()
+    )
+    _native_check: Any = field(init=False, repr=False, compare=False, default=None)
 
     def __post_init__(self) -> None:
         if (
@@ -379,26 +430,52 @@ class LeanLifecycleChecker:
             or any(char not in "0123456789abcdef" for char in self.binary_sha256)
         ):
             raise HostExecutionDenied("host:lean_binary_configuration")
-        descriptor = None
-        image = None
-        try:
-            descriptor = os.open(self.binary_path, os.O_RDONLY | os.O_NOFOLLOW)
-            metadata = os.fstat(descriptor)
-            if stat.S_ISREG(metadata.st_mode) and 0 < metadata.st_size <= _MAX_BINARY:
-                with os.fdopen(descriptor, "rb", closefd=False) as source:
-                    image = source.read(_MAX_BINARY + 1)
-        except OSError:
-            pass
-        finally:
-            if descriptor is not None:
-                os.close(descriptor)
-        if (
-            image is None
-            or len(image) > _MAX_BINARY
-            or hashlib.sha256(image).hexdigest() != self.binary_sha256
-        ):
-            raise HostExecutionDenied("host:lean_binary_unavailable_or_changed")
+        image = _pinned_image(self.binary_path, self.binary_sha256)
         object.__setattr__(self, "_image", image)
+        if self.binary_path.endswith(".so"):
+            if (
+                type(self.runtime_path) is not str
+                or not self.runtime_path.startswith("/")
+                or type(self.runtime_sha256) is not str
+                or len(self.runtime_sha256) != 64
+                or any(char not in "0123456789abcdef" for char in self.runtime_sha256)
+            ):
+                raise HostExecutionDenied("host:lean_native_runtime_configuration")
+            runtime_descriptor = None
+            library_descriptor = None
+            try:
+                runtime, runtime_descriptor = _sealed_library(
+                    _pinned_image(
+                        self.runtime_path,
+                        self.runtime_sha256,
+                        maximum=_MAX_NATIVE_RUNTIME,
+                    ),
+                    global_symbols=True,
+                )
+                library, library_descriptor = _sealed_library(
+                    image, global_symbols=False
+                )
+                function = library.argus_worker_route_check_json
+                function.argtypes = (
+                    ctypes.c_char_p,
+                    ctypes.c_size_t,
+                    ctypes.POINTER(ctypes.c_char),
+                    ctypes.c_size_t,
+                )
+                function.restype = ctypes.c_int
+            except HostExecutionDenied:
+                raise
+            except (AttributeError, OSError) as exc:
+                raise HostExecutionDenied("host:lean_native_unavailable") from exc
+            finally:
+                if runtime_descriptor is not None:
+                    os.close(runtime_descriptor)
+                if library_descriptor is not None:
+                    os.close(library_descriptor)
+            object.__setattr__(self, "_native_libraries", (runtime, library))
+            object.__setattr__(self, "_native_check", function)
+        elif self.runtime_path is not None or self.runtime_sha256 is not None:
+            raise HostExecutionDenied("host:lean_native_runtime_configuration")
 
     def require(
         self, binding: dict, events: list, phase: str, *, certificate: dict
@@ -446,6 +523,30 @@ class LeanLifecycleChecker:
         request = _encoded(_data(payload)) + b"\n"
         if len(request) > _MAX_REQUEST:
             raise HostExecutionDenied("host:lean_protocol_shape")
+        native = self._native_check
+        if native is not None:
+            output = ctypes.create_string_buffer(257)
+            size = native(request, len(request), output, len(output))
+            response = None
+            if 0 < size <= 256:
+                try:
+                    response = json.loads(
+                        output.raw[:size], object_pairs_hook=_response_pairs
+                    )
+                except (UnicodeError, ValueError, RecursionError):
+                    pass
+            if (
+                type(response) is not dict
+                or set(response) != {"protocol", "schema", "phase"}
+                or type(response["protocol"]) is not str
+                or response["protocol"] != _PROTOCOL
+                or type(response["schema"]) is not int
+                or response["schema"] != 3
+                or type(response["phase"]) is not str
+                or response["phase"] != phase
+            ):
+                raise HostExecutionDenied("host:lean_lifecycle_refused")
+            return
         descriptor = None
         response = None
         try:

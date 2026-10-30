@@ -84,10 +84,12 @@ are retained under the new directory; a failed observation is not overwritten.
 The audit driver also has 20 self-tests for its parsing and refusal behavior,
 run with `python3 -m unittest discover -s proofs/worker-route -p test_check.py`.
 
-Use the fresh successful report's `binary.path` and `binary.sha256` to select
-`artifacts/workerRoute`. A report is evidence from that run, not a runtime
-authorizer or a replacement for recomputation. The hash identifies executable
-bytes; it does not prove compiler, linker, loader, or decoder correctness.
+Use the fresh successful report to establish the proved source revision. Build
+the inline library from that exact revision with `build_native.py`; its emitted
+manifest pins the library, generated-code runtime, sources, and toolchain. A
+report or manifest is evidence from that run, not a runtime authorizer or a
+replacement for recomputation. Hashes identify bytes; they do not prove
+compiler, linker, loader, C-shim, FFI, or decoder correctness.
 
 ## Select the synchronous route
 
@@ -97,17 +99,18 @@ executor inputs. Run the captured audit successfully first and keep its output
 under operator control.
 
 ```python
-import json
 from pathlib import Path
 
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.linux import LinuxSandboxExecutor
 
-audit_dir = Path("/absolute/path/to/new-worker-audit")
-report = json.loads((audit_dir / "report.json").read_text())
+library = Path("/absolute/path/to/libargus_worker_route.so")
+runtime = Path("/absolute/path/to/libleanshared.so")
 checker = LeanLifecycleChecker(
-    binary_path=report["binary"]["path"],
-    binary_sha256=report["binary"]["sha256"],
+    binary_path=str(library),
+    binary_sha256="<sha256 from the native build manifest>",
+    runtime_path=str(runtime),
+    runtime_sha256="<runtime sha256 from the native build manifest>",
 )
 executor = LinuxSandboxExecutor(
     profiles,
@@ -118,13 +121,15 @@ executor = LinuxSandboxExecutor(
 )
 ```
 
-The checker captures the selected regular file's bytes and verifies their
-SHA-256. Each decision executes those bytes from a Linux `memfd` after installing
-and checking write, grow, shrink, and further-sealing restrictions. The bridge
-uses the native libc API even when Python omits the corresponding wrappers.
-Unavailable storage, unconfirmed sealing, execution failure, malformed output,
-or a refused transition blocks the operation. There is no Python decision or
-writable-path executable fallback.
+The checker captures both selected regular files and verifies their SHA-256
+digests. It loads them once from separate Linux `memfd` objects after installing
+and checking write, grow, shrink, and further-sealing restrictions. Decisions
+then call the narrow native ABI inline; they do not copy an executable, start a
+process, or use a response pipe. Unavailable storage, unconfirmed sealing,
+missing symbols, malformed output, or a refused transition blocks the
+operation. There is no Python decision or writable-path fallback. The legacy
+two-argument executable configuration remains supported for artifact replay,
+but is not the optimized production path.
 
 The request protocol is `worker-route-grant-v3`. Before attestation, a preflight
 request with `kind: "grant"` must contain the detached admitted grant and compiled
