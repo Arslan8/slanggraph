@@ -5,12 +5,15 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import queue
 import sqlite3
 import time
 import uuid
+from atexit import register as register_atexit
 from dataclasses import replace
 from pathlib import Path
-from threading import RLock
+from threading import RLock, Thread
+from typing import Literal
 
 from langgraph.prebuilt.security.types import (
     AuditRecord,
@@ -78,9 +81,26 @@ class MemoryAuditSink:
 class SqliteAuditSink:
     """Thread-safe SQLite audit sink using WAL and a SHA-256 hash chain."""
 
-    def __init__(self, path: str | Path) -> None:
+    def __init__(
+        self,
+        path: str | Path,
+        *,
+        durability: Literal["synchronous", "trusted-async"] = "synchronous",
+        batch_size: int = 256,
+        max_pending: int = 8192,
+    ) -> None:
+        if durability not in {"synchronous", "trusted-async"}:
+            raise ValueError("unknown audit durability mode")
+        if type(batch_size) is not int or batch_size <= 0:
+            raise ValueError("audit batch_size must be a positive integer")
+        if type(max_pending) is not int or max_pending <= 0:
+            raise ValueError("audit max_pending must be a positive integer")
         self.path = Path(path)
         self._lock = RLock()
+        self.durability = durability
+        self.batch_size = batch_size
+        self._closed = False
+        self._failure: BaseException | None = None
         self._connection = sqlite3.connect(self.path, check_same_thread=False)
         self._connection.execute("PRAGMA journal_mode=WAL")
         self._connection.execute("PRAGMA synchronous=FULL")
@@ -136,42 +156,115 @@ class SqliteAuditSink:
                 "ALTER TABLE audit_records ADD COLUMN outcome TEXT"
             )
         self._connection.commit()
+        row = self._connection.execute(
+            "SELECT hash FROM audit_records ORDER BY sequence DESC LIMIT 1"
+        ).fetchone()
+        self._head = str(row[0]) if row else ""
+        self._pending: queue.Queue[AuditRecord | object] | None = None
+        self._stop = object()
+        self._writer: Thread | None = None
+        if durability == "trusted-async":
+            self._pending = queue.Queue(maxsize=max_pending)
+            self._writer = Thread(
+                target=self._write_batches,
+                name="argus-audit-writer",
+                daemon=True,
+            )
+            self._writer.start()
+            register_atexit(self.close)
 
     def write(self, record: AuditRecord) -> AuditRecord:
-        """Atomically append and finalize one record."""
-        with self._lock, self._connection:
-            row = self._connection.execute(
-                "SELECT hash FROM audit_records ORDER BY sequence DESC LIMIT 1"
-            ).fetchone()
-            previous = str(row[0]) if row else ""
+        """Finalize and hand one record to the configured durability boundary."""
+        with self._lock:
+            self._require_available()
+            previous = self._head
             finalized = _finalize(record, previous)
-            self._connection.execute(
-                """
-                INSERT INTO audit_records (
-                    call_index, tool_name, user_id, session_id, args_hash, stage,
-                    module, verdict, reason, prev_hash, hash, outcome
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    finalized.call_index,
-                    finalized.tool_name,
-                    finalized.user_id,
-                    finalized.session_id,
-                    finalized.args_hash,
-                    finalized.stage,
-                    finalized.module,
-                    finalized.verdict.value,
-                    finalized.reason,
-                    finalized.prev_hash,
-                    finalized.hash,
-                    finalized.outcome.value if finalized.outcome is not None else None,
-                ),
-            )
+            if self._pending is None:
+                with self._connection:
+                    self._insert(finalized)
+            else:
+                try:
+                    self._pending.put_nowait(finalized)
+                except queue.Full as exc:
+                    raise RuntimeError("trusted audit writer queue is full") from exc
+            self._head = finalized.hash
             return finalized
+
+    def _insert(self, record: AuditRecord) -> None:
+        self._connection.execute(
+            """
+            INSERT INTO audit_records (
+                call_index, tool_name, user_id, session_id, args_hash, stage,
+                module, verdict, reason, prev_hash, hash, outcome
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                record.call_index,
+                record.tool_name,
+                record.user_id,
+                record.session_id,
+                record.args_hash,
+                record.stage,
+                record.module,
+                record.verdict.value,
+                record.reason,
+                record.prev_hash,
+                record.hash,
+                record.outcome.value if record.outcome is not None else None,
+            ),
+        )
+
+    def _write_batches(self) -> None:
+        assert self._pending is not None
+        while True:
+            first = self._pending.get()
+            if first is self._stop:
+                self._pending.task_done()
+                return
+            batch = [first]
+            stop_after_batch = False
+            while len(batch) < self.batch_size:
+                try:
+                    item = self._pending.get_nowait()
+                except queue.Empty:
+                    break
+                if item is self._stop:
+                    self._pending.task_done()
+                    stop_after_batch = True
+                    break
+                batch.append(item)
+            try:
+                with self._connection:
+                    for item in batch:
+                        assert isinstance(item, AuditRecord)
+                        self._insert(item)
+            except BaseException as exc:
+                self._failure = exc
+            finally:
+                for _ in batch:
+                    self._pending.task_done()
+            if stop_after_batch:
+                return
+
+    def _require_available(self) -> None:
+        if self._closed:
+            raise RuntimeError("audit sink is closed")
+        if self._failure is not None:
+            raise RuntimeError("trusted audit writer failed") from self._failure
+
+    def flush(self) -> None:
+        """Wait until every accepted record has reached SQLite."""
+        pending = self._pending
+        if pending is None:
+            return
+        pending.join()
+        with self._lock:
+            self._require_available()
 
     def records(self) -> tuple[AuditRecord, ...]:
         """Return all records in append order."""
         with self._lock:
+            self.flush()
             rows = self._connection.execute(
                 """
                 SELECT call_index, tool_name, user_id, args_hash, stage, module,
@@ -214,7 +307,18 @@ class SqliteAuditSink:
     def close(self) -> None:
         """Flush and close the SQLite connection."""
         with self._lock:
+            if self._closed:
+                return
+            self.flush()
+            if self._pending is not None:
+                self._pending.put(self._stop)
+                self._pending.join()
+                assert self._writer is not None
+                self._writer.join(timeout=5.0)
+                if self._writer.is_alive():
+                    raise RuntimeError("trusted audit writer did not stop")
             self._connection.close()
+            self._closed = True
 
 
 def _finalize(record: AuditRecord, previous: str) -> AuditRecord:

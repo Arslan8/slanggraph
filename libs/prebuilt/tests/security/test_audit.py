@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Event
 
 import pytest
 
@@ -84,6 +85,60 @@ def test_sqlite_round_trips_session_identity(tmp_path: Path) -> None:
         assert sink.verify() == (True, None)
     finally:
         sink.close()
+
+
+def test_trusted_async_acceptance_does_not_wait_for_sqlite(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sink = SqliteAuditSink(
+        tmp_path / "async.db", durability="trusted-async", batch_size=8
+    )
+    started = Event()
+    release = Event()
+    original = sink._insert
+
+    def blocked(record: AuditRecord) -> None:
+        started.set()
+        assert release.wait(2)
+        original(record)
+
+    monkeypatch.setattr(sink, "_insert", blocked)
+    written = sink.write(_record(0))
+    assert written.hash
+    assert started.wait(1)
+    release.set()
+    sink.flush()
+    assert sink.records() == (written,)
+    sink.close()
+
+
+def test_trusted_async_close_flushes_chain_for_reopen(tmp_path: Path) -> None:
+    path = tmp_path / "async-reopen.db"
+    sink = SqliteAuditSink(path, durability="trusted-async", batch_size=16)
+    written = tuple(sink.write(_record(index)) for index in range(100))
+    sink.close()
+
+    reopened = SqliteAuditSink(path)
+    try:
+        assert reopened.records() == written
+        assert reopened.verify() == (True, None)
+    finally:
+        reopened.close()
+
+
+@pytest.mark.parametrize(
+    ("arguments", "message"),
+    [
+        ({"durability": "unknown"}, "durability"),
+        ({"batch_size": 0}, "batch_size"),
+        ({"max_pending": 0}, "max_pending"),
+    ],
+)
+def test_sqlite_rejects_invalid_writer_configuration(
+    tmp_path: Path, arguments: dict[str, object], message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        SqliteAuditSink(tmp_path / "invalid.db", **arguments)
 
 
 def test_sqlite_migrates_legacy_schema(tmp_path: Path) -> None:

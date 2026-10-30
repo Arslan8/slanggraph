@@ -1,0 +1,1287 @@
+{
+  "measured_calls_per_session": 20,
+  "records": [
+    {
+      "acceptance_ms": 0.473763,
+      "call": 0,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.473087,
+      "call": 1,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.450164,
+      "call": 2,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.450108,
+      "call": 3,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.474251,
+      "call": 4,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.477571,
+      "call": 5,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.470569,
+      "call": 6,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.474733,
+      "call": 7,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.450928,
+      "call": 8,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.478461,
+      "call": 9,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.46798,
+      "call": 10,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.448507,
+      "call": 11,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.452728,
+      "call": 12,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.449104,
+      "call": 13,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.451686,
+      "call": 14,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.455106,
+      "call": 15,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.444811,
+      "call": 16,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.4776,
+      "call": 17,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.473129,
+      "call": 18,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.472445,
+      "call": 19,
+      "durability": "synchronous",
+      "session": 0
+    },
+    {
+      "durability": "synchronous",
+      "flush_and_close_ms": 0.618248,
+      "kind": "close",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.014894,
+      "call": 0,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.012812,
+      "call": 1,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.011954,
+      "call": 2,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.013555,
+      "call": 3,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.01195,
+      "call": 4,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.012146,
+      "call": 5,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.012555,
+      "call": 6,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.012261,
+      "call": 7,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.011937,
+      "call": 8,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.012004,
+      "call": 9,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.01148,
+      "call": 10,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.011693,
+      "call": 11,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.013886,
+      "call": 12,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.01217,
+      "call": 13,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.012593,
+      "call": 14,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.011787,
+      "call": 15,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.011607,
+      "call": 16,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.014193,
+      "call": 17,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.0119,
+      "call": 18,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.011513,
+      "call": 19,
+      "durability": "trusted-async",
+      "session": 0
+    },
+    {
+      "durability": "trusted-async",
+      "flush_and_close_ms": 1.39763,
+      "kind": "close",
+      "session": 0
+    },
+    {
+      "acceptance_ms": 0.473131,
+      "call": 0,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.474067,
+      "call": 1,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.478045,
+      "call": 2,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.476639,
+      "call": 3,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.475751,
+      "call": 4,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.474748,
+      "call": 5,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.475372,
+      "call": 6,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.473933,
+      "call": 7,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.475231,
+      "call": 8,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.475868,
+      "call": 9,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.471681,
+      "call": 10,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.478238,
+      "call": 11,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.471438,
+      "call": 12,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.47755,
+      "call": 13,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.47234,
+      "call": 14,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.506632,
+      "call": 15,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.465785,
+      "call": 16,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.450883,
+      "call": 17,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.483037,
+      "call": 18,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.491628,
+      "call": 19,
+      "durability": "synchronous",
+      "session": 1
+    },
+    {
+      "durability": "synchronous",
+      "flush_and_close_ms": 0.620945,
+      "kind": "close",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.012111,
+      "call": 0,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.012197,
+      "call": 1,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011955,
+      "call": 2,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011757,
+      "call": 3,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011202,
+      "call": 4,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011873,
+      "call": 5,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011419,
+      "call": 6,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.012242,
+      "call": 7,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.012156,
+      "call": 8,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011779,
+      "call": 9,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.0116,
+      "call": 10,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011534,
+      "call": 11,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.015221,
+      "call": 12,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.012144,
+      "call": 13,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011935,
+      "call": 14,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011216,
+      "call": 15,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.012023,
+      "call": 16,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.011609,
+      "call": 17,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.020064,
+      "call": 18,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.016931,
+      "call": 19,
+      "durability": "trusted-async",
+      "session": 1
+    },
+    {
+      "durability": "trusted-async",
+      "flush_and_close_ms": 1.389668,
+      "kind": "close",
+      "session": 1
+    },
+    {
+      "acceptance_ms": 0.451803,
+      "call": 0,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.446581,
+      "call": 1,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.454861,
+      "call": 2,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.444924,
+      "call": 3,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.45218,
+      "call": 4,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.448034,
+      "call": 5,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.454797,
+      "call": 6,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.445492,
+      "call": 7,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.449443,
+      "call": 8,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.449792,
+      "call": 9,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.447809,
+      "call": 10,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.452586,
+      "call": 11,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.448572,
+      "call": 12,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.451283,
+      "call": 13,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.44472,
+      "call": 14,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.456975,
+      "call": 15,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.445504,
+      "call": 16,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.448302,
+      "call": 17,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.498524,
+      "call": 18,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.603518,
+      "call": 19,
+      "durability": "synchronous",
+      "session": 2
+    },
+    {
+      "durability": "synchronous",
+      "flush_and_close_ms": 0.697968,
+      "kind": "close",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.012832,
+      "call": 0,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.012332,
+      "call": 1,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.01249,
+      "call": 2,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.012382,
+      "call": 3,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.01185,
+      "call": 4,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.012261,
+      "call": 5,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.012061,
+      "call": 6,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.01492,
+      "call": 7,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.012272,
+      "call": 8,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011778,
+      "call": 9,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011499,
+      "call": 10,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011258,
+      "call": 11,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.01167,
+      "call": 12,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011205,
+      "call": 13,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011612,
+      "call": 14,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011526,
+      "call": 15,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011714,
+      "call": 16,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011788,
+      "call": 17,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011458,
+      "call": 18,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.011425,
+      "call": 19,
+      "durability": "trusted-async",
+      "session": 2
+    },
+    {
+      "durability": "trusted-async",
+      "flush_and_close_ms": 1.405119,
+      "kind": "close",
+      "session": 2
+    },
+    {
+      "acceptance_ms": 0.469726,
+      "call": 0,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.473388,
+      "call": 1,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.449784,
+      "call": 2,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.447829,
+      "call": 3,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.453704,
+      "call": 4,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.453679,
+      "call": 5,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.471666,
+      "call": 6,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.445644,
+      "call": 7,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.448948,
+      "call": 8,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.474534,
+      "call": 9,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.451455,
+      "call": 10,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.44874,
+      "call": 11,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.448159,
+      "call": 12,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.451032,
+      "call": 13,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.448342,
+      "call": 14,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.456856,
+      "call": 15,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.469038,
+      "call": 16,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.455184,
+      "call": 17,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.518136,
+      "call": 18,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.453692,
+      "call": 19,
+      "durability": "synchronous",
+      "session": 3
+    },
+    {
+      "durability": "synchronous",
+      "flush_and_close_ms": 0.624834,
+      "kind": "close",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.01201,
+      "call": 0,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.012772,
+      "call": 1,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.01635,
+      "call": 2,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011903,
+      "call": 3,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.01175,
+      "call": 4,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011824,
+      "call": 5,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.013752,
+      "call": 6,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011842,
+      "call": 7,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011936,
+      "call": 8,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.012409,
+      "call": 9,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011822,
+      "call": 10,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011447,
+      "call": 11,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011565,
+      "call": 12,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.012067,
+      "call": 13,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011391,
+      "call": 14,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011533,
+      "call": 15,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011385,
+      "call": 16,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.011622,
+      "call": 17,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.013393,
+      "call": 18,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.012119,
+      "call": 19,
+      "durability": "trusted-async",
+      "session": 3
+    },
+    {
+      "durability": "trusted-async",
+      "flush_and_close_ms": 1.477241,
+      "kind": "close",
+      "session": 3
+    },
+    {
+      "acceptance_ms": 0.477221,
+      "call": 0,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.467658,
+      "call": 1,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.449085,
+      "call": 2,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.454888,
+      "call": 3,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.478721,
+      "call": 4,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.470674,
+      "call": 5,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.448191,
+      "call": 6,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.451887,
+      "call": 7,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.471103,
+      "call": 8,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.478239,
+      "call": 9,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.473865,
+      "call": 10,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.448994,
+      "call": 11,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.451188,
+      "call": 12,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.473553,
+      "call": 13,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.453623,
+      "call": 14,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.481126,
+      "call": 15,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.510514,
+      "call": 16,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.822971,
+      "call": 17,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.671523,
+      "call": 18,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.492769,
+      "call": 19,
+      "durability": "synchronous",
+      "session": 4
+    },
+    {
+      "durability": "synchronous",
+      "flush_and_close_ms": 0.594576,
+      "kind": "close",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011272,
+      "call": 0,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.01191,
+      "call": 1,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011584,
+      "call": 2,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011498,
+      "call": 3,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011583,
+      "call": 4,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011823,
+      "call": 5,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011106,
+      "call": 6,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.012014,
+      "call": 7,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011524,
+      "call": 8,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.01159,
+      "call": 9,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.01144,
+      "call": 10,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011318,
+      "call": 11,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.014476,
+      "call": 12,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011383,
+      "call": 13,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011895,
+      "call": 14,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011612,
+      "call": 15,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011587,
+      "call": 16,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011833,
+      "call": 17,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.011448,
+      "call": 18,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "acceptance_ms": 0.01144,
+      "call": 19,
+      "durability": "trusted-async",
+      "session": 4
+    },
+    {
+      "durability": "trusted-async",
+      "flush_and_close_ms": 1.505892,
+      "kind": "close",
+      "session": 4
+    }
+  ],
+  "sessions": 5,
+  "summary": {
+    "synchronous": {
+      "ci95_session_means_ms": [
+        0.451503979724655,
+        0.490531160275345
+      ],
+      "mean_acceptance_ms": 0.47101757
+    },
+    "trusted-async": {
+      "ci95_session_means_ms": [
+        0.011762676249035908,
+        0.012665703750964092
+      ],
+      "mean_acceptance_ms": 0.01221419
+    },
+    "trusted_async_speedup": {
+      "ratio": 0.025931495506632585,
+      "removed_ms": 0.45880338
+    }
+  },
+  "warmups_per_session": 10
+}

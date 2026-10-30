@@ -121,7 +121,11 @@ def main():
         callbacks=[Observer()],
         **extra,
     )
-    audit = SqliteAuditSink(events.parent / "security.sqlite") if protected else None
+    audit = (
+        SqliteAuditSink(events.parent / "security.sqlite", durability="trusted-async")
+        if protected
+        else None
+    )
     dispatch = closed.install_compute(request, audit)
     declarations = request["trusted_declarations"]
 

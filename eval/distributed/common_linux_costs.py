@@ -112,7 +112,7 @@ def session(
             integrity_recheck=integrity_recheck,
         )
         dispatcher_setup_ms = (time.perf_counter_ns() - dispatcher_started) / 1e6
-        sink = SqliteAuditSink(root / "audit.sqlite")
+        sink = SqliteAuditSink(root / "audit.sqlite", durability="trusted-async")
         admission_started = time.perf_counter_ns()
         security = replace(
             cedar_security(
@@ -451,6 +451,7 @@ def session(
             ToolNode._func = originals["toolnode"]
             ToolNode._run_one_inner = originals["tool_call"]
             dispatcher.close()
+            sink.close()
 
 
 def run(

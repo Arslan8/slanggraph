@@ -172,3 +172,42 @@ libs/prebuilt/.venv/bin/python \
   --sessions 5 --calls 20 --warmups 5 \
   --output eval/campaigns/policy-preflight-v1/worker-transport-async-reap.json
 ```
+
+## Trusted asynchronous audit
+
+The aggressive configuration now treats acceptance by Argus's trusted audit
+writer as the online boundary. The caller assigns the next hash-chain entry and
+enqueues it in a bounded queue. A dedicated writer preserves order, batches
+SQLite transactions, and performs `synchronous=FULL` persistence off-path.
+Queue exhaustion and a previously observed writer failure refuse later audit
+writes. `flush()`, `records()`, verification, sealing, and `close()` wait for all
+accepted records. The synchronous durability mode remains available when the
+caller requires physical persistence before every return.
+
+A matched current-revision language-route diagnostic used five fresh sessions,
+five warmups, and 20 measured calls per session and changed only audit
+durability:
+
+| Audit durability | Complete call mean | Online audit mean | Success |
+|---|---:|---:|---:|
+| Synchronous SQLite | 11.456 ms | 7.349 ms | 100/100 |
+| Trusted asynchronous | 5.325 ms | 0.283 ms | 100/100 |
+
+Trusted asynchronous acceptance removed 6.131 ms (53.5%) from the complete
+language-route call. Its remaining arithmetic framework residual was 3.678 ms,
+which is now the largest aggregate phase on that route. An isolated one-record
+diagnostic measured 0.471 ms synchronous acceptance versus 0.012 ms trusted
+asynchronous acceptance. The route raw records are under `audit-route-sync/`
+and `audit-route-async/`; isolated raw records are in
+`audit-async-diagnostic.json`.
+
+```bash
+libs/prebuilt/.venv/bin/python eval/distributed/common_language_costs.py \
+  --output audit-route-sync --sessions 5 --warmups 5 --measured 20 \
+  --audit-durability synchronous
+libs/prebuilt/.venv/bin/python eval/distributed/common_language_costs.py \
+  --output audit-route-async --sessions 5 --warmups 5 --measured 20 \
+  --audit-durability trusted-async
+libs/prebuilt/.venv/bin/python eval/distributed/audit_costs.py \
+  --output audit-async-diagnostic.json
+```

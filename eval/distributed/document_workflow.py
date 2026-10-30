@@ -100,7 +100,7 @@ def run(output: Path, repetitions: int) -> None:
             f'when {{ resource.selector != "{report_path}" }};'
         )
         install_mac_policy(operator_policy)
-        audit = SqliteAuditSink(output / "audit.sqlite")
+        audit = SqliteAuditSink(output / "audit.sqlite", durability="trusted-async")
         summary_security = replace(
             cedar_security(
                 summarize_documents,

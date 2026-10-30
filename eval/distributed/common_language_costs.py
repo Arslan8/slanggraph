@@ -46,14 +46,20 @@ def write(stream, value: dict) -> None:
     stream.flush()
 
 
-def session(output: Path, number: int, warmups: int, measured: int) -> None:
+def session(
+    output: Path,
+    number: int,
+    warmups: int,
+    measured: int,
+    audit_durability: str,
+) -> None:
     os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
     install_mac_policy(MANDATORY)
     with tempfile.TemporaryDirectory(prefix="slg-common-language-") as folder:
         root = Path(folder)
         allowed = root / "allowed.txt"
         allowed.write_text("COMMON_FILE_VALUE")
-        sink = SqliteAuditSink(root / "audit.sqlite")
+        sink = SqliteAuditSink(root / "audit.sqlite", durability=audit_durability)
         setup_start = time.perf_counter_ns()
         security = replace(
             cedar_security(common_read, manifest=MANIFEST, policy=POLICY),
@@ -98,6 +104,7 @@ def session(output: Path, number: int, warmups: int, measured: int) -> None:
                         "kind": "setup",
                         "route": "language",
                         "session": number,
+                        "audit_durability": audit_durability,
                         "setup_ms": setup_ms,
                         "manifest": MANIFEST,
                         "policy": POLICY,
@@ -178,9 +185,16 @@ def session(output: Path, number: int, warmups: int, measured: int) -> None:
             _LanguageSandboxDispatcher.invoke = originals["dispatch"]
             ManifestAdmission.invoke = originals["execute"]
             sink.write = originals["audit"]
+            sink.close()
 
 
-def run(output: Path, sessions: int, warmups: int, measured: int) -> None:
+def run(
+    output: Path,
+    sessions: int,
+    warmups: int,
+    measured: int,
+    audit_durability: str,
+) -> None:
     output.mkdir(parents=True, exist_ok=False)
     for number in range(sessions):
         log = output / f"session-{number}.log"
@@ -197,6 +211,8 @@ def run(output: Path, sessions: int, warmups: int, measured: int) -> None:
                     str(warmups),
                     "--measured",
                     str(measured),
+                    "--audit-durability",
+                    audit_durability,
                 ],
                 stdout=stream,
                 stderr=subprocess.STDOUT,
@@ -212,8 +228,25 @@ if __name__ == "__main__":
     parser.add_argument("--warmups", default=5, type=int)
     parser.add_argument("--measured", default=20, type=int)
     parser.add_argument("--session", type=int)
+    parser.add_argument(
+        "--audit-durability",
+        choices=("synchronous", "trusted-async"),
+        default="trusted-async",
+    )
     arguments = parser.parse_args()
     if arguments.session is None:
-        run(arguments.output, arguments.sessions, arguments.warmups, arguments.measured)
+        run(
+            arguments.output,
+            arguments.sessions,
+            arguments.warmups,
+            arguments.measured,
+            arguments.audit_durability,
+        )
     else:
-        session(arguments.output, arguments.session, arguments.warmups, arguments.measured)
+        session(
+            arguments.output,
+            arguments.session,
+            arguments.warmups,
+            arguments.measured,
+            arguments.audit_durability,
+        )

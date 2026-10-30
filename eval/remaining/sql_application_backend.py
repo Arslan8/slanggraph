@@ -174,7 +174,10 @@ def main():
         security = cedar_security(
             sql_access, manifest=MANIFEST, classes=CLASSES, policy=POLICY, dispatcher=dispatcher
         )
-        security = replace(security, audit_sink=SqliteAuditSink(folder / "audit.sqlite"))
+        security = replace(
+            security,
+            audit_sink=SqliteAuditSink(folder / "audit.sqlite", durability="trusted-async"),
+        )
         builder = StateGraph(MessagesState)
         builder.add_node("tools", ToolNode([sql_access]))
         builder.add_edge(START, "tools")

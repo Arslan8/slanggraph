@@ -113,7 +113,7 @@ def install(request):
             with_principal,
         )
 
-        audit = SqliteAuditSink(events.parent / "security.sqlite")
+        audit = SqliteAuditSink(events.parent / "security.sqlite", durability="trusted-async")
         profiles = parse_profiles(
             Path(request["effective_policy"]).read_text(), source="frozen-application.slp"
         )
