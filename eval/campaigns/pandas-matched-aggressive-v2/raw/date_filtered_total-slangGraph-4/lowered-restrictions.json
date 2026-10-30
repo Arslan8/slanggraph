@@ -1,0 +1,386 @@
+[
+  {
+    "object_grant_digest": "68428b33e57ee8814a66920d79e85182471be0671d7353f6f7d8bd5817633274",
+    "native_grant_digest": "293abb570db6ff68faa663a76ec0e6a396b2f6fcd204acf69128a459153ae5ef",
+    "policy_digest": "68428b33e57ee8814a66920d79e85182471be0671d7353f6f7d8bd5817633274",
+    "rules": [
+      {
+        "baseline": false,
+        "conditions": {
+          "exact_file": true
+        },
+        "domain": "filesystem",
+        "operation": "read",
+        "provenance": [
+          "<compute manifest>:5"
+        ],
+        "requirement": "need",
+        "rule_id": "compute:0",
+        "selector": "/data/slanggraph-eval-upstreams/ai-data-science-team/.venv/lib/python3.13/site-packages/ai_data_science_team/utils/sandbox.py"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "subtree": true,
+          "ephemeral": true
+        },
+        "domain": "runtime",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:tmp:read",
+        "selector": "/tmp"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "subtree": true,
+          "ephemeral": true
+        },
+        "domain": "runtime",
+        "operation": "write",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:tmp:write",
+        "selector": "/tmp"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "subtree": true,
+          "ephemeral": true
+        },
+        "domain": "runtime",
+        "operation": "create",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:tmp:create",
+        "selector": "/tmp"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "subtree": true,
+          "ephemeral": true
+        },
+        "domain": "runtime",
+        "operation": "delete",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:tmp:delete",
+        "selector": "/tmp"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "subtree": true,
+          "ephemeral": true
+        },
+        "domain": "runtime",
+        "operation": "truncate",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:tmp:truncate",
+        "selector": "/tmp"
+      },
+      {
+        "baseline": true,
+        "conditions": {},
+        "domain": "runtime",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:urandom",
+        "selector": "/dev/urandom"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "sha256": "b803349d3ecf0ea059dff876daf9b3f1f7067cff5d6f464ebfbbd5a84e5900ef"
+        },
+        "domain": "runtime",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:worker",
+        "selector": "/data/langgraph/eval/campaigns/pandas-matched-aggressive-v2/raw/framework/libs/prebuilt/langgraph/prebuilt/security/_linux_worker.py"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "sha256": "5d94a4de932cbab2ba9d89db9680044d72dff75041fb644879f0f77af9975ca6"
+        },
+        "domain": "runtime",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:artifact",
+        "selector": "/data/langgraph/eval/campaigns/pandas-matched-aggressive-v2/raw/harness/pandas/worker.py"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "sha256": "dfb88fe7a822f802015c6f9b66fc03d90ba1a05114f7d3237d8457a01eb51edd"
+        },
+        "domain": "runtime",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:interpreter",
+        "selector": "/home/faculty/abk6349/.local/share/uv/python/cpython-3.13.11-linux-x86_64-gnu/bin/python3.13"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "subtree": true
+        },
+        "domain": "runtime",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:interpreter-root",
+        "selector": "/home/faculty/abk6349/.local/share/uv/python/cpython-3.13.11-linux-x86_64-gnu"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "value": "/usr/bin"
+        },
+        "domain": "runtime",
+        "operation": "environment",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:env:path",
+        "selector": "PATH"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "value": "1"
+        },
+        "domain": "runtime",
+        "operation": "environment",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:env:no-bytecode",
+        "selector": "PYTHONDONTWRITEBYTECODE"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "value": "0"
+        },
+        "domain": "runtime",
+        "operation": "environment",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:env:no-locale-coercion",
+        "selector": "PYTHONCOERCECLOCALE"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "value": "1"
+        },
+        "domain": "runtime",
+        "operation": "environment",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:env:no-user-site",
+        "selector": "PYTHONNOUSERSITE"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "value": "1"
+        },
+        "domain": "runtime",
+        "operation": "environment",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:env:safe-path",
+        "selector": "PYTHONSAFEPATH"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "value": "1"
+        },
+        "domain": "runtime",
+        "operation": "environment",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:env:unbuffered",
+        "selector": "PYTHONUNBUFFERED"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "value": "1"
+        },
+        "domain": "runtime",
+        "operation": "environment",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:env:utf8",
+        "selector": "PYTHONUTF8"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "descriptor": 0
+        },
+        "domain": "ipc",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:protocol:request",
+        "selector": "parent-request-pipe"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "descriptor": 1
+        },
+        "domain": "ipc",
+        "operation": "write",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:protocol:response",
+        "selector": "parent-response-pipe"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "descriptor": 2
+        },
+        "domain": "ipc",
+        "operation": "write",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:protocol:diagnostic",
+        "selector": "parent-diagnostic-pipe"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "subtree": true
+        },
+        "domain": "runtime",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:usr",
+        "selector": "/usr"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "subtree": true
+        },
+        "domain": "runtime",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:root:0",
+        "selector": "/data/langgraph/eval/campaigns/pandas-matched-aggressive-v2/raw/harness/pandas"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "subtree": true
+        },
+        "domain": "runtime",
+        "operation": "read",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:root:1",
+        "selector": "/data/slanggraph-eval-upstreams/ai-data-science-team/.venv/lib/python3.13/site-packages"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "maximum": 1073741824
+        },
+        "domain": "resource_limit",
+        "operation": "limit",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:limit:address_space_bytes",
+        "selector": "address_space_bytes"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "maximum": 30000
+        },
+        "domain": "resource_limit",
+        "operation": "limit",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:limit:cpu_ms",
+        "selector": "cpu_ms"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "maximum": 67108864
+        },
+        "domain": "resource_limit",
+        "operation": "limit",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:limit:file_size_bytes",
+        "selector": "file_size_bytes"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "maximum": 64
+        },
+        "domain": "resource_limit",
+        "operation": "limit",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:limit:nofile",
+        "selector": "nofile"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "maximum": 1
+        },
+        "domain": "resource_limit",
+        "operation": "limit",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:limit:pids",
+        "selector": "pids"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "maximum": 67108864
+        },
+        "domain": "resource_limit",
+        "operation": "limit",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:limit:tmpfs_bytes",
+        "selector": "tmpfs_bytes"
+      },
+      {
+        "baseline": true,
+        "conditions": {
+          "maximum": 30000
+        },
+        "domain": "resource_limit",
+        "operation": "limit",
+        "provenance": [],
+        "requirement": "need",
+        "rule_id": "runtime:limit:wall_ms",
+        "selector": "wall_ms"
+      }
+    ]
+  }
+]

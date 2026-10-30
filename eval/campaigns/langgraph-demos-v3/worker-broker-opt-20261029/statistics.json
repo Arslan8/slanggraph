@@ -1,0 +1,650 @@
+{
+  "run_id": "worker-broker-opt-full-20261029",
+  "primary_timer": "parent subprocess wall clock including process startup",
+  "attempts": 350,
+  "repetitions": 5,
+  "bootstrap": {
+    "method": "paired repetition-block bootstrap; all application tasks stay in block",
+    "seed": 20261028,
+    "resamples": 10000
+  },
+  "applications": {
+    "D1-sql": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "completed": 25,
+          "correct": 11,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 8605.052532113623,
+          "mean_model_ms": 6521.263075764291,
+          "model_calls": 122,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "completed": 25,
+          "correct": 16,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 10511.371285959613,
+          "mean_model_ms": 6442.319684389513,
+          "model_calls": 120,
+          "security_evidence_trials": 25
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.2215348188441273,
+      "overhead_percent": 22.153481884412727,
+      "ratio_ci95": [
+        1.1720813368775356,
+        1.2646293739153733
+      ],
+      "overhead_ci95_percent": [
+        17.20813368775356,
+        26.462937391537334
+      ]
+    },
+    "D2-rag": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "completed": 25,
+          "correct": 16,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 5227.885682447813,
+          "mean_model_ms": 3322.7094896440394,
+          "model_calls": 25,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "completed": 25,
+          "correct": 18,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 5563.342036197428,
+          "mean_model_ms": 3600.5176637647673,
+          "model_calls": 25,
+          "security_evidence_trials": 0
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.0641667347233472,
+      "overhead_percent": 6.416673472334722,
+      "ratio_ci95": [
+        1.0064772354123899,
+        1.1217571892641833
+      ],
+      "overhead_ci95_percent": [
+        0.647723541238987,
+        12.175718926418334
+      ]
+    },
+    "D3-plan-execute": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "completed": 0,
+          "correct": 0,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 25,
+          "mean_wall_ms": 18021.629347796552,
+          "mean_model_ms": 16044.265503264032,
+          "model_calls": 481,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "completed": 0,
+          "correct": 0,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 25,
+          "mean_wall_ms": 21336.295914754737,
+          "mean_model_ms": 17778.68059569504,
+          "model_calls": 495,
+          "security_evidence_trials": 15
+        }
+      },
+      "paired": true,
+      "runnable": false,
+      "exclusion": "no completed trial in at least one mode"
+    },
+    "D4-multi-agent": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "completed": 14,
+          "correct": 12,
+          "timeouts": 1,
+          "compatibility_failures": 10,
+          "execution_errors": 0,
+          "mean_wall_ms": 84046.95626936387,
+          "mean_model_ms": 15902.887705285268,
+          "model_calls": 62,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "completed": 19,
+          "correct": 19,
+          "timeouts": 1,
+          "compatibility_failures": 5,
+          "execution_errors": 0,
+          "mean_wall_ms": 56936.6048008739,
+          "mean_model_ms": 11929.17728374749,
+          "model_calls": 78,
+          "security_evidence_trials": 19
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 0.6774380337866914,
+      "overhead_percent": -32.25619662133086,
+      "ratio_ci95": [
+        0.3233340228927824,
+        1.13247539646618
+      ],
+      "overhead_ci95_percent": [
+        -67.66659771072176,
+        13.247539646618002
+      ]
+    },
+    "D5-support": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "completed": 25,
+          "correct": 20,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 18596.45042391261,
+          "mean_model_ms": 3979.4691926403902,
+          "model_calls": 70,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "completed": 25,
+          "correct": 20,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 20132.288334760815,
+          "mean_model_ms": 3732.293198397383,
+          "model_calls": 70,
+          "security_evidence_trials": 25
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.0825876915130705,
+      "overhead_percent": 8.258769151307055,
+      "ratio_ci95": [
+        1.07366567820268,
+        1.0940152878454477
+      ],
+      "overhead_ci95_percent": [
+        7.366567820268011,
+        9.401528784544766
+      ]
+    },
+    "T1-add-tools": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 2756.7561242030933,
+          "mean_model_ms": 1641.1905190092511,
+          "model_calls": 10,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 3423.1556546059437,
+          "mean_model_ms": 1461.3586320076138,
+          "model_calls": 10,
+          "security_evidence_trials": 5
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.2417332184563439,
+      "overhead_percent": 24.173321845634387,
+      "ratio_ci95": [
+        1.1066911432632442,
+        1.3454772871661125
+      ],
+      "overhead_ci95_percent": [
+        10.669114326324426,
+        34.547728716611246
+      ]
+    },
+    "T10-time-travel": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 2723.3951588044874,
+          "mean_model_ms": 1644.484429829754,
+          "model_calls": 15,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 0,
+          "correct": 0,
+          "timeouts": 0,
+          "compatibility_failures": 5,
+          "execution_errors": 0,
+          "mean_wall_ms": 3190.3718478046358,
+          "mean_model_ms": null,
+          "model_calls": 0,
+          "security_evidence_trials": 0
+        }
+      },
+      "paired": true,
+      "runnable": false,
+      "exclusion": "no completed trial in at least one mode"
+    },
+    "T2-custom-weather": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 2040.8811148023233,
+          "mean_model_ms": 995.4348022351041,
+          "model_calls": 10,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 3230.102080607321,
+          "mean_model_ms": 1157.720492198132,
+          "model_calls": 10,
+          "security_evidence_trials": 5
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.5826997747098972,
+      "overhead_percent": 58.26997747098972,
+      "ratio_ci95": [
+        1.3394702768460325,
+        1.927978172057605
+      ],
+      "overhead_ci95_percent": [
+        33.94702768460325,
+        92.79781720576051
+      ]
+    },
+    "T3-fixed-weather": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 978.0848253867589,
+          "mean_model_ms": 0.0,
+          "model_calls": 0,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 1844.3424999830313,
+          "mean_model_ms": 0.0,
+          "model_calls": 0,
+          "security_evidence_trials": 5
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.885667226514564,
+      "overhead_percent": 88.5667226514564,
+      "ratio_ci95": [
+        1.730902313381327,
+        2.0579210199462405
+      ],
+      "overhead_ci95_percent": [
+        73.09023133813271,
+        105.79210199462406
+      ]
+    },
+    "T4-parallel-weather": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 926.4065888011828,
+          "mean_model_ms": 0.0,
+          "model_calls": 0,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 1899.486556800548,
+          "mean_model_ms": 0.0,
+          "model_calls": 0,
+          "security_evidence_trials": 5
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 2.050381095905827,
+      "overhead_percent": 105.0381095905827,
+      "ratio_ci95": [
+        1.9940950583074233,
+        2.101875086332403
+      ],
+      "overhead_ci95_percent": [
+        99.40950583074233,
+        110.18750863324031
+      ]
+    },
+    "T5-prebuilt-multiply": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 2299.6112714055926,
+          "mean_model_ms": 1194.8929597856477,
+          "model_calls": 10,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 2993.4414993971586,
+          "mean_model_ms": 1104.7554116114043,
+          "model_calls": 10,
+          "security_evidence_trials": 5
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.3017163103255602,
+      "overhead_percent": 30.17163103255602,
+      "ratio_ci95": [
+        1.0965523589821295,
+        1.4451151378416682
+      ],
+      "overhead_ci95_percent": [
+        9.655235898212954,
+        44.51151378416682
+      ]
+    },
+    "T6-return-direct": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 1640.0467808009125,
+          "mean_model_ms": 625.8368377806619,
+          "model_calls": 5,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 2469.8093363898806,
+          "mean_model_ms": 576.0117006022483,
+          "model_calls": 5,
+          "security_evidence_trials": 5
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.5059383459682507,
+      "overhead_percent": 50.59383459682507,
+      "ratio_ci95": [
+        1.4580252817115182,
+        1.5432675083194864
+      ],
+      "overhead_ci95_percent": [
+        45.80252817115182,
+        54.326750831948644
+      ]
+    },
+    "T7-forced-tool": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 1545.4199206084013,
+          "mean_model_ms": 532.3868038016371,
+          "model_calls": 5,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 2530.7343775755726,
+          "mean_model_ms": 600.0111779896542,
+          "model_calls": 5,
+          "security_evidence_trials": 5
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.637570697664666,
+      "overhead_percent": 63.7570697664666,
+      "ratio_ci95": [
+        1.5731531863884571,
+        1.7037530433951313
+      ],
+      "overhead_ci95_percent": [
+        57.31531863884571,
+        70.37530433951314
+      ]
+    },
+    "T8-serial-tools": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 2632.6789633953013,
+          "mean_model_ms": 1561.3871334004216,
+          "model_calls": 10,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 3524.673665803857,
+          "mean_model_ms": 1591.1523293936625,
+          "model_calls": 10,
+          "security_evidence_trials": 5
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.3388163596134686,
+      "overhead_percent": 33.88163596134686,
+      "ratio_ci95": [
+        1.286101899151962,
+        1.3978272423501368
+      ],
+      "overhead_ci95_percent": [
+        28.610189915196194,
+        39.782724235013674
+      ]
+    },
+    "T9-add-memory": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 3583.5153751890175,
+          "mean_model_ms": 2522.9728897917084,
+          "model_calls": 20,
+          "security_evidence_trials": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "completed": 5,
+          "correct": 5,
+          "timeouts": 0,
+          "compatibility_failures": 0,
+          "execution_errors": 0,
+          "mean_wall_ms": 5314.741622796282,
+          "mean_model_ms": 2734.9494592286646,
+          "model_calls": 20,
+          "security_evidence_trials": 5
+        }
+      },
+      "paired": true,
+      "runnable": true,
+      "ratio": 1.4831083632551594,
+      "overhead_percent": 48.310836325515936,
+      "ratio_ci95": [
+        1.387181455261672,
+        1.6245890444732576
+      ],
+      "overhead_ci95_percent": [
+        38.71814552616719,
+        62.45890444732576
+      ]
+    }
+  },
+  "suite": {
+    "included": [
+      "D1-sql",
+      "D2-rag",
+      "D4-multi-agent",
+      "D5-support",
+      "T1-add-tools",
+      "T2-custom-weather",
+      "T3-fixed-weather",
+      "T4-parallel-weather",
+      "T5-prebuilt-multiply",
+      "T6-return-direct",
+      "T7-forced-tool",
+      "T8-serial-tools",
+      "T9-add-memory"
+    ],
+    "excluded": [
+      "D3-plan-execute",
+      "T10-time-travel"
+    ],
+    "geometric_mean_ratio": 1.3428582339784545,
+    "geometric_mean_overhead_percent": 34.28582339784545,
+    "ratio_ci95": [
+      1.284320165768837,
+      1.3896769726848202
+    ],
+    "overhead_ci95_percent": [
+      28.4320165768837,
+      38.96769726848201
+    ],
+    "utility_matched_secondary": {
+      "included": [
+        "D5-support",
+        "T1-add-tools",
+        "T2-custom-weather",
+        "T3-fixed-weather",
+        "T4-parallel-weather",
+        "T5-prebuilt-multiply",
+        "T6-return-direct",
+        "T7-forced-tool",
+        "T8-serial-tools",
+        "T9-add-memory"
+      ],
+      "geometric_mean_ratio": 1.4858012037124642,
+      "geometric_mean_overhead_percent": 48.580120371246416,
+      "ratio_ci95": [
+        1.454927597471659,
+        1.5182985893941592
+      ],
+      "overhead_ci95_percent": [
+        45.49275974716589,
+        51.82985893941592
+      ]
+    }
+  }
+}

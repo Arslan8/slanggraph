@@ -1,0 +1,231 @@
+{
+  "before": {
+    "ticket": "7240005432906569",
+    "flight_ids": [
+      1459,
+      19250
+    ],
+    "owner": "3442 587242"
+  },
+  "after": {
+    "ticket": "7240005432906569",
+    "flight_ids": [],
+    "owner": "3442 587242"
+  },
+  "interrupts": [
+    {
+      "tool_call": {
+        "name": "cancel_ticket",
+        "args": {
+          "ticket_no": "7240005432906569"
+        },
+        "id": "call_on1upiqd",
+        "type": "tool_call"
+      },
+      "approved": true
+    }
+  ],
+  "messages": [
+    {
+      "content": "Cancel my owned ticket 7240005432906569.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "ec79f152-2ecf-4567-bf1c-ca2cbb6d3e6f"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "8d168a39-5d6f-45e8-9708-cba19b4ba404",
+      "tool_calls": [
+        {
+          "name": "fetch_user_flight_information",
+          "args": {},
+          "id": "initial-user-info",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "[{\"ticket_no\": \"7240005432906569\", \"book_ref\": \"C46E9F\", \"flight_id\": 19250, \"flight_no\": \"LX0112\", \"departure_airport\": \"CDG\", \"arrival_airport\": \"BSL\", \"scheduled_departure\": \"2026-11-15 12:09:03.561731-04:00\", \"scheduled_arrival\": \"2026-11-15 13:39:03.561731-04:00\", \"seat_no\": \"18E\", \"fare_conditions\": \"Economy\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "fetch_user_flight_information",
+      "id": "228c3c50-d732-4697-8f6d-e62cce7af39d",
+      "tool_call_id": "initial-user-info",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 36,
+          "prompt_tokens": 970,
+          "total_tokens": 1006,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-538",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a66-c70d-7131-b611-76622e06e1d6-0",
+      "tool_calls": [
+        {
+          "name": "cancel_ticket",
+          "args": {
+            "ticket_no": "7240005432906569"
+          },
+          "id": "call_on1upiqd",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 970,
+        "output_tokens": 36,
+        "total_tokens": 1006,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "Ticket successfully cancelled.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "cancel_ticket",
+      "id": "8258388f-bd92-4cf2-b775-5c5f622c9fd2",
+      "tool_call_id": "call_on1upiqd",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "Your ticket with the number 7240005432906569 has been successfully cancelled. If you need any further assistance, feel free to ask!",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 40,
+          "prompt_tokens": 1021,
+          "total_tokens": 1061,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-424",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a66-cb09-7f40-9133-9aaf1e2a5c9e-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 1021,
+        "output_tokens": 40,
+        "total_tokens": 1061,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "Retrieve my current booking after cancellation.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "a885e87e-0028-44ef-8443-fffd573da3d1"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "6479772a-f34f-4abe-bd12-d8a4bf96f97c",
+      "tool_calls": [
+        {
+          "name": "fetch_user_flight_information",
+          "args": {},
+          "id": "initial-user-info",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": [],
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "fetch_user_flight_information",
+      "id": "28bc7171-c9f8-4cdc-a93d-3ecb7514f629",
+      "tool_call_id": "initial-user-info",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "There are currently no bookings associated with your account. If you would like to make a new reservation or have any other questions, feel free to ask!",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 31,
+          "prompt_tokens": 939,
+          "total_tokens": 970,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-574",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a66-d30f-72c3-b0db-777f7102708d-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 939,
+        "output_tokens": 31,
+        "total_tokens": 970,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "wall_ms": 5212.484863994177,
+  "model_time_ms": 2634.554644988384,
+  "model_calls": 4,
+  "frozen_now": "2026-11-15T12:05:03.561731-04:00",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "lowering_records": [],
+  "broker_audit": []
+}

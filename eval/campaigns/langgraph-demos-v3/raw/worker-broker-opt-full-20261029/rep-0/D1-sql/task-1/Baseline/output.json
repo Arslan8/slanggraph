@@ -1,0 +1,199 @@
+{
+  "messages": [
+    {
+      "content": "How many tracks are in the database?",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "15845e87-3a15-4a2d-9f64-af74ad7703bc"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "cd2193a8-f447-4298-963d-c94e6c408663",
+      "tool_calls": [
+        {
+          "name": "sql_db_list_tables",
+          "args": {},
+          "id": "abc123",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "Album, Artist, Customer, Employee, Genre, Invoice, InvoiceLine, MediaType, Playlist, PlaylistTrack, Track",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "sql_db_list_tables",
+      "id": "28c36dc4-814d-4220-9aed-c8ccc7bb284f",
+      "tool_call_id": "abc123",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "Available tables: Album, Artist, Customer, Employee, Genre, Invoice, InvoiceLine, MediaType, Playlist, PlaylistTrack, Track",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "432e798a-2d0d-4349-8bf0-69517788a18a",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "\n\n",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 23,
+          "prompt_tokens": 297,
+          "total_tokens": 320,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-318",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a65-9781-7ef1-9e4d-fddf65dc373d-0",
+      "tool_calls": [
+        {
+          "name": "sql_db_schema",
+          "args": {
+            "table_names": "Track"
+          },
+          "id": "call_cupo576t",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 297,
+        "output_tokens": 23,
+        "total_tokens": 320,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "\nCREATE TABLE \"Track\" (\n\t\"TrackId\" INTEGER NOT NULL, \n\t\"Name\" NVARCHAR(200) NOT NULL, \n\t\"AlbumId\" INTEGER, \n\t\"MediaTypeId\" INTEGER NOT NULL, \n\t\"GenreId\" INTEGER, \n\t\"Composer\" NVARCHAR(220), \n\t\"Milliseconds\" INTEGER NOT NULL, \n\t\"Bytes\" INTEGER, \n\t\"UnitPrice\" NUMERIC(10, 2) NOT NULL, \n\tPRIMARY KEY (\"TrackId\"), \n\tFOREIGN KEY(\"MediaTypeId\") REFERENCES \"MediaType\" (\"MediaTypeId\"), \n\tFOREIGN KEY(\"GenreId\") REFERENCES \"Genre\" (\"GenreId\"), \n\tFOREIGN KEY(\"AlbumId\") REFERENCES \"Album\" (\"AlbumId\")\n)\n\n/*\n3 rows from Track table:\nTrackId\tName\tAlbumId\tMediaTypeId\tGenreId\tComposer\tMilliseconds\tBytes\tUnitPrice\n1\tFor Those About To Rock (We Salute You)\t1\t1\t1\tAngus Young, Malcolm Young, Brian Johnson\t343719\t11170334\t0.99\n2\tBalls to the Wall\t2\t2\t1\tNone\t342562\t5510424\t0.99\n3\tFast As a Shark\t3\t2\t1\tF. Baltes, S. Kaufman, U. Dirkscneider & W. Hoffman\t230619\t3990994\t0.99\n*/",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "sql_db_schema",
+      "id": "75696339-b60e-4702-9d65-c75b45cc0850",
+      "tool_call_id": "call_cupo576t",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The SQL query is correct and does not contain any of the common mistakes listed. It simply counts all rows in the `Track` table and returns the result as `TotalTracks`.\n\n",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 65,
+          "prompt_tokens": 357,
+          "total_tokens": 422,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-428",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a65-99ab-7911-be2a-b924b93c62f0-0",
+      "tool_calls": [
+        {
+          "name": "sql_db_query",
+          "args": {
+            "query": "SELECT COUNT(*) AS TotalTracks FROM Track;"
+          },
+          "id": "call_mp5e8znq",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 357,
+        "output_tokens": 65,
+        "total_tokens": 422,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "[(3503,)]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "sql_db_query",
+      "id": "72ca285c-0351-4adc-950b-adf7b0f4ba62",
+      "tool_call_id": "call_mp5e8znq",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "There are **3,503 tracks** in the database.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 15,
+          "prompt_tokens": 839,
+          "total_tokens": 854,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-105",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a65-a143-7ad0-b13a-2ddb25ea6d0d-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 839,
+        "output_tokens": 15,
+        "total_tokens": 854,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "answer": "There are **3,503 tracks** in the database.",
+  "wall_ms": 3007.100409013219,
+  "model_time_ms": 2935.8116520452313,
+  "model_calls": 4,
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "lowering_records": [],
+  "broker_audit": []
+}

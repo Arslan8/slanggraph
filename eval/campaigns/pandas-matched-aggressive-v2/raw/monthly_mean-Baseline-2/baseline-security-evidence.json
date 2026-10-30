@@ -1,0 +1,9 @@
+{
+  "closed_admission": false,
+  "principal_authorization": false,
+  "sealed_operator_policy": false,
+  "slanggraph_activation": false,
+  "resource_mediation": false,
+  "security_audit": false,
+  "runtime_contract_validator": false
+}

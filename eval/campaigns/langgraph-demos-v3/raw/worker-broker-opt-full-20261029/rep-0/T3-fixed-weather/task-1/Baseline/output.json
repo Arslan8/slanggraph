@@ -1,0 +1,50 @@
+{
+  "demo": "fixed-weather",
+  "mode": "Baseline",
+  "prompt": "Execute the tutorial's fixed ToolNode calls.",
+  "wall_ms": 4.352154035586864,
+  "model_time_ms": 0.0,
+  "model_calls": 0,
+  "answer": "It's 60 degrees and foggy.",
+  "messages": [
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "44894598-0d34-4015-a9be-ba76de168bb0",
+      "tool_calls": [
+        {
+          "name": "get_weather",
+          "args": {
+            "location": "San Francisco"
+          },
+          "id": "fixed-weather",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "It's 60 degrees and foggy.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "get_weather",
+      "id": "35d20dc4-66f3-4a58-9d3e-b3c5fcbb0fa3",
+      "tool_call_id": "fixed-weather",
+      "artifact": null,
+      "status": "success"
+    }
+  ],
+  "executed_tools": [
+    "get_weather"
+  ],
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

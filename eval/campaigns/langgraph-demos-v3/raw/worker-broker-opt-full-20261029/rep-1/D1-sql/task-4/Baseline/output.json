@@ -1,0 +1,212 @@
+{
+  "messages": [
+    {
+      "content": "What is the total invoice amount for each billing country, ordered by country?",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "6d3a4589-c0a0-4bed-9f55-b0049f45f8f2"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "13fff561-3adc-400a-9c47-58fab2279fed",
+      "tool_calls": [
+        {
+          "name": "sql_db_list_tables",
+          "args": {},
+          "id": "abc123",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "Album, Artist, Customer, Employee, Genre, Invoice, InvoiceLine, MediaType, Playlist, PlaylistTrack, Track",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "sql_db_list_tables",
+      "id": "43187051-713d-4925-b976-5459c3b0458e",
+      "tool_call_id": "abc123",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "Available tables: Album, Artist, Customer, Employee, Genre, Invoice, InvoiceLine, MediaType, Playlist, PlaylistTrack, Track",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "739aabb0-964c-4f62-8cf6-2531f8590a31",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "\n\nLet me check the schema for the Invoice table to see what fields we have.\n",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 39,
+          "prompt_tokens": 304,
+          "total_tokens": 343,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-810",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a78-ea44-7182-810b-fa102be10561-0",
+      "tool_calls": [
+        {
+          "name": "sql_db_schema",
+          "args": {
+            "table_names": "Invoice"
+          },
+          "id": "call_h07u8mlv",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 304,
+        "output_tokens": 39,
+        "total_tokens": 343,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "\nCREATE TABLE \"Invoice\" (\n\t\"InvoiceId\" INTEGER NOT NULL, \n\t\"CustomerId\" INTEGER NOT NULL, \n\t\"InvoiceDate\" DATETIME NOT NULL, \n\t\"BillingAddress\" NVARCHAR(70), \n\t\"BillingCity\" NVARCHAR(40), \n\t\"BillingState\" NVARCHAR(40), \n\t\"BillingCountry\" NVARCHAR(40), \n\t\"BillingPostalCode\" NVARCHAR(10), \n\t\"Total\" NUMERIC(10, 2) NOT NULL, \n\tPRIMARY KEY (\"InvoiceId\"), \n\tFOREIGN KEY(\"CustomerId\") REFERENCES \"Customer\" (\"CustomerId\")\n)\n\n/*\n3 rows from Invoice table:\nInvoiceId\tCustomerId\tInvoiceDate\tBillingAddress\tBillingCity\tBillingState\tBillingCountry\tBillingPostalCode\tTotal\n1\t2\t2009-01-01 00:00:00\tTheodor-Heuss-Stra\u00dfe 34\tStuttgart\tNone\tGermany\t70174\t1.98\n2\t4\t2009-01-02 00:00:00\tUllev\u00e5lsveien 14\tOslo\tNone\tNorway\t0171\t3.96\n3\t8\t2009-01-03 00:00:00\tGr\u00e9trystraat 63\tBrussels\tNone\tBelgium\t1000\t5.94\n*/",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "sql_db_schema",
+      "id": "52fa6579-0f8f-45c7-8ddd-61e40baa3786",
+      "tool_call_id": "call_h07u8mlv",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The provided SQL query is correct and does not contain any of the common mistakes listed. It properly groups the data by `BillingCountry`, calculates the sum of `Total` for each group, orders the results by `BillingCountry`, and limits the output to the first 5 rows.\n\nHere is the original query:\n\n```sql\nSELECT BillingCountry, SUM(Total) AS TotalAmount FROM Invoice GROUP BY BillingCountry ORDER BY BillingCountry LIMIT 5;\n```\n\nI will now execute this query using the provided tool.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 105,
+          "prompt_tokens": 373,
+          "total_tokens": 478,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-841",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a78-ed36-7362-826c-68ddb35b2641-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 373,
+        "output_tokens": 105,
+        "total_tokens": 478,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "The provided SQL query is correct and does not contain any of the common mistakes listed. It properly groups the data by `BillingCountry`, calculates the sum of `Total` for each group, orders the results by `BillingCountry`, and limits the output to the first 5 rows.\n\nHere is the original query:\n\n```sql\nSELECT BillingCountry, SUM(Total) AS TotalAmount FROM Invoice GROUP BY BillingCountry ORDER BY BillingCountry LIMIT 5;\n```\n\nI will now execute this query using the provided tool.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 105,
+          "prompt_tokens": 373,
+          "total_tokens": 478,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-42",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a78-f818-7821-871c-3a572d284657-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 373,
+        "output_tokens": 105,
+        "total_tokens": 478,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 1,
+          "prompt_tokens": 1006,
+          "total_tokens": 1007,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-102",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a79-03fb-7572-aa57-a6218d26af27-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 1006,
+        "output_tokens": 1,
+        "total_tokens": 1007,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "answer": "",
+  "wall_ms": 6919.990930997301,
+  "model_time_ms": 6845.827624958474,
+  "model_calls": 6,
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "lowering_records": [],
+  "broker_audit": []
+}

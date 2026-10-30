@@ -1,0 +1,5 @@
+{
+  "binary": "/data/langgraph/eval/campaigns/pandas-matched-aggressive-v2/raw/workerRoute",
+  "sha256": "6097be9b7b84639959c7a0b9de31c79f23486e9f01bf1b6de575dfab25c7cb08",
+  "protocol": "worker-route-grant-v3"
+}

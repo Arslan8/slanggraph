@@ -1,0 +1,265 @@
+{
+  "before": {
+    "ticket": "7240005432906569",
+    "flight_ids": [
+      1459,
+      19250
+    ],
+    "owner": "3442 587242"
+  },
+  "after": {
+    "ticket": "7240005432906569",
+    "flight_ids": [
+      1459,
+      19250
+    ],
+    "owner": "3442 587242"
+  },
+  "interrupts": [
+    {
+      "tool_call": {
+        "name": "update_ticket_to_new_flight",
+        "args": {
+          "ticket_no": "7240005432906569",
+          "new_flight_id": 1472
+        },
+        "id": "call_vy0o1xwb",
+        "type": "tool_call"
+      },
+      "approved": false
+    }
+  ],
+  "messages": [
+    {
+      "content": "Change my ticket 7240005432906569 to flight 1472.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "fe0fa795-a243-444d-a5d2-515de521e2fc"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "2a4cbcbd-0192-4cfa-b0d3-6bc65866a297",
+      "tool_calls": [
+        {
+          "name": "fetch_user_flight_information",
+          "args": {},
+          "id": "initial-user-info",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "[{\"ticket_no\": \"7240005432906569\", \"book_ref\": \"C46E9F\", \"flight_id\": 19250, \"flight_no\": \"LX0112\", \"departure_airport\": \"CDG\", \"arrival_airport\": \"BSL\", \"scheduled_departure\": \"2026-11-15 12:09:03.561731-04:00\", \"scheduled_arrival\": \"2026-11-15 13:39:03.561731-04:00\", \"seat_no\": \"18E\", \"fare_conditions\": \"Economy\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "fetch_user_flight_information",
+      "id": "fb715627-8409-4a62-b792-f631ddf03351",
+      "tool_call_id": "initial-user-info",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 50,
+          "prompt_tokens": 976,
+          "total_tokens": 1026,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-985",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a72-f684-7ac0-a675-ba9607916037-0",
+      "tool_calls": [
+        {
+          "name": "update_ticket_to_new_flight",
+          "args": {
+            "ticket_no": "7240005432906569",
+            "new_flight_id": 1472
+          },
+          "id": "call_vy0o1xwb",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 976,
+        "output_tokens": 50,
+        "total_tokens": 1026,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "API call denied by user. Continue without making the change.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": null,
+      "id": "f545efb3-8319-427a-9248-c10907b72aeb",
+      "tool_call_id": "call_vy0o1xwb",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "8942739f-26f4-4d01-a6fd-ae08a93d5ba6",
+      "tool_calls": [
+        {
+          "name": "fetch_user_flight_information",
+          "args": {},
+          "id": "initial-user-info",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "[{\"ticket_no\": \"7240005432906569\", \"book_ref\": \"C46E9F\", \"flight_id\": 19250, \"flight_no\": \"LX0112\", \"departure_airport\": \"CDG\", \"arrival_airport\": \"BSL\", \"scheduled_departure\": \"2026-11-15 12:09:03.561731-04:00\", \"scheduled_arrival\": \"2026-11-15 13:39:03.561731-04:00\", \"seat_no\": \"18E\", \"fare_conditions\": \"Economy\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "fetch_user_flight_information",
+      "id": "870f69c6-c35c-42d6-a554-de64c3ef3f79",
+      "tool_call_id": "initial-user-info",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "It seems there might be an issue with updating your ticket to flight 1472. Let me check the available flights for your journey from CDG to BSL on the scheduled departure time of 2026-11-15 12:09. Would you like me to search for alternative flights?",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 69,
+          "prompt_tokens": 1249,
+          "total_tokens": 1318,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-186",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a73-01e4-7ef3-a8d2-602f34bf0880-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 1249,
+        "output_tokens": 69,
+        "total_tokens": 1318,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "Retrieve my unchanged booking.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "2d1a1e73-4f8d-4dc2-9061-12e727a9f9e8"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "3cc6f01d-4c58-4e45-81ee-63594ae520ed",
+      "tool_calls": [
+        {
+          "name": "fetch_user_flight_information",
+          "args": {},
+          "id": "initial-user-info",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "[{\"ticket_no\": \"7240005432906569\", \"book_ref\": \"C46E9F\", \"flight_id\": 19250, \"flight_no\": \"LX0112\", \"departure_airport\": \"CDG\", \"arrival_airport\": \"BSL\", \"scheduled_departure\": \"2026-11-15 12:09:03.561731-04:00\", \"scheduled_arrival\": \"2026-11-15 13:39:03.561731-04:00\", \"seat_no\": \"18E\", \"fare_conditions\": \"Economy\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "fetch_user_flight_information",
+      "id": "9c5a7313-f453-473f-b3f2-bd3234cca063",
+      "tool_call_id": "initial-user-info",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "Your booking details remain unchanged. Here is your current flight information:\n\n- **Ticket Number:** 7240005432906569  \n- **Booking Reference:** C46E9F  \n- **Flight Number:** LX0112  \n- **Departure Airport:** CDG (Charles de Gaulle)  \n- **Arrival Airport:** BSL (Basel)  \n- **Scheduled Departure:** 2026-11-15 12:09  \n- **Scheduled Arrival:** 2026-11-15 13:39  \n- **Seat Number:** 18E  \n- **Fare Class:** Economy  \n\nLet me know if you need any further assistance!",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 163,
+          "prompt_tokens": 1534,
+          "total_tokens": 1697,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-252",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18a73-0c0a-7320-b2c6-987b69442164-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 1534,
+        "output_tokens": 163,
+        "total_tokens": 1697,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "wall_ms": 9984.920949034858,
+  "model_time_ms": 5847.58630907163,
+  "model_calls": 3,
+  "frozen_now": "2026-11-15T12:05:03.561731-04:00",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "lowering_records": [],
+  "broker_audit": []
+}

@@ -1,0 +1,452 @@
+{
+  "evaluated_revision": "3ce6e3a6d620a5df454061f9cf5a58fc6e77cf4c",
+  "protocol": "5 fresh process sessions, 1 first use, 10 warmups, 20 measured calls per session",
+  "timer_scope": "per-call recurring work; campaign preflight and setup are recorded separately",
+  "comparison_caveat": "campaigns were sequential rather than interleaved; sessions are independent",
+  "routes": {
+    "language": {
+      "measured_calls": 100,
+      "all_valid": true,
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 61.184698600000004,
+        "ci95": [
+          54.822041381075934,
+          67.54735581892407
+        ]
+      },
+      "elapsed_ms": {
+        "n_sessions": 5,
+        "mean": 11.78064549,
+        "ci95": [
+          11.481583761261327,
+          12.079707218738672
+        ]
+      },
+      "baseline_ms": {
+        "n_sessions": 5,
+        "mean": 0.045194849999999995,
+        "ci95": [
+          0.0445793721853295,
+          0.04581032781467049
+        ]
+      },
+      "added_ms": {
+        "n_sessions": 5,
+        "mean": 11.73545064,
+        "ci95": [
+          11.436435509377059,
+          12.03446577062294
+        ]
+      },
+      "runtime_multiple": {
+        "n_sessions": 5,
+        "mean": 260.68482088057016,
+        "ci95": [
+          253.39619838366042,
+          267.9734433774799
+        ]
+      },
+      "phases": {
+        "authorization_ms": {
+          "n_sessions": 5,
+          "mean": 0.97657107,
+          "ci95": [
+            0.9601006213923587,
+            0.9930415186076412
+          ]
+        },
+        "activation_ms": {
+          "n_sessions": 5,
+          "mean": 0.12674827,
+          "ci95": [
+            0.11591644623434369,
+            0.1375800937656563
+          ]
+        },
+        "execution_ms": {
+          "n_sessions": 5,
+          "mean": 0.30606141,
+          "ci95": [
+            0.2815415806542713,
+            0.33058123934572864
+          ]
+        },
+        "audit_ms": {
+          "n_sessions": 5,
+          "mean": 7.337659759999999,
+          "ci95": [
+            7.12043542784127,
+            7.554884092158729
+          ]
+        },
+        "framework_residual_ms": {
+          "n_sessions": 5,
+          "mean": 3.03360498,
+          "ci95": [
+            2.978768302345634,
+            3.0884416576543656
+          ]
+        }
+      },
+      "previous_reused_ms": {
+        "n_sessions": 5,
+        "mean": 11.7671354,
+        "ci95": [
+          11.485583348471229,
+          12.048687451528773
+        ]
+      },
+      "current_over_previous": {
+        "ratio": 1.0011481205527726,
+        "percent_change": 0.11481205527725802,
+        "ci95": [
+          0.9792282918372628,
+          1.0232684063057862
+        ],
+        "method": "independent-session bootstrap of ratio of means",
+        "seed": 20261029,
+        "resamples": 100000
+      }
+    },
+    "landlock-aggressive": {
+      "measured_calls": 100,
+      "all_valid": true,
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 525.8767162,
+        "ci95": [
+          504.51747419744146,
+          547.2359582025585
+        ]
+      },
+      "elapsed_ms": {
+        "n_sessions": 5,
+        "mean": 476.87615258999995,
+        "ci95": [
+          475.6147865675242,
+          478.1375186124757
+        ]
+      },
+      "baseline_ms": {
+        "n_sessions": 5,
+        "mean": 0.04795084,
+        "ci95": [
+          0.04700670576126388,
+          0.04889497423873612
+        ]
+      },
+      "added_ms": {
+        "n_sessions": 5,
+        "mean": 476.82820174999995,
+        "ci95": [
+          475.56590843730413,
+          478.09049506269577
+        ]
+      },
+      "runtime_multiple": {
+        "n_sessions": 5,
+        "mean": 9947.404630172372,
+        "ci95": [
+          9722.317014929591,
+          10172.492245415153
+        ]
+      },
+      "phases": {
+        "authorization_ms": {
+          "n_sessions": 5,
+          "mean": 0.65461927,
+          "ci95": [
+            0.36032444171943945,
+            0.9489140982805605
+          ]
+        },
+        "lean_ms": {
+          "n_sessions": 5,
+          "mean": 285.8625037,
+          "ci95": [
+            284.9166682779439,
+            286.80833912205605
+          ]
+        },
+        "activation_ms": {
+          "n_sessions": 5,
+          "mean": 102.11084168,
+          "ci95": [
+            101.43230195669437,
+            102.78938140330561
+          ]
+        },
+        "execution_ms": {
+          "n_sessions": 5,
+          "mean": 16.653336730000003,
+          "ci95": [
+            14.998402286306067,
+            18.30827117369394
+          ]
+        },
+        "audit_ms": {
+          "n_sessions": 5,
+          "mean": 15.81143717,
+          "ci95": [
+            15.647516555647144,
+            15.975357784352855
+          ]
+        },
+        "cleanup_ms": {
+          "n_sessions": 5,
+          "mean": 0.10338652000000001,
+          "ci95": [
+            0.08689724126625348,
+            0.11987579873374654
+          ]
+        },
+        "framework_residual_ms": {
+          "n_sessions": 5,
+          "mean": 55.680027519999996,
+          "ci95": [
+            55.356532831444596,
+            56.003522208555395
+          ]
+        }
+      },
+      "previous_reused_ms": {
+        "n_sessions": 5,
+        "mean": 466.69676709,
+        "ci95": [
+          460.93676609913973,
+          472.45676808086023
+        ]
+      },
+      "current_over_previous": {
+        "ratio": 1.0218115620630321,
+        "percent_change": 2.181156206303214,
+        "ci95": [
+          1.0143107155125106,
+          1.0304302679830515
+        ],
+        "method": "independent-session bootstrap of ratio of means",
+        "seed": 20261029,
+        "resamples": 100000
+      }
+    },
+    "container": {
+      "measured_calls": 100,
+      "all_valid": true,
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 1619.9408054,
+        "ci95": [
+          1148.5097765255516,
+          2091.3718342744487
+        ]
+      },
+      "elapsed_ms": {
+        "n_sessions": 5,
+        "mean": 148.56869752999998,
+        "ci95": [
+          147.89561178024326,
+          149.2417832797567
+        ]
+      },
+      "baseline_ms": {
+        "n_sessions": 5,
+        "mean": 0.05006231,
+        "ci95": [
+          0.0497471182240587,
+          0.050377501775941295
+        ]
+      },
+      "added_ms": {
+        "n_sessions": 5,
+        "mean": 148.51863522,
+        "ci95": [
+          147.84566432464055,
+          149.19160611535943
+        ]
+      },
+      "runtime_multiple": {
+        "n_sessions": 5,
+        "mean": 2967.7207605566723,
+        "ci95": [
+          2949.0645078765806,
+          2986.377013236764
+        ]
+      },
+      "phases": {
+        "authorization_ms": {
+          "n_sessions": 5,
+          "mean": 0.92253834,
+          "ci95": [
+            0.9102131343664001,
+            0.9348635456336
+          ]
+        },
+        "activation_ms": {
+          "n_sessions": 5,
+          "mean": 117.64188051223755,
+          "ci95": [
+            116.99994253816058,
+            118.28381848631452
+          ]
+        },
+        "execution_ms": {
+          "n_sessions": 5,
+          "mean": 19.040706607762452,
+          "ci95": [
+            18.921533855576875,
+            19.15987935994803
+          ]
+        },
+        "audit_ms": {
+          "n_sessions": 5,
+          "mean": 7.47502243,
+          "ci95": [
+            7.378648411573166,
+            7.571396448426834
+          ]
+        },
+        "framework_residual_ms": {
+          "n_sessions": 5,
+          "mean": 3.4885496399999996,
+          "ci95": [
+            3.4777211724072594,
+            3.4993781075927397
+          ]
+        }
+      },
+      "previous_reused_ms": {
+        "n_sessions": 5,
+        "mean": 148.24422521,
+        "ci95": [
+          147.31562338272806,
+          149.17282703727193
+        ]
+      },
+      "current_over_previous": {
+        "ratio": 1.0021887686993565,
+        "percent_change": 0.21887686993564692,
+        "ci95": [
+          0.9972717072664322,
+          1.0070459724917769
+        ],
+        "method": "independent-session bootstrap of ratio of means",
+        "seed": 20261029,
+        "resamples": 100000
+      }
+    },
+    "broker": {
+      "measured_calls": 100,
+      "all_valid": true,
+      "first_use_ms": {
+        "n_sessions": 5,
+        "mean": 180.64713899999998,
+        "ci95": [
+          167.46948982054934,
+          193.82478817945062
+        ]
+      },
+      "elapsed_ms": {
+        "n_sessions": 5,
+        "mean": 143.51219977,
+        "ci95": [
+          140.37904085065884,
+          146.64535868934115
+        ]
+      },
+      "baseline_ms": {
+        "n_sessions": 5,
+        "mean": 0.11476138,
+        "ci95": [
+          0.11344358450131418,
+          0.11607917549868581
+        ]
+      },
+      "added_ms": {
+        "n_sessions": 5,
+        "mean": 143.39743839,
+        "ci95": [
+          140.2646851894049,
+          146.53019159059508
+        ]
+      },
+      "runtime_multiple": {
+        "n_sessions": 5,
+        "mean": 1250.5617906835994,
+        "ci95": [
+          1223.9990503478473,
+          1277.1245310193515
+        ]
+      },
+      "phases": {
+        "authorization_ms": {
+          "n_sessions": 5,
+          "mean": 0.8242900800000001,
+          "ci95": [
+            0.6797490067894824,
+            0.9688311532105179
+          ]
+        },
+        "activation_ms": {
+          "n_sessions": 5,
+          "mean": 118.56389999389648,
+          "ci95": [
+            115.78760362629262,
+            121.34019636150035
+          ]
+        },
+        "execution_ms": {
+          "n_sessions": 5,
+          "mean": 0.17058419,
+          "ci95": [
+            0.16688359141428882,
+            0.17428478858571117
+          ]
+        },
+        "audit_ms": {
+          "n_sessions": 5,
+          "mean": 7.68409226,
+          "ci95": [
+            7.577934074988496,
+            7.7902504450115035
+          ]
+        },
+        "cleanup_ms": {
+          "n_sessions": 5,
+          "mean": 0.16721077,
+          "ci95": [
+            0.1427267304032629,
+            0.19169480959673713
+          ]
+        },
+        "framework_residual_ms": {
+          "n_sessions": 5,
+          "mean": 3.4409780600000017,
+          "ci95": [
+            3.388579338472012,
+            3.4933767815279912
+          ]
+        }
+      },
+      "previous_reused_ms": {
+        "n_sessions": 5,
+        "mean": 140.84485601,
+        "ci95": [
+          140.20139876902016,
+          141.48831325097984
+        ]
+      },
+      "current_over_previous": {
+        "ratio": 1.0189381695261246,
+        "percent_change": 1.8938169526124593,
+        "ci95": [
+          1.0047915350296728,
+          1.0331934922988006
+        ],
+        "method": "independent-session bootstrap of ratio of means",
+        "seed": 20261029,
+        "resamples": 100000
+      }
+    }
+  }
+}

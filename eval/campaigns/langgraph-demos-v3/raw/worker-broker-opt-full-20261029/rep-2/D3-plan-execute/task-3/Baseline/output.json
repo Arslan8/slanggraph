@@ -1,0 +1,13 @@
+{
+  "answer": null,
+  "state": {},
+  "status": "execution_error",
+  "error": "GraphRecursionError: Recursion limit of 50 reached without hitting a stop condition. You can increase the limit by setting the `recursion_limit` config key.\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langgraph/errors/GRAPH_RECURSION_LIMIT",
+  "wall_ms": 21096.446220006328,
+  "model_time_ms": 21018.973034922965,
+  "model_calls": 25,
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "lowering_records": [],
+  "broker_audit": []
+}

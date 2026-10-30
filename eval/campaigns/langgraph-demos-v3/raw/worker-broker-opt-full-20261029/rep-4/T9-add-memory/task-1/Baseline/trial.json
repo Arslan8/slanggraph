@@ -1,0 +1,33 @@
+{
+  "application": "T9-add-memory",
+  "task": 1,
+  "repetition": 4,
+  "mode": "Baseline",
+  "status": "completed",
+  "correct": true,
+  "wall_ms": 3613.294559007045,
+  "timeout_cap_seconds": 180,
+  "censored": false,
+  "returncode": 0,
+  "inner_wall_ms": 2633.706038002856,
+  "model_time_ms": 2553.178691014182,
+  "model_calls": 4,
+  "security_evidence": false,
+  "grant_count": 0,
+  "lowering_count": 0,
+  "broker_record_count": 0,
+  "command": [
+    "/data/.cache/uv/builds-v0/.tmpi7JvED/bin/python",
+    "/data/langgraph/eval/apps/demos/persistence_protected.py",
+    "--mode",
+    "Baseline",
+    "--output",
+    "/data/langgraph/eval/campaigns/langgraph-demos-v3/raw/worker-broker-opt-full-20261029/rep-4/T9-add-memory/task-1/Baseline/output.json",
+    "--demo",
+    "add-memory"
+  ],
+  "raw_output": "eval/campaigns/langgraph-demos-v3/raw/worker-broker-opt-full-20261029/rep-4/T9-add-memory/task-1/Baseline/output.json",
+  "stdout": "",
+  "stderr": "",
+  "error": null
+}

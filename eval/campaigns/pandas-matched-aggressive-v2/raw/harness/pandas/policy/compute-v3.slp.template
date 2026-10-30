@@ -1,0 +1,12 @@
+tool compute {
+  owner analyst
+  grant analyst: call
+  runs linux
+  syscalls @minimal
+  fs read ${sandbox_source} need, read @DATASET@ need@EXTRA_TOOL@, read+write+create+delete+truncate @OUTPUT@/** need
+  limits cpu 15s pids 1 nofile 64 wall 15s
+}
+principal alice {
+  roles analyst
+  fs read @PACKAGES@/**, read @DATASET@@EXTRA_PRINCIPAL@, read+write+create+delete+truncate @OUTPUT@/**
+}

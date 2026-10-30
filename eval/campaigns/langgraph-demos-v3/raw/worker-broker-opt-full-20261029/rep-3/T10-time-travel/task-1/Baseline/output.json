@@ -1,0 +1,116 @@
+{
+  "demo": "time-travel",
+  "mode": "Baseline",
+  "wall_ms": 1675.646139017772,
+  "model_time_ms": 1599.2554990807548,
+  "model_calls": 3,
+  "first_answer": "The 2012 Summer Olympics were hosted by London, United Kingdom.",
+  "answer": "The 2012 Summer Olympics were hosted by London, United Kingdom.",
+  "messages": [
+    {
+      "content": "You must use the search tool. Which city and country hosted the 2012 Summer Olympics?",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "a44e762a-a7c6-4107-b999-92133e6f591a"
+    },
+    {
+      "content": "",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 35,
+          "prompt_tokens": 167,
+          "total_tokens": 202,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-420",
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18aa4-f175-7971-96b0-65c7b83c7f2b-0",
+      "tool_calls": [
+        {
+          "name": "tavily_search",
+          "args": {
+            "query": "Which city and country hosted the 2012 Summer Olympics?"
+          },
+          "id": "call_tdha4uws",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 167,
+        "output_tokens": 35,
+        "total_tokens": 202,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    },
+    {
+      "content": "[{\"url\": \"https://www.olympics.com/en/olympic-games/london-2012\", \"content\": \"The 2012 Summer Olympics were held in London, United Kingdom. The United Kingdom used pound sterling (GBP).\"}, {\"url\": \"https://www.olympics.com/en/olympic-games/sydney-2000\", \"content\": \"The 2000 Summer Olympics were held in Sydney, Australia. Australia used the Australian dollar (AUD).\"}]",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "tavily_search",
+      "id": "ba68005d-8745-44e0-866d-5141f35a186d",
+      "tool_call_id": "call_tdha4uws",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "The 2012 Summer Olympics were hosted by London, United Kingdom.",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 17,
+          "prompt_tokens": 328,
+          "total_tokens": 345,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "model_provider": "openai",
+        "model_name": "qwen3:8b",
+        "system_fingerprint": "fp_ollama",
+        "id": "chatcmpl-595",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a18aa4-f61d-71b3-8f5c-e43e3a7c4f69-0",
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 328,
+        "output_tokens": 17,
+        "total_tokens": 345,
+        "input_token_details": {},
+        "output_token_details": {}
+      }
+    }
+  ],
+  "executed_tools": [
+    "tavily_search"
+  ],
+  "thread_id": "a090584718944c7496cbef0cee0e93b0",
+  "history_size": 5,
+  "replayed": true,
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}
