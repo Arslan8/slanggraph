@@ -985,6 +985,32 @@ class ObjectPolicyHostExecutor:
         result = self.dispatcher.invoke(principal, call, grant)
         return self._verify_result(result, grant)
 
+    def prewarm(
+        self,
+        principal: Principal,
+        call: ToolCall,
+        constraints: Sequence[PolicyConstraint],
+        *,
+        count: int = 1,
+        asynchronous: bool = False,
+    ) -> int:
+        """Authorize and provision exact dispatcher workers during preflight."""
+        prepare = getattr(self.dispatcher, "prewarm", None)
+        if not callable(prepare):
+            raise HostExecutionDenied("object_policy:dispatcher_prewarm_unsupported")
+        grant = self._authorize(principal, call, constraints)
+        with self._grant_lock:
+            self._grants.append(grant)
+        return int(
+            prepare(
+                principal,
+                call,
+                grant,
+                count=count,
+                asynchronous=asynchronous,
+            )
+        )
+
     async def ainvoke(
         self,
         principal: Principal,

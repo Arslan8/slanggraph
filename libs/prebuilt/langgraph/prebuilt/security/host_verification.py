@@ -237,7 +237,7 @@ def _check_lowering(fns: Mapping[str, ast.FunctionDef], issues: list[str]) -> bo
     ):
         issues.append("lowering: assess does not default to SupportLevel.UNSUPPORTED")
         ok = False
-    invoke = fns.get("LinuxSandboxExecutor._invoke")
+    invoke = fns.get("LinuxSandboxExecutor._prepare_execution")
     negotiate = [
         n
         for n in (ast.walk(invoke) if invoke else ())
@@ -282,7 +282,18 @@ def _check_activation(
     body = getattr(_main_try(fns.get("main")), "body", [])
     seccomp = _index(body, lambda s: _called(s) == "_apply_seccomp")
     limits = _index(body, lambda s: _called(s) == "_apply_limits")
-    prepare = _index(body, lambda s: _called(s) == "_prepare_invocation")
+    prepare = _index(
+        body,
+        lambda s: (
+            _called(s) == "_prepare_invocation"
+            or (
+                isinstance(s, ast.If)
+                and ast.unparse(s.test) == "request.get('pool_bootstrap') is True"
+                and ast.unparse(s).count("_prepare_invocation(") == 2
+                and "_bind_prepared_invocation(" in ast.unparse(s)
+            )
+        ),
+    )
     gate = _index(
         body,
         lambda s: isinstance(s, ast.If) and "'GO\\n'" in ast.unparse(s.test),

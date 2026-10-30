@@ -22,6 +22,7 @@ from langgraph.prebuilt.security import (
     install_mac_policy,
     with_principal,
 )
+from langgraph.prebuilt.security.types import Tool, ToolCall, ToolDac
 
 _FIXTURES = Path(__file__).with_name("fixtures")
 _ARTIFACT = _FIXTURES / "linux_tools.py"
@@ -47,7 +48,7 @@ def isolated_runtime(monkeypatch):
     monkeypatch.setattr(_runtime_policy, "_system_loaded", True)
 
 
-def _dispatcher(*names: str) -> LinuxObjectDispatcher:
+def _dispatcher(*names: str, worker_pool_capacity: int = 0) -> LinuxObjectDispatcher:
     digest = hashlib.sha256(_ARTIFACT.read_bytes()).hexdigest()
     return LinuxObjectDispatcher(
         {
@@ -55,6 +56,7 @@ def _dispatcher(*names: str) -> LinuxObjectDispatcher:
             for name in names
         },
         runtime_roots=(_FIXTURES,),
+        worker_pool_capacity=worker_pool_capacity,
     )
 
 
@@ -114,6 +116,39 @@ def test_sealed_linux_object_read_succeeds(tmp_path):
         == security.host_executor.authorization_grants()[0].digest
     )
     assert lowering["object_grant_digest"] != lowering["native_grant_digest"]
+
+
+def test_object_dispatcher_claims_shared_prewarmed_worker(tmp_path):
+    allowed = tmp_path / "allowed.txt"
+    allowed.write_text("POOLED_OBJECT")
+    dispatcher = _dispatcher("read_file", worker_pool_capacity=1)
+    install_mac_policy(
+        'forbid(principal, action == slangGraph::Action::"fs::write", resource);'
+    )
+    _, security = _graph(read_file, dispatcher)
+    principal = Principal("alice", frozenset(), frozenset(), "session")
+    call = ToolCall(
+        Tool("read_file", ToolDac("owner", {}), frozenset(), ()),
+        {"path": str(allowed)},
+        {},
+        "pooled-call",
+        0,
+    )
+    executor = security.host_executor
+    grant = executor._authorize(principal, call, ())
+    try:
+        assert dispatcher.prewarm(principal, call, grant, count=1) == 1
+        assert dispatcher.activation_receipts() == ()
+        result = dispatcher.invoke(principal, call, grant)
+        assert result.value == "POOLED_OBJECT"
+        assert dict(dispatcher.worker_pool_stats()) == {
+            "capacity": 1,
+            "hits": 1,
+            "idle": 0,
+            "misses": 0,
+        }
+    finally:
+        dispatcher.close()
 
 
 def test_internal_path_substitution_is_blocked_after_legitimate_call(tmp_path):

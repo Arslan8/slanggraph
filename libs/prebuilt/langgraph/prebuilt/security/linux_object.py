@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import stat
+import subprocess
 from collections import deque
 from collections.abc import Mapping, Sequence
 from dataclasses import replace
@@ -36,7 +37,11 @@ from langgraph.prebuilt.security.execution import (
     TerminationRecovery,
 )
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
-from langgraph.prebuilt.security.linux import LinuxSandboxExecutor, LinuxToolSpec
+from langgraph.prebuilt.security.linux import (
+    LinuxSandboxExecutor,
+    LinuxToolSpec,
+    _LinuxWorkerPoolState,
+)
 from langgraph.prebuilt.security.object_policy import (
     EnforcementKind,
     ObjectClass,
@@ -165,6 +170,8 @@ class LinuxObjectDispatcher:
         runtime_roots: Sequence[str | Path],
         lifecycle_checker: LeanLifecycleChecker | None = None,
         wall_timeout_s: float = 30.0,
+        worker_pool_capacity: int = 0,
+        worker_pool_idle_s: float = 300.0,
     ) -> None:
         copied = dict(tools)
         if not copied or any(
@@ -188,6 +195,15 @@ class LinuxObjectDispatcher:
         self.runtime_roots = roots
         self.lifecycle_checker = lifecycle_checker
         self.wall_timeout_s = float(wall_timeout_s)
+        if (
+            type(worker_pool_capacity) is not int
+            or worker_pool_capacity < 0
+            or worker_pool_idle_s <= 0
+        ):
+            raise ValueError("Linux object worker pool settings must be non-negative")
+        self.worker_pool_capacity = worker_pool_capacity
+        self.worker_pool_idle_s = float(worker_pool_idle_s)
+        self._worker_pool_state = _LinuxWorkerPoolState()
         self._lock = RLock()
         self._receipts = deque(maxlen=1024)
         self._lowerings = deque(maxlen=1024)
@@ -224,6 +240,54 @@ class LinuxObjectDispatcher:
         with self._lock:
             return tuple(MappingProxyType(dict(item)) for item in self._lowerings)
 
+    def worker_pool_stats(self) -> Mapping[str, int]:
+        """Return shared pool occupancy and claim counters."""
+        state = self._worker_pool_state
+        with state.lock:
+            return MappingProxyType(
+                {
+                    "capacity": self.worker_pool_capacity,
+                    "idle": sum(len(items) for items in state.workers.values()),
+                    "hits": state.hits,
+                    "misses": state.misses,
+                }
+            )
+
+    def prewarm(
+        self,
+        principal: Principal,
+        call: ToolCall,
+        grant: ObjectGrant,
+        *,
+        count: int = 1,
+        asynchronous: bool = False,
+    ) -> int:
+        """Create exact-object workers during application preflight."""
+        worker = self._new_worker(principal, call, grant)
+        return worker.prewarm(
+            principal, call, (), count=count, asynchronous=asynchronous
+        )
+
+    def close(self) -> None:
+        """Terminate all idle shared workers."""
+        state = self._worker_pool_state
+        with state.lock:
+            workers = [
+                worker for entries in state.workers.values() for worker in entries
+            ]
+            state.workers.clear()
+        for worker in workers:
+            try:
+                if worker.process.poll() is None:
+                    worker.process.kill()
+                worker.process.wait(timeout=2.0)
+            except (OSError, subprocess.SubprocessError):
+                continue
+            try:
+                os.close(worker.status_read)
+            except OSError:
+                pass
+
     def invoke(
         self, principal: Principal, call: ToolCall, grant: ObjectGrant
     ) -> HostExecutionResult:
@@ -237,6 +301,23 @@ class LinuxObjectDispatcher:
         *,
         asynchronous: bool,
     ) -> HostExecutionResult:
+        worker = self._new_worker(principal, call, grant)
+        try:
+            result = worker._invoke(principal, call, (), asynchronous=asynchronous)
+        except HostExecutionError as exc:
+            exc.receipt = self._object_receipt(exc.receipt, grant)
+            self._record(worker, grant, exc.receipt)
+            if exc.recovery is not None:
+                with self._lock:
+                    self._recoveries[exc.recovery.recovery_id] = worker
+            raise
+        receipt = self._object_receipt(result.receipt, grant)
+        self._record(worker, grant, receipt)
+        return HostExecutionResult(result.value, receipt)
+
+    def _new_worker(
+        self, principal: Principal, call: ToolCall, grant: ObjectGrant
+    ) -> _LinuxObjectWorker:
         if (
             grant.principal_id != principal.user_id
             or grant.tool_name != call.tool.name
@@ -266,7 +347,7 @@ class LinuxObjectDispatcher:
             " runs linux\n syscalls @minimal\n}\n",
             source="<linux-object-dispatcher>",
         )
-        worker = _LinuxObjectWorker(
+        return _LinuxObjectWorker(
             grant,
             profiles,
             {call.tool.name: self.tools[call.tool.name]},
@@ -274,19 +355,10 @@ class LinuxObjectDispatcher:
             policy_backend=TypedPolicyBackend(),
             default_wall_timeout_s=self.wall_timeout_s,
             lifecycle_checker=self.lifecycle_checker,
+            worker_pool_capacity=self.worker_pool_capacity,
+            worker_pool_idle_s=self.worker_pool_idle_s,
+            _worker_pool_state=self._worker_pool_state,
         )
-        try:
-            result = worker._invoke(principal, call, (), asynchronous=asynchronous)
-        except HostExecutionError as exc:
-            exc.receipt = self._object_receipt(exc.receipt, grant)
-            self._record(worker, grant, exc.receipt)
-            if exc.recovery is not None:
-                with self._lock:
-                    self._recoveries[exc.recovery.recovery_id] = worker
-            raise
-        receipt = self._object_receipt(result.receipt, grant)
-        self._record(worker, grant, receipt)
-        return HostExecutionResult(result.value, receipt)
 
     def _record(
         self, worker: _LinuxObjectWorker, grant: ObjectGrant, receipt: Any

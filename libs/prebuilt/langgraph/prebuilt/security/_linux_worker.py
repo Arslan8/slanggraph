@@ -156,7 +156,19 @@ def main() -> int:
         if bool(request.get("asynchronous")):
             event_loop = asyncio.new_event_loop()
         _apply_seccomp()
-        prepared = _prepare_invocation(request)
+        pool_key = request.get("pool_key")
+        prepared: _PreparedInvocation
+        if request.get("pool_bootstrap") is True:
+            if not isinstance(pool_key, str) or len(pool_key) != 64:
+                raise ValueError("invalid worker pool key")
+            prepared = _prepare_invocation(request)
+            _write(protocol_output, {"pool_key": pool_key, "status": "pooled"})
+            request = _read_request()
+            if request.get("pool_key") != pool_key:
+                raise ValueError("worker pool key mismatch")
+            prepared = _bind_prepared_invocation(prepared, request)
+        else:
+            prepared = _prepare_invocation(request)
         _write(
             protocol_output,
             {
@@ -191,6 +203,11 @@ def _read_request() -> Mapping[str, Any]:
     value = json.loads(line)
     if not isinstance(value, dict):
         raise ValueError("request must be an object")
+    if value.get("pool_bootstrap") is True:
+        required = {"asynchronous", "limits", "pool_key"}
+        if not required.issubset(value):
+            raise ValueError("pool bootstrap is missing required fields")
+        return value
     required = {
         "args",
         "artifact_path",
@@ -324,6 +341,42 @@ def _prepare_invocation(request: Mapping[str, Any]) -> _PreparedInvocation:
     sys.modules[module_name] = module
     with open(artifact_path, "rb") as source:
         code = compile(source.read(), artifact_path, "exec", dont_inherit=True)
+    args, call = _invocation_values(request)
+    return _PreparedInvocation(
+        request, module, code, tuple(attribute_path.split(".")), args, call
+    )
+
+
+def _bind_prepared_invocation(
+    prepared: _PreparedInvocation, request: Mapping[str, Any]
+) -> _PreparedInvocation:
+    """Bind dynamic call data to code compiled in the confined preflight phase."""
+    for name in (
+        "artifact_path",
+        "asynchronous",
+        "entrypoint",
+        "runtime_roots",
+        "tool_import_roots",
+        "tool_name",
+    ):
+        if request.get(name, [] if name == "tool_import_roots" else None) != (
+            prepared.request.get(name, [] if name == "tool_import_roots" else None)
+        ):
+            raise ValueError(f"pooled worker invariant changed:{name}")
+    args, call = _invocation_values(request)
+    return _PreparedInvocation(
+        request,
+        prepared.module,
+        prepared.code,
+        prepared.attribute_path,
+        args,
+        call,
+    )
+
+
+def _invocation_values(
+    request: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
     args = request["args"]
     if not isinstance(args, dict):
         raise TypeError("tool arguments must be an object")
@@ -333,9 +386,7 @@ def _prepare_invocation(request: Mapping[str, Any]) -> _PreparedInvocation:
         "name": str(request["tool_name"]),
         "type": "tool_call",
     }
-    return _PreparedInvocation(
-        request, module, code, tuple(attribute_path.split(".")), args, call
-    )
+    return args, call
 
 
 def _invoke(

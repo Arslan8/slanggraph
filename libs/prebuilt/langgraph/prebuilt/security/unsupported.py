@@ -288,6 +288,14 @@ _ENTRIES: tuple[UnsupportedFeature, ...] = (
         "object policy grants cannot carry typed constraints",
         "runtime",
     ),
+    UnsupportedFeature(
+        "object_policy:dispatcher_prewarm_unsupported",
+        _U,
+        "worker preflight on a dispatcher without a pool implementation",
+        "object policy authorization",
+        "the selected dispatcher does not implement exact-policy worker preflight",
+        "runtime",
+    ),
     *(
         UnsupportedFeature(
             f"admission:{name}",

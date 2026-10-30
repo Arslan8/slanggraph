@@ -34,12 +34,15 @@ from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleSession
 from langgraph.prebuilt.security.linux import LinuxSandboxExecutor
 from langgraph.prebuilt.security.linux_object import _LinuxObjectWorker
 from langgraph.prebuilt.security.object_policy import ObjectPolicyHostExecutor
+from langgraph.prebuilt.security.types import Tool, ToolCall, ToolDac
 
 POLICY = 'permit(principal == slangGraph::User::"alice", action, resource);'
 MANDATORY = 'forbid(principal == slangGraph::User::"bob", action, resource);'
 MANIFEST = "runs linux\nfs read @{path} need"
-LEAN_BINARY = "/data/langgraph/proofs/worker-route/.lake/build/bin/workerRoute"
-LEAN_SHA256 = "6097be9b7b84639959c7a0b9de31c79f23486e9f01bf1b6de575dfab25c7cb08"
+LEAN_BINARY = "/data/langgraph/proofs/worker-route/.lake/build/lib/libargus_worker_route.so"
+LEAN_SHA256 = "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2"
+LEAN_RUNTIME = "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so"
+LEAN_RUNTIME_SHA256 = "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
 SOURCE = """from pathlib import Path
 
 def run(path):
@@ -72,7 +75,16 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
         source.write_text(SOURCE)
         allowed.write_text("COMMON_FILE_VALUE")
         checker_started = time.perf_counter_ns()
-        checker = LeanLifecycleChecker(LEAN_BINARY, LEAN_SHA256) if lean else None
+        checker = (
+            LeanLifecycleChecker(
+                LEAN_BINARY,
+                LEAN_SHA256,
+                LEAN_RUNTIME,
+                LEAN_RUNTIME_SHA256,
+            )
+            if lean
+            else None
+        )
         checker_setup_ms = (time.perf_counter_ns() - checker_started) / 1e6
         dispatcher_started = time.perf_counter_ns()
         dispatcher = LinuxObjectDispatcher(
@@ -85,6 +97,7 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
             },
             runtime_roots=(trusted,),
             lifecycle_checker=checker,
+            worker_pool_capacity=1,
         )
         dispatcher_setup_ms = (time.perf_counter_ns() - dispatcher_started) / 1e6
         sink = SqliteAuditSink(root / "audit.sqlite")
@@ -206,6 +219,24 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                     )
                     for key in spans:
                         spans[key] = 0.0
+                    call_id = uuid.uuid4().hex
+                    prepared_call = ToolCall(
+                        Tool("common_read", ToolDac("owner", {}), frozenset(), ()),
+                        {"path": str(allowed)},
+                        {},
+                        call_id,
+                        0,
+                    )
+                    preflight_started = time.perf_counter_ns()
+                    security.host_executor.prewarm(
+                        principal, prepared_call, (), count=1
+                    )
+                    worker_preflight_ms = (
+                        time.perf_counter_ns() - preflight_started
+                    ) / 1e6
+                    for key in spans:
+                        spans[key] = 0.0
+                    hits_before = dispatcher.worker_pool_stats()["hits"]
                     started = time.perf_counter_ns()
                     result = graph.invoke(
                         {
@@ -216,7 +247,7 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                                         {
                                             "name": "common_read",
                                             "args": {"path": str(allowed)},
-                                            "id": uuid.uuid4().hex,
+                                            "id": call_id,
                                         }
                                     ],
                                 )
@@ -225,6 +256,7 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                         config=config,
                     )
                     elapsed = (time.perf_counter_ns() - started) / 1e6
+                    pool_stats = dispatcher.worker_pool_stats()
                     lean_prego = max(0.0, spans["lean_go_ms"] - spans["lean_worker_start_ms"])
                     activation = max(
                         0.0,
@@ -258,6 +290,7 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                             "round": index,
                             "phase": phase,
                             "elapsed_ms": elapsed,
+                            "worker_preflight_ms": worker_preflight_ms,
                             "authorization_ms": spans["authorization_ms"],
                             "policy_lowering_ms": spans["policy_lowering_ms"],
                             "activation_ms": activation,
@@ -267,7 +300,8 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                             "audit_ms": spans["audit_ms"],
                             "cleanup_ms": spans["cleanup_ms"],
                             "framework_residual_ms": elapsed - accounted,
-                            "worker_reused": False,
+                            "worker_reused": pool_stats["hits"] > hits_before,
+                            "worker_pool": dict(pool_stats),
                             "valid": "COMMON_FILE_VALUE" in result["messages"][-1].content,
                         },
                     )
@@ -281,6 +315,7 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
             linux_module._readline_json = originals["readline"]
             LinuxSandboxExecutor._cleanup_worker = originals["cleanup"]
             sink.write = originals["audit"]
+            dispatcher.close()
 
 
 def run(output: Path, sessions: int, warmups: int, measured: int) -> None:

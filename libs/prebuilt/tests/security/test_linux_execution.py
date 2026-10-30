@@ -98,6 +98,7 @@ def _security(
     *,
     audit_sink: MemoryAuditSink | SqliteAuditSink | None = None,
     default_limits: dict[str, int] | None = None,
+    worker_pool_capacity: int = 0,
 ) -> SecurityConfig:
     profiles = parse_profiles(profile_text, source="linux-test.slp")
     artifact = _FIXTURES / "linux_tools.py"
@@ -113,6 +114,7 @@ def _security(
         runtime_roots=(_FIXTURES,),
         policy_backend=TypedPolicyBackend(),
         default_limits=default_limits,
+        worker_pool_capacity=worker_pool_capacity,
     )
     return SecurityConfig(
         dac_overrides=DacOverrides(profiles=profiles.tools),
@@ -176,6 +178,96 @@ def test_tool_node_executes_only_inside_activated_linux_worker(tmp_path: Path) -
     payload = json.loads(activation[0].reason.removeprefix("activation_receipt:"))
     assert payload == receipts[0].canonical()
     assert audit.verify() == (True, None)
+
+
+def test_prewarmed_worker_is_claimed_once_with_fresh_activation(tmp_path: Path) -> None:
+    """Preflight confinement removes launch cost without caching invocation authority."""
+    allowed = tmp_path / "allowed.txt"
+    allowed.write_text("pooled-result")
+    security = _security(
+        _profile(tmp_path),
+        "linux_tools:read_file",
+        worker_pool_capacity=1,
+    )
+    assert isinstance(security.host_executor, LinuxSandboxExecutor)
+    executor = security.host_executor
+    tool_info = Tool(
+        "read_file",
+        ToolDac("analyst", {"analyst": "x", "*": "-"}),
+        frozenset({Effect.READ}),
+        (ResourceArg("path", "path", "realpath"),),
+    )
+    call = ToolCall(
+        tool_info,
+        {"path": str(allowed)},
+        {"path": str(allowed)},
+        "preflight-call",
+        0,
+    )
+    principal = Principal("alice", frozenset({"analyst"}), frozenset(), "session")
+    try:
+        assert executor.prewarm(principal, call, (), count=1) == 1
+        assert dict(executor.worker_pool_stats()) == {
+            "capacity": 1,
+            "hits": 0,
+            "idle": 1,
+            "misses": 0,
+        }
+        assert executor.activation_receipts() == ()
+        result = executor.invoke(principal, replace(call, call_id="runtime-call"), ())
+        assert result.value == "pooled-result"
+        assert result.receipt.nonce
+        assert dict(executor.worker_pool_stats()) == {
+            "capacity": 1,
+            "hits": 1,
+            "idle": 0,
+            "misses": 0,
+        }
+        assert len(executor.activation_receipts()) == 1
+    finally:
+        executor.close()
+
+
+def test_prewarmed_worker_rejects_different_native_plan(tmp_path: Path) -> None:
+    """A pool miss cannot broaden a worker's preinstalled filesystem authority."""
+    first = tmp_path / "first.txt"
+    second = tmp_path / "second.txt"
+    first.write_text("first")
+    second.write_text("second")
+    security = _security(
+        _profile(tmp_path),
+        "linux_tools:read_file",
+        worker_pool_capacity=1,
+    )
+    assert isinstance(security.host_executor, LinuxSandboxExecutor)
+    executor = security.host_executor
+    tool_info = Tool(
+        "read_file",
+        ToolDac("analyst", {"analyst": "x", "*": "-"}),
+        frozenset({Effect.READ}),
+        (ResourceArg("path", "path", "realpath"),),
+    )
+    principal = Principal("alice", frozenset({"analyst"}), frozenset(), "session")
+
+    def call(path: Path, call_id: str) -> ToolCall:
+        return ToolCall(
+            tool_info,
+            {"path": str(path)},
+            {"path": str(path)},
+            call_id,
+            0,
+        )
+
+    try:
+        assert executor.prewarm(principal, call(first, "preflight"), (), count=1) == 1
+        result = executor.invoke(principal, call(second, "runtime"), ())
+        assert result.value == "second"
+        stats = dict(executor.worker_pool_stats())
+        assert stats["hits"] == 0
+        assert stats["misses"] == 1
+        assert stats["idle"] == 1
+    finally:
+        executor.close()
 
 
 @pytest.mark.asyncio

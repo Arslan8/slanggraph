@@ -19,7 +19,7 @@ import tempfile
 import time
 from collections import deque
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from threading import RLock
 from types import MappingProxyType
@@ -196,11 +196,54 @@ class LinuxToolSpec:
         return cls.from_deployment(deployment, manager=manager, selection=selection)
 
 
+@dataclass(slots=True)
+class _PooledLinuxWorker:
+    """A confined, uncredentialed worker waiting for one invocation claim."""
+
+    pool_key: str
+    process: subprocess.Popen[bytes]
+    status_read: int
+    child_pid: int
+    child_start_time: str
+    boot_id: str
+    leases: tuple[tuple[OstreeDeploymentManager, DeploymentLease], ...]
+    created_at: float
+
+
+@dataclass(slots=True)
+class _LinuxWorkerPoolState:
+    """Pool storage that may be shared by equivalent executor frontends."""
+
+    workers: dict[str, deque[_PooledLinuxWorker]] = field(default_factory=dict)
+    lock: RLock = field(default_factory=RLock)
+    hits: int = 0
+    misses: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class _PreparedLinuxExecution:
+    principal: Principal
+    call: ToolCall
+    configured: LinuxToolSpec
+    spec: LinuxToolSpec
+    grant: Grant
+    host: HostAttestation
+    plan: EnforcementPlan
+    runtime: RuntimeDeployment | None
+    adapter: _LinuxBubblewrapAdapter
+    coordinator: EnforcementCoordinator
+    leases: tuple[tuple[OstreeDeploymentManager, DeploymentLease], ...]
+    grant_projection: bytes | None
+    obligation_projection: bytes | None
+
+
 class LinuxSandboxExecutor:
-    """Execute manifest tools in a fresh, fail-closed bubblewrap worker.
+    """Execute manifest tools in a single-use, fail-closed bubblewrap worker.
 
     The backend currently enforces filesystem grants, an isolated no-network
-    namespace, a default-deny seccomp allowlist, and resource ceilings. Network,
+    namespace, a default-deny seccomp allowlist, and resource ceilings. Optional
+    preflight pooling installs those invariant restrictions before a call, while
+    authorization and activation remain freshly bound at claim time. Network,
     service, credential, delegation, and executable grants are rejected until a
     broker or a more capable Linux adapter owns their exact obligations.
     """
@@ -225,6 +268,9 @@ class LinuxSandboxExecutor:
         runtime_manager: OstreeDeploymentManager | None = None,
         runtime_selection: str | None = None,
         lifecycle_checker: LeanLifecycleChecker | None = None,
+        worker_pool_capacity: int = 0,
+        worker_pool_idle_s: float = 300.0,
+        _worker_pool_state: _LinuxWorkerPoolState | None = None,
     ) -> None:
         if (
             lifecycle_checker is not None
@@ -295,6 +341,12 @@ class LinuxSandboxExecutor:
             raise ValueError("runtime roots must be regular files or directories")
         if startup_timeout_s <= 0 or default_wall_timeout_s <= 0:
             raise ValueError("Linux sandbox timeouts must be positive")
+        if (
+            type(worker_pool_capacity) is not int
+            or worker_pool_capacity < 0
+            or worker_pool_idle_s <= 0
+        ):
+            raise ValueError("Linux worker pool settings must be non-negative")
         _verify_bubblewrap_host(bwrap, startup_timeout_s)
         limits = dict(_DEFAULT_LIMITS if default_limits is None else default_limits)
         if (
@@ -378,6 +430,9 @@ class LinuxSandboxExecutor:
             str, tuple[tuple[OstreeDeploymentManager, DeploymentLease], ...]
         ] = {}
         self._termination_lock = RLock()
+        self.worker_pool_capacity = worker_pool_capacity
+        self.worker_pool_idle_s = worker_pool_idle_s
+        self._worker_pool_state = _worker_pool_state or _LinuxWorkerPoolState()
 
     def validate_tools(self, tool_names: Sequence[str]) -> None:
         """Require a closed manifest and Linux profile for every reachable tool."""
@@ -391,6 +446,72 @@ class LinuxSandboxExecutor:
         """Return a bounded snapshot of worker-specific activation evidence."""
         with self._receipt_lock:
             return tuple(self._receipts)
+
+    def worker_pool_stats(self) -> Mapping[str, int]:
+        """Return pool occupancy and claim counters for evaluation telemetry."""
+        state = self._worker_pool_state
+        with state.lock:
+            return MappingProxyType(
+                {
+                    "capacity": self.worker_pool_capacity,
+                    "idle": sum(len(items) for items in state.workers.values()),
+                    "hits": state.hits,
+                    "misses": state.misses,
+                }
+            )
+
+    def close(self) -> None:
+        """Terminate idle workers and release their retained deployment leases."""
+        state = self._worker_pool_state
+        with state.lock:
+            workers = [
+                worker for entries in state.workers.values() for worker in entries
+            ]
+            state.workers.clear()
+        for worker in workers:
+            try:
+                if worker.process.poll() is None:
+                    worker.process.kill()
+                worker.process.wait(timeout=2.0)
+            except (OSError, subprocess.SubprocessError):
+                continue
+            try:
+                os.close(worker.status_read)
+            except OSError:
+                pass
+            self._release_deployment_leases(worker.leases)
+
+    def prewarm(
+        self,
+        principal: Principal,
+        call: ToolCall,
+        constraints: Sequence[PolicyConstraint],
+        *,
+        count: int = 1,
+        asynchronous: bool = False,
+    ) -> int:
+        """Prepare exact-policy, uncredentialed workers outside invocation timing.
+
+        Each worker is confined before it enters the pool and can service exactly
+        one later invocation whose native enforcement fingerprint is identical.
+        Authorization and activation receipts are still fresh per invocation.
+        """
+        if type(count) is not int or count < 0:
+            raise ValueError("prewarm count must be a non-negative integer")
+        if count and self.worker_pool_capacity == 0:
+            raise HostExecutionDenied("host:worker_pool_disabled")
+        prepared_count = 0
+        for _ in range(min(count, self.worker_pool_capacity)):
+            prepared = self._prepare_execution(
+                principal, call, constraints, asynchronous=asynchronous
+            )
+            try:
+                self._spawn_pooled_worker(prepared, asynchronous=asynchronous)
+            except BaseException:
+                self._release_unretained_deployment_leases(prepared.leases)
+                raise
+            prepared_count += 1
+        return prepared_count
 
     def bind_call(self, principal: Principal, call: ToolCall) -> ToolCall:
         """Select executable content before policy preparation and approval."""
@@ -511,6 +632,38 @@ class LinuxSandboxExecutor:
         *,
         asynchronous: bool,
     ) -> HostExecutionResult:
+        prepared = self._prepare_execution(
+            principal, call, constraints, asynchronous=asynchronous
+        )
+        try:
+            return self._run_worker(
+                prepared.principal,
+                prepared.call,
+                prepared.spec,
+                prepared.grant,
+                prepared.host,
+                prepared.plan,
+                prepared.runtime,
+                prepared.adapter,
+                prepared.coordinator,
+                prepared.leases,
+                asynchronous=asynchronous,
+                grant_projection=prepared.grant_projection,
+                obligation_projection=prepared.obligation_projection,
+            )
+        except BaseException:
+            self._release_unretained_deployment_leases(prepared.leases)
+            raise
+
+    def _prepare_execution(
+        self,
+        principal: Principal,
+        call: ToolCall,
+        constraints: Sequence[PolicyConstraint],
+        *,
+        asynchronous: bool,
+    ) -> _PreparedLinuxExecution:
+        """Authorize and lower one invocation without creating an effect."""
         checker = self._lifecycle_checker
         if checker is not None and (
             type(checker) is not LeanLifecycleChecker or asynchronous
@@ -561,25 +714,21 @@ class LinuxSandboxExecutor:
         leases = self._acquire_deployment_leases(
             principal, call, configured, spec, runtime
         )
-        try:
-            return self._run_worker(
-                principal,
-                call,
-                spec,
-                grant,
-                host,
-                negotiation.plan,
-                runtime,
-                adapter,
-                coordinator,
-                leases,
-                asynchronous=asynchronous,
-                grant_projection=grant_projection,
-                obligation_projection=obligation_projection,
-            )
-        except BaseException:
-            self._release_unretained_deployment_leases(leases)
-            raise
+        return _PreparedLinuxExecution(
+            principal,
+            call,
+            configured,
+            spec,
+            grant,
+            host,
+            negotiation.plan,
+            runtime,
+            adapter,
+            coordinator,
+            leases,
+            grant_projection,
+            obligation_projection,
+        )
 
     def _acquire_deployment_leases(
         self,
@@ -1031,6 +1180,201 @@ class LinuxSandboxExecutor:
             )
         return tuple(rules)
 
+    def _worker_pool_key(
+        self,
+        adapter_plan: AdapterPlan,
+        spec: LinuxToolSpec,
+        runtime: RuntimeDeployment | None,
+        adapter: _LinuxBubblewrapAdapter,
+        *,
+        asynchronous: bool,
+    ) -> str:
+        del runtime
+        return _digest(
+            {
+                "adapter": adapter_plan.adapter_id,
+                "native_plan": adapter_plan.native_plan_digest,
+                "artifact": spec.artifact_digest,
+                "entrypoint": spec.entrypoint,
+                "interpreter": adapter.python_digest,
+                "worker": self._worker_digest,
+                "asynchronous": asynchronous,
+            }
+        )
+
+    def _spawn_pooled_worker(
+        self,
+        prepared: _PreparedLinuxExecution,
+        *,
+        asynchronous: bool,
+    ) -> None:
+        adapter_plan = next(
+            item
+            for item in prepared.plan.adapter_plans
+            if item.adapter_id == _ADAPTER_ID
+        )
+        pool_key = self._worker_pool_key(
+            adapter_plan,
+            prepared.spec,
+            prepared.runtime,
+            prepared.adapter,
+            asynchronous=asynchronous,
+        )
+        state = self._worker_pool_state
+        with state.lock:
+            self._reap_worker_pool_locked()
+            if sum(len(items) for items in state.workers.values()) >= (
+                self.worker_pool_capacity
+            ):
+                raise HostExecutionDenied("host:worker_pool_full")
+        command, inherited_fds, status_read, status_write, artifact_directory = (
+            self._worker_command(adapter_plan, prepared.spec, prepared.runtime)
+        )
+        process: subprocess.Popen[bytes] | None = None
+        child_pid: int | None = None
+        child_start_time: str | None = None
+        try:
+            process = subprocess.Popen(
+                command,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                bufsize=0,
+                close_fds=True,
+                pass_fds=(*inherited_fds, status_write),
+            )
+            os.close(status_write)
+            status_write = -1
+            for descriptor in inherited_fds:
+                os.close(descriptor)
+            inherited_fds = ()
+            if process.stdin is None or process.stdout is None:
+                raise HostExecutionDenied("host:worker_pipe_failed")
+            process.stdin.write(
+                _encode_worker_request(
+                    {
+                        "args": {},
+                        "artifact_path": os.fspath(prepared.spec.artifact_path),
+                        "asynchronous": asynchronous,
+                        "call_id": "",
+                        "entrypoint": prepared.spec.entrypoint,
+                        "limits": _plain_mapping(
+                            adapter_plan.payload.get("limits", {})
+                        ),
+                        "pool_bootstrap": True,
+                        "pool_key": pool_key,
+                        "runtime_roots": [
+                            os.fspath(item)
+                            for item in (
+                                prepared.runtime.guest_import_roots
+                                if prepared.runtime is not None
+                                else self.runtime_roots
+                            )
+                        ],
+                        "tool_import_roots": (
+                            [
+                                os.fspath(item)
+                                for item in prepared.spec.deployment.import_roots
+                            ]
+                            if prepared.spec.deployment is not None
+                            else []
+                        ),
+                        "tool_name": prepared.call.tool.name,
+                    }
+                )
+            )
+            process.stdin.flush()
+            status = _read_fd_json(status_read, self.startup_timeout_s)
+            sandbox_init_pid = int(status["child-pid"])
+            pooled = _readline_json(process, self.startup_timeout_s)
+            if pooled != {"pool_key": pool_key, "status": "pooled"}:
+                raise HostExecutionDenied("host:worker_pool_protocol")
+            child_pid = _sandbox_payload_pid(
+                sandbox_init_pid, timeout_s=self.startup_timeout_s
+            )
+            context = _execution_context(child_pid)
+            child_start_time = context.process_identity.rpartition(":")[2]
+            _remove_private_artifact(artifact_directory)
+            artifact_directory = None
+            worker = _PooledLinuxWorker(
+                pool_key,
+                process,
+                status_read,
+                child_pid,
+                child_start_time,
+                context.boot_id,
+                prepared.leases,
+                time.monotonic(),
+            )
+            status_read = -1
+            with state.lock:
+                state.workers.setdefault(pool_key, deque()).append(worker)
+            process = None
+        finally:
+            for descriptor in (status_read, status_write, *inherited_fds):
+                if descriptor >= 0:
+                    try:
+                        os.close(descriptor)
+                    except OSError:
+                        pass
+            if artifact_directory is not None:
+                _remove_private_artifact(artifact_directory)
+            if process is not None:
+                try:
+                    process.kill()
+                    process.wait(timeout=2.0)
+                except (OSError, subprocess.SubprocessError):
+                    pass
+
+    def _claim_pooled_worker(self, pool_key: str) -> _PooledLinuxWorker | None:
+        state = self._worker_pool_state
+        with state.lock:
+            self._reap_worker_pool_locked()
+            workers = state.workers.get(pool_key)
+            while workers:
+                worker = workers.popleft()
+                if worker.process.poll() is None:
+                    state.hits += 1
+                    if not workers:
+                        state.workers.pop(pool_key, None)
+                    return worker
+                try:
+                    os.close(worker.status_read)
+                except OSError:
+                    pass
+                self._release_deployment_leases(worker.leases)
+            state.workers.pop(pool_key, None)
+            state.misses += 1
+            return None
+
+    def _reap_worker_pool_locked(self) -> None:
+        cutoff = time.monotonic() - self.worker_pool_idle_s
+        stale: list[_PooledLinuxWorker] = []
+        state = self._worker_pool_state
+        for key, workers in tuple(state.workers.items()):
+            retained = deque(
+                worker
+                for worker in workers
+                if worker.created_at >= cutoff and worker.process.poll() is None
+            )
+            stale.extend(worker for worker in workers if worker not in retained)
+            if retained:
+                state.workers[key] = retained
+            else:
+                state.workers.pop(key, None)
+        for worker in stale:
+            try:
+                if worker.process.poll() is None:
+                    worker.process.kill()
+                worker.process.wait(timeout=2.0)
+            except (OSError, subprocess.SubprocessError):
+                continue
+            try:
+                os.close(worker.status_read)
+            except OSError:
+                pass
+            self._release_deployment_leases(worker.leases)
+
     def _run_worker(
         self,
         principal: Principal,
@@ -1079,13 +1423,24 @@ class LinuxSandboxExecutor:
         adapter_plan = next(
             item for item in plan.adapter_plans if item.adapter_id == _ADAPTER_ID
         )
-        interpreter = (
-            runtime.interpreter_path if runtime is not None else self.python_executable
+        pool_key = self._worker_pool_key(
+            adapter_plan, spec, runtime, adapter, asynchronous=asynchronous
         )
-        if _file_digest(interpreter) != adapter.python_digest:
-            raise HostExecutionDenied("host:interpreter_changed")
-        if _file_digest(self._worker_script) != self._worker_digest:
-            raise HostExecutionDenied("host:worker_shim_changed")
+        pooled = (
+            self._claim_pooled_worker(pool_key)
+            if getattr(self, "worker_pool_capacity", 0)
+            else None
+        )
+        if pooled is None:
+            interpreter = (
+                runtime.interpreter_path
+                if runtime is not None
+                else self.python_executable
+            )
+            if _file_digest(interpreter) != adapter.python_digest:
+                raise HostExecutionDenied("host:interpreter_changed")
+            if _file_digest(self._worker_script) != self._worker_digest:
+                raise HostExecutionDenied("host:worker_shim_changed")
         startup_challenge = secrets.token_hex(16)
         try:
             request = {
@@ -1112,18 +1467,26 @@ class LinuxSandboxExecutor:
                 "startup_challenge": startup_challenge,
                 "tool_name": call.tool.name,
             }
+            if pooled is not None:
+                request["pool_key"] = pool_key
             encoded_request = _encode_worker_request(request)
         except (RecursionError, TypeError, ValueError) as exc:
             raise HostExecutionDenied("host:request_not_serializable") from exc
-        artifact_directory: Path | None
-        command, inherited_fds, status_read, status_write, artifact_directory = (
-            self._worker_command(adapter_plan, spec, runtime)
+        artifact_directory: Path | None = None
+        command: list[str] = []
+        inherited_fds: tuple[int, ...] = ()
+        status_read = pooled.status_read if pooled is not None else -1
+        status_write = -1
+        process: subprocess.Popen[bytes] | None = (
+            pooled.process if pooled is not None else None
         )
-        process: subprocess.Popen[bytes] | None = None
         receipt: ActivationReceipt | None = None
         released = False
-        child_pid: int | None = None
-        child_start_time: str | None = None
+        child_pid: int | None = pooled.child_pid if pooled is not None else None
+        child_start_time: str | None = (
+            pooled.child_start_time if pooled is not None else None
+        )
+        cleanup_leases = leases + (() if pooled is None else pooled.leases)
         lifecycle: LeanLifecycleSession | None = None
         lifecycle_observed: dict | None = None
         result: HostExecutionResult | None = None
@@ -1133,40 +1496,58 @@ class LinuxSandboxExecutor:
         active_error: BaseException | None = None
         try:
             try:
-                process = subprocess.Popen(
-                    command,
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    bufsize=0,
-                    close_fds=True,
-                    pass_fds=(*inherited_fds, status_write),
-                )
-                os.close(status_write)
-                status_write = -1
-                for descriptor in inherited_fds:
-                    os.close(descriptor)
-                inherited_fds = ()
+                if pooled is None:
+                    (
+                        command,
+                        inherited_fds,
+                        status_read,
+                        status_write,
+                        artifact_directory,
+                    ) = self._worker_command(adapter_plan, spec, runtime)
+                    process = subprocess.Popen(
+                        command,
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        bufsize=0,
+                        close_fds=True,
+                        pass_fds=(*inherited_fds, status_write),
+                    )
+                    os.close(status_write)
+                    status_write = -1
+                    for descriptor in inherited_fds:
+                        os.close(descriptor)
+                    inherited_fds = ()
+                assert process is not None
                 if process.stdin is None or process.stdout is None:
                     raise HostExecutionDenied("host:worker_pipe_failed")
                 process.stdin.write(encoded_request)
                 process.stdin.flush()
-                status = _read_fd_json(status_read, self.startup_timeout_s)
-                sandbox_init_pid = int(status["child-pid"])
+                if pooled is None:
+                    status = _read_fd_json(status_read, self.startup_timeout_s)
+                    sandbox_init_pid = int(status["child-pid"])
                 ready = _readline_json(process, self.startup_timeout_s)
-                _remove_private_artifact(artifact_directory)
-                artifact_directory = None
+                if artifact_directory is not None:
+                    _remove_private_artifact(artifact_directory)
+                    artifact_directory = None
                 if ready != {
                     "plan_digest": adapter_plan.native_plan_digest,
                     "startup_challenge": startup_challenge,
                     "status": "ready",
                 }:
                     raise HostExecutionDenied("host:worker_startup_protocol")
-                child_pid = _sandbox_payload_pid(
-                    sandbox_init_pid, timeout_s=self.startup_timeout_s
-                )
+                if pooled is None:
+                    child_pid = _sandbox_payload_pid(
+                        sandbox_init_pid, timeout_s=self.startup_timeout_s
+                    )
+                assert child_pid is not None
                 context = _execution_context(child_pid)
                 child_start_time = context.process_identity.rpartition(":")[2]
+                if pooled is not None and (
+                    context.boot_id != pooled.boot_id
+                    or child_start_time != pooled.child_start_time
+                ):
+                    raise HostExecutionDenied("host:worker_pool_identity_changed")
                 adapter.register_pending(adapter_plan, context)
                 activation_nonce = secrets.token_hex(16)
                 receipt = coordinator.activate(
@@ -1305,7 +1686,7 @@ class LinuxSandboxExecutor:
                 artifact_directory=artifact_directory,
                 host=host,
                 receipt=receipt,
-                leases=leases,
+                leases=cleanup_leases,
                 active_error=active_error,
             )
         # Reaching here means this invocation's cleanup returned normally after

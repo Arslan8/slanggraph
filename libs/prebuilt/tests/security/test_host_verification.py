@@ -105,8 +105,8 @@ def test_known_unsafe_pattern_match_still_proves_nothing() -> None:
     [
         (
             "worker",
-            "        _apply_seccomp()\n        prepared = _prepare_invocation(request)\n",
-            "        prepared = _prepare_invocation(request)\n",
+            '        _apply_seccomp()\n        pool_key = request.get("pool_key")\n',
+            '        pool_key = request.get("pool_key")\n',
             "activation_before_execution",
         ),
         (
