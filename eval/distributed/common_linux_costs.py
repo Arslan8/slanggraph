@@ -32,6 +32,7 @@ from langgraph.prebuilt.security import linux as linux_module
 from langgraph.prebuilt.security.enforcement import EnforcementCoordinator
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleSession
 from langgraph.prebuilt.security.linux import LinuxSandboxExecutor
+from langgraph.prebuilt.security.linux_object import LinuxObjectDispatcher as _Dispatcher
 from langgraph.prebuilt.security.linux_object import _LinuxObjectWorker
 from langgraph.prebuilt.security.object_policy import ObjectPolicyHostExecutor
 from langgraph.prebuilt.security.types import Tool, ToolCall, ToolDac
@@ -41,7 +42,9 @@ MANDATORY = 'forbid(principal == slangGraph::User::"bob", action, resource);'
 MANIFEST = "runs linux\nfs read @{path} need"
 LEAN_BINARY = "/data/langgraph/proofs/worker-route/.lake/build/lib/libargus_worker_route.so"
 LEAN_SHA256 = "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2"
-LEAN_RUNTIME = "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so"
+LEAN_RUNTIME = (
+    "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so"
+)
 LEAN_RUNTIME_SHA256 = "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
 SOURCE = """from pathlib import Path
 
@@ -122,7 +125,11 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
         config = with_principal({}, principal, modules=security.modules)
         spans = {
             "authorization_ms": 0.0,
+            "invocation_binding_ms": 0.0,
             "policy_lowering_ms": 0.0,
+            "host_prepare_ms": 0.0,
+            "host_attestation_ms": 0.0,
+            "prepared_policy_match_ms": 0.0,
             "lean_ms": 0.0,
             "worker_ms": 0.0,
             "prego_ms": 0.0,
@@ -133,10 +140,21 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
             "dispatch_ms": 0.0,
             "ready_ms": 0.0,
             "coordinator_activation_ms": 0.0,
+            "host_executor_ms": 0.0,
+            "dispatcher_setup_ms": 0.0,
+            "toolnode_ms": 0.0,
+            "tool_call_ms": 0.0,
         }
         originals = {
             "authorize": ObjectPolicyHostExecutor._authorize,
+            "host_invoke": ObjectPolicyHostExecutor.invoke,
             "compile": _LinuxObjectWorker._compile_grant,
+            "prepare": LinuxSandboxExecutor._prepare_execution,
+            "attest": linux_module._LinuxBubblewrapAdapter.attest,
+            "negotiate": EnforcementCoordinator.negotiate,
+            "authority_key": linux_module._prepared_authority_key,
+            "host_key": linux_module._host_configuration_digest,
+            "new_worker": _Dispatcher._new_worker,
             "lean": LeanLifecycleChecker._require,
             "worker": LinuxSandboxExecutor._run_worker,
             "go": LeanLifecycleSession.permit_go,
@@ -145,6 +163,8 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
             "dispatch": dispatcher.invoke,
             "readline": linux_module._readline_json,
             "activate": EnforcementCoordinator.activate,
+            "toolnode": ToolNode._func,
+            "tool_call": ToolNode._run_one_inner,
         }
 
         def timed(name, function):
@@ -158,11 +178,26 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
             return wrapper
 
         ObjectPolicyHostExecutor._authorize = timed("authorization_ms", originals["authorize"])
-        _LinuxObjectWorker._compile_grant = timed("policy_lowering_ms", originals["compile"])
+        ObjectPolicyHostExecutor.invoke = timed("host_executor_ms", originals["host_invoke"])
+        _LinuxObjectWorker._compile_grant = timed("invocation_binding_ms", originals["compile"])
+        LinuxSandboxExecutor._prepare_execution = timed("host_prepare_ms", originals["prepare"])
+        linux_module._LinuxBubblewrapAdapter.attest = timed(
+            "host_attestation_ms", originals["attest"]
+        )
+        EnforcementCoordinator.negotiate = timed("policy_lowering_ms", originals["negotiate"])
+        linux_module._prepared_authority_key = timed(
+            "prepared_policy_match_ms", originals["authority_key"]
+        )
+        linux_module._host_configuration_digest = timed(
+            "prepared_policy_match_ms", originals["host_key"]
+        )
+        _Dispatcher._new_worker = timed("dispatcher_setup_ms", originals["new_worker"])
         LeanLifecycleChecker._require = timed("lean_ms", originals["lean"])
         EnforcementCoordinator.activate = timed("coordinator_activation_ms", originals["activate"])
         LinuxSandboxExecutor._cleanup_worker = timed("cleanup_ms", originals["cleanup"])
         sink.write = timed("audit_ms", originals["audit"])
+        ToolNode._func = timed("toolnode_ms", originals["toolnode"])
+        ToolNode._run_one_inner = timed("tool_call_ms", originals["tool_call"])
 
         def worker_timed(*args, **kwargs):
             spans["lean_worker_start_ms"] = spans["lean_ms"]
@@ -228,12 +263,8 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                         0,
                     )
                     preflight_started = time.perf_counter_ns()
-                    security.host_executor.prewarm(
-                        principal, prepared_call, (), count=1
-                    )
-                    worker_preflight_ms = (
-                        time.perf_counter_ns() - preflight_started
-                    ) / 1e6
+                    security.host_executor.prewarm(principal, prepared_call, (), count=1)
+                    worker_preflight_ms = (time.perf_counter_ns() - preflight_started) / 1e6
                     for key in spans:
                         spans[key] = 0.0
                     hits_before = dispatcher.worker_pool_stats()["hits"]
@@ -274,12 +305,46 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                     )
                     accounted = (
                         spans["authorization_ms"]
+                        + spans["invocation_binding_ms"]
                         + spans["policy_lowering_ms"]
                         + activation
                         + execution
                         + spans["lean_ms"]
                         + spans["audit_ms"]
                         + spans["cleanup_ms"]
+                    )
+                    graph_dispatch = elapsed - spans["toolnode_ms"]
+                    toolnode_orchestration = spans["toolnode_ms"] - spans["tool_call_ms"]
+                    tool_call_framework = (
+                        spans["tool_call_ms"] - spans["host_executor_ms"] - spans["audit_ms"]
+                    )
+                    host_bridge = (
+                        spans["host_executor_ms"] - spans["authorization_ms"] - spans["dispatch_ms"]
+                    )
+                    dispatcher_other = (
+                        spans["dispatch_ms"]
+                        - spans["dispatcher_setup_ms"]
+                        - spans["host_prepare_ms"]
+                        - spans["worker_ms"]
+                    )
+                    host_prepare_other = (
+                        spans["host_prepare_ms"]
+                        - spans["invocation_binding_ms"]
+                        - spans["host_attestation_ms"]
+                        - spans["prepared_policy_match_ms"]
+                        - spans["policy_lowering_ms"]
+                        - spans["lean_worker_start_ms"]
+                    )
+                    residual_partition = (
+                        graph_dispatch
+                        + toolnode_orchestration
+                        + tool_call_framework
+                        + host_bridge
+                        + dispatcher_other
+                        + spans["dispatcher_setup_ms"]
+                        + host_prepare_other
+                        + spans["host_attestation_ms"]
+                        + spans["prepared_policy_match_ms"]
                     )
                     write(
                         stream,
@@ -292,7 +357,24 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                             "elapsed_ms": elapsed,
                             "worker_preflight_ms": worker_preflight_ms,
                             "authorization_ms": spans["authorization_ms"],
+                            "invocation_binding_ms": spans["invocation_binding_ms"],
                             "policy_lowering_ms": spans["policy_lowering_ms"],
+                            "host_prepare_ms": spans["host_prepare_ms"],
+                            "host_attestation_ms": spans["host_attestation_ms"],
+                            "prepared_policy_match_ms": spans["prepared_policy_match_ms"],
+                            "host_executor_ms": spans["host_executor_ms"],
+                            "dispatcher_setup_ms": spans["dispatcher_setup_ms"],
+                            "toolnode_ms": spans["toolnode_ms"],
+                            "tool_call_ms": spans["tool_call_ms"],
+                            "graph_dispatch_ms": graph_dispatch,
+                            "toolnode_orchestration_ms": toolnode_orchestration,
+                            "tool_call_framework_ms": tool_call_framework,
+                            "host_bridge_ms": host_bridge,
+                            "dispatcher_other_ms": dispatcher_other,
+                            "host_prepare_other_ms": host_prepare_other,
+                            "residual_partition_error_ms": (
+                                elapsed - accounted - residual_partition
+                            ),
                             "activation_ms": activation,
                             "execution_ms": execution,
                             "mediator_transport_ms": 0.0,
@@ -307,7 +389,14 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                     )
         finally:
             ObjectPolicyHostExecutor._authorize = originals["authorize"]
+            ObjectPolicyHostExecutor.invoke = originals["host_invoke"]
             _LinuxObjectWorker._compile_grant = originals["compile"]
+            LinuxSandboxExecutor._prepare_execution = originals["prepare"]
+            linux_module._LinuxBubblewrapAdapter.attest = originals["attest"]
+            EnforcementCoordinator.negotiate = originals["negotiate"]
+            linux_module._prepared_authority_key = originals["authority_key"]
+            linux_module._host_configuration_digest = originals["host_key"]
+            _Dispatcher._new_worker = originals["new_worker"]
             LeanLifecycleChecker._require = originals["lean"]
             EnforcementCoordinator.activate = originals["activate"]
             LinuxSandboxExecutor._run_worker = originals["worker"]
@@ -315,6 +404,8 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
             linux_module._readline_json = originals["readline"]
             LinuxSandboxExecutor._cleanup_worker = originals["cleanup"]
             sink.write = originals["audit"]
+            ToolNode._func = originals["toolnode"]
+            ToolNode._run_one_inner = originals["tool_call"]
             dispatcher.close()
 
 

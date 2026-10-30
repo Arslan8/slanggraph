@@ -228,8 +228,8 @@ def test_prewarmed_worker_is_claimed_once_with_fresh_activation(tmp_path: Path) 
         executor.close()
 
 
-def test_prewarmed_worker_rejects_different_native_plan(tmp_path: Path) -> None:
-    """A pool miss cannot broaden a worker's preinstalled filesystem authority."""
+def test_prewarmed_worker_rejects_unprepared_native_plan(tmp_path: Path) -> None:
+    """Runtime refuses authority that was not lowered during preflight."""
     first = tmp_path / "first.txt"
     second = tmp_path / "second.txt"
     first.write_text("first")
@@ -260,11 +260,11 @@ def test_prewarmed_worker_rejects_different_native_plan(tmp_path: Path) -> None:
 
     try:
         assert executor.prewarm(principal, call(first, "preflight"), (), count=1) == 1
-        result = executor.invoke(principal, call(second, "runtime"), ())
-        assert result.value == "second"
+        with pytest.raises(HostExecutionDenied, match="prepared_policy_missing"):
+            executor.invoke(principal, call(second, "runtime"), ())
         stats = dict(executor.worker_pool_stats())
         assert stats["hits"] == 0
-        assert stats["misses"] == 1
+        assert stats["misses"] == 0
         assert stats["idle"] == 1
     finally:
         executor.close()

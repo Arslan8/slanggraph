@@ -210,11 +210,26 @@ class _PooledLinuxWorker:
     created_at: float
 
 
+@dataclass(frozen=True, slots=True)
+class _PreparedHostPolicy:
+    """Host-specific lowering compiled before an invocation is admitted."""
+
+    authority_key: str
+    host_configuration_digest: str
+    obligation_digest: str
+    mode: EnforcementMode
+    assignments: tuple[Any, ...]
+    adapter_plans: tuple[AdapterPlan, ...]
+    waived_obligations: tuple[str, ...]
+    removed_wants: tuple[str, ...]
+
+
 @dataclass(slots=True)
 class _LinuxWorkerPoolState:
     """Pool storage that may be shared by equivalent executor frontends."""
 
     workers: dict[str, deque[_PooledLinuxWorker]] = field(default_factory=dict)
+    prepared_policies: dict[str, _PreparedHostPolicy] = field(default_factory=dict)
     lock: RLock = field(default_factory=RLock)
     hits: int = 0
     misses: int = 0
@@ -468,6 +483,7 @@ class LinuxSandboxExecutor:
                 worker for entries in state.workers.values() for worker in entries
             ]
             state.workers.clear()
+            state.prepared_policies.clear()
         for worker in workers:
             try:
                 if worker.process.poll() is None:
@@ -503,7 +519,11 @@ class LinuxSandboxExecutor:
         prepared_count = 0
         for _ in range(min(count, self.worker_pool_capacity)):
             prepared = self._prepare_execution(
-                principal, call, constraints, asynchronous=asynchronous
+                principal,
+                call,
+                constraints,
+                asynchronous=asynchronous,
+                preflight=True,
             )
             try:
                 self._spawn_pooled_worker(prepared, asynchronous=asynchronous)
@@ -633,7 +653,11 @@ class LinuxSandboxExecutor:
         asynchronous: bool,
     ) -> HostExecutionResult:
         prepared = self._prepare_execution(
-            principal, call, constraints, asynchronous=asynchronous
+            principal,
+            call,
+            constraints,
+            asynchronous=asynchronous,
+            preflight=False,
         )
         try:
             return self._run_worker(
@@ -662,6 +686,7 @@ class LinuxSandboxExecutor:
         constraints: Sequence[PolicyConstraint],
         *,
         asynchronous: bool,
+        preflight: bool,
     ) -> _PreparedLinuxExecution:
         """Authorize and lower one invocation without creating an effect."""
         checker = self._lifecycle_checker
@@ -698,19 +723,71 @@ class LinuxSandboxExecutor:
             checker.require_grant(
                 json.loads(grant_projection), json.loads(obligation_projection)
             )
-        challenge = secrets.token_hex(16)
         adapter = self._adapter_for_runtime(runtime)
         coordinator = EnforcementCoordinator([adapter], adapter)
-        host = adapter.attest(challenge)
-        negotiation = coordinator.negotiate(
-            grant,
-            filtered.ledger,
-            obligations,
-            host,
-            expected_nonce=challenge,
-        )
-        if not negotiation.allowed or negotiation.plan is None:
-            raise HostExecutionDenied(f"host:{negotiation.reason}")
+        authority_key = _prepared_authority_key(grant, obligations)
+        if preflight or not self.worker_pool_capacity:
+            challenge = secrets.token_hex(16)
+            host = adapter.attest(challenge)
+            negotiation = coordinator.negotiate(
+                grant,
+                filtered.ledger,
+                obligations,
+                host,
+                expected_nonce=challenge,
+            )
+            if not negotiation.allowed or negotiation.plan is None:
+                raise HostExecutionDenied(f"host:{negotiation.reason}")
+            plan = negotiation.plan
+            if preflight:
+                prepared_policy = _PreparedHostPolicy(
+                    authority_key,
+                    _host_configuration_digest(host),
+                    plan.obligation_digest,
+                    plan.mode,
+                    plan.assignments,
+                    plan.adapter_plans,
+                    plan.waived_obligations,
+                    plan.removed_wants,
+                )
+                state = self._worker_pool_state
+                with state.lock:
+                    prior = state.prepared_policies.get(authority_key)
+                    if prior is not None and prior != prepared_policy:
+                        raise HostExecutionDenied("host:prepared_policy_conflict")
+                    state.prepared_policies[authority_key] = prepared_policy
+        else:
+            state = self._worker_pool_state
+            with state.lock:
+                prepared_policy = state.prepared_policies.get(authority_key)
+            if prepared_policy is None:
+                raise HostExecutionDenied("host:prepared_policy_missing")
+            challenge = secrets.token_hex(16)
+            host = adapter.attest(challenge)
+            if prepared_policy.host_configuration_digest != _host_configuration_digest(
+                host
+            ):
+                raise HostExecutionDenied("host:prepared_host_changed")
+            obligation_digest = _digest(
+                [
+                    item.canonical()
+                    for item in sorted(
+                        obligations, key=lambda value: value.obligation_id
+                    )
+                ]
+            )
+            if obligation_digest != prepared_policy.obligation_digest:
+                raise HostExecutionDenied("host:prepared_obligations_changed")
+            plan = EnforcementPlan(
+                grant.digest,
+                host.digest,
+                obligation_digest,
+                prepared_policy.mode,
+                prepared_policy.assignments,
+                prepared_policy.adapter_plans,
+                prepared_policy.waived_obligations,
+                prepared_policy.removed_wants,
+            )
         leases = self._acquire_deployment_leases(
             principal, call, configured, spec, runtime
         )
@@ -721,7 +798,7 @@ class LinuxSandboxExecutor:
             spec,
             grant,
             host,
-            negotiation.plan,
+            plan,
             runtime,
             adapter,
             coordinator,
@@ -1431,6 +1508,8 @@ class LinuxSandboxExecutor:
             if getattr(self, "worker_pool_capacity", 0)
             else None
         )
+        if pooled is None and getattr(self, "worker_pool_capacity", 0):
+            raise HostExecutionDenied("host:prepared_worker_unavailable")
         if pooled is None:
             interpreter = (
                 runtime.interpreter_path
@@ -2750,6 +2829,48 @@ def _file_digest(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _prepared_authority_key(
+    grant: Grant, obligations: Sequence[EnforcementObligation]
+) -> str:
+    """Identify policy inputs that may affect host-specific lowering.
+
+    Invocation identity, session identity, and normalized intent remain freshly
+    bound in the runtime grant. They are deliberately absent here because they
+    cannot change the native host restrictions for an otherwise identical
+    authority set.
+    """
+    return _digest(
+        {
+            "artifact": grant.artifact_digest,
+            "deployment": grant.deployment_digest,
+            "obligations": [
+                item.canonical()
+                for item in sorted(obligations, key=lambda value: value.obligation_id)
+            ],
+            "rules": [
+                rule.canonical()
+                for rule in sorted(grant.rules, key=lambda value: value.rule_id)
+            ],
+            "runtime": grant.runtime_digest,
+            "tool": grant.tool_name,
+        }
+    )
+
+
+def _host_configuration_digest(host: HostAttestation) -> str:
+    """Digest stable host capabilities while excluding fresh attestation data."""
+    return _digest(
+        {
+            "boot_id": host.boot_id,
+            "capabilities": sorted(host.capabilities),
+            "context": dict(host.context),
+            "evidence": _plain_mapping(host.evidence),
+            "issuer": host.issuer,
+            "platform": host.platform,
+        }
+    )
 
 
 def _digest(value: object) -> str:

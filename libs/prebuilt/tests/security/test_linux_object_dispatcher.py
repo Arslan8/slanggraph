@@ -22,6 +22,13 @@ from langgraph.prebuilt.security import (
     install_mac_policy,
     with_principal,
 )
+from langgraph.prebuilt.security.linux_object import _object_authority_key
+from langgraph.prebuilt.security.object_policy import (
+    EnforcementKind,
+    ObjectGrant,
+    ObjectGrantLine,
+)
+from langgraph.prebuilt.security.profile import Requirement
 from langgraph.prebuilt.security.types import Tool, ToolCall, ToolDac
 
 _FIXTURES = Path(__file__).with_name("fixtures")
@@ -118,7 +125,7 @@ def test_sealed_linux_object_read_succeeds(tmp_path):
     assert lowering["object_grant_digest"] != lowering["native_grant_digest"]
 
 
-def test_object_dispatcher_claims_shared_prewarmed_worker(tmp_path):
+def test_object_dispatcher_claims_shared_prewarmed_worker(tmp_path, monkeypatch):
     allowed = tmp_path / "allowed.txt"
     allowed.write_text("POOLED_OBJECT")
     dispatcher = _dispatcher("read_file", worker_pool_capacity=1)
@@ -139,6 +146,18 @@ def test_object_dispatcher_claims_shared_prewarmed_worker(tmp_path):
     try:
         assert dispatcher.prewarm(principal, call, grant, count=1) == 1
         assert dispatcher.activation_receipts() == ()
+        monkeypatch.setattr(
+            "langgraph.prebuilt.security.linux_object._exact_file",
+            lambda *_args: (_ for _ in ()).throw(
+                AssertionError("runtime repeated preflight path lowering")
+            ),
+        )
+        monkeypatch.setattr(
+            "langgraph.prebuilt.security.linux._LinuxBubblewrapAdapter.lower",
+            lambda *_args: (_ for _ in ()).throw(
+                AssertionError("runtime repeated host-policy lowering")
+            ),
+        )
         result = dispatcher.invoke(principal, call, grant)
         assert result.value == "POOLED_OBJECT"
         assert dict(dispatcher.worker_pool_stats()) == {
@@ -149,6 +168,86 @@ def test_object_dispatcher_claims_shared_prewarmed_worker(tmp_path):
         }
     finally:
         dispatcher.close()
+
+
+def test_runtime_binds_prepared_host_policy_without_relowering(tmp_path, monkeypatch):
+    allowed = tmp_path / "allowed.txt"
+    allowed.write_text("PREPARED")
+    monkeypatch.setattr(
+        "langgraph.prebuilt.security.linux._verify_bubblewrap_host",
+        lambda *_args: None,
+    )
+    dispatcher = _dispatcher("read_file", worker_pool_capacity=1)
+    principal = Principal("alice", frozenset(), frozenset(), "session")
+
+    def invocation(call_id: str):
+        call = ToolCall(
+            Tool("read_file", ToolDac("owner", {}), frozenset(), ()),
+            {"path": str(allowed)},
+            {},
+            call_id,
+            0,
+        )
+        grant = ObjectGrant(
+            "alice",
+            "read_file",
+            call_id,
+            "policy-digest",
+            (
+                ObjectGrantLine(
+                    "fs:read:path",
+                    "fs",
+                    "read",
+                    str(allowed),
+                    {},
+                    Requirement.NEED,
+                    EnforcementKind.KERNEL,
+                ),
+            ),
+        )
+        return call, grant
+
+    preflight_call, preflight_grant = invocation("preflight")
+    template = dispatcher._new_worker(
+        principal, preflight_call, preflight_grant, preflight=True
+    )
+    template._prepare_execution(
+        principal,
+        preflight_call,
+        (),
+        asynchronous=False,
+        preflight=True,
+    )
+    assert template.lowered_grant is not None
+    # The dispatcher and generic executor intentionally use different keys.
+    object_key = _object_authority_key(preflight_grant)
+    with dispatcher._lock:
+        dispatcher._prepared_rules[object_key] = template.lowered_grant.rules
+        dispatcher._prepared_workers[object_key] = template
+
+    monkeypatch.setattr(
+        "langgraph.prebuilt.security.linux_object._exact_file",
+        lambda *_args: (_ for _ in ()).throw(AssertionError("path relowered")),
+    )
+    monkeypatch.setattr(
+        "langgraph.prebuilt.security.linux._LinuxBubblewrapAdapter.lower",
+        lambda *_args: (_ for _ in ()).throw(AssertionError("host policy relowered")),
+    )
+    runtime_call, runtime_grant = invocation("runtime")
+    runtime = dispatcher._new_worker(principal, runtime_call, runtime_grant)
+    prepared = runtime._prepare_execution(
+        principal,
+        runtime_call,
+        (),
+        asynchronous=False,
+        preflight=False,
+    )
+    assert (
+        prepared.plan.adapter_plans
+        == next(
+            iter(dispatcher._worker_pool_state.prepared_policies.values())
+        ).adapter_plans
+    )
 
 
 def test_internal_path_substitution_is_blocked_after_legitimate_call(tmp_path):

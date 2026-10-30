@@ -163,8 +163,10 @@ def test_known_unsafe_pattern_match_still_proves_nothing() -> None:
         ),
         (
             "linux",
-            "            expected_nonce=challenge,\n        )",
-            "            expected_nonce=challenge,\n            waivers=frozenset(obligations),\n        )",
+            "                expected_nonce=challenge,\n            )",
+            "                expected_nonce=challenge,\n"
+            "                waivers=frozenset(obligations),\n"
+            "            )",
             "grant_lowering",
         ),
         (

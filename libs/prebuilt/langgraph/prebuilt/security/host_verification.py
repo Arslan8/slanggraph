@@ -268,6 +268,18 @@ def _check_lowering(fns: Mapping[str, ast.FunctionDef], issues: list[str]) -> bo
             "lowering: refused negotiation does not raise HostExecutionDenied"
         )
         ok = False
+    prepared_source = ast.unparse(invoke) if invoke is not None else ""
+    prepared_requirements = (
+        "host:prepared_policy_missing",
+        "host:prepared_host_changed",
+        "host:prepared_obligations_changed",
+        "EnforcementPlan(grant.digest, host.digest",
+    )
+    if any(value not in prepared_source for value in prepared_requirements):
+        issues.append(
+            "lowering: prepared policy is not exactly rebound to fresh grant/host data"
+        )
+        ok = False
     lower = fns.get("_LinuxBubblewrapAdapter.lower")
     if lower is None or "inexact_writable_mount" not in ast.unparse(lower):
         issues.append("lowering: inexact writable mounts are not refused")

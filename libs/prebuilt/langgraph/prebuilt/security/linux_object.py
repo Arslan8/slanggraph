@@ -10,6 +10,7 @@ same lowered grant that is activated before worker `GO`.
 from __future__ import annotations
 
 import asyncio
+import copy
 import hashlib
 import json
 import os
@@ -59,6 +60,21 @@ def _digest(value: Any) -> str:
     ).hexdigest()
 
 
+def _object_authority_key(grant: ObjectGrant) -> str:
+    """Identify the complete static policy lowered into a pooled worker."""
+    return _digest(
+        {
+            "lines": [
+                line.canonical()
+                for line in sorted(grant.lines, key=lambda item: item.line_id)
+            ],
+            "policy": grant.policy_digest,
+            "tool": grant.tool_name,
+            "waivers": dict(grant.enforcement_waivers),
+        }
+    )
+
+
 def _exact_file(selector: str, operation: str) -> Path:
     """Return a canonical regular file; mutable grants also require one link."""
     if type(selector) is not str or not selector.startswith("/"):
@@ -82,8 +98,15 @@ def _exact_file(selector: str, operation: str) -> Path:
 class _LinuxObjectWorker(LinuxSandboxExecutor):
     """Linux worker whose authority is constructed from one object grant."""
 
-    def __init__(self, object_grant: ObjectGrant, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        object_grant: ObjectGrant,
+        *args: Any,
+        prepared_rules: tuple[GrantRule, ...] | None = None,
+        **kwargs: Any,
+    ) -> None:
         self.object_grant = object_grant
+        self.prepared_rules = prepared_rules
         self.lowered_grant: Grant | None = None
         super().__init__(*args, **kwargs)
 
@@ -102,19 +125,21 @@ class _LinuxObjectWorker(LinuxSandboxExecutor):
             or obj.enforcement_waivers
         ):
             raise HostExecutionDenied("linux_object:grant_binding")
-        rules = tuple(
-            GrantRule(
-                line.line_id,
-                AuthorityDomain.FILESYSTEM,
-                line.operation,
-                os.fspath(_exact_file(line.selector, line.operation)),
-                {"exact_file": True},
-                line.requirement,
-                line.provenance,
+        rules = self.prepared_rules
+        if rules is None:
+            rules = tuple(
+                GrantRule(
+                    line.line_id,
+                    AuthorityDomain.FILESYSTEM,
+                    line.operation,
+                    os.fspath(_exact_file(line.selector, line.operation)),
+                    {"exact_file": True},
+                    line.requirement,
+                    line.provenance,
+                )
+                for line in obj.lines
             )
-            for line in obj.lines
-        )
-        rules += self._baseline_rules(spec, runtime)
+            rules += self._baseline_rules(spec, runtime)
         grant = Grant(
             principal.user_id,
             principal.session_id,
@@ -204,6 +229,8 @@ class LinuxObjectDispatcher:
         self.worker_pool_capacity = worker_pool_capacity
         self.worker_pool_idle_s = float(worker_pool_idle_s)
         self._worker_pool_state = _LinuxWorkerPoolState()
+        self._prepared_rules: dict[str, tuple[GrantRule, ...]] = {}
+        self._prepared_workers: dict[str, _LinuxObjectWorker] = {}
         self._lock = RLock()
         self._receipts = deque(maxlen=1024)
         self._lowerings = deque(maxlen=1024)
@@ -263,10 +290,20 @@ class LinuxObjectDispatcher:
         asynchronous: bool = False,
     ) -> int:
         """Create exact-object workers during application preflight."""
-        worker = self._new_worker(principal, call, grant)
-        return worker.prewarm(
+        if count == 0:
+            return 0
+        worker = self._new_worker(principal, call, grant, preflight=True)
+        prepared = worker.prewarm(
             principal, call, (), count=count, asynchronous=asynchronous
         )
+        lowered = worker.lowered_grant
+        if lowered is None:
+            raise HostExecutionDenied("linux_object:preflight_lowering_missing")
+        with self._lock:
+            authority_key = _object_authority_key(grant)
+            self._prepared_rules[authority_key] = lowered.rules
+            self._prepared_workers[authority_key] = worker
+        return prepared
 
     def close(self) -> None:
         """Terminate all idle shared workers."""
@@ -276,6 +313,10 @@ class LinuxObjectDispatcher:
                 worker for entries in state.workers.values() for worker in entries
             ]
             state.workers.clear()
+            state.prepared_policies.clear()
+        with self._lock:
+            self._prepared_rules.clear()
+            self._prepared_workers.clear()
         for worker in workers:
             try:
                 if worker.process.poll() is None:
@@ -316,7 +357,12 @@ class LinuxObjectDispatcher:
         return HostExecutionResult(result.value, receipt)
 
     def _new_worker(
-        self, principal: Principal, call: ToolCall, grant: ObjectGrant
+        self,
+        principal: Principal,
+        call: ToolCall,
+        grant: ObjectGrant,
+        *,
+        preflight: bool = False,
     ) -> _LinuxObjectWorker:
         if (
             grant.principal_id != principal.user_id
@@ -327,21 +373,36 @@ class LinuxObjectDispatcher:
             raise HostExecutionDenied("linux_object:grant_binding")
         if call.tool.name not in self.tools:
             raise HostExecutionDenied("linux_object:tool_missing")
+        authority_key = _object_authority_key(grant)
+        with self._lock:
+            prepared_rules = self._prepared_rules.get(authority_key)
+            prepared_worker = self._prepared_workers.get(authority_key)
         identifiers = [line.line_id for line in grant.lines]
-        if len(identifiers) != len(set(identifiers)) or any(
-            not self.supports(
-                ObjectClass(
-                    "fs",
-                    frozenset({"read", "write", "truncate"}),
-                    "path",
-                    "fs.realpath",
-                    enforced_by=EnforcementKind.KERNEL,
-                ),
-                line,
-            )
-            for line in grant.lines
-        ):
+        if len(identifiers) != len(set(identifiers)):
             raise HostExecutionDenied("linux_object:unsupported_authority")
+        if prepared_rules is None:
+            if self.worker_pool_capacity and not preflight:
+                raise HostExecutionDenied("linux_object:prepared_policy_missing")
+            if any(
+                not self.supports(
+                    ObjectClass(
+                        "fs",
+                        frozenset({"read", "write", "truncate"}),
+                        "path",
+                        "fs.realpath",
+                        enforced_by=EnforcementKind.KERNEL,
+                    ),
+                    line,
+                )
+                for line in grant.lines
+            ):
+                raise HostExecutionDenied("linux_object:unsupported_authority")
+        elif prepared_worker is not None and not preflight:
+            worker = copy.copy(prepared_worker)
+            worker.object_grant = grant
+            worker.prepared_rules = prepared_rules
+            worker.lowered_grant = None
+            return worker
         profiles = parse_profiles(
             f"tool {call.tool.name} {{\n owner object_dispatcher\n"
             " runs linux\n syscalls @minimal\n}\n",
@@ -351,6 +412,7 @@ class LinuxObjectDispatcher:
             grant,
             profiles,
             {call.tool.name: self.tools[call.tool.name]},
+            prepared_rules=prepared_rules,
             runtime_roots=self.runtime_roots,
             policy_backend=TypedPolicyBackend(),
             default_wall_timeout_s=self.wall_timeout_s,
