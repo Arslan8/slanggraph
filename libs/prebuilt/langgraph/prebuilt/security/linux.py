@@ -20,6 +20,7 @@ import time
 from collections import deque
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
+from enum import Enum
 from pathlib import Path
 from threading import RLock
 from types import MappingProxyType
@@ -107,6 +108,27 @@ _DEFAULT_LIMITS = MappingProxyType(
         "wall_ms": 30_000,
     }
 )
+
+
+class IntegrityRecheckMode(str, Enum):
+    """Runtime integrity work performed after the preflight full hash."""
+
+    FULL = "full"
+    MERKLE_SAMPLE = "merkle-sample"
+    PREFLIGHT_ONLY = "preflight-only"
+
+
+@dataclass(frozen=True, slots=True)
+class _MerkleCommitment:
+    """Preflight commitment to fixed-size, position-bound file chunks."""
+
+    size: int
+    chunk_bytes: int
+    levels: tuple[tuple[bytes, ...], ...]
+
+    @property
+    def root(self) -> str:
+        return self.levels[-1][0].hex()
 
 
 @dataclass(frozen=True, slots=True)
@@ -285,6 +307,9 @@ class LinuxSandboxExecutor:
         lifecycle_checker: LeanLifecycleChecker | None = None,
         worker_pool_capacity: int = 0,
         worker_pool_idle_s: float = 300.0,
+        integrity_recheck: IntegrityRecheckMode | str = IntegrityRecheckMode.FULL,
+        integrity_chunk_bytes: int = 65_536,
+        integrity_samples: int = 4,
         _worker_pool_state: _LinuxWorkerPoolState | None = None,
     ) -> None:
         if (
@@ -362,6 +387,19 @@ class LinuxSandboxExecutor:
             or worker_pool_idle_s <= 0
         ):
             raise ValueError("Linux worker pool settings must be non-negative")
+        try:
+            recheck_mode = IntegrityRecheckMode(integrity_recheck)
+        except ValueError as exc:
+            raise ValueError("unknown Linux integrity recheck mode") from exc
+        if (
+            type(integrity_chunk_bytes) is not int
+            or not 4_096 <= integrity_chunk_bytes <= 1_048_576
+            or type(integrity_samples) is not int
+            or not 1 <= integrity_samples <= 64
+        ):
+            raise ValueError(
+                "integrity chunks must be 4096..1048576 bytes and samples 1..64"
+            )
         _verify_bubblewrap_host(bwrap, startup_timeout_s)
         limits = dict(_DEFAULT_LIMITS if default_limits is None else default_limits)
         if (
@@ -436,6 +474,9 @@ class LinuxSandboxExecutor:
             self.python_executable,
             self._worker_script,
             self._adapter_lease_s,
+            recheck_mode,
+            integrity_chunk_bytes,
+            integrity_samples,
         )
         self._coordinator = EnforcementCoordinator([self._adapter], self._adapter)
         self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
@@ -447,6 +488,9 @@ class LinuxSandboxExecutor:
         self._termination_lock = RLock()
         self.worker_pool_capacity = worker_pool_capacity
         self.worker_pool_idle_s = worker_pool_idle_s
+        self.integrity_recheck = recheck_mode
+        self.integrity_chunk_bytes = integrity_chunk_bytes
+        self.integrity_samples = integrity_samples
         self._worker_pool_state = _worker_pool_state or _LinuxWorkerPoolState()
 
     def validate_tools(self, tool_names: Sequence[str]) -> None:
@@ -961,6 +1005,9 @@ class LinuxSandboxExecutor:
             runtime.interpreter_path,
             self._worker_script,
             self._adapter_lease_s,
+            self.integrity_recheck,
+            self.integrity_chunk_bytes,
+            self.integrity_samples,
         )
 
     def _compile_grant(
@@ -1274,6 +1321,9 @@ class LinuxSandboxExecutor:
                 "artifact": spec.artifact_digest,
                 "entrypoint": spec.entrypoint,
                 "interpreter": adapter.python_digest,
+                "integrity_recheck": self.integrity_recheck.value,
+                "integrity_chunk_bytes": self.integrity_chunk_bytes,
+                "integrity_samples": self.integrity_samples,
                 "worker": self._worker_digest,
                 "asynchronous": asynchronous,
             }
@@ -2089,6 +2139,9 @@ class _LinuxBubblewrapAdapter:
         python_executable: Path,
         worker_script: Path,
         lease_s: float,
+        integrity_recheck: IntegrityRecheckMode,
+        integrity_chunk_bytes: int,
+        integrity_samples: int,
     ) -> None:
         self.bwrap_path = bwrap_path
         self._key = key
@@ -2100,6 +2153,22 @@ class _LinuxBubblewrapAdapter:
         self._python_digest = _file_digest(python_executable)
         self._worker_script = worker_script
         self._worker_digest = _file_digest(worker_script)
+        self._integrity_recheck = integrity_recheck
+        self._integrity_chunk_bytes = integrity_chunk_bytes
+        self._integrity_samples = integrity_samples
+        self._merkle_commitments = (
+            {
+                "bubblewrap": _merkle_commitment(
+                    Path(bwrap_path), integrity_chunk_bytes
+                ),
+                "interpreter": _merkle_commitment(
+                    python_executable, integrity_chunk_bytes
+                ),
+                "worker": _merkle_commitment(worker_script, integrity_chunk_bytes),
+            }
+            if integrity_recheck is IntegrityRecheckMode.MERKLE_SAMPLE
+            else {}
+        )
         self._lease_s = lease_s
         self._capability_probe = probe_linux_capabilities()
 
@@ -2115,12 +2184,35 @@ class _LinuxBubblewrapAdapter:
 
     def attest(self, nonce: str) -> HostAttestation:
         """Return fresh locally authenticated host evidence."""
-        if _file_digest(Path(self.bwrap_path)) != self._binary_digest:
-            raise HostExecutionDenied("host:bubblewrap_changed")
-        if _file_digest(self._python_executable) != self._python_digest:
-            raise HostExecutionDenied("host:interpreter_changed")
-        if _file_digest(self._worker_script) != self._worker_digest:
-            raise HostExecutionDenied("host:worker_shim_changed")
+        artifacts = {
+            "bubblewrap": (
+                Path(self.bwrap_path),
+                self._binary_digest,
+                "bubblewrap_changed",
+            ),
+            "interpreter": (
+                self._python_executable,
+                self._python_digest,
+                "interpreter_changed",
+            ),
+            "worker": (
+                self._worker_script,
+                self._worker_digest,
+                "worker_shim_changed",
+            ),
+        }
+        if self._integrity_recheck is IntegrityRecheckMode.FULL:
+            for _name, (path, expected, reason) in artifacts.items():
+                if _file_digest(path) != expected:
+                    raise HostExecutionDenied(f"host:{reason}")
+        elif self._integrity_recheck is IntegrityRecheckMode.MERKLE_SAMPLE:
+            for name, (path, _expected, _reason) in artifacts.items():
+                if not _verify_merkle_sample(
+                    path,
+                    self._merkle_commitments[name],
+                    self._integrity_samples,
+                ):
+                    raise HostExecutionDenied(f"host:{name}_sample_changed")
         now = time.time()
         attestation = HostAttestation(
             "slanggraph-local-linux",
@@ -2149,6 +2241,19 @@ class _LinuxBubblewrapAdapter:
                 "landlock_abi": self._capability_probe.landlock_abi,
                 "python_digest": self._python_digest,
                 "worker_digest": self._worker_digest,
+                "integrity_recheck": {
+                    "chunk_bytes": self._integrity_chunk_bytes,
+                    "merkle_roots": {
+                        name: commitment.root
+                        for name, commitment in self._merkle_commitments.items()
+                    },
+                    "merkle_sizes": {
+                        name: commitment.size
+                        for name, commitment in self._merkle_commitments.items()
+                    },
+                    "mode": self._integrity_recheck.value,
+                    "samples": self._integrity_samples,
+                },
             },
             "pending",
         )
@@ -2829,6 +2934,85 @@ def _file_digest(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _merkle_leaf(index: int, payload: bytes) -> bytes:
+    return hashlib.sha256(
+        b"\x00" + index.to_bytes(8, "big") + len(payload).to_bytes(8, "big") + payload
+    ).digest()
+
+
+def _merkle_parent(left: bytes, right: bytes) -> bytes:
+    return hashlib.sha256(b"\x01" + left + right).digest()
+
+
+def _merkle_commitment(path: Path, chunk_bytes: int) -> _MerkleCommitment:
+    """Read an immutable candidate once and commit to every positioned chunk."""
+    info = path.stat(follow_symlinks=False)
+    if not stat.S_ISREG(info.st_mode):
+        raise ValueError("Merkle integrity artifacts must be regular files")
+    size = info.st_size
+    leaves: list[bytes] = []
+    with path.open("rb") as stream:
+        for index, chunk in enumerate(iter(lambda: stream.read(chunk_bytes), b"")):
+            leaves.append(_merkle_leaf(index, chunk))
+    if not leaves:
+        leaves.append(_merkle_leaf(0, b""))
+    levels: list[tuple[bytes, ...]] = [tuple(leaves)]
+    current = leaves
+    while len(current) > 1:
+        parents = [
+            _merkle_parent(
+                current[index],
+                current[index + 1] if index + 1 < len(current) else current[index],
+            )
+            for index in range(0, len(current), 2)
+        ]
+        levels.append(tuple(parents))
+        current = parents
+    return _MerkleCommitment(size, chunk_bytes, tuple(levels))
+
+
+def _verify_merkle_sample(
+    path: Path, commitment: _MerkleCommitment, samples: int
+) -> bool:
+    """Verify unpredictable chunk samples against the preflight Merkle root.
+
+    This is probabilistic tamper detection. It checks file size on every call,
+    but an unsampled, same-size modification is not detected by that call.
+    """
+    try:
+        info = path.stat(follow_symlinks=False)
+        if not stat.S_ISREG(info.st_mode) or info.st_size != commitment.size:
+            return False
+        leaf_count = len(commitment.levels[0])
+        selected = secrets.SystemRandom().sample(
+            range(leaf_count), min(samples, leaf_count)
+        )
+        with path.open("rb") as stream:
+            for selected_index in selected:
+                stream.seek(selected_index * commitment.chunk_bytes)
+                payload = stream.read(commitment.chunk_bytes)
+                node = _merkle_leaf(selected_index, payload)
+                if node != commitment.levels[0][selected_index]:
+                    return False
+                index = selected_index
+                for level in commitment.levels[:-1]:
+                    sibling_index = index - 1 if index % 2 else index + 1
+                    sibling = (
+                        level[sibling_index] if sibling_index < len(level) else node
+                    )
+                    node = (
+                        _merkle_parent(sibling, node)
+                        if index % 2
+                        else _merkle_parent(node, sibling)
+                    )
+                    index //= 2
+                if node.hex() != commitment.root:
+                    return False
+    except OSError:
+        return False
+    return True
 
 
 def _prepared_authority_key(

@@ -25,5 +25,25 @@
     "bubblewrap_probe_bypassed": true,
     "sandboxed_tool_executed": false,
     "suitable_for_headline_latency": false
+  },
+  "integrity_recheck_100_attestations": {
+    "full": {
+      "mean_ms": 19.919,
+      "p50_ms": 19.761,
+      "p95_ms": 22.096,
+      "preflight_setup_ms": 27.260
+    },
+    "merkle_sample_4x64k_per_artifact": {
+      "mean_ms": 0.458,
+      "p50_ms": 0.442,
+      "p95_ms": 0.483,
+      "preflight_setup_ms": 42.834
+    },
+    "preflight_only": {
+      "mean_ms": 0.104,
+      "p50_ms": 0.103,
+      "p95_ms": 0.110,
+      "preflight_setup_ms": 23.009
+    }
   }
 }

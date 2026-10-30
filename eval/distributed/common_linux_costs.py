@@ -19,6 +19,7 @@ from langchain_core.tools import tool
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
+    IntegrityRecheckMode,
     LeanLifecycleChecker,
     LinuxObjectDispatcher,
     LinuxToolSpec,
@@ -64,7 +65,14 @@ def write(stream, value: dict) -> None:
     stream.flush()
 
 
-def session(output: Path, number: int, warmups: int, measured: int, lean: bool) -> None:
+def session(
+    output: Path,
+    number: int,
+    warmups: int,
+    measured: int,
+    lean: bool,
+    integrity_recheck: str,
+) -> None:
     os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
     install_mac_policy(MANDATORY)
     with tempfile.TemporaryDirectory(prefix="slg-common-linux-") as folder:
@@ -101,6 +109,7 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
             runtime_roots=(trusted,),
             lifecycle_checker=checker,
             worker_pool_capacity=1,
+            integrity_recheck=integrity_recheck,
         )
         dispatcher_setup_ms = (time.perf_counter_ns() - dispatcher_started) / 1e6
         sink = SqliteAuditSink(root / "audit.sqlite")
@@ -246,6 +255,7 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
                         "manifest": MANIFEST,
                         "policy": POLICY,
                         "mandatory_policy": MANDATORY,
+                        "integrity_recheck": integrity_recheck,
                     },
                 )
                 for index in range(1 + warmups + measured):
@@ -409,7 +419,13 @@ def session(output: Path, number: int, warmups: int, measured: int, lean: bool) 
             dispatcher.close()
 
 
-def run(output: Path, sessions: int, warmups: int, measured: int) -> None:
+def run(
+    output: Path,
+    sessions: int,
+    warmups: int,
+    measured: int,
+    integrity_recheck: str,
+) -> None:
     output.mkdir(parents=True, exist_ok=False)
     for lean in (False, True):
         for number in range(sessions):
@@ -427,6 +443,8 @@ def run(output: Path, sessions: int, warmups: int, measured: int) -> None:
                         str(warmups),
                         "--measured",
                         str(measured),
+                        "--integrity-recheck",
+                        integrity_recheck,
                         *(["--lean"] if lean else []),
                     ],
                     stdout=log,
@@ -444,9 +462,20 @@ if __name__ == "__main__":
     parser.add_argument("--measured", default=20, type=int)
     parser.add_argument("--session", type=int)
     parser.add_argument("--lean", action="store_true")
+    parser.add_argument(
+        "--integrity-recheck",
+        choices=[item.value for item in IntegrityRecheckMode],
+        default=IntegrityRecheckMode.FULL.value,
+    )
     arguments = parser.parse_args()
     if arguments.session is None:
-        run(arguments.output, arguments.sessions, arguments.warmups, arguments.measured)
+        run(
+            arguments.output,
+            arguments.sessions,
+            arguments.warmups,
+            arguments.measured,
+            arguments.integrity_recheck,
+        )
     else:
         session(
             arguments.output,
@@ -454,4 +483,5 @@ if __name__ == "__main__":
             arguments.warmups,
             arguments.measured,
             arguments.lean,
+            arguments.integrity_recheck,
         )

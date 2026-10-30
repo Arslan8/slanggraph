@@ -81,3 +81,23 @@ bubblewrap availability probe. The full route must be rerun on a host that can
 create the required network namespace. In the current automation environment,
 bubblewrap refuses with `loopback: Failed RTM_NEWADDR: Operation not permitted`;
 using `--share-net` would weaken the evaluated isolation and was not used.
+
+## Configurable integrity follow-up
+
+An isolated 100-attestation diagnostic measured the three runtime integrity
+modes against the same bubblewrap binary, resolved Python executable, and
+worker shim:
+
+| Mode | Preflight setup ms | Attestation mean ms | p50 ms | p95 ms |
+|---|---:|---:|---:|---:|
+| Full-file rehash | 27.260 | 19.919 | 19.761 | 22.096 |
+| Four 64 KiB Merkle samples per artifact | 42.834 | 0.458 | 0.442 | 0.483 |
+| Preflight-only hash | 23.009 | 0.104 | 0.103 | 0.110 |
+
+This is a controller microbenchmark, not an end-to-end result. The Merkle mode
+checks size on every call and selects samples without replacement using system
+randomness. Its guarantee is probabilistic. Preflight-only provides no runtime
+content-change detection and is appropriate only when another mechanism makes
+the prepared artifacts immutable. All modes retain fresh nonce-bound host
+evidence, prepared-worker identity checks, kernel-state validation, activation,
+and receipt validation.

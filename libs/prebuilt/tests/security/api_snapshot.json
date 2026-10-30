@@ -77,6 +77,7 @@
   "LandlockSandboxExecutor",
   "LeanLifecycleChecker",
   "LinuxSandboxExecutor",
+  "IntegrityRecheckMode",
   "LinuxObjectDispatcher",
   "LinuxCapabilities",
   "LinuxToolSpec",

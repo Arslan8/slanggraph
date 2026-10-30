@@ -128,7 +128,11 @@ from langgraph.prebuilt.security.landlock import (
     open_path_descriptor,
 )
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
-from langgraph.prebuilt.security.linux import LinuxSandboxExecutor, LinuxToolSpec
+from langgraph.prebuilt.security.linux import (
+    IntegrityRecheckMode,
+    LinuxSandboxExecutor,
+    LinuxToolSpec,
+)
 from langgraph.prebuilt.security.linux_object import LinuxObjectDispatcher
 from langgraph.prebuilt.security.mac import install_mac_policy
 from langgraph.prebuilt.security.mcp_proxy import (
@@ -349,6 +353,7 @@ __all__ = (
     "LandlockSandboxExecutor",
     "LeanLifecycleChecker",
     "LinuxSandboxExecutor",
+    "IntegrityRecheckMode",
     "LinuxObjectDispatcher",
     "LinuxCapabilities",
     "LinuxToolSpec",

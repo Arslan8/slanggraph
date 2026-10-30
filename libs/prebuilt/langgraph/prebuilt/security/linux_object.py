@@ -39,6 +39,7 @@ from langgraph.prebuilt.security.execution import (
 )
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.linux import (
+    IntegrityRecheckMode,
     LinuxSandboxExecutor,
     LinuxToolSpec,
     _LinuxWorkerPoolState,
@@ -197,6 +198,9 @@ class LinuxObjectDispatcher:
         wall_timeout_s: float = 30.0,
         worker_pool_capacity: int = 0,
         worker_pool_idle_s: float = 300.0,
+        integrity_recheck: IntegrityRecheckMode | str = IntegrityRecheckMode.FULL,
+        integrity_chunk_bytes: int = 65_536,
+        integrity_samples: int = 4,
     ) -> None:
         copied = dict(tools)
         if not copied or any(
@@ -228,6 +232,21 @@ class LinuxObjectDispatcher:
             raise ValueError("Linux object worker pool settings must be non-negative")
         self.worker_pool_capacity = worker_pool_capacity
         self.worker_pool_idle_s = float(worker_pool_idle_s)
+        try:
+            self.integrity_recheck = IntegrityRecheckMode(integrity_recheck)
+        except ValueError as exc:
+            raise ValueError("unknown Linux integrity recheck mode") from exc
+        if (
+            type(integrity_chunk_bytes) is not int
+            or not 4_096 <= integrity_chunk_bytes <= 1_048_576
+            or type(integrity_samples) is not int
+            or not 1 <= integrity_samples <= 64
+        ):
+            raise ValueError(
+                "integrity chunks must be 4096..1048576 bytes and samples 1..64"
+            )
+        self.integrity_chunk_bytes = integrity_chunk_bytes
+        self.integrity_samples = integrity_samples
         self._worker_pool_state = _LinuxWorkerPoolState()
         self._prepared_rules: dict[str, tuple[GrantRule, ...]] = {}
         self._prepared_workers: dict[str, _LinuxObjectWorker] = {}
@@ -419,6 +438,9 @@ class LinuxObjectDispatcher:
             lifecycle_checker=self.lifecycle_checker,
             worker_pool_capacity=self.worker_pool_capacity,
             worker_pool_idle_s=self.worker_pool_idle_s,
+            integrity_recheck=self.integrity_recheck,
+            integrity_chunk_bytes=self.integrity_chunk_bytes,
+            integrity_samples=self.integrity_samples,
             _worker_pool_state=self._worker_pool_state,
         )
 

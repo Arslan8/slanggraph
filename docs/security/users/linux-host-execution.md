@@ -291,6 +291,32 @@ capabilities remain host evidence and continue through normal negotiation.
 See [OSTree deployment measurements](../ostree-deployment-measurements.md) for
 the initial A/B fixture costs and measurement boundary.
 
+### Runtime integrity rechecks
+
+`integrity_recheck` controls how a prepared Linux executor rechecks the
+bubblewrap binary, Python interpreter, and worker shim when issuing fresh host
+attestation:
+
+- `IntegrityRecheckMode.FULL` is the default and hashes every complete file on
+  every attestation. It preserves the original behavior.
+- `IntegrityRecheckMode.MERKLE_SAMPLE` commits to position-bound file chunks
+  during preflight, checks file size, and verifies fresh unpredictable chunk
+  samples and their Merkle authentication paths on every attestation. Configure
+  chunk size and sample count with `integrity_chunk_bytes` and
+  `integrity_samples`. This is probabilistic detection: an unsampled same-size
+  modification can escape one invocation's check.
+- `IntegrityRecheckMode.PREFLIGHT_ONLY` hashes each file during executor
+  preparation and performs no later content rehash. Fresh worker identity,
+  kernel activation state, nonce binding, and signed activation evidence remain
+  required, but content changes after preflight are outside this mode's
+  detection guarantee.
+
+The mode, chunk parameters, and Merkle roots are signed host evidence and are
+part of the prepared-host identity. A runtime cannot silently claim a worker
+prepared under another integrity mode. Use the weaker modes only when the
+artifacts are supplied by an immutable deployment or another trusted mechanism
+prevents post-preflight modification.
+
 ## Supported authority
 
 The reference adapter currently supports:
