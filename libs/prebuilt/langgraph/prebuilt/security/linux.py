@@ -22,7 +22,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from pathlib import Path
-from threading import RLock
+from threading import RLock, Thread, current_thread
 from types import MappingProxyType
 from typing import Any
 
@@ -495,6 +495,8 @@ class LinuxSandboxExecutor:
             str, tuple[tuple[OstreeDeploymentManager, DeploymentLease], ...]
         ] = {}
         self._termination_lock = RLock()
+        self._reaper_lock = RLock()
+        self._reaper_threads: set[Thread] = set()
         self.worker_pool_capacity = worker_pool_capacity
         self.worker_pool_idle_s = worker_pool_idle_s
         self.integrity_recheck = recheck_mode
@@ -549,6 +551,10 @@ class LinuxSandboxExecutor:
             except OSError:
                 pass
             self._release_deployment_leases(worker.leases)
+        with self._reaper_lock:
+            reapers = tuple(self._reaper_threads)
+        for reaper in reapers:
+            reaper.join(timeout=2.0)
 
     def prewarm(
         self,
@@ -1628,6 +1634,7 @@ class LinuxSandboxExecutor:
         lifecycle: LeanLifecycleSession | None = None
         lifecycle_observed: dict | None = None
         result: HostExecutionResult | None = None
+        success_committed = False
         # Exception state inherited from a caller's except block does not belong
         # to this worker. Capture only an exception escaping this invocation,
         # including translated errors and BaseException cancellation paths.
@@ -1767,15 +1774,9 @@ class LinuxSandboxExecutor:
                     adapter_plan.payload, self.default_wall_timeout_s
                 )
                 response = _readline_json(process, wall_timeout)
-                return_code = process.wait(timeout=1.0)
                 if response.get("status") == "ok" and "result" in response:
-                    if return_code != 0:
-                        raise HostExecutionError(
-                            "sandboxed tool outcome is indeterminate",
-                            receipt,
-                            ExecutionOutcome.INDETERMINATE,
-                        )
                     result = HostExecutionResult(response["result"], receipt)
+                    success_committed = True
                 else:
                     error_type = str(response.get("error_type", "Exception"))
                     raise HostExecutionError(
@@ -1814,7 +1815,7 @@ class LinuxSandboxExecutor:
             active_error = exc
             raise
         finally:
-            self._cleanup_worker(
+            self._finalize_worker(
                 status_read=status_read,
                 status_write=status_write,
                 inherited_fds=inherited_fds,
@@ -1826,9 +1827,10 @@ class LinuxSandboxExecutor:
                 receipt=receipt,
                 leases=cleanup_leases,
                 active_error=active_error,
+                success_committed=success_committed,
             )
-        # Reaching here means this invocation's cleanup returned normally after
-        # a valid result. Unknown termination raises; no success check precedes it.
+        # Reaching here means the trusted worker committed a valid result and
+        # entered its exit-only path. OS process collection proceeds off-path.
         if result is None:
             raise HostExecutionDenied("host:worker_result_missing")
         if lifecycle is not None:
@@ -1845,6 +1847,65 @@ class LinuxSandboxExecutor:
                     termination_confirmed=True,
                 ) from exc
         return result
+
+    def _finalize_worker(
+        self,
+        *,
+        status_read: int,
+        status_write: int,
+        inherited_fds: Sequence[int],
+        process: subprocess.Popen[bytes] | None,
+        child_pid: int | None,
+        child_start_time: str | None,
+        artifact_directory: Path | None,
+        host: HostAttestation,
+        receipt: ActivationReceipt | None,
+        leases: tuple[tuple[OstreeDeploymentManager, DeploymentLease], ...],
+        active_error: BaseException | None,
+        success_committed: bool,
+    ) -> None:
+        cleanup = {
+            "status_read": status_read,
+            "status_write": status_write,
+            "inherited_fds": inherited_fds,
+            "process": process,
+            "child_pid": child_pid,
+            "child_start_time": child_start_time,
+            "artifact_directory": artifact_directory,
+            "host": host,
+            "receipt": receipt,
+            "leases": leases,
+            "active_error": active_error,
+        }
+        if success_committed and active_error is None:
+            self._schedule_committed_cleanup(cleanup)
+        else:
+            self._cleanup_worker(**cleanup)
+
+    def _schedule_committed_cleanup(self, cleanup: Mapping[str, Any]) -> None:
+        """Reap a worker after its trusted result-and-exit commit off-path."""
+
+        def reap() -> None:
+            try:
+                self._cleanup_worker(**cleanup)
+            except Exception:
+                # _cleanup_worker retains recovery evidence and deployment
+                # leases when termination cannot be established.
+                pass
+            finally:
+                with self._reaper_lock:
+                    self._reaper_threads.discard(current_thread())
+
+        reaper = Thread(target=reap, name="argus-linux-reaper", daemon=True)
+        with self._reaper_lock:
+            self._reaper_threads.add(reaper)
+        try:
+            reaper.start()
+        except BaseException:
+            with self._reaper_lock:
+                self._reaper_threads.discard(reaper)
+            self._cleanup_worker(**cleanup)
+            raise
 
     def _cleanup_worker(
         self,

@@ -107,6 +107,7 @@ def _one(worker: Path, source: Path, allowed: Path, *, wait_mode: str) -> dict[s
     )
     return {
         "post_go_total_ms": measured_ns / 1e6,
+        "online_result_ms": (decoded - post_go_started) / 1e6,
         "go_write_flush_ms": (go_written - post_go_started) / 1e6,
         "worker_function_body_ms": body_ns / 1e6,
         "worker_module_execution_ms": int(timing["module_execution"]) / 1e6,

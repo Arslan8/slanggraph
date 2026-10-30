@@ -147,3 +147,28 @@ libs/prebuilt/.venv/bin/python \
   --output \
   eval/campaigns/policy-preflight-v1/worker-transport-blocking-wait-control.json
 ```
+
+### Trusted-commit optimization
+
+The successful worker protocol now treats a flushed, validated result as the
+trusted commit boundary. The worker immediately calls its pre-captured hard-exit
+primitive, bypassing Python `atexit` handlers and finalizers. The parent returns
+the result after validation and transfers process collection, descriptor
+cleanup, termination recovery, and lease release to a daemon reaper. Timeout,
+cancellation, malformed-response, activation-failure, and other non-commit
+paths retain synchronous termination handling.
+
+The same 5-session × 20-call worker diagnostic measured 3.048 ms mean and
+3.450 ms p95 from `GO` through parent result decoding after this change. The
+remaining process wait averaged 1.262 ms but is no longer on the successful
+invocation path. Relative to the former 18.438 ms post-`GO` path through
+synchronous reaping, this isolated path removes 15.390 ms (83.5%). It does not
+include the small parent thread-scheduling cost and is not a protected-route
+end-to-end result. Raw records are in `worker-transport-async-reap.json`.
+
+```bash
+libs/prebuilt/.venv/bin/python \
+  eval/distributed/worker_transport_diagnostic.py \
+  --sessions 5 --calls 20 --warmups 5 \
+  --output eval/campaigns/policy-preflight-v1/worker-transport-async-reap.json
+```

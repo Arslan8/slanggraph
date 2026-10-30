@@ -122,6 +122,7 @@ class _DiscardTextIO(io.TextIOBase):
 
 
 _DISCARD_OUTPUT = _DiscardTextIO()
+_HARD_EXIT = os._exit
 
 
 @dataclass(slots=True)
@@ -194,7 +195,9 @@ def main() -> int:
             body_ns=body_ns,
             timing_ns=timing_ns,
         )
-        return 0
+        # The result frame is the trusted success commit. Skip Python shutdown
+        # so untrusted atexit handlers and finalizers cannot run after commit.
+        _HARD_EXIT(0)
     except BaseException as exc:
         try:
             _write(

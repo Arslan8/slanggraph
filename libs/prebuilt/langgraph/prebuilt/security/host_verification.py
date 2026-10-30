@@ -311,14 +311,17 @@ def _check_activation(
         lambda s: isinstance(s, ast.If) and "'GO\\n'" in ast.unparse(s.test),
     )
     payload = _index(body, lambda s: _called(s) == "_invoke")
+    commit = _index(body, lambda s: _called(s) == "_write_result")
+    hard_exit = _index(body, lambda s: _called(s) == "_HARD_EXIT")
     if not (
-        0 <= seccomp < prepare < gate < payload
+        0 <= seccomp < prepare < gate < payload < commit < hard_exit
         and 0 <= limits < prepare
         and "_invoke(prepared, event_loop, timing_ns=timing_ns)"
         in ast.unparse(body[payload])
     ):
         issues.append(
-            "activation: seccomp/limits/preflight/GO/invoke ordering is missing in main"
+            "activation: seccomp/limits/preflight/GO/invoke/commit/exit ordering "
+            "is missing in main"
         )
         ok = False
     for name, fn in fns.items():
@@ -416,8 +419,8 @@ def _check_lifetime(fns: Mapping[str, ast.FunctionDef], issues: list[str]) -> bo
     function = fns.get("LinuxSandboxExecutor._run_worker")
     run = _main_try(function)
     final = run.finalbody if run else []
-    if len(final) != 1 or _called(final[0]) != "self._cleanup_worker":
-        issues.append("lifetime: _run_worker finally does not call _cleanup_worker")
+    if len(final) != 1 or _called(final[0]) != "self._finalize_worker":
+        issues.append("lifetime: _run_worker finally does not call _finalize_worker")
         ok = False
     else:
         cleanup_call = ast.unparse(final[0])
@@ -491,6 +494,16 @@ def _check_lifetime(fns: Mapping[str, ast.FunctionDef], issues: list[str]) -> bo
         if needle not in source:
             issues.append(f"lifetime: {message}")
             ok = False
+    finalize = fns.get("LinuxSandboxExecutor._finalize_worker")
+    finalize_source = ast.unparse(finalize) if finalize else ""
+    if not all(
+        needle in finalize_source
+        for needle in ("self._schedule_committed_cleanup(", "self._cleanup_worker(")
+    ):
+        issues.append(
+            "lifetime: finalization does not separate trusted commit cleanup from failures"
+        )
+        ok = False
     ainvoke = fns.get("LinuxSandboxExecutor.ainvoke")
     if ainvoke is None or not any(
         isinstance(n, ast.While) and "execution.done()" in ast.unparse(n.test)

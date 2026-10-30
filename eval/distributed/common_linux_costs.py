@@ -172,7 +172,6 @@ def session(
             "lean": LeanLifecycleChecker._require,
             "worker": LinuxSandboxExecutor._run_worker,
             "go": LeanLifecycleSession.permit_go,
-            "cleanup": LinuxSandboxExecutor._cleanup_worker,
             "audit": sink.write,
             "dispatch": dispatcher.invoke,
             "readline": linux_module._readline_json,
@@ -209,7 +208,6 @@ def session(
         _Dispatcher._new_worker = timed("dispatcher_setup_ms", originals["new_worker"])
         LeanLifecycleChecker._require = timed("lean_ms", originals["lean"])
         EnforcementCoordinator.activate = timed("coordinator_activation_ms", originals["activate"])
-        LinuxSandboxExecutor._cleanup_worker = timed("cleanup_ms", originals["cleanup"])
         sink.write = timed("audit_ms", originals["audit"])
         ToolNode._func = timed("toolnode_ms", originals["toolnode"])
         ToolNode._run_one_inner = timed("tool_call_ms", originals["tool_call"])
@@ -449,7 +447,6 @@ def session(
             LeanLifecycleSession.permit_go = originals["go"]
             linux_module._readline_json = originals["readline"]
             linux_module._encode_worker_request = originals["encode_request"]
-            LinuxSandboxExecutor._cleanup_worker = originals["cleanup"]
             sink.write = originals["audit"]
             ToolNode._func = originals["toolnode"]
             ToolNode._run_one_inner = originals["tool_call"]
