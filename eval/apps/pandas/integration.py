@@ -16,13 +16,22 @@ def selected_lifecycle_checker(request):
     if (
         request.get("configuration") != "C"
         or type(selection) is not dict
-        or set(selection) != {"binary", "sha256", "protocol"}
+        or set(selection)
+        not in (
+            {"binary", "sha256", "protocol"},
+            {"binary", "sha256", "runtime", "runtime_sha256", "protocol"},
+        )
         or selection["protocol"] != "worker-route-grant-v3"
     ):
         raise ValueError("Invalid selected Lean worker route")
     from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 
-    return LeanLifecycleChecker(binary_path=selection["binary"], binary_sha256=selection["sha256"])
+    return LeanLifecycleChecker(
+        binary_path=selection["binary"],
+        binary_sha256=selection["sha256"],
+        runtime_path=selection.get("runtime"),
+        runtime_sha256=selection.get("runtime_sha256"),
+    )
 
 
 def fault_variant(code, function_name, request):

@@ -1,0 +1,382 @@
+{
+  "artifact": "eval/campaigns/pandas-matched-aggressive-v3-20261030/raw",
+  "conditions": {
+    "Baseline": {
+      "internal_configuration": [
+        "Baseline"
+      ],
+      "attempts": 50,
+      "successes": 50,
+      "failures_by_task": {},
+      "status_counts": {
+        "completed": 50
+      },
+      "timeouts": 0,
+      "timeout_cap_ms": 180000,
+      "output_validation_failures": 0,
+      "mean_complete_system_wall_ms": 10328.021441062447,
+      "mean_observed_wall_ms": 10328.021441062447,
+      "mean_startup_setup_ms": 47.114219539798796,
+      "mean_model_ms": 8309.359671266284,
+      "model_calls": 125
+    },
+    "slangGraph": {
+      "internal_configuration": [
+        "C-full-lean"
+      ],
+      "attempts": 50,
+      "successes": 0,
+      "failures_by_task": {
+        "date_filtered_total": 5,
+        "duplicate_count": 5,
+        "grouped_mean": 5,
+        "missing_count": 5,
+        "monthly_chart": 5,
+        "monthly_mean": 5,
+        "monthly_total": 5,
+        "product_totals": 5,
+        "regional_totals": 5,
+        "top_products": 5
+      },
+      "status_counts": {
+        "error": 50
+      },
+      "timeouts": 0,
+      "timeout_cap_ms": 180000,
+      "output_validation_failures": 0,
+      "mean_complete_system_wall_ms": 9337.432559328154,
+      "mean_observed_wall_ms": 9337.432559328154,
+      "mean_startup_setup_ms": 743.7454548617825,
+      "mean_model_ms": 6792.328268031124,
+      "model_calls": 100
+    }
+  },
+  "primary": {
+    "available": false,
+    "estimand": "ratio of condition means over all 100 attempted task trials",
+    "ratio": null,
+    "overhead_percent": null,
+    "ratio_ci95": {
+      "available": false,
+      "reason": "No protected trial completed successfully"
+    },
+    "overhead_percent_ci95": null,
+    "unavailable_reason": "Argus completed 0 protected trials because mandatory host isolation could not activate",
+    "failed_attempt_duration_ratio": 0.9040872554934984,
+    "failed_attempt_duration_ratio_is_overhead": false
+  },
+  "secondary_matched_success": {
+    "pairs": 0,
+    "baseline_mean_ms": null,
+    "slanggraph_mean_ms": null,
+    "ratio": null,
+    "ratio_ci95": {
+      "available": false
+    },
+    "not_primary_reason": "Excludes any pair where either condition refused or failed"
+  },
+  "interval_warning": "Only five independent paired repetition blocks are available; task trials within a block are not treated as independent repetitions.",
+  "preflight": {
+    "common_settings": {
+      "tasks": [
+        [
+          "monthly_total",
+          "Return a table of monthly sales totals, with month formatted YYYY-MM and total sales. Include all months.",
+          [
+            [
+              "2026-01",
+              260
+            ],
+            [
+              "2026-02",
+              120
+            ],
+            [
+              "2026-03",
+              120
+            ],
+            [
+              "2026-04",
+              0
+            ]
+          ]
+        ],
+        [
+          "monthly_mean",
+          "Return a table of monthly mean sales, with month formatted YYYY-MM and mean sales. Include months with only missing sales as null.",
+          [
+            [
+              "2026-01",
+              86.66666666666667
+            ],
+            [
+              "2026-02",
+              60
+            ],
+            [
+              "2026-03",
+              60
+            ],
+            [
+              "2026-04",
+              null
+            ]
+          ]
+        ],
+        [
+          "regional_totals",
+          "Return exactly region and total sales, summed by region.",
+          [
+            [
+              "North",
+              300
+            ],
+            [
+              "South",
+              200
+            ]
+          ]
+        ],
+        [
+          "product_totals",
+          "Return exactly product and total sales, summed by product.",
+          [
+            [
+              "A",
+              300
+            ],
+            [
+              "B",
+              200
+            ]
+          ]
+        ],
+        [
+          "top_products",
+          "Return the single top product by total sales, with product and total sales.",
+          [
+            [
+              "A",
+              300
+            ]
+          ]
+        ],
+        [
+          "date_filtered_total",
+          "Filter dates from 2026-02-01 through 2026-02-28 inclusive and return a table containing only the total sales.",
+          [
+            [
+              120
+            ]
+          ]
+        ],
+        [
+          "grouped_mean",
+          "Return exactly region and mean sales, grouped by region, ignoring missing sales.",
+          [
+            [
+              "North",
+              75
+            ],
+            [
+              "South",
+              66.66666666666667
+            ]
+          ]
+        ],
+        [
+          "missing_count",
+          "Return a one-cell table counting missing values in the sales column.",
+          [
+            [
+              1
+            ]
+          ]
+        ],
+        [
+          "duplicate_count",
+          "Return a one-cell table counting duplicate rows, keeping the first occurrence.",
+          [
+            [
+              1
+            ]
+          ]
+        ],
+        [
+          "monthly_chart",
+          "Produce a bar chart of total sales by month. Format month as YYYY-MM. Include all months.",
+          [
+            [
+              "2026-01",
+              260
+            ],
+            [
+              "2026-02",
+              120
+            ],
+            [
+              "2026-03",
+              120
+            ],
+            [
+              "2026-04",
+              0
+            ]
+          ]
+        ]
+      ],
+      "fixture": [
+        [
+          "2026-01-05",
+          "North",
+          "A",
+          100
+        ],
+        [
+          "2026-01-10",
+          "South",
+          "B",
+          60
+        ],
+        [
+          "2026-02-05",
+          "North",
+          "A",
+          80
+        ],
+        [
+          "2026-02-12",
+          "South",
+          "B",
+          40
+        ],
+        [
+          "2026-03-01",
+          "North",
+          "A",
+          20
+        ],
+        [
+          "2026-03-08",
+          "South",
+          "B",
+          100
+        ],
+        [
+          "2026-01-05",
+          "North",
+          "A",
+          100
+        ],
+        [
+          "2026-04-01",
+          "South",
+          "B",
+          null
+        ]
+      ],
+      "model": {
+        "name": "qwen3:8b",
+        "base_url": "http://localhost:11434/v1",
+        "temperature": 0,
+        "seed": 20261005,
+        "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+        "timeout_seconds": 600,
+        "max_retries": 0,
+        "reasoning_effort": "none"
+      },
+      "graph_retries": 3,
+      "sandbox_serialization": "recursive-json-v2",
+      "workflow_contract": "preserve-request-v5",
+      "computation_api": "period-aggregation-v1",
+      "state_normalization": "json-null-v1",
+      "cedar_optimization": {
+        "typed_backend": "aggressive",
+        "application_authorizer": "CedarObjectAuthorizer exact-result cache; typed aggressive mode is not on the Pandas object-policy route"
+      },
+      "integrity_recheck": "preflight-only",
+      "dataset": {
+        "dataset_id": "sales",
+        "sha256": "c123f404bad03177a7e52b67e37ff2f18fcbca6d4918f2585affb9ad492669d8",
+        "bytes": 212,
+        "max_bytes": 65536,
+        "format": "csv",
+        "principal": "alice"
+      },
+      "timeout_s": 180,
+      "cpu": 0,
+      "python": "/data/slanggraph-eval-upstreams/ai-data-science-team/.venv/bin/python",
+      "backend_source_sha256": "19ce75f6dd833244a90f099bbb356de0bb35a4c0ed1e3e397258083b3a5d3244",
+      "integration_source_sha256": "910edd3c0f89a3c1d772bc7d6ea81c3f6fd89c1d1a2025761be662314143c9b7"
+    },
+    "common_settings_sha256": "74e1abe5f2752ce6e1d21a46dfd00d9298f79eba566070deec511e91ee80f082",
+    "dataset_sha256_verified": "c123f404bad03177a7e52b67e37ff2f18fcbca6d4918f2585affb9ad492669d8",
+    "source_digests": {
+      "application_campaign.py": "355ac06b9e252d4801d05011889d3e313ec512ce12eedd61e578a8331a9ee9fe",
+      "pandas/worker_candidate.py": "ed73ada75ae2f8a6eaa28ee979d7aff8ada53719b243f0936c68ed0bd189c9ef",
+      "pandas/probe_worker.py": "9988cf211a862d4f843c29e8210e29487a99f5123e550b26568166fe147cfb2a",
+      "pandas/integration.py": "9cb75f4c8daaf789868c26fe8d7e7300c81e2e9afc09a1c4b1d086fa5a955965",
+      "pandas/oracle.py": "607449ce59d4870dfac87a451891c8b8a24a862831a27b6770f08bf3a44c03b5",
+      "pandas/worker.py": "5d94a4de932cbab2ba9d89db9680044d72dff75041fb644879f0f77af9975ca6",
+      "pandas/verify_closed_campaign.py": "444cc09a3dd70423fc410192f7b9d9fd23e59f01c89b755d1fe0d91b14b54ede",
+      "pandas/workflow_contract.py": "5df59c1762962c6d889fad8323c477654ea13015c317366925981aa35a94e492",
+      "pandas/backend_closed.py": "19ce75f6dd833244a90f099bbb356de0bb35a4c0ed1e3e397258083b3a5d3244",
+      "pandas/sandbox_codec.py": "937ea0fa30eac65703605793b5b99d5fa455bdcad5082024f9e544cb4b0d6632",
+      "pandas/closed_inventory.py": "1223850bcea0804266de531e4033cd260d76920d6b427b67034331ae99d34238",
+      "pandas/integration_closed.py": "910edd3c0f89a3c1d772bc7d6ea81c3f6fd89c1d1a2025761be662314143c9b7",
+      "pandas/validate_matched.py": "5f08ba4dbdf5ab8ad536dc53aa20d88042a5c6cb1fb5971ee60dcfc9692cbb09",
+      "pandas/analyze_matched.py": "7f9579c14287b8c02b7a029517fbb03b9388507cc98773be8f880b4ae6d15ce7",
+      "pandas/closed_campaign.py": "142a0501acc7b71e199dc795a82d09d515cbe3903bce61878c2d09f760b9a9d3"
+    },
+    "treatments": {
+      "Baseline": {
+        "internal_configuration": "Baseline",
+        "closed_admission": false,
+        "principal_authorization": false,
+        "sealed_operator_policy": false,
+        "host_isolation": false,
+        "resource_mediation": false,
+        "security_audit": false,
+        "runtime_contract_validator": false,
+        "computation": "direct vendor sandbox subprocess"
+      },
+      "slangGraph": {
+        "internal_configuration": "C-full-lean",
+        "closed_admission": true,
+        "principal_authorization": true,
+        "sealed_operator_policy": true,
+        "host_isolation": "bubblewrap+Landlock+seccomp",
+        "resource_mediation": "Cedar exact-file object grant and dataset operation",
+        "security_audit": true,
+        "runtime_contract_validator": "worker-route-grant-v3 per call",
+        "integrity_recheck": "preflight-only",
+        "computation": "ObjectPolicyHostExecutor/LinuxObjectDispatcher"
+      }
+    },
+    "model_warmup_ms": 335.5292499763891,
+    "model_warmup_response": {
+      "id": "chatcmpl-357",
+      "object": "chat.completion",
+      "created": 1793369761,
+      "model": "qwen3:8b",
+      "system_fingerprint": "fp_ollama",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "",
+            "reasoning": "Okay, the user sent \""
+          },
+          "finish_reason": "length"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 14,
+        "completion_tokens": 8,
+        "total_tokens": 22
+      }
+    },
+    "assertion": "All non-security settings and source/dataset bytes are common"
+  }
+}

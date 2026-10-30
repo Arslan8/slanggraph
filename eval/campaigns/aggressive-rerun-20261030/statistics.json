@@ -1,0 +1,52 @@
+{
+  "revision": "41ea67d74530de858b59e3a565a7d15a13428cfb",
+  "optimization": {
+    "integrity": "preflight-only",
+    "audit": "trusted-async",
+    "runtime_policy_lowering": false,
+    "runtime_lean": false
+  },
+  "protocol": "five independent sessions, five warmups, twenty measured calls",
+  "bootstrap": {
+    "seed": 20261030,
+    "resamples": 100000,
+    "unit": "session mean"
+  },
+  "routes": {
+    "direct": {
+      "calls": 100,
+      "valid": 100,
+      "sessions": 5,
+      "mean_ms": 0.04104233,
+      "session_block_ci95_ms": [
+        0.0401593,
+        0.04203234
+      ]
+    },
+    "language": {
+      "calls": 100,
+      "valid": 100,
+      "sessions": 5,
+      "mean_ms": 5.23798128,
+      "session_block_ci95_ms": [
+        5.1690527600000005,
+        5.30759339
+      ],
+      "authorization_ms": 0.83265442,
+      "activation_ms": 0.10939858,
+      "execution_ms": 0.36586286,
+      "audit_ms": 0.28100894,
+      "framework_residual_ms": 3.64905648,
+      "policy_lowering_ms": 0.0,
+      "lean_ms": 0.0,
+      "added_ms": 5.19693895
+    },
+    "linux": {
+      "status": "configuration_failed",
+      "boundary": "preflight",
+      "reason": "bubblewrap isolation is unavailable on this host",
+      "security_weakened": false,
+      "log": "raw/linux/linux-session-0.log"
+    }
+  }
+}

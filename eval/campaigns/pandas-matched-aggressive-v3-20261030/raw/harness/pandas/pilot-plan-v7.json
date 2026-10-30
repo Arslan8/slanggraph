@@ -1,0 +1,196 @@
+{
+  "phase": "pilot",
+  "entries": [
+    {
+      "app": "pandas",
+      "configuration": "A",
+      "case": "region-totals",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "B",
+      "case": "region-totals",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "C",
+      "case": "region-totals",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "A",
+      "case": "february",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "B",
+      "case": "february",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "C",
+      "case": "february",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7",
+      "existing_result": "results/pandas-C-february-r1-cd25840ffd594f5a896b160041a2b6a4/result.json"
+    },
+    {
+      "app": "pandas",
+      "configuration": "A",
+      "case": "monthly-chart",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "B",
+      "case": "monthly-chart",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "C",
+      "case": "monthly-chart",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "A",
+      "case": "internal-read",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "B",
+      "case": "internal-read",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "C",
+      "case": "internal-read",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "A",
+      "case": "internal-write",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "B",
+      "case": "internal-write",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "C",
+      "case": "internal-write",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "A",
+      "case": "extra-read",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "B",
+      "case": "extra-read",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "C",
+      "case": "extra-read",
+      "profile": "narrow",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "A",
+      "case": "extra-read",
+      "profile": "broad",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "B",
+      "case": "extra-read",
+      "profile": "broad",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    },
+    {
+      "app": "pandas",
+      "configuration": "C",
+      "case": "extra-read",
+      "profile": "broad",
+      "repetition": 1,
+      "attempt": 1,
+      "manifest_version": "v7"
+    }
+  ],
+  "notes": "All entries fixed before launching this matrix. One completed C smoke reused explicitly; no paper-level statistics."
+}

@@ -89,7 +89,13 @@ def main():
     out.mkdir(parents=True, exist_ok=False)
     setup_started = time.perf_counter()
     selection = manifest["lean_worker"]
-    lean_worker = campaign.capture_lean_worker(out, Path(selection["binary"]), selection["sha256"])
+    lean_worker = campaign.capture_lean_worker(
+        out,
+        Path(selection["binary"]),
+        selection["sha256"],
+        Path(selection["runtime"]) if selection.get("runtime") else None,
+        selection.get("runtime_sha256"),
+    )
     if args.configuration == "all":
         modes = list(MODES)
     elif args.configuration == "matched":

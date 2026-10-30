@@ -1,0 +1,43 @@
+Traceback (most recent call last):
+  File "/data/langgraph/eval/distributed/common_linux_costs.py", line 515, in <module>
+    session(
+    ~~~~~~~^
+        arguments.output,
+        ^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        arguments.integrity_recheck,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/data/langgraph/eval/distributed/common_linux_costs.py", line 296, in session
+    security.host_executor.prewarm(principal, prepared_call, (), count=1)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/object_policy.py", line 1005, in prewarm
+    prepare(
+    ~~~~~~~^
+        principal,
+        ^^^^^^^^^^
+    ...<3 lines>...
+        asynchronous=asynchronous,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/linux_object.py", line 314, in prewarm
+    worker = self._new_worker(principal, call, grant, preflight=True)
+  File "/data/langgraph/eval/distributed/common_linux_costs.py", line 188, in wrapper
+    return function(*args, **kwargs)
+  File "/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/linux_object.py", line 430, in _new_worker
+    return _LinuxObjectWorker(
+        grant,
+    ...<12 lines>...
+        _worker_pool_state=self._worker_pool_state,
+    )
+  File "/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/linux_object.py", line 112, in __init__
+    super().__init__(*args, **kwargs)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/linux.py", line 412, in __init__
+    _verify_bubblewrap_host(bwrap, startup_timeout_s)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/langgraph/libs/prebuilt/langgraph/prebuilt/security/linux.py", line 2967, in _verify_bubblewrap_host
+    raise RuntimeError("bubblewrap isolation is unavailable on this host")
+RuntimeError: bubblewrap isolation is unavailable on this host

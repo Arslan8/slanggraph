@@ -1,0 +1,836 @@
+{
+  "id": "pandas",
+  "repository": "business-science/ai-data-science-team",
+  "subdirectory": "apps/pandas-data-analyst-app",
+  "entrypoint": "app.py: pandas_data_analyst.invoke_agent",
+  "graph_files": [
+    "ai_data_science_team/multiagents/pandas_data_analyst.py",
+    "ai_data_science_team/agents/data_wrangling_agent.py",
+    "ai_data_science_team/agents/data_visualization_agent.py",
+    "ai_data_science_team/templates/agent_templates.py",
+    "ai_data_science_team/utils/sandbox.py"
+  ],
+  "effects": "Model calls in graph nodes; generated computation in utils/sandbox.py:run_code_sandboxed_subprocess; Streamlit upload and session storage outside graph. Preserve import/builtin restrictions, network patch, timeout and resource caps.",
+  "next_action": "Run headless bundled backend with the recorded IPython compatibility dependency and local-model adaptation; verify table and chart values.",
+  "sha": "4ffeb7f38178aa250917f29b01355f8b89ba809e",
+  "license": "MIT (see captured LICENSE text)",
+  "retrieved_at": "2026-10-26T00:31:38.372515+00:00",
+  "checkout": "/data/slanggraph-eval-upstreams/ai-data-science-team",
+  "archive": {},
+  "source_evidence": [
+    {
+      "path": "ai_data_science_team/multiagents/pandas_data_analyst.py",
+      "sha256": "bc1d74f319cfd31470f9b0b5b29357f007c603b626ce0d66071727ab62fb119a",
+      "url": "https://github.com/business-science/ai-data-science-team/blob/4ffeb7f38178aa250917f29b01355f8b89ba809e/ai_data_science_team/multiagents/pandas_data_analyst.py",
+      "matches": [
+        {
+          "line": 5,
+          "text": "from langgraph.graph import START, END, StateGraph"
+        },
+        {
+          "line": 6,
+          "text": "from langgraph.graph.state import CompiledStateGraph"
+        },
+        {
+          "line": 57,
+          "text": "def __init__("
+        },
+        {
+          "line": 73,
+          "text": "def _make_compiled_graph(self):"
+        },
+        {
+          "line": 85,
+          "text": "def update_params(self, **kwargs):"
+        },
+        {
+          "line": 91,
+          "text": "async def ainvoke_agent("
+        },
+        {
+          "line": 100,
+          "text": "response = await self._compiled_graph.ainvoke("
+        },
+        {
+          "line": 113,
+          "text": "def invoke_agent("
+        },
+        {
+          "line": 122,
+          "text": "response = self._compiled_graph.invoke("
+        },
+        {
+          "line": 135,
+          "text": "def invoke_messages("
+        },
+        {
+          "line": 152,
+          "text": "response = self._compiled_graph.invoke("
+        },
+        {
+          "line": 167,
+          "text": "async def ainvoke_messages("
+        },
+        {
+          "line": 184,
+          "text": "response = await self._compiled_graph.ainvoke("
+        },
+        {
+          "line": 199,
+          "text": "def get_data_wrangled(self):"
+        },
+        {
+          "line": 204,
+          "text": "def get_plotly_graph(self):"
+        },
+        {
+          "line": 209,
+          "text": "def get_data_wrangler_function(self, markdown=False):"
+        },
+        {
+          "line": 215,
+          "text": "def get_data_visualization_function(self, markdown=False):"
+        },
+        {
+          "line": 221,
+          "text": "def get_workflow_summary(self, markdown=False):"
+        },
+        {
+          "line": 254,
+          "text": "def _convert_data_input("
+        },
+        {
+          "line": 272,
+          "text": "def make_pandas_data_analyst("
+        },
+        {
+          "line": 274,
+          "text": "data_wrangling_agent: CompiledStateGraph,"
+        },
+        {
+          "line": 275,
+          "text": "data_visualization_agent: CompiledStateGraph,"
+        },
+        {
+          "line": 284,
+          "text": "data_wrangling_agent: CompiledStateGraph"
+        },
+        {
+          "line": 286,
+          "text": "data_visualization_agent: CompiledStateGraph"
+        },
+        {
+          "line": 293,
+          "text": "CompiledStateGraph: The compiled multi-agent system."
+        },
+        {
+          "line": 338,
+          "text": "def prepare_messages(state: PrimaryState):"
+        },
+        {
+          "line": 373,
+          "text": "def preprocess_routing(state: PrimaryState):"
+        },
+        {
+          "line": 378,
+          "text": "response = routing_preprocessor.invoke({\"user_instructions\": question})"
+        },
+        {
+          "line": 398,
+          "text": "def router_chart_or_table(state: PrimaryState):"
+        },
+        {
+          "line": 406,
+          "text": "def invoke_data_wrangling_agent(state: PrimaryState):"
+        },
+        {
+          "line": 407,
+          "text": "response = data_wrangling_agent.invoke("
+        },
+        {
+          "line": 423,
+          "text": "def invoke_data_visualization_agent(state: PrimaryState):"
+        },
+        {
+          "line": 432,
+          "text": "response = data_visualization_agent.invoke("
+        },
+        {
+          "line": 448,
+          "text": "def finalize_output(state: PrimaryState):"
+        },
+        {
+          "line": 472,
+          "text": "workflow = StateGraph(PrimaryState)"
+        },
+        {
+          "line": 493,
+          "text": "app = workflow.compile(checkpointer=checkpointer, name=AGENT_NAME)"
+        }
+      ]
+    },
+    {
+      "path": "ai_data_science_team/agents/data_wrangling_agent.py",
+      "sha256": "a33e9c8a7bd48087f54aebd1e1f4dfdf226c6325bbcfada21077afca66874739",
+      "url": "https://github.com/business-science/ai-data-science-team/blob/4ffeb7f38178aa250917f29b01355f8b89ba809e/ai_data_science_team/agents/data_wrangling_agent.py",
+      "matches": [
+        {
+          "line": 36,
+          "text": "from ai_data_science_team.utils.sandbox import run_code_sandboxed_subprocess"
+        },
+        {
+          "line": 174,
+          "text": "DataWranglingAgent : langchain.graphs.CompiledStateGraph"
+        },
+        {
+          "line": 178,
+          "text": "def __init__("
+        },
+        {
+          "line": 208,
+          "text": "def _make_compiled_graph(self):"
+        },
+        {
+          "line": 216,
+          "text": "def update_params(self, **kwargs):"
+        },
+        {
+          "line": 224,
+          "text": "async def ainvoke_agent("
+        },
+        {
+          "line": 249,
+          "text": "Additional keyword arguments to pass to ainvoke()."
+        },
+        {
+          "line": 256,
+          "text": "response = await self._compiled_graph.ainvoke("
+        },
+        {
+          "line": 269,
+          "text": "def invoke_agent("
+        },
+        {
+          "line": 293,
+          "text": "Additional keyword arguments to pass to invoke()."
+        },
+        {
+          "line": 300,
+          "text": "response = self._compiled_graph.invoke("
+        },
+        {
+          "line": 313,
+          "text": "def invoke_messages("
+        },
+        {
+          "line": 328,
+          "text": "response = self._compiled_graph.invoke("
+        },
+        {
+          "line": 341,
+          "text": "async def ainvoke_messages("
+        },
+        {
+          "line": 356,
+          "text": "response = await self._compiled_graph.ainvoke("
+        },
+        {
+          "line": 369,
+          "text": "def get_workflow_summary(self, markdown=False):"
+        },
+        {
+          "line": 382,
+          "text": "def get_log_summary(self, markdown=False):"
+        },
+        {
+          "line": 400,
+          "text": "def get_data_wrangled(self) -> Optional[pd.DataFrame]:"
+        },
+        {
+          "line": 413,
+          "text": "def get_data_raw(self) -> Union[dict, list, None]:"
+        },
+        {
+          "line": 426,
+          "text": "def get_data_wrangler_function(self, markdown=False) -> Optional[str]:"
+        },
+        {
+          "line": 447,
+          "text": "def get_recommended_wrangling_steps(self, markdown=False) -> Optional[str]:"
+        },
+        {
+          "line": 469,
+          "text": "def _convert_data_input("
+        },
+        {
+          "line": 517,
+          "text": "def make_data_wrangling_agent("
+        },
+        {
+          "line": 591,
+          "text": "response = data_wrangling_agent.invoke({"
+        },
+        {
+          "line": 602,
+          "text": "app : langchain.graphs.CompiledStateGraph"
+        },
+        {
+          "line": 620,
+          "text": "def _summarize_data_raw(data_raw) -> str:"
+        },
+        {
+          "line": 673,
+          "text": "def recommend_wrangling_steps(state: GraphState):"
+        },
+        {
+          "line": 719,
+          "text": "recommended_steps = steps_agent.invoke("
+        },
+        {
+          "line": 735,
+          "text": "def create_data_wrangler_code(state: GraphState):"
+        },
+        {
+          "line": 768,
+          "text": "def {function_name}(data_list):"
+        },
+        {
+          "line": 806,
+          "text": "response = data_wrangling_agent.invoke("
+        },
+        {
+          "line": 836,
+          "text": "def human_review("
+        },
+        {
+          "line": 854,
+          "text": "def human_review("
+        },
+        {
+          "line": 870,
+          "text": "def human_review("
+        },
+        {
+          "line": 883,
+          "text": "def execute_data_wrangler_code(state: GraphState):"
+        },
+        {
+          "line": 886,
+          "text": "result, error = run_code_sandboxed_subprocess("
+        },
+        {
+          "line": 965,
+          "text": "def fix_data_wrangler_code(state: GraphState):"
+        },
+        {
+          "line": 993,
+          "text": "def report_agent_outputs(state: GraphState):"
+        }
+      ]
+    },
+    {
+      "path": "ai_data_science_team/agents/data_visualization_agent.py",
+      "sha256": "d60609ba7df0772743bdc6fc8b5dbaee136f88129c714d4724f369f27e08fbda",
+      "url": "https://github.com/business-science/ai-data-science-team/blob/4ffeb7f38178aa250917f29b01355f8b89ba809e/ai_data_science_team/agents/data_visualization_agent.py",
+      "matches": [
+        {
+          "line": 43,
+          "text": "from ai_data_science_team.utils.sandbox import run_code_sandboxed_subprocess"
+        },
+        {
+          "line": 154,
+          "text": "DataVisualizationAgent : langchain.graphs.CompiledStateGraph"
+        },
+        {
+          "line": 158,
+          "text": "def __init__("
+        },
+        {
+          "line": 188,
+          "text": "def _make_compiled_graph(self):"
+        },
+        {
+          "line": 196,
+          "text": "def update_params(self, **kwargs):"
+        },
+        {
+          "line": 206,
+          "text": "async def ainvoke_agent("
+        },
+        {
+          "line": 229,
+          "text": "Additional keyword arguments passed to ainvoke()."
+        },
+        {
+          "line": 235,
+          "text": "response = await self._compiled_graph.ainvoke("
+        },
+        {
+          "line": 248,
+          "text": "def invoke_agent("
+        },
+        {
+          "line": 271,
+          "text": "Additional keyword arguments passed to invoke()."
+        },
+        {
+          "line": 277,
+          "text": "response = self._compiled_graph.invoke("
+        },
+        {
+          "line": 290,
+          "text": "def invoke_messages("
+        },
+        {
+          "line": 304,
+          "text": "response = self._compiled_graph.invoke("
+        },
+        {
+          "line": 317,
+          "text": "async def ainvoke_messages("
+        },
+        {
+          "line": 331,
+          "text": "response = await self._compiled_graph.ainvoke("
+        },
+        {
+          "line": 344,
+          "text": "def run_smoke_tests("
+        },
+        {
+          "line": 396,
+          "text": "def get_workflow_summary(self, markdown=False):"
+        },
+        {
+          "line": 409,
+          "text": "def get_log_summary(self, markdown=False):"
+        },
+        {
+          "line": 427,
+          "text": "def get_plotly_graph(self):"
+        },
+        {
+          "line": 440,
+          "text": "def get_data_raw(self):"
+        },
+        {
+          "line": 453,
+          "text": "def get_data_visualization_function(self, markdown=False):"
+        },
+        {
+          "line": 474,
+          "text": "def get_recommended_visualization_steps(self, markdown=False):"
+        },
+        {
+          "line": 495,
+          "text": "def get_response(self):"
+        },
+        {
+          "line": 506,
+          "text": "def show(self):"
+        },
+        {
+          "line": 516,
+          "text": "def make_data_visualization_agent("
+        },
+        {
+          "line": 581,
+          "text": "response = data_visualization_agent.invoke({"
+        },
+        {
+          "line": 593,
+          "text": "app : langchain.graphs.CompiledStateGraph"
+        },
+        {
+          "line": 606,
+          "text": "def _normalize_column_name(value: str) -> str:"
+        },
+        {
+          "line": 611,
+          "text": "def _profile_dataframe(df: pd.DataFrame) -> dict:"
+        },
+        {
+          "line": 662,
+          "text": "def _infer_units(columns: list[str]) -> dict[str, str]:"
+        },
+        {
+          "line": 683,
+          "text": "def _format_profile_for_prompt(profile: dict) -> str:"
+        },
+        {
+          "line": 686,
+          "text": "def _fmt(values: list[str]) -> str:"
+        },
+        {
+          "line": 700,
+          "text": "def _format_units_for_prompt(units: dict[str, str]) -> str:"
+        },
+        {
+          "line": 706,
+          "text": "def _resolve_column_aliases(text: str, columns: list[str]) -> dict[str, str]:"
+        },
+        {
+          "line": 740,
+          "text": "def _format_aliases_for_prompt(aliases: dict[str, str]) -> str:"
+        },
+        {
+          "line": 746,
+          "text": "def _build_prompt_context("
+        },
+        {
+          "line": 762,
+          "text": "def _label_for_column(col: str, units: dict[str, str]) -> str:"
+        },
+        {
+          "line": 769,
+          "text": "def _extract_missing_columns(error_text: str) -> list[str]:"
+        },
+        {
+          "line": 784,
+          "text": "def _suggest_column_fallbacks(missing: list[str], columns: list[str]) -> dict[str, str]:"
+        },
+        {
+          "line": 806,
+          "text": "def _patch_missing_columns(code: str, mapping: dict[str, str]) -> tuple[str, bool]:"
+        },
+        {
+          "line": 817,
+          "text": "def _build_fallback_chart(df: pd.DataFrame, profile: dict) -> tuple[dict | None, str | None]:"
+        },
+        {
+          "line": 880,
+          "text": "def _summarize_df_for_prompt(df: pd.DataFrame) -> str:"
+        },
+        {
+          "line": 932,
+          "text": "def chart_instructor(state: GraphState):"
+        },
+        {
+          "line": 997,
+          "text": "recommended_steps = chart_instructor.invoke("
+        },
+        {
+          "line": 1013,
+          "text": "def chart_generator(state: GraphState):"
+        },
+        {
+          "line": 1061,
+          "text": "def {function_name}(data_raw):"
+        },
+        {
+          "line": 1089,
+          "text": "response = data_visualization_agent.invoke("
+        },
+        {
+          "line": 1123,
+          "text": "def human_review("
+        },
+        {
+          "line": 1137,
+          "text": "def human_review("
+        },
+        {
+          "line": 1150,
+          "text": "def execute_data_visualization_code(state):"
+        },
+        {
+          "line": 1158,
+          "text": "result, error = run_code_sandboxed_subprocess("
+        },
+        {
+          "line": 1179,
+          "text": "result, error = run_code_sandboxed_subprocess("
+        },
+        {
+          "line": 1216,
+          "text": "def _has_word(word: str) -> bool:"
+        },
+        {
+          "line": 1241,
+          "text": "def has_line() -> bool:"
+        },
+        {
+          "line": 1319,
+          "text": "def fix_data_visualization_code(state: GraphState):"
+        },
+        {
+          "line": 1353,
+          "text": "def report_agent_outputs(state: GraphState):"
+        }
+      ]
+    },
+    {
+      "path": "ai_data_science_team/templates/agent_templates.py",
+      "sha256": "2d72b789825ff9e2933053aa8159d7aff05e5cfa3e5cf07e6f9d27fb1f4a4fc7",
+      "url": "https://github.com/business-science/ai-data-science-team/blob/4ffeb7f38178aa250917f29b01355f8b89ba809e/ai_data_science_team/templates/agent_templates.py",
+      "matches": [
+        {
+          "line": 2,
+          "text": "from langgraph.graph import StateGraph, END"
+        },
+        {
+          "line": 4,
+          "text": "from langgraph.graph.state import CompiledStateGraph"
+        },
+        {
+          "line": 26,
+          "text": "class BaseAgent(CompiledStateGraph):"
+        },
+        {
+          "line": 34,
+          "text": "def __init__(self, **params):"
+        },
+        {
+          "line": 60,
+          "text": "def _make_compiled_graph(self):"
+        },
+        {
+          "line": 68,
+          "text": "def update_params(self, **kwargs):"
+        },
+        {
+          "line": 78,
+          "text": "def __getattr__(self, name: str):"
+        },
+        {
+          "line": 90,
+          "text": "def invoke("
+        },
+        {
+          "line": 97,
+          "text": "Wrapper for self._compiled_graph.invoke()"
+        },
+        {
+          "line": 102,
+          "text": "**kwarg: Arguments to pass to self._compiled_graph.invoke()"
+        },
+        {
+          "line": 107,
+          "text": "self.response = self._compiled_graph.invoke("
+        },
+        {
+          "line": 118,
+          "text": "async def ainvoke("
+        },
+        {
+          "line": 125,
+          "text": "Wrapper for self._compiled_graph.ainvoke()"
+        },
+        {
+          "line": 130,
+          "text": "**kwarg: Arguments to pass to self._compiled_graph.ainvoke()"
+        },
+        {
+          "line": 135,
+          "text": "self.response = await self._compiled_graph.ainvoke("
+        },
+        {
+          "line": 146,
+          "text": "def stream("
+        },
+        {
+          "line": 181,
+          "text": "async def astream("
+        },
+        {
+          "line": 216,
+          "text": "def get_state_keys(self):"
+        },
+        {
+          "line": 225,
+          "text": "def get_state_properties(self):"
+        },
+        {
+          "line": 234,
+          "text": "def get_state(self, config, *, subgraphs=False):"
+        },
+        {
+          "line": 240,
+          "text": "def get_state_history(self, config, *, filter=None, before=None, limit=None):"
+        },
+        {
+          "line": 248,
+          "text": "def update_state(self, config, values, as_node=None):"
+        },
+        {
+          "line": 254,
+          "text": "def get_response(self):"
+        },
+        {
+          "line": 268,
+          "text": "def show(self, xray: int = 0):"
+        },
+        {
+          "line": 278,
+          "text": "def create_coding_agent_graph("
+        },
+        {
+          "line": 344,
+          "text": "app : langchain.graphs.StateGraph"
+        },
+        {
+          "line": 348,
+          "text": "workflow = StateGraph(GraphState)"
+        },
+        {
+          "line": 393,
+          "text": "def error_and_can_retry(state):"
+        },
+        {
+          "line": 436,
+          "text": "app = workflow.compile("
+        },
+        {
+          "line": 444,
+          "text": "def node_func_human_review("
+        },
+        {
+          "line": 518,
+          "text": "def node_func_execute_agent_code_on_data("
+        },
+        {
+          "line": 591,
+          "text": "exec(agent_code, global_vars, local_vars)"
+        },
+        {
+          "line": 631,
+          "text": "def node_func_execute_agent_from_sql_connection("
+        },
+        {
+          "line": 685,
+          "text": "exec(agent_code, global_vars, local_vars)"
+        },
+        {
+          "line": 712,
+          "text": "def node_func_fix_agent_code("
+        },
+        {
+          "line": 737,
+          "text": "It should support a call like `(llm | PythonOutputParser()).invoke(prompt)`."
+        },
+        {
+          "line": 774,
+          "text": "response = (llm | PythonOutputParser()).invoke(prompt)"
+        },
+        {
+          "line": 793,
+          "text": "def node_func_explain_agent_code("
+        },
+        {
+          "line": 818,
+          "text": "The language model used to explain the code. Should support `.invoke(prompt)`."
+        },
+        {
+          "line": 850,
+          "text": "response = llm.invoke(prompt)"
+        },
+        {
+          "line": 861,
+          "text": "def node_func_report_agent_outputs("
+        }
+      ]
+    },
+    {
+      "path": "ai_data_science_team/utils/sandbox.py",
+      "sha256": "d2c9ae02b9568ed56f9dedb3bf3261cb693238075e5332ade413481b279cfb66",
+      "url": "https://github.com/business-science/ai-data-science-team/blob/4ffeb7f38178aa250917f29b01355f8b89ba809e/ai_data_science_team/utils/sandbox.py",
+      "matches": [
+        {
+          "line": 6,
+          "text": "- Block obviously dangerous imports (os, sys, subprocess, socket, etc.)."
+        },
+        {
+          "line": 16,
+          "text": "import subprocess"
+        },
+        {
+          "line": 22,
+          "text": "def _build_runner_script() -> str:"
+        },
+        {
+          "line": 39,
+          "text": "def _apply_resource_limits(memory_limit_mb: int | None):"
+        },
+        {
+          "line": 56,
+          "text": "\"subprocess\","
+        },
+        {
+          "line": 73,
+          "text": "def _reject_blocked_imports(code_text: str):"
+        },
+        {
+          "line": 88,
+          "text": "def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):"
+        },
+        {
+          "line": 137,
+          "text": "def _block_network():"
+        },
+        {
+          "line": 143,
+          "text": "def _blocked(*args, **kwargs):"
+        },
+        {
+          "line": 148,
+          "text": "def connect(self, *args, **kwargs):"
+        },
+        {
+          "line": 151,
+          "text": "def connect_ex(self, *args, **kwargs):"
+        },
+        {
+          "line": 163,
+          "text": "def _to_jsonable(obj):"
+        },
+        {
+          "line": 180,
+          "text": "def main():"
+        },
+        {
+          "line": 214,
+          "text": "exec(code, exec_globals, local_vars)"
+        },
+        {
+          "line": 262,
+          "text": "def run_code_sandboxed_subprocess("
+        },
+        {
+          "line": 272,
+          "text": "Execute generated code in a separate Python subprocess with a restricted environment."
+        },
+        {
+          "line": 283,
+          "text": "Timeout in seconds for the subprocess. Defaults to 10."
+        },
+        {
+          "line": 311,
+          "text": "completed = subprocess.run("
+        },
+        {
+          "line": 318,
+          "text": "except subprocess.TimeoutExpired:"
+        }
+      ]
+    }
+  ],
+  "dependency_inputs": {
+    "requirements.txt": "c85151b8c0e3c83d28c857891b0f2f68596e61eddbffe7fb9fef588499b28b75",
+    "setup.py": "68316c9656e50a70afcfce316556c21be83b3d4b28a73fe50e554769ce49cccb"
+  },
+  "python": {
+    "argv": [
+      "/data/slanggraph-eval-upstreams/ai-data-science-team/.venv/bin/python",
+      "--version"
+    ],
+    "returncode": 0,
+    "stdout": "Python 3.13.11\n",
+    "stderr": ""
+  },
+  "license_sha256": "5e27f42112dd7761c62c04f1576115a7dd5a498e8a3ae69c46bffa068aca1b30",
+  "license_text": "MIT License\n\nCopyright (c) 2024 ai-data-science-team authors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "intake_status": "reproducible with documented fixes (local-model backend only)",
+  "baseline_run": "results/pandas-A-region-totals-r1-ae814e761b5449219bec6b3be8d2162b/result.json",
+  "effect_inventory_kind": "source inspection; not a runtime trace",
+  "environment_freeze_returncode": 0
+}

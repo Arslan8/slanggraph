@@ -127,8 +127,14 @@ def identity_digest(identities):
     return hashlib.sha256(json.dumps(identities, sort_keys=True).encode()).hexdigest()
 
 
-def capture_lean_worker(output, binary, expected_digest):
-    """Copy pinned executable bytes for this new cohort, without claiming a proof."""
+def capture_lean_worker(
+    output,
+    binary,
+    expected_digest,
+    runtime=None,
+    expected_runtime_digest=None,
+):
+    """Copy pinned checker bytes for this cohort, including its native runtime."""
     if binary is None and expected_digest is None:
         return None
     if binary is None or expected_digest is None:
@@ -142,15 +148,31 @@ def capture_lean_worker(output, binary, expected_digest):
     data = binary.read_bytes()
     if not data or hashlib.sha256(data).hexdigest() != expected_digest:
         raise ValueError("The selected Lean worker bytes do not match the pin")
-    target = output / "workerRoute"
+    target = output / ("libargus_worker_route.so" if binary.suffix == ".so" else "workerRoute")
     with target.open("xb") as stream:
         stream.write(data)
     target.chmod(0o500)
-    return {
+    result = {
         "binary": str(target.resolve()),
         "sha256": expected_digest,
         "protocol": "worker-route-grant-v3",
     }
+    if runtime is None and expected_runtime_digest is None:
+        return result
+    if runtime is None or expected_runtime_digest is None:
+        raise ValueError("Select both the native runtime and its SHA-256")
+    runtime_data = runtime.read_bytes()
+    if not runtime_data or hashlib.sha256(runtime_data).hexdigest() != expected_runtime_digest:
+        raise ValueError("The selected native runtime bytes do not match the pin")
+    runtime_target = output / "libleanshared.so"
+    with runtime_target.open("xb") as stream:
+        stream.write(runtime_data)
+    runtime_target.chmod(0o500)
+    result.update(
+        runtime=str(runtime_target.resolve()),
+        runtime_sha256=expected_runtime_digest,
+    )
+    return result
 
 
 def oracle(output, expected, chart):

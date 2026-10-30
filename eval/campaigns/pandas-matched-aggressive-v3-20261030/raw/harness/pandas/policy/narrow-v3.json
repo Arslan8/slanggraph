@@ -1,0 +1,18 @@
+{
+  "version": 3,
+  "profile": "narrow",
+  "principal": "alice (analyst)",
+  "permissions": {
+    "sales.csv": "read",
+    "outputs/": "read/write/create/delete/truncate",
+    "supplement.csv": "deny",
+    "other_fixture_files": "deny"
+  },
+  "runtime_baseline": "Pinned worker, upstream sandbox source, Python runtime, installed package roots are readable; private /tmp writable. See activation receipt.",
+  "boundary": "Generated computation only; input loading/model calls/orchestrator are trusted and outside worker",
+  "B": "Added node dispatch checks role/call/schema; no internal filesystem confinement",
+  "C": "Same dispatch plus existing Linux worker; original sandbox program retained, outer subprocess replaced by already-fresh worker",
+  "template": "compute-v3.slp.template",
+  "policy_mutation_during_run": false,
+  "amendment": "SLP grammar correction: comma-separated rules in one fs directive; permissions unchanged. v2 parse failure retained."
+}

@@ -24,8 +24,10 @@
   "state_normalization": "json-null-v1",
   "graph_retries": 3,
   "lean_worker": {
-    "binary": "/data/langgraph/proofs/worker-route/.lake/build/bin/workerRoute",
-    "sha256": "6097be9b7b84639959c7a0b9de31c79f23486e9f01bf1b6de575dfab25c7cb08",
+    "binary": "/data/langgraph/proofs/worker-route/.lake/build/lib/libargus_worker_route.so",
+    "sha256": "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2",
+    "runtime": "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so",
+    "runtime_sha256": "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13",
     "protocol": "worker-route-grant-v3"
   },
   "dataset": {

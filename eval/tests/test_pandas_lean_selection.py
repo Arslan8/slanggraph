@@ -36,6 +36,26 @@ def test_cohort_captures_exact_selected_bytes_and_cannot_overwrite(tmp_path):
     assert Path(selection["binary"]).read_bytes() == image
 
 
+def test_cohort_captures_native_checker_and_runtime_bytes(tmp_path):
+    checker = tmp_path / "checker.so"
+    runtime = tmp_path / "runtime.so"
+    checker.write_bytes(b"pinned native checker fixture")
+    runtime.write_bytes(b"pinned native runtime fixture")
+    output = tmp_path / "cohort"
+    output.mkdir()
+    selection = campaign.capture_lean_worker(
+        output,
+        checker,
+        hashlib.sha256(checker.read_bytes()).hexdigest(),
+        runtime,
+        hashlib.sha256(runtime.read_bytes()).hexdigest(),
+    )
+    assert Path(selection["binary"]).name == "libargus_worker_route.so"
+    assert Path(selection["binary"]).read_bytes() == checker.read_bytes()
+    assert Path(selection["runtime"]).name == "libleanshared.so"
+    assert Path(selection["runtime"]).read_bytes() == runtime.read_bytes()
+
+
 @pytest.mark.parametrize("digest", [None, "", "0" * 64, "G" * 64])
 def test_bad_or_missing_pin_refuses_before_creating_cohort_image(tmp_path, digest):
     source = tmp_path / "selected"

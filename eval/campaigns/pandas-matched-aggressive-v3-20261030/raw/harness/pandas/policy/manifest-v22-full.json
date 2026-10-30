@@ -1,0 +1,73 @@
+{
+  "version": "22-full",
+  "status": "combined protected evaluation configuration",
+  "model": {
+    "name": "qwen3:8b",
+    "base_url": "http://localhost:11434/v1",
+    "temperature": 0,
+    "seed": 20261005,
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "timeout_seconds": 600,
+    "max_retries": 0,
+    "reasoning_effort": "none"
+  },
+  "configurations": {
+    "C-full": "closed admission, sealed operator policy, Cedar authorization, exact-file Linux isolation, dataset mediation, output validation, and audit",
+    "C-full-lean": "C-full plus per-call Lean grant lifecycle checking"
+  },
+  "base_manifest": "manifest-v21-closed.json",
+  "principal_policy": "permit(principal == slangGraph::User::\"alice\", action, resource);",
+  "operator_policy": "forbid(principal, action == slangGraph::Action::\"fs::write\", resource);",
+  "sandbox_serialization": "recursive-json-v2",
+  "workflow_contract": "preserve-request-v5",
+  "computation_api": "period-aggregation-v1",
+  "state_normalization": "json-null-v1",
+  "graph_retries": 3,
+  "lean_worker": {
+    "binary": "/data/langgraph/proofs/worker-route/.lake/build/lib/libargus_worker_route.so",
+    "sha256": "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2",
+    "runtime": "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so",
+    "runtime_sha256": "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13",
+    "protocol": "worker-route-grant-v3"
+  },
+  "dataset": {
+    "dataset_id": "sales",
+    "sha256": "c123f404bad03177a7e52b67e37ff2f18fcbca6d4918f2585affb9ad492669d8",
+    "bytes": 212,
+    "max_bytes": 65536,
+    "format": "csv",
+    "principal": "alice"
+  },
+  "trusted_declarations": {
+    "pandas_data_analyst": {
+      "nodes": [
+        "data_visualization_agent",
+        "data_wrangling_agent",
+        "finalize_output",
+        "prepare_messages",
+        "routing_preprocessor"
+      ],
+      "branches": ["data_wrangling_agent:branch:router_chart_or_table"]
+    },
+    "data_wrangling_agent": {
+      "nodes": [
+        "create_data_wrangler_code",
+        "execute_data_wrangler_code",
+        "fix_data_wrangler_code",
+        "report_agent_outputs"
+      ],
+      "branches": ["execute_data_wrangler_code:branch:condition"]
+    },
+    "data_visualization_agent": {
+      "nodes": [
+        "chart_generator",
+        "chart_instructor",
+        "execute_data_visualization_code",
+        "fix_data_visualization_code",
+        "report_agent_outputs"
+      ],
+      "branches": ["execute_data_visualization_code:branch:condition"]
+    }
+  },
+  "amendment": "Replaces the direct Linux executor with the admitted Cedar object-policy route lowered by LinuxObjectDispatcher. C-full-lean identifies Lean checking separately. The operator policy is installed before graph construction and forbids filesystem writes. No admission bypass or unrelated manual sandbox restriction is used."
+}

@@ -1,0 +1,7 @@
+{
+  "binary": "/data/langgraph/eval/campaigns/pandas-matched-aggressive-v3-20261030/raw/libargus_worker_route.so",
+  "sha256": "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2",
+  "protocol": "worker-route-grant-v3",
+  "runtime": "/data/langgraph/eval/campaigns/pandas-matched-aggressive-v3-20261030/raw/libleanshared.so",
+  "runtime_sha256": "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
+}

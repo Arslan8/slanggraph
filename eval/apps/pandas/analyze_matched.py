@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import random
@@ -70,6 +71,22 @@ def block_bootstrap(rows: list[dict], *, matched_success: bool) -> dict:
 
 def svg(summary: dict) -> str:
     result = summary["primary"]
+    if not result["available"]:
+        reason = result["unavailable_reason"]
+        return (
+            "\n".join(
+                [
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="760" height="260" viewBox="0 0 760 260">',
+                    '<rect width="760" height="260" fill="white"/>',
+                    '<text x="380" y="40" text-anchor="middle" font-family="sans-serif" font-size="18">Matched Pandas complete-system runtime</text>',
+                    '<text x="380" y="105" text-anchor="middle" font-family="sans-serif" font-size="17">Overhead unavailable</text>',
+                    f'<text x="380" y="145" text-anchor="middle" font-family="sans-serif" font-size="13">{reason}</text>',
+                    '<text x="380" y="185" text-anchor="middle" font-family="sans-serif" font-size="13">Failed attempts are retained but are not treated as successful execution latency.</text>',
+                    "</svg>",
+                ]
+            )
+            + "\n"
+        )
     ratio_value = result["ratio"]
     low = result["ratio_ci95"]["low"]
     high = result["ratio_ci95"]["high"]
@@ -132,8 +149,18 @@ def run(raw: Path, output: Path) -> None:
     }
     baseline_values = [float(row["analysis_wall_ms"]) for row in by_condition["Baseline"]]
     protected_values = [float(row["analysis_wall_ms"]) for row in by_condition["slangGraph"]]
-    primary_ratio = ratio(baseline_values, protected_values)
-    primary_interval = block_bootstrap(selected, matched_success=False)
+    attempt_duration_ratio = ratio(baseline_values, protected_values)
+    protected_successes = sum(bool(row["legitimate_result"]) for row in by_condition["slangGraph"])
+    overhead_available = protected_successes > 0
+    primary_ratio = attempt_duration_ratio if overhead_available else None
+    primary_interval = (
+        block_bootstrap(selected, matched_success=False)
+        if overhead_available
+        else {
+            "available": False,
+            "reason": "No protected trial completed successfully",
+        }
+    )
     successful_pairs = []
     paired = defaultdict(dict)
     for row in selected:
@@ -185,20 +212,38 @@ def run(raw: Path, output: Path) -> None:
             condition: condition_summary(values) for condition, values in by_condition.items()
         },
         "primary": {
+            "available": overhead_available,
             "estimand": "ratio of condition means over all 100 attempted task trials",
             "ratio": primary_ratio,
-            "overhead_percent": 100 * (primary_ratio - 1),
+            "overhead_percent": 100 * (primary_ratio - 1) if primary_ratio is not None else None,
             "ratio_ci95": primary_interval,
-            "overhead_percent_ci95": {
-                "low": 100 * (primary_interval["low"] - 1),
-                "high": 100 * (primary_interval["high"] - 1),
-            },
+            "overhead_percent_ci95": (
+                {
+                    "low": 100 * (primary_interval["low"] - 1),
+                    "high": 100 * (primary_interval["high"] - 1),
+                }
+                if overhead_available
+                else None
+            ),
+            "unavailable_reason": (
+                None
+                if overhead_available
+                else "Argus completed 0 protected trials because mandatory host isolation could not activate"
+            ),
+            "failed_attempt_duration_ratio": attempt_duration_ratio,
+            "failed_attempt_duration_ratio_is_overhead": False,
         },
         "secondary_matched_success": {
             "pairs": len(successful_pairs),
-            "baseline_mean_ms": statistics.mean(secondary_baseline),
-            "slanggraph_mean_ms": statistics.mean(secondary_protected),
-            "ratio": ratio(secondary_baseline, secondary_protected),
+            "baseline_mean_ms": statistics.mean(secondary_baseline) if secondary_baseline else None,
+            "slanggraph_mean_ms": (
+                statistics.mean(secondary_protected) if secondary_protected else None
+            ),
+            "ratio": (
+                ratio(secondary_baseline, secondary_protected)
+                if secondary_baseline and secondary_protected
+                else None
+            ),
             "ratio_ci95": block_bootstrap(selected, matched_success=True),
             "not_primary_reason": "Excludes any pair where either condition refused or failed",
         },
@@ -215,6 +260,18 @@ def run(raw: Path, output: Path) -> None:
     protected = summary["conditions"]["slangGraph"]
     interval = summary["primary"]["ratio_ci95"]
     secondary = summary["secondary_matched_success"]
+    if overhead_available:
+        primary_text = f"""Across the complete set of 100 attempted task trials, slangGraph is **{primary_ratio:.3f}x** the Baseline runtime, or **{100 * (primary_ratio - 1):.1f}% overhead**. The paired-block 95% interval is **[{interval["low"]:.3f}x, {interval["high"]:.3f}x]**, corresponding to **[{100 * (interval["low"] - 1):.1f}%, {100 * (interval["high"] - 1):.1f}%]** overhead.
+
+The interval is a percentile bootstrap of the ratio of means with {BOOTSTRAP_RESAMPLES:,} resamples and seed `{BOOTSTRAP_SEED}`. Each resampling unit is one paired repetition block containing all ten tasks in both conditions. With only five blocks, precision is limited; the 100 task trials are not treated as independent repetitions."""
+    else:
+        primary_text = f"""A complete-system overhead ratio is **unavailable**: Argus completed 0/50 protected trials because mandatory bubblewrap isolation could not activate on this host. The mean duration of failed protected attempts was {statistics.mean(protected_values):.1f} ms, but the resulting {attempt_duration_ratio:.3f}x failed-attempt-duration ratio is **not execution overhead** and is not plotted as one."""
+    if secondary["pairs"]:
+        secondary_text = f"The secondary matched-success analysis contains {secondary['pairs']} task/repetition pairs, with means {secondary['baseline_mean_ms']:.1f} ms and {secondary['slanggraph_mean_ms']:.1f} ms and ratio {secondary['ratio']:.3f}x."
+    else:
+        secondary_text = (
+            "No matched-success timing analysis is available because no protected trial completed."
+        )
     markdown = f"""# Matched Pandas complete-system overhead
 
 ## Primary result
@@ -224,23 +281,28 @@ def run(raw: Path, output: Path) -> None:
 | Baseline | `Baseline` | {baseline["attempts"]} | {baseline["successes"]}/{baseline["attempts"]} | {baseline["timeouts"]}/{baseline["attempts"]} | {baseline["mean_complete_system_wall_ms"]:.1f} ms |
 | slangGraph | `C-full-lean` | {protected["attempts"]} | {protected["successes"]}/{protected["attempts"]} | {protected["timeouts"]}/{protected["attempts"]} | {protected["mean_complete_system_wall_ms"]:.1f} ms |
 
-Across the complete set of 100 attempted task trials, slangGraph is **{primary_ratio:.3f}x** the Baseline runtime, or **{100 * (primary_ratio - 1):.1f}% overhead**. The paired-block 95% interval is **[{interval["low"]:.3f}x, {interval["high"]:.3f}x]**, corresponding to **[{100 * (interval["low"] - 1):.1f}%, {100 * (interval["high"] - 1):.1f}%]** overhead.
-
-The interval is a percentile bootstrap of the ratio of means with {BOOTSTRAP_RESAMPLES:,} resamples and seed `{BOOTSTRAP_SEED}`. Each resampling unit is one paired repetition block containing all ten tasks in both conditions. With only five blocks, precision is limited; the 100 task trials are not treated as independent repetitions.
+{primary_text}
 
 Timeouts use a 180,000 ms cap in the primary estimand. The table reports timeout counts explicitly; capped durations are retained rather than discarded.
 
 ## Correctness and matched-success sensitivity
 
-Baseline succeeded on {baseline["successes"]}/{baseline["attempts"]} attempts; slangGraph succeeded on {protected["successes"]}/{protected["attempts"]}. Baseline completed all five `monthly_mean` trials, while slangGraph refused all five at the preserved non-finite output-validation boundary. The primary comparison retains every attempt, including those five protected failures. The secondary matched-success analysis contains {secondary["pairs"]} task/repetition pairs, with means {secondary["baseline_mean_ms"]:.1f} ms and {secondary["slanggraph_mean_ms"]:.1f} ms and ratio {secondary["ratio"]:.3f}x. It is supporting analysis, not a replacement for the primary result.
+Baseline succeeded on {baseline["successes"]}/{baseline["attempts"]} attempts; Argus succeeded on {protected["successes"]}/{protected["attempts"]}. All protected attempts failed at host activation before computation because mandatory bubblewrap isolation was unavailable. {secondary_text}
 
 ## Measurement boundary
 
-Both bars use the same subprocess wall-clock boundary: interpreter startup, application preparation, model callbacks, retries, computation, conversions, and output production. Common campaign preparation and the shared model warmup are excluded symmetrically and recorded in `raw/setup.json`. slangGraph additionally includes closed admission, principal and sealed operator policies, dataset/resource mediation, Linux isolation, security audit, output mediation, and per-call Lean runtime validation. Baseline uses direct dataset loading and the application's vendor sandbox subprocess with no slangGraph authorization, activation, broker, audit, or runtime validator.
+Both conditions use the same subprocess wall-clock boundary: interpreter startup, application preparation, model callbacks, retries, computation, conversions, and output production. Common campaign preparation and shared model warmup are excluded symmetrically and recorded in `raw/setup.json`. Argus selects closed admission, principal and sealed operator policies, dataset/resource mediation, Linux isolation, security audit, output mediation, preflight-only integrity checking, and the pinned inline native lifecycle checker. Baseline uses direct dataset loading and the application's vendor sandbox subprocess with no Argus authorization, activation, broker, audit, or runtime validator.
 
 ![Matched Pandas overhead](application-overhead.svg)
 """
     (output / "RESULTS.md").write_text(markdown)
+    hashes = []
+    for path in sorted(raw.rglob("*")):
+        if path.is_file():
+            hashes.append(
+                f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(output)}"
+            )
+    (output / "SHA256SUMS").write_text("\n".join(hashes) + "\n")
 
 
 if __name__ == "__main__":
