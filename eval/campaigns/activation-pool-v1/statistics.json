@@ -1,0 +1,184 @@
+{
+  "evaluated_revision": "6fd3b2a08",
+  "protocol": "5 fresh sessions, 5 warmups, 20 measured calls per route/session",
+  "timer_scope": "online elapsed_ms excludes explicitly recorded exact-policy worker_preflight_ms; it includes fresh authorization, lowering, attestation, pool claim, activation receipt validation, execution, audit, cleanup, and framework work",
+  "preflight_scope": "authorization and lowering for the preflight template, bubblewrap creation, mount/namespace setup, seccomp and limits, pinned artifact compilation",
+  "routes": {
+    "linux": {
+      "n_calls": 100,
+      "n_sessions": 5,
+      "all_valid": true,
+      "all_pool_hits": true,
+      "metrics": {
+        "elapsed_ms": {
+          "ci95": [
+            132.04924078157566,
+            134.4345226584243
+          ],
+          "mean": 133.24188171999998,
+          "n_sessions": 5
+        },
+        "worker_preflight_ms": {
+          "ci95": [
+            155.6787000141095,
+            159.37954400589047
+          ],
+          "mean": 157.52912200999998,
+          "n_sessions": 5
+        },
+        "authorization_ms": {
+          "ci95": [
+            0.5737487469110432,
+            1.5098894930889568
+          ],
+          "mean": 1.04181912,
+          "n_sessions": 5
+        },
+        "policy_lowering_ms": {
+          "ci95": [
+            19.55045205822995,
+            19.759071541770048
+          ],
+          "mean": 19.6547618,
+          "n_sessions": 5
+        },
+        "lean_ms": {
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "mean": 0.0,
+          "n_sessions": 5
+        },
+        "activation_ms": {
+          "ci95": [
+            0.9098340490505086,
+            0.9502233509494913
+          ],
+          "mean": 0.9300286999999999,
+          "n_sessions": 5
+        },
+        "execution_ms": {
+          "ci95": [
+            21.529932126310413,
+            21.987536873689585
+          ],
+          "mean": 21.7587345,
+          "n_sessions": 5
+        },
+        "audit_ms": {
+          "ci95": [
+            7.708442176868501,
+            7.938041363131499
+          ],
+          "mean": 7.82324177,
+          "n_sessions": 5
+        },
+        "cleanup_ms": {
+          "ci95": [
+            0.13211024897935922,
+            0.1559125710206408
+          ],
+          "mean": 0.14401141,
+          "n_sessions": 5
+        },
+        "framework_residual_ms": {
+          "ci95": [
+            80.82239641982144,
+            82.95617242017855
+          ],
+          "mean": 81.88928442,
+          "n_sessions": 5
+        }
+      }
+    },
+    "linux-lean": {
+      "n_calls": 100,
+      "n_sessions": 5,
+      "all_valid": true,
+      "all_pool_hits": true,
+      "metrics": {
+        "elapsed_ms": {
+          "ci95": [
+            161.6555786227127,
+            164.04822951728727
+          ],
+          "mean": 162.85190407,
+          "n_sessions": 5
+        },
+        "worker_preflight_ms": {
+          "ci95": [
+            161.45001324241795,
+            164.58104877758203
+          ],
+          "mean": 163.01553101,
+          "n_sessions": 5
+        },
+        "authorization_ms": {
+          "ci95": [
+            0.8626430623750438,
+            0.929642137624956
+          ],
+          "mean": 0.8961425999999999,
+          "n_sessions": 5
+        },
+        "policy_lowering_ms": {
+          "ci95": [
+            19.37163711248194,
+            19.70376426751806
+          ],
+          "mean": 19.53770069,
+          "n_sessions": 5
+        },
+        "lean_ms": {
+          "ci95": [
+            14.532998847316227,
+            15.017748832683774
+          ],
+          "mean": 14.77537384,
+          "n_sessions": 5
+        },
+        "activation_ms": {
+          "ci95": [
+            10.458315488461736,
+            10.779201951538262
+          ],
+          "mean": 10.618758719999999,
+          "n_sessions": 5
+        },
+        "execution_ms": {
+          "ci95": [
+            21.250931572535613,
+            22.059423127464385
+          ],
+          "mean": 21.65517735,
+          "n_sessions": 5
+        },
+        "audit_ms": {
+          "ci95": [
+            7.707565604520136,
+            7.858603995479864
+          ],
+          "mean": 7.7830848,
+          "n_sessions": 5
+        },
+        "cleanup_ms": {
+          "ci95": [
+            0.13762427678126457,
+            0.14801026321873548
+          ],
+          "mean": 0.14281727000000002,
+          "n_sessions": 5
+        },
+        "framework_residual_ms": {
+          "ci95": [
+            86.89830079445568,
+            87.98739680554434
+          ],
+          "mean": 87.44284880000001,
+          "n_sessions": 5
+        }
+      }
+    }
+  }
+}

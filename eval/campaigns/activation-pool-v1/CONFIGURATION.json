@@ -1,0 +1,27 @@
+{
+  "evaluated_revision": "6fd3b2a08",
+  "host": {
+    "architecture": "x86_64",
+    "cpu": "Intel(R) Xeon(R) w5-3435X",
+    "kernel": "6.17.0-1033-oem",
+    "python": "3.13.11",
+    "bubblewrap": "0.9.0",
+    "affinity": "lowest CPU available to each fresh session"
+  },
+  "protocol": {
+    "sessions": 5,
+    "warmups_per_session": 5,
+    "measured_calls_per_session": 20,
+    "pool_capacity": 1,
+    "worker_reuse": "single-use workers; one exact worker provisioned before each online timer"
+  },
+  "hashes": {
+    "harness": "066434c27a982634e378ec7d4435cd9e6e541d449e070a7fb7c950e1eb49a650",
+    "linux_executor": "f9a1de08e9676a432fdb9d7976db5ab5686ced95a0fa603d8974954c94c1366e",
+    "worker_shim": "c3048fd35b5d776894218c4cb25d972f1399335a0d7f1cb94cc8a8e5c419f66b",
+    "native_lifecycle_checker": "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2",
+    "lean_runtime": "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
+  },
+  "online_boundary": "graph.invoke start through result, including fresh authorization, lowering, attestation, exact pool claim, receipt validation, execution, audit, cleanup, and framework work",
+  "preflight_boundary": "exact-template authorization/lowering, process creation, namespaces and mounts, limits, seccomp, and pinned source compilation"
+}
