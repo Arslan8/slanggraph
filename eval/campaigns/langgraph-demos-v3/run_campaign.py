@@ -425,12 +425,52 @@ def main() -> None:
     parser.add_argument("--repetitions", type=int, default=5)
     parser.add_argument("--smoke", action="store_true", help="one block and first task only")
     args = parser.parse_args()
+    cedar = shutil.which("cedar")
+    if cedar is None:
+        raise RuntimeError("campaign preflight requires the pinned Cedar CLI on PATH")
+    bwrap = shutil.which("bwrap")
+    if bwrap is None:
+        raise RuntimeError("campaign preflight requires bubblewrap on PATH")
+    bubblewrap_probe = subprocess.run(
+        (
+            bwrap,
+            "--unshare-all",
+            "--unshare-user",
+            "--die-with-parent",
+            "--new-session",
+            "--disable-userns",
+            "--assert-userns-disabled",
+            "--clearenv",
+            "--cap-drop",
+            "ALL",
+            "--ro-bind",
+            "/",
+            "/",
+            "--",
+            "/usr/bin/true",
+        ),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if bubblewrap_probe.returncode != 0:
+        detail = (bubblewrap_probe.stderr or bubblewrap_probe.stdout).strip()
+        raise RuntimeError(f"campaign bubblewrap preflight failed: {detail}")
     root = CAMPAIGN / "raw" / args.run_id
     root.mkdir(parents=True, exist_ok=False)
     tasks = json.loads((V1 / "tasks.json").read_text())
     metadata = common_metadata()
     metadata["run_id"] = args.run_id
     metadata["repetitions"] = 1 if args.smoke else args.repetitions
+    metadata["cedar_executable"] = {
+        "path": cedar,
+        "sha256": sha256(Path(cedar)),
+    }
+    metadata["bubblewrap_executable"] = {
+        "path": bwrap,
+        "sha256": sha256(Path(bwrap)),
+        "preflight": "passed",
+    }
     (root / "configuration.json").write_text(json.dumps(metadata, indent=2) + "\n")
 
     records = []
