@@ -314,7 +314,8 @@ def _check_activation(
     if not (
         0 <= seccomp < prepare < gate < payload
         and 0 <= limits < prepare
-        and "_invoke(prepared, event_loop)" in ast.unparse(body[payload])
+        and "_invoke(prepared, event_loop, timing_ns=timing_ns)"
+        in ast.unparse(body[payload])
     ):
         issues.append(
             "activation: seccomp/limits/preflight/GO/invoke ordering is missing in main"

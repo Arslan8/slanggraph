@@ -1,12 +1,14 @@
 """Protocol deadlines cover partial frames, including a worker that stalls."""
 
+import io
+import json
 import subprocess
 import sys
 import time
 
 import pytest
 
-from langgraph.prebuilt.security._linux_worker import _encode_json_value
+from langgraph.prebuilt.security._linux_worker import _encode_json_value, _write_result
 from langgraph.prebuilt.security.linux import _readline_json
 
 
@@ -65,3 +67,23 @@ def test_worker_result_encoder_validates_without_normalized_copy() -> None:
         _encode_json_value({1: "unsupported"})
     with pytest.raises(TypeError, match="not supported:set"):
         _encode_json_value(set())
+
+
+def test_worker_result_telemetry_is_explicit_and_out_of_band() -> None:
+    ordinary = io.StringIO()
+    _write_result(ordinary, "value")
+    assert json.loads(ordinary.getvalue()) == {"result": "value", "status": "ok"}
+
+    instrumented = io.StringIO()
+    _write_result(
+        instrumented,
+        "value",
+        body_ns=12,
+        timing_ns={"module_execution": 7, "target_call": 3},
+    )
+    payload = json.loads(instrumented.getvalue())
+    assert payload["result"] == "value"
+    assert payload["evaluation_timing_ns"]["function_body"] == 12
+    assert payload["evaluation_timing_ns"]["module_execution"] == 7
+    assert payload["evaluation_timing_ns"]["target_call"] == 3
+    assert type(payload["evaluation_timing_ns"]["result_serialization"]) is int

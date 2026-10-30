@@ -101,3 +101,49 @@ content-change detection and is appropriate only when another mechanism makes
 the prepared artifacts immutable. All modes retain fresh nonce-bound host
 evidence, prepared-worker identity checks, kernel-state validation, activation,
 and receipt validation.
+
+## Post-release worker split
+
+The remaining combined `execution_ms` label covered more than tool execution.
+The production worker shim now has opt-in evaluation telemetry around its
+post-`GO` phases. A 5-session, 20-measured-call-per-session diagnostic used the
+same one-file-read tool and production worker shim (five warmups per session):
+
+| Post-`GO` phase | Mean ms | p95 ms | Share of total |
+|---|---:|---:|---:|
+| Entire path through synchronous worker reap | 18.438 | 19.153 | 100.0% |
+| Parent's timed wait for one-shot Python process exit | 15.328 | 15.374 | 83.1% |
+| Execute tool module | 2.957 | 3.643 | 16.0% |
+| Call the actual file-read function | 0.068 | 0.077 | 0.4% |
+| Resolve entrypoint | 0.001 | 0.001 | <0.1% |
+| Serialize returned value | 0.007 | 0.007 | <0.1% |
+| `GO` write, parent decode, pipe/envelope/scheduling remainder | 0.064 | — | 0.3% |
+
+The largest online cost is therefore synchronous interpreter shutdown/reaping,
+not the resource operation or pipe transport. A second 100-call control changed
+only the parent from `Popen.wait(timeout=5)` to blocking `Popen.wait()`. Its
+post-response wait averaged 9.628 ms. Thus about 9.6 ms is real Python shutdown
+after the result is flushed, while approximately 5.7 ms is delayed observation
+from `subprocess`'s timed-wait polling. The second cost is executing the already
+compiled module on every single-use worker; for this fixture that is almost
+entirely `from pathlib import Path`. Worker provisioning and source compilation
+happened before `GO` and are not included.
+
+This diagnostic directly launches the production worker shim because the
+current automation host cannot create bubblewrap's network namespace. It
+therefore isolates the real post-release protocol implementation but is not a
+protected-route headline latency result. Raw records and the reproduction
+metadata are in `worker-transport-diagnostic.json`; the blocking-wait control is
+in `worker-transport-blocking-wait-control.json`. Regenerate both with:
+
+```bash
+libs/prebuilt/.venv/bin/python \
+  eval/distributed/worker_transport_diagnostic.py \
+  --sessions 5 --calls 20 --warmups 5 \
+  --output eval/campaigns/policy-preflight-v1/worker-transport-diagnostic.json
+libs/prebuilt/.venv/bin/python \
+  eval/distributed/worker_transport_diagnostic.py \
+  --sessions 5 --calls 20 --warmups 5 --wait-mode blocking \
+  --output \
+  eval/campaigns/policy-preflight-v1/worker-transport-blocking-wait-control.json
+```

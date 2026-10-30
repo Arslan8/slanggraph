@@ -111,7 +111,7 @@ def test_known_unsafe_pattern_match_still_proves_nothing() -> None:
         ),
         (
             "worker",
-            "        result = _invoke(prepared, event_loop)\n",
+            "        result = _invoke(prepared, event_loop, timing_ns=timing_ns)\n",
             "",
             "activation_before_execution",
         ),

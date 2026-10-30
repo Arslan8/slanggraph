@@ -153,6 +153,11 @@ def session(
             "dispatcher_setup_ms": 0.0,
             "toolnode_ms": 0.0,
             "tool_call_ms": 0.0,
+            "worker_function_body_ms": 0.0,
+            "worker_module_execution_ms": 0.0,
+            "worker_target_resolution_ms": 0.0,
+            "worker_target_call_ms": 0.0,
+            "worker_result_serialization_ms": 0.0,
         }
         originals = {
             "authorize": ObjectPolicyHostExecutor._authorize,
@@ -174,6 +179,7 @@ def session(
             "activate": EnforcementCoordinator.activate,
             "toolnode": ToolNode._func,
             "tool_call": ToolNode._run_one_inner,
+            "encode_request": linux_module._encode_worker_request,
         }
 
         def timed(name, function):
@@ -227,7 +233,22 @@ def session(
             result = originals["readline"](*args, **kwargs)
             if isinstance(result, dict) and result.get("status") == "ready":
                 spans["ready_ms"] = (time.perf_counter_ns() - spans["worker_started_ns"]) / 1e6
+            timing_ns = result.get("evaluation_timing_ns") if isinstance(result, dict) else None
+            if isinstance(timing_ns, dict):
+                for source, destination in (
+                    ("function_body", "worker_function_body_ms"),
+                    ("module_execution", "worker_module_execution_ms"),
+                    ("target_resolution", "worker_target_resolution_ms"),
+                    ("target_call", "worker_target_call_ms"),
+                    ("result_serialization", "worker_result_serialization_ms"),
+                ):
+                    value = timing_ns.get(source)
+                    if type(value) is int and value >= 0:
+                        spans[destination] = value / 1e6
             return result
+
+        def encode_request_timed(request):
+            return originals["encode_request"]({**request, "evaluation_telemetry": True})
 
         def dispatch_timed(*args, **kwargs):
             started = time.perf_counter_ns()
@@ -239,6 +260,7 @@ def session(
         LinuxSandboxExecutor._run_worker = worker_timed
         LeanLifecycleSession.permit_go = go_timed
         linux_module._readline_json = readline_timed
+        linux_module._encode_worker_request = encode_request_timed
         dispatcher.invoke = dispatch_timed
         route = "linux-lean" if lean else "linux"
         try:
@@ -312,6 +334,12 @@ def session(
                         - (spans["prego_ms"] if lean else activation)
                         - spans["cleanup_ms"]
                         - lean_after_go,
+                    )
+                    worker_transport_and_parent = max(
+                        0.0,
+                        execution
+                        - spans["worker_function_body_ms"]
+                        - spans["worker_result_serialization_ms"],
                     )
                     accounted = (
                         spans["authorization_ms"]
@@ -387,6 +415,14 @@ def session(
                             ),
                             "activation_ms": activation,
                             "execution_ms": execution,
+                            "worker_function_body_ms": spans["worker_function_body_ms"],
+                            "worker_module_execution_ms": spans["worker_module_execution_ms"],
+                            "worker_target_resolution_ms": spans["worker_target_resolution_ms"],
+                            "worker_target_call_ms": spans["worker_target_call_ms"],
+                            "worker_result_serialization_ms": spans[
+                                "worker_result_serialization_ms"
+                            ],
+                            "worker_transport_and_parent_ms": worker_transport_and_parent,
                             "mediator_transport_ms": 0.0,
                             "lean_ms": spans["lean_ms"],
                             "audit_ms": spans["audit_ms"],
@@ -412,6 +448,7 @@ def session(
             LinuxSandboxExecutor._run_worker = originals["worker"]
             LeanLifecycleSession.permit_go = originals["go"]
             linux_module._readline_json = originals["readline"]
+            linux_module._encode_worker_request = originals["encode_request"]
             LinuxSandboxExecutor._cleanup_worker = originals["cleanup"]
             sink.write = originals["audit"]
             ToolNode._func = originals["toolnode"]

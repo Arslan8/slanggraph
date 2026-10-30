@@ -17,6 +17,7 @@ import json
 import os
 import resource
 import sys
+import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import ModuleType
@@ -179,8 +180,20 @@ def main() -> int:
         )
         if sys.stdin.readline(16) != "GO\n":
             return 73
-        result = _invoke(prepared, event_loop)
-        _write_result(protocol_output, result)
+        timing_ns: dict[str, int] | None = (
+            {} if request.get("evaluation_telemetry") is True else None
+        )
+        body_started = time.perf_counter_ns() if timing_ns is not None else 0
+        result = _invoke(prepared, event_loop, timing_ns=timing_ns)
+        body_ns = (
+            time.perf_counter_ns() - body_started if timing_ns is not None else None
+        )
+        _write_result(
+            protocol_output,
+            result,
+            body_ns=body_ns,
+            timing_ns=timing_ns,
+        )
         return 0
     except BaseException as exc:
         try:
@@ -220,6 +233,11 @@ def _read_request() -> Mapping[str, Any]:
     }
     if not required.issubset(value):
         raise ValueError("request is missing required fields")
+    if (
+        "evaluation_telemetry" in value
+        and type(value["evaluation_telemetry"]) is not bool
+    ):
+        raise TypeError("evaluation_telemetry must be a boolean")
     return value
 
 
@@ -390,28 +408,41 @@ def _invocation_values(
 
 
 def _invoke(
-    prepared: _PreparedInvocation, event_loop: asyncio.AbstractEventLoop | None
+    prepared: _PreparedInvocation,
+    event_loop: asyncio.AbstractEventLoop | None,
+    *,
+    timing_ns: dict[str, int] | None = None,
 ) -> Any:
     request = prepared.request
     with (
         contextlib.redirect_stdout(_DISCARD_OUTPUT),
         contextlib.redirect_stderr(_DISCARD_OUTPUT),
     ):
+        started = time.perf_counter_ns() if timing_ns is not None else 0
         exec(prepared.code, prepared.module.__dict__)
+        if timing_ns is not None:
+            timing_ns["module_execution"] = time.perf_counter_ns() - started
+        started = time.perf_counter_ns() if timing_ns is not None else 0
         target: Any = prepared.module
         for part in prepared.attribute_path:
             target = getattr(target, part)
+        if timing_ns is not None:
+            timing_ns["target_resolution"] = time.perf_counter_ns() - started
+        started = time.perf_counter_ns() if timing_ns is not None else 0
         if bool(request.get("asynchronous")) and hasattr(target, "ainvoke"):
             if event_loop is None:
                 raise RuntimeError("async worker event loop is unavailable")
-            return event_loop.run_until_complete(target.ainvoke(prepared.call))
-        if hasattr(target, "invoke"):
-            return target.invoke(prepared.call)
-        result = target(**prepared.args)
-        if inspect.isawaitable(result):
-            if event_loop is None:
-                raise RuntimeError("async result requires an async worker")
-            return event_loop.run_until_complete(result)
+            result = event_loop.run_until_complete(target.ainvoke(prepared.call))
+        elif hasattr(target, "invoke"):
+            result = target.invoke(prepared.call)
+        else:
+            result = target(**prepared.args)
+            if inspect.isawaitable(result):
+                if event_loop is None:
+                    raise RuntimeError("async result requires an async worker")
+                result = event_loop.run_until_complete(result)
+        if timing_ns is not None:
+            timing_ns["target_call"] = time.perf_counter_ns() - started
         return result
 
 
@@ -555,8 +586,34 @@ def _encode_json_value(value: object) -> str:
     raise TypeError(f"result type is not supported:{kind.__name__}")
 
 
-def _write_result(stream: Any, result: object) -> None:
-    encoded = '{"result":' + _encode_json_value(result) + ',"status":"ok"}'
+def _write_result(
+    stream: Any,
+    result: object,
+    *,
+    body_ns: int | None = None,
+    timing_ns: Mapping[str, int] | None = None,
+) -> None:
+    serialization_started = time.perf_counter_ns() if body_ns is not None else 0
+    result_json = _encode_json_value(result)
+    serialization_ns = (
+        time.perf_counter_ns() - serialization_started if body_ns is not None else None
+    )
+    telemetry = (
+        '"evaluation_timing_ns":'
+        + json.dumps(
+            {
+                "function_body": body_ns,
+                "result_serialization": serialization_ns,
+                **(timing_ns or {}),
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + ","
+        if body_ns is not None
+        else ""
+    )
+    encoded = "{" + telemetry + '"result":' + result_json + ',"status":"ok"}'
     if len(encoded) > _MAX_FRAME:
         raise ValueError("response frame exceeds limit")
     stream.write(encoded + "\n")
