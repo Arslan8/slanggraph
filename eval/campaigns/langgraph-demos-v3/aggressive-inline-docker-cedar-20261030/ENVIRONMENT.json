@@ -1,0 +1,25 @@
+{
+  "evaluated_commit": "fc6d2aafff281611d101daa9951aeb354075a058",
+  "branch": "wip",
+  "outer_harness": {
+    "image": "slg-linux-test:latest",
+    "image_digest": "sha256:3bcfa1622e24814afee022c71236dadd92e31a5fff41ad99a23925bc98311504",
+    "user": "0:0",
+    "network": "host",
+    "security_options": [
+      "apparmor=unconfined",
+      "seccomp=unconfined",
+      "systempaths=unconfined"
+    ],
+    "role": "permissive outer harness for activation of the inner production boundary; not an additional confinement claim"
+  },
+  "inner_boundary": "production bubblewrap, Landlock, seccomp, resource-broker, and route-specific enforcement selected by each Argus configuration",
+  "cedar": {
+    "container_path": "/opt/cedar/cedar",
+    "sha256": "9ee94c099e52f900fee2f13751a0687fcc2fe856cbd9de63ae2a0eb0fd782b7a"
+  },
+  "lean_runtime": {
+    "container_path": "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so",
+    "sha256": "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
+  }
+}
