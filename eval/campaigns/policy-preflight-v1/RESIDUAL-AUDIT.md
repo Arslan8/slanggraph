@@ -211,3 +211,25 @@ libs/prebuilt/.venv/bin/python eval/distributed/common_language_costs.py \
 libs/prebuilt/.venv/bin/python eval/distributed/audit_costs.py \
   --output audit-async-diagnostic.json
 ```
+
+### Language-route residual split
+
+The former `framework_residual_ms` is an arithmetic remainder, not one
+operation. A fresh 5-session × 20-call run split it at the Argus host-executor
+boundary:
+
+| Residual component | Mean ms | Share of residual |
+|---|---:|---:|
+| LangGraph dispatch and ToolNode orchestration | 3.591 | 99.6% |
+| Argus host bridge outside authorization and dispatch | 0.015 | 0.4% |
+| Total residual | 3.606 | 100.0% |
+
+The graph/ToolNode aggregate includes Pregel invocation and state/channel work,
+runtime-policy rechecking, tool-call parsing, configuration and `ToolRuntime`
+construction, the single-call executor handoff, principal extraction and branch
+identity transfer, analysis notifications, result-to-`ToolMessage` conversion,
+and output combination. It is 70.0% of the complete 5.127 ms call in this run.
+The largest individual operation inside that aggregate has not yet been timed;
+the source path creates an executor and dispatches through it even for this one
+tool call, making that a concrete next boundary to measure rather than an
+established result. Raw records are under `language-residual-split-v2/`.

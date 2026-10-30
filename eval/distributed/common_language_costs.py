@@ -74,9 +74,16 @@ def session(
         setup_ms = (time.perf_counter_ns() - setup_start) / 1e6
         principal = Principal("alice", frozenset(), frozenset(), f"session-{number}")
         config = with_principal({}, principal, modules=security.modules)
-        spans = {"authorization_ms": 0.0, "dispatch_ms": 0.0, "execution_ms": 0.0, "audit_ms": 0.0}
+        spans = {
+            "authorization_ms": 0.0,
+            "host_executor_ms": 0.0,
+            "dispatch_ms": 0.0,
+            "execution_ms": 0.0,
+            "audit_ms": 0.0,
+        }
         originals = {
             "authorize": ObjectPolicyHostExecutor._authorize,
+            "host_invoke": ObjectPolicyHostExecutor.invoke,
             "dispatch": _LanguageSandboxDispatcher.invoke,
             "execute": ManifestAdmission.invoke,
             "audit": sink.write,
@@ -93,6 +100,7 @@ def session(
             return wrapper
 
         ObjectPolicyHostExecutor._authorize = timed("authorization_ms", originals["authorize"])
+        ObjectPolicyHostExecutor.invoke = timed("host_executor_ms", originals["host_invoke"])
         _LanguageSandboxDispatcher.invoke = timed("dispatch_ms", originals["dispatch"])
         ManifestAdmission.invoke = timed("execution_ms", originals["execute"])
         sink.write = timed("audit_ms", originals["audit"])
@@ -143,6 +151,10 @@ def session(
                         + spans["execution_ms"]
                         + spans["audit_ms"]
                     )
+                    host_bridge = (
+                        spans["host_executor_ms"] - spans["authorization_ms"] - spans["dispatch_ms"]
+                    )
+                    graph_and_toolnode = elapsed - accounted - host_bridge
                     write(
                         stream,
                         {
@@ -161,6 +173,9 @@ def session(
                             "audit_ms": spans["audit_ms"],
                             "cleanup_ms": 0.0,
                             "framework_residual_ms": elapsed - accounted,
+                            "host_bridge_ms": host_bridge,
+                            "graph_and_toolnode_ms": graph_and_toolnode,
+                            "residual_partition_error_ms": 0.0,
                             "valid": "COMMON_FILE_VALUE" in result["messages"][-1].content,
                         },
                     )
@@ -182,6 +197,7 @@ def session(
                     )
         finally:
             ObjectPolicyHostExecutor._authorize = originals["authorize"]
+            ObjectPolicyHostExecutor.invoke = originals["host_invoke"]
             _LanguageSandboxDispatcher.invoke = originals["dispatch"]
             ManifestAdmission.invoke = originals["execute"]
             sink.write = originals["audit"]
