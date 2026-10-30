@@ -17,7 +17,7 @@ CAMPAIGN = Path(__file__).resolve().parent
 ROOT = CAMPAIGN.parents[2]
 APPS = ROOT / "eval/apps/demos"
 V1 = ROOT / "eval/campaigns/langgraph-demos-v1"
-WORKER = ROOT / "eval/campaigns/pandas-matched-v1/raw/workerRoute"
+WORKER = ROOT / "proofs/worker-route/.lake/build/lib/libargus_worker_route.so"
 SEED = 20261028
 MODES = ("Baseline", "Argus")
 

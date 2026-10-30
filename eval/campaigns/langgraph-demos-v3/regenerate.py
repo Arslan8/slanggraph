@@ -43,9 +43,7 @@ def summarize_mode(records: list[dict]) -> dict:
         "completed": sum(item["status"] == "completed" for item in records),
         "correct": sum(item["correct"] for item in records),
         "timeouts": sum(item["status"] == "timeout" for item in records),
-        "compatibility_failures": sum(
-            item["status"] == "compatibility_failed" for item in records
-        ),
+        "compatibility_failures": sum(item["status"] == "compatibility_failed" for item in records),
         "execution_errors": sum(item["status"] == "execution_error" for item in records),
         "mean_wall_ms": statistics.fmean(item["wall_ms"] for item in records),
         "mean_model_ms": statistics.fmean(model_times) if model_times else None,
@@ -70,9 +68,7 @@ def main() -> None:
     applications = sorted({item["application"] for item in records})
     repetitions = sorted({item["repetition"] for item in records})
     rng = random.Random(SEED)
-    resampled_blocks = [
-        [rng.choice(repetitions) for _ in repetitions] for _ in range(RESAMPLES)
-    ]
+    resampled_blocks = [[rng.choice(repetitions) for _ in repetitions] for _ in range(RESAMPLES)]
 
     results = {}
     included = []
@@ -176,12 +172,19 @@ def main() -> None:
                     100 * (percentile(utility_bootstrap, 0.025) - 1),
                     100 * (percentile(utility_bootstrap, 0.975) - 1),
                 ],
+                "interpretation": (
+                    "Sensitivity analysis limited to applications with identical task-success "
+                    "counts in both modes; it is not a replacement suite average."
+                ),
             },
+            "interpretation": (
+                "Attempt-duration summary over runnable applications. Differing correctness, "
+                "compatibility failures, and capped timeouts remain in the means, so this is "
+                "not a pure enforcement-only overhead estimate."
+            ),
         },
     }
-    (output / "statistics.json").write_text(
-        json.dumps(statistics_output, indent=2) + "\n"
-    )
+    (output / "statistics.json").write_text(json.dumps(statistics_output, indent=2) + "\n")
 
     lines = [
         "# Matched ordinary-demo results",
@@ -220,8 +223,10 @@ def main() -> None:
     lines.extend(
         (
             "",
-            "The suite result is the geometric mean of per-application ratios, not a pooled "
-            "ratio or arithmetic mean of percentages.",
+            "The suite result is the geometric mean of per-application attempt-duration ratios, "
+            "not a pooled ratio or arithmetic mean of percentages. Because utility and failure "
+            "status differ for some included applications, it is not a pure enforcement-only "
+            "overhead estimate.",
             "Status abbreviations: C=completed, F=compatibility failure, "
             "E=execution error, T=timeout. D4 timeout durations are capped at 300 seconds.",
             "",
@@ -232,8 +237,9 @@ def main() -> None:
             f"{suite['ratio_ci95'][1]:.3f}); "
             f"overhead **{suite['geometric_mean_overhead_percent']:.1f}%**.",
             "",
-            "No defensible overhead average exists over all 15 applications: D3 has no "
-            "completed trial in either mode and T10 has no completed Argus trial.",
+            "No defensible overhead average exists over all 15 applications. Excluded "
+            "applications have no completed trial in at least one mode; their failed-attempt "
+            "durations are retained in the table but never treated as successful latency.",
             "",
             "As a secondary sensitivity analysis, applications with the same success count "
             "in both modes have geometric-mean ratio "

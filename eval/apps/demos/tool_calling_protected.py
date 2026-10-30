@@ -45,6 +45,10 @@ HERE = Path(__file__).resolve().parent
 WORKER = HERE / "tool_calling_worker.py"
 WORKER_DIGEST = hashlib.sha256(WORKER.read_bytes()).hexdigest()
 MODEL_DIGEST = "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41"
+LEAN_RUNTIME = (
+    "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so"
+)
+LEAN_RUNTIME_SHA256 = "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
 PRINCIPAL_POLICY = 'permit(principal == slangGraph::User::"alice", action, resource);'
 OPERATOR_POLICY = 'forbid(principal == slangGraph::User::"blocked", action, resource);'
 
@@ -129,6 +133,8 @@ def security(
     checker = LeanLifecycleChecker(
         binary_path=str(worker_route),
         binary_sha256=hashlib.sha256(worker_route.read_bytes()).hexdigest(),
+        runtime_path=LEAN_RUNTIME,
+        runtime_sha256=LEAN_RUNTIME_SHA256,
     )
     dispatcher = LinuxObjectDispatcher(
         {
