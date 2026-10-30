@@ -1,0 +1,123 @@
+{
+  "evaluated_revision": "c1bdeff5c",
+  "protocol": "5 fresh sessions, 1 first use, 10 warmups, 20 measured calls per session",
+  "timer_scope": "per-call recurring work; native-library loading and campaign preflight are setup",
+  "all_measured_calls_valid": true,
+  "first_use_ms": {
+    "n_sessions": 5,
+    "mean": 248.2450164,
+    "ci95": [
+      238.30011612755675,
+      258.18991667244325
+    ]
+  },
+  "reused_ms": {
+    "n_sessions": 5,
+    "mean": 182.77862453000003,
+    "ci95": [
+      180.52603839720146,
+      185.0312106627986
+    ]
+  },
+  "previous_subprocess_reused_ms": {
+    "n_sessions": 5,
+    "mean": 476.87615258999995,
+    "ci95": [
+      475.6147865675242,
+      478.1375186124757
+    ]
+  },
+  "previous_subprocess_decision_ms": {
+    "n_sessions": 5,
+    "mean": 285.8625037,
+    "ci95": [
+      284.9166682779439,
+      286.80833912205605
+    ]
+  },
+  "inline_over_subprocess": {
+    "ratio": 0.3832832141789782,
+    "reduction_percent": 61.67167858210219,
+    "ci95": [
+      0.38037928534446036,
+      0.38642123079620516
+    ],
+    "method": "independent-session bootstrap of ratio of means",
+    "seed": 20261030,
+    "resamples": 100000
+  },
+  "phases": {
+    "authorization_ms": {
+      "n_sessions": 5,
+      "mean": 0.4728179,
+      "ci95": [
+        0.46311427613335887,
+        0.48252152386664116
+      ]
+    },
+    "lean_ms": {
+      "n_sessions": 5,
+      "mean": 15.03007844,
+      "ci95": [
+        14.760064845580487,
+        15.300092034419514
+      ]
+    },
+    "activation_ms": {
+      "n_sessions": 5,
+      "mean": 91.48278836,
+      "ci95": [
+        90.45204365883112,
+        92.51353306116889
+      ]
+    },
+    "execution_ms": {
+      "n_sessions": 5,
+      "mean": 13.62149269,
+      "ci95": [
+        13.282962487144495,
+        13.960022892855505
+      ]
+    },
+    "audit_ms": {
+      "n_sessions": 5,
+      "mean": 8.34706696,
+      "ci95": [
+        7.919764052309116,
+        8.774369867690883
+      ]
+    },
+    "cleanup_ms": {
+      "n_sessions": 5,
+      "mean": 0.07886852,
+      "ci95": [
+        0.07532291317636147,
+        0.08241412682363852
+      ]
+    },
+    "framework_residual_ms": {
+      "n_sessions": 5,
+      "mean": 53.74551166,
+      "ci95": [
+        53.21556563172081,
+        54.27545768827919
+      ]
+    }
+  },
+  "checker_setup_ms": {
+    "n_sessions": 5,
+    "mean": 302.1933544,
+    "ci95": [
+      296.2309231707487,
+      308.1557856292512
+    ]
+  },
+  "artifact": {
+    "library": "/data/langgraph/proofs/worker-route/.lake/build/lib/libargus_worker_route.so",
+    "library_sha256": "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2",
+    "runtime": "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so",
+    "runtime_sha256": "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13",
+    "execution": "sealed-inline-native-library"
+  },
+  "comparison_caveat": "campaigns ran sequentially; sessions are independent rather than interleaved"
+}

@@ -1,0 +1,25 @@
+test_accepts_standard_axioms_and_no_axioms (test_check.AxiomAuditTests.test_accepts_standard_axioms_and_no_axioms) ... ok
+test_custom_and_native_reduction_axioms_refuse (test_check.AxiomAuditTests.test_custom_and_native_reduction_axioms_refuse) ... ok
+test_duplicate_or_unexpected_results_refuse (test_check.AxiomAuditTests.test_duplicate_or_unexpected_results_refuse) ... ok
+test_extra_malformed_and_foreign_namespace_queries_refuse (test_check.AxiomAuditTests.test_extra_malformed_and_foreign_namespace_queries_refuse) ... ok
+test_fixed_nonempty_required_obligations (test_check.AxiomAuditTests.test_fixed_nonempty_required_obligations) ... ok
+test_malformed_axiom_lists_do_not_count (test_check.AxiomAuditTests.test_malformed_axiom_lists_do_not_count) ... ok
+test_missing_or_empty_audit_refuses (test_check.AxiomAuditTests.test_missing_or_empty_audit_refuses) ... ok
+test_capture_preserves_before_and_changed_after_bytes (test_check.SourceAndEvidenceTests.test_capture_preserves_before_and_changed_after_bytes) ... ok
+test_character_literals_and_identifier_apostrophes_preserve_scanning (test_check.SourceAndEvidenceTests.test_character_literals_and_identifier_apostrophes_preserve_scanning) ... ok
+test_character_literals_do_not_hide_following_proof_bypass (test_check.SourceAndEvidenceTests.test_character_literals_do_not_hide_following_proof_bypass) ... ok
+test_existing_output_is_never_overwritten (test_check.SourceAndEvidenceTests.test_existing_output_is_never_overwritten) ... ok
+test_failed_command_retains_output_and_exit_status (test_check.SourceAndEvidenceTests.test_failed_command_retains_output_and_exit_status) ... ok
+test_grant_negative_controls_distinguish_fields_and_typed_values (test_check.SourceAndEvidenceTests.test_grant_negative_controls_distinguish_fields_and_typed_values) ... ok
+test_missing_grant_module_prevents_complete_capture (test_check.SourceAndEvidenceTests.test_missing_grant_module_prevents_complete_capture) ... ok
+test_missing_kernel_replay_binary_refuses (test_check.SourceAndEvidenceTests.test_missing_kernel_replay_binary_refuses) ... ok
+test_missing_receipt_module_prevents_complete_capture (test_check.SourceAndEvidenceTests.test_missing_receipt_module_prevents_complete_capture) ... ok
+test_nested_comments_and_literal_strings_are_not_code (test_check.SourceAndEvidenceTests.test_nested_comments_and_literal_strings_are_not_code) ... ok
+test_proof_bypass_source_refuses (test_check.SourceAndEvidenceTests.test_proof_bypass_source_refuses) ... ok
+test_unterminated_comment_or_string_refuses (test_check.SourceAndEvidenceTests.test_unterminated_comment_or_string_refuses) ... ok
+test_wrong_field_controls_must_reach_type_errors (test_check.SourceAndEvidenceTests.test_wrong_field_controls_must_reach_type_errors) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.032s
+
+OK

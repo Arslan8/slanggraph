@@ -1,0 +1,737 @@
+{
+  "allowed_standard_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "axiom_dependencies": {
+    "GrantCoverage.activated_inventory_exact": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.assignment_inventory_exact": [
+      "propext"
+    ],
+    "GrantCoverage.certificateValid_iff": [
+      "propext"
+    ],
+    "GrantCoverage.certificate_implies_receipt": [
+      "propext"
+    ],
+    "GrantCoverage.certificate_inventory_accepted": [
+      "propext"
+    ],
+    "GrantCoverage.certificate_preserves_grant_identity": [
+      "propext"
+    ],
+    "GrantCoverage.certifiedRoute_exact": [
+      "propext"
+    ],
+    "GrantCoverage.certifiedRoute_iff": [
+      "propext"
+    ],
+    "GrantCoverage.complement_covered_once": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.constructed_grant_bound": [
+      "propext"
+    ],
+    "GrantCoverage.constructed_grant_valid": [
+      "propext"
+    ],
+    "GrantCoverage.derived_rule_semantics": [
+      "propext"
+    ],
+    "GrantCoverage.every_domain_present": [
+      "propext"
+    ],
+    "GrantCoverage.exact_generated_useful": [
+      "propext"
+    ],
+    "GrantCoverage.generated_complement_present": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.generated_evidence_owner_unique": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "GrantCoverage.generated_exact_origin": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.generated_rule_present": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.grant_binding_mismatch_refuses": [
+      "propext"
+    ],
+    "GrantCoverage.invalid_certificate_refuses_every_trace": [
+      "propext"
+    ],
+    "GrantCoverage.invalid_inventory_refuses": [
+      "propext"
+    ],
+    "GrantCoverage.missing_generated_refuses": [
+      "propext"
+    ],
+    "GrantCoverage.nine_distinct_complements": [
+      "propext"
+    ],
+    "GrantCoverage.no_extra_generated_evidence": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.no_extra_obligations": [
+      "propext"
+    ],
+    "GrantCoverage.no_missing_generated": [
+      "propext"
+    ],
+    "GrantCoverage.obligationsAccept_iff": [
+      "propext"
+    ],
+    "GrantCoverage.rule_covered_once": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.runCertified_preserves_binding": [
+      "propext"
+    ],
+    "GrantCoverage.runCertified_running_exact": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.runCertified_running_iff": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.selected_no_waivers": [
+      "propext"
+    ],
+    "GrantCoverage.semantic_substitution_refuses": [
+      "propext",
+      "Quot.sound"
+    ],
+    "GrantCoverage.useful_grant_partition": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "GrantCoverage.useful_grant_partition_route": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.assignment_evidence_unique": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.assignment_owner_unique": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.certificateValid_iff": [
+      "propext"
+    ],
+    "ReceiptCoverage.certificate_rejects_binding_mismatch": [
+      "propext"
+    ],
+    "ReceiptCoverage.certifiedRoute_exact": [
+      "propext"
+    ],
+    "ReceiptCoverage.certifiedRoute_iff": [
+      "propext"
+    ],
+    "ReceiptCoverage.certifiedRoute_useful": [
+      "propext"
+    ],
+    "ReceiptCoverage.coverageAccept_iff": [
+      "propext"
+    ],
+    "ReceiptCoverage.evidence_obligation_assignment": [
+      "propext",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.invalid_certificate_refuses_every_trace": [
+      "propext"
+    ],
+    "ReceiptCoverage.no_extra_activated_obligations": [
+      "propext"
+    ],
+    "ReceiptCoverage.no_extra_evidence_obligations": [
+      "propext",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.no_missing_activated_obligations": [
+      "propext",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.partition_assignment_ids": [
+      "propext",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.plan_evidence_unique": [
+      "propext",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.runCertified_preserves_binding": [
+      "propext"
+    ],
+    "ReceiptCoverage.runCertified_running_exact": [
+      "propext",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.runCertified_running_iff": [
+      "propext",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.useful_partition_certificate": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "ReceiptCoverage.useful_partition_route": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "WorkerRoute.activation_mismatch_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.authorization_denial_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.authorize_mismatch_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.cancellation_anywhere_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.go_mismatch_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.go_requires_matching_authorized_activation": [
+      "propext",
+      "Quot.sound"
+    ],
+    "WorkerRoute.result_failure_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.result_mismatch_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.run_preserves_binding": [
+      "propext"
+    ],
+    "WorkerRoute.step_preserves_binding": [
+      "propext"
+    ],
+    "WorkerRoute.success_excludes_cancellation": [
+      "propext"
+    ],
+    "WorkerRoute.success_iff_exact_route": [
+      "propext"
+    ],
+    "WorkerRoute.success_requires_confirmed_cleanup": [
+      "propext"
+    ],
+    "WorkerRoute.unconfirmed_activation_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.unknown_cleanup_anywhere_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.unsupported_refuses": [
+      "propext"
+    ],
+    "WorkerRoute.useful_route_succeeds": [
+      "propext"
+    ]
+  },
+  "binary": {
+    "bytes": 122166456,
+    "path": "/tmp/argus-native-audit.ZvTtj1/result/artifacts/workerRoute",
+    "sha256": "ecbc448bfb02c45c17c14e068fa1cd851771de040c58defee95460a595750292"
+  },
+  "ci_environment": {
+    "LANGGRAPH_LEAN_WORKER_BINARY": "/tmp/argus-native-audit.ZvTtj1/result/artifacts/workerRoute"
+  },
+  "ci_requirements": [
+    "Run the Lean bridge and selected native lifecycle test files against ci_environment's captured binary.",
+    "Required CI must fail on missing binary or skipped selected-route tests; an optional local skip is not CI evidence.",
+    "Runtime test results remain separate from this model proof report."
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "-v",
+        "test_check"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 0.117578,
+      "exit_code": 0,
+      "finished_at": "2026-10-30T03:46:06.373722+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/driver-tests.log",
+      "started_at": "2026-10-30T03:46:06.256156+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "--version"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 0.06016,
+      "exit_code": 0,
+      "finished_at": "2026-10-30T03:46:06.516888+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/lake-version.log",
+      "started_at": "2026-10-30T03:46:06.456734+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "env",
+        "lean",
+        "--version"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 0.072745,
+      "exit_code": 0,
+      "finished_at": "2026-10-30T03:46:06.589668+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/lean-version.log",
+      "started_at": "2026-10-30T03:46:06.516944+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "env",
+        "lean",
+        "--print-prefix"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 0.069056,
+      "exit_code": 0,
+      "finished_at": "2026-10-30T03:46:06.659067+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/lean-prefix.log",
+      "started_at": "2026-10-30T03:46:06.590013+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "-v",
+        "build",
+        "WorkerRoute",
+        "ReceiptCoverage",
+        "GrantCoverage",
+        "workerRoute"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 30.161227,
+      "exit_code": 0,
+      "finished_at": "2026-10-30T03:46:36.820449+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/build.log",
+      "started_at": "2026-10-30T03:46:06.659239+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "env",
+        "lean",
+        "KernelAudit.lean",
+        "-o",
+        ".lake/build/lib/lean/KernelAudit.olean"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 5.926618,
+      "exit_code": 0,
+      "finished_at": "2026-10-30T03:46:42.754435+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/kernel-audit.log",
+      "started_at": "2026-10-30T03:46:36.827826+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "env",
+        "lean",
+        "WrongBindingField.lean"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 2.611804,
+      "exit_code": 1,
+      "finished_at": "2026-10-30T03:46:45.366918+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-WrongBindingField.log",
+      "started_at": "2026-10-30T03:46:42.755145+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "env",
+        "lean",
+        "MissingReceiptField.lean"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 0.898114,
+      "exit_code": 1,
+      "finished_at": "2026-10-30T03:46:46.265552+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-MissingReceiptField.log",
+      "started_at": "2026-10-30T03:46:45.367460+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "env",
+        "lean",
+        "WrongGeneratedSelector.lean"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 0.904049,
+      "exit_code": 1,
+      "finished_at": "2026-10-30T03:46:47.169988+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-WrongGeneratedSelector.log",
+      "started_at": "2026-10-30T03:46:46.265947+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "env",
+        "lean",
+        "WrongTypedCondition.lean"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 0.934277,
+      "exit_code": 1,
+      "finished_at": "2026-10-30T03:46:48.104497+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-WrongTypedCondition.log",
+      "started_at": "2026-10-30T03:46:47.170239+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "env",
+        "lean",
+        "MissingGrantDigest.lean"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 0.88174,
+      "exit_code": 1,
+      "finished_at": "2026-10-30T03:46:48.986565+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-MissingGrantDigest.log",
+      "started_at": "2026-10-30T03:46:48.104846+00:00"
+    },
+    {
+      "argv": [
+        "/home/faculty/abk6349/.elan/bin/lake",
+        "env",
+        "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/bin/leanchecker",
+        "--fresh",
+        "KernelAudit"
+      ],
+      "cwd": "/tmp/argus-native-audit.ZvTtj1/result/snapshot",
+      "elapsed_seconds": 84.24209,
+      "exit_code": 0,
+      "finished_at": "2026-10-30T03:48:13.233644+00:00",
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/kernel-replay.log",
+      "started_at": "2026-10-30T03:46:48.991570+00:00"
+    }
+  ],
+  "compiler_refinement_proved": false,
+  "decoder_refinement_proved": false,
+  "driver_tests_passed": true,
+  "finished_at": "2026-10-30T03:48:13.632306+00:00",
+  "generated_audit": {
+    "bytes": 42524,
+    "sha256": "fbbc0b27115d893ed0e7c057b9e2ec27395a2c35703a08c9cb32f109c2a1c320"
+  },
+  "independent_checker_verified": false,
+  "issues": [],
+  "kernel_replay": {
+    "available": true,
+    "bytes": 51080,
+    "is_independent_implementation": false,
+    "path": "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/bin/leanchecker",
+    "scope": "Lean's own kernel replay; not an external independent verifier.",
+    "sha256": "ccef1bfe9bfeecea65137d94a69033c1a89f360711f50fa3178e7ba3e696fcbe"
+  },
+  "kernel_replay_checked": true,
+  "kernel_typecheck_passed": true,
+  "kind": "worker-route-grant-lean-model-audit",
+  "lake_executable": {
+    "bytes": 13452832,
+    "path": "/home/faculty/abk6349/.elan/bin/lake",
+    "sha256": "e0f4b30b29c565625189744847dfef5f132b6322c5e452dbebfeae780c9749e5"
+  },
+  "lake_version": "Lake version 5.0.0-src+5045d00 (Lean version 4.34.1)",
+  "lean_executable": {
+    "bytes": 9024,
+    "path": "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/bin/lean",
+    "sha256": "e8baaa71855a616dc351028f3ad2200051b0671f423a1696a100e809302d5550"
+  },
+  "lean_version": "Lean (version 4.34.1, x86_64-unknown-linux-gnu, commit 5045d0056413266e57c625dcd7c365b10e377c52, Release)",
+  "model_proved": true,
+  "negative_audit_controls": [
+    {
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-WrongBindingField.log",
+      "name": "WrongBindingField",
+      "rejected": true,
+      "source": {
+        "bytes": 181,
+        "sha256": "631d6450fd2e060463615ea7585e21198a245f80294483edeb435b78afcf97ac"
+      }
+    },
+    {
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-MissingReceiptField.log",
+      "name": "MissingReceiptField",
+      "rejected": true,
+      "source": {
+        "bytes": 303,
+        "sha256": "417aec9fb1cbc139338d9d028014e57e35b90b442a327379a258c03d6b2fb94f"
+      }
+    },
+    {
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-WrongGeneratedSelector.log",
+      "name": "WrongGeneratedSelector",
+      "rejected": true,
+      "source": {
+        "bytes": 160,
+        "sha256": "07c17a8d5cd897e055c362a274d732744e9dba259076a3e676f6bcd60f2a5691"
+      }
+    },
+    {
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-WrongTypedCondition.log",
+      "name": "WrongTypedCondition",
+      "rejected": true,
+      "source": {
+        "bytes": 136,
+        "sha256": "2e23894294f7e70f82b79d15c29bfd35778a3fa41f93d567d8683da2f8c1e630"
+      }
+    },
+    {
+      "log": "/tmp/argus-native-audit.ZvTtj1/result/logs/negative-MissingGrantDigest.log",
+      "name": "MissingGrantDigest",
+      "rejected": true,
+      "source": {
+        "bytes": 269,
+        "sha256": "7e168edba81f167ff46adb645e8ff6234ba07db7c4f2ffc8f87d030fd9d53668"
+      }
+    }
+  ],
+  "os_refinement_proved": false,
+  "output": "/tmp/argus-native-audit.ZvTtj1/result",
+  "passed": true,
+  "pinned_toolchain": "leanprover/lean4:v4.34.1",
+  "protocol": "worker-route-grant-v3",
+  "required_theorems": [
+    "WorkerRoute.success_iff_exact_route",
+    "WorkerRoute.useful_route_succeeds",
+    "WorkerRoute.step_preserves_binding",
+    "WorkerRoute.run_preserves_binding",
+    "WorkerRoute.go_requires_matching_authorized_activation",
+    "WorkerRoute.authorization_denial_refuses",
+    "WorkerRoute.unsupported_refuses",
+    "WorkerRoute.unconfirmed_activation_refuses",
+    "WorkerRoute.authorize_mismatch_refuses",
+    "WorkerRoute.activation_mismatch_refuses",
+    "WorkerRoute.go_mismatch_refuses",
+    "WorkerRoute.result_mismatch_refuses",
+    "WorkerRoute.result_failure_refuses",
+    "WorkerRoute.cancellation_anywhere_refuses",
+    "WorkerRoute.unknown_cleanup_anywhere_refuses",
+    "WorkerRoute.success_requires_confirmed_cleanup",
+    "WorkerRoute.success_excludes_cancellation",
+    "ReceiptCoverage.coverageAccept_iff",
+    "ReceiptCoverage.certificateValid_iff",
+    "ReceiptCoverage.certificate_rejects_binding_mismatch",
+    "ReceiptCoverage.assignment_owner_unique",
+    "ReceiptCoverage.plan_evidence_unique",
+    "ReceiptCoverage.evidence_obligation_assignment",
+    "ReceiptCoverage.no_extra_evidence_obligations",
+    "ReceiptCoverage.assignment_evidence_unique",
+    "ReceiptCoverage.no_missing_activated_obligations",
+    "ReceiptCoverage.no_extra_activated_obligations",
+    "ReceiptCoverage.partition_assignment_ids",
+    "ReceiptCoverage.useful_partition_certificate",
+    "ReceiptCoverage.useful_partition_route",
+    "ReceiptCoverage.runCertified_running_iff",
+    "ReceiptCoverage.certifiedRoute_iff",
+    "ReceiptCoverage.certifiedRoute_useful",
+    "ReceiptCoverage.runCertified_preserves_binding",
+    "ReceiptCoverage.invalid_certificate_refuses_every_trace",
+    "ReceiptCoverage.runCertified_running_exact",
+    "ReceiptCoverage.certifiedRoute_exact",
+    "GrantCoverage.obligationsAccept_iff",
+    "GrantCoverage.certificateValid_iff",
+    "GrantCoverage.every_domain_present",
+    "GrantCoverage.nine_distinct_complements",
+    "GrantCoverage.generated_exact_origin",
+    "GrantCoverage.generated_rule_present",
+    "GrantCoverage.generated_complement_present",
+    "GrantCoverage.derived_rule_semantics",
+    "GrantCoverage.no_missing_generated",
+    "GrantCoverage.no_extra_obligations",
+    "GrantCoverage.rule_covered_once",
+    "GrantCoverage.complement_covered_once",
+    "GrantCoverage.semantic_substitution_refuses",
+    "GrantCoverage.missing_generated_refuses",
+    "GrantCoverage.exact_generated_useful",
+    "GrantCoverage.certificate_inventory_accepted",
+    "GrantCoverage.grant_binding_mismatch_refuses",
+    "GrantCoverage.assignment_inventory_exact",
+    "GrantCoverage.selected_no_waivers",
+    "GrantCoverage.certificate_implies_receipt",
+    "GrantCoverage.certificate_preserves_grant_identity",
+    "GrantCoverage.invalid_inventory_refuses",
+    "GrantCoverage.activated_inventory_exact",
+    "GrantCoverage.generated_evidence_owner_unique",
+    "GrantCoverage.no_extra_generated_evidence",
+    "GrantCoverage.constructed_grant_bound",
+    "GrantCoverage.constructed_grant_valid",
+    "GrantCoverage.useful_grant_partition",
+    "GrantCoverage.runCertified_running_iff",
+    "GrantCoverage.certifiedRoute_iff",
+    "GrantCoverage.certifiedRoute_exact",
+    "GrantCoverage.runCertified_running_exact",
+    "GrantCoverage.useful_grant_partition_route",
+    "GrantCoverage.runCertified_preserves_binding",
+    "GrantCoverage.invalid_certificate_refuses_every_trace"
+  ],
+  "runtime_refinement_proved": false,
+  "schema_version": 3,
+  "scope": "Kernel-checked captured finite model only; positive runtime fact provenance and deployment correspondence are separate obligations.",
+  "snapshot_after": {
+    "GrantCoverage.lean": {
+      "bytes": 24484,
+      "sha256": "655f9c73e5c02950f974089cabbc56736b54c1c260177879d675ffc8d8209975"
+    },
+    "Main.lean": {
+      "bytes": 18171,
+      "sha256": "3b74c804806b600efb241f7bde323e9f8f7327c505130e757aaf781de6597999"
+    },
+    "ReceiptCoverage.lean": {
+      "bytes": 25648,
+      "sha256": "0b1d9221c3a0e24e169eb6d68237569c28a4afe96a5006741eb828b42c7cb096"
+    },
+    "WorkerRoute.lean": {
+      "bytes": 15063,
+      "sha256": "e06703d430c6144f99ca85eab7ae22ca915ac8a9659e7ff9666096fb418caf8a"
+    },
+    "check.py": {
+      "bytes": 62688,
+      "sha256": "aeb3faff6837a786ac1f0bc926d67e133cf3b30ee1e73240d71f0b33acd57837"
+    },
+    "lake-manifest.json": {
+      "bytes": 148,
+      "sha256": "5a0b81d204d1aef5a2d0d06821a544de01005d9adaf6b0711878cf5250cf76e7"
+    },
+    "lakefile.toml": {
+      "bytes": 284,
+      "sha256": "86cc0c72956570973acbd1be5f25dafdd3f61d1bd999267e87cf88865c4c4870"
+    },
+    "lean-toolchain": {
+      "bytes": 25,
+      "sha256": "d5edba4e4b8faad9c1baeadb265716d20d03be4d1a2647dc5e35b0c0325bea7b"
+    },
+    "test_check.py": {
+      "bytes": 12171,
+      "sha256": "c3c8aade4b5ee70d5bbb00705cfeafdf74bebb4dd3f210b926ff28cebcc5b09b"
+    }
+  },
+  "source_after": {
+    "GrantCoverage.lean": {
+      "bytes": 24484,
+      "sha256": "655f9c73e5c02950f974089cabbc56736b54c1c260177879d675ffc8d8209975"
+    },
+    "Main.lean": {
+      "bytes": 18171,
+      "sha256": "3b74c804806b600efb241f7bde323e9f8f7327c505130e757aaf781de6597999"
+    },
+    "ReceiptCoverage.lean": {
+      "bytes": 25648,
+      "sha256": "0b1d9221c3a0e24e169eb6d68237569c28a4afe96a5006741eb828b42c7cb096"
+    },
+    "WorkerRoute.lean": {
+      "bytes": 15063,
+      "sha256": "e06703d430c6144f99ca85eab7ae22ca915ac8a9659e7ff9666096fb418caf8a"
+    },
+    "check.py": {
+      "bytes": 62688,
+      "sha256": "aeb3faff6837a786ac1f0bc926d67e133cf3b30ee1e73240d71f0b33acd57837"
+    },
+    "lake-manifest.json": {
+      "bytes": 148,
+      "sha256": "5a0b81d204d1aef5a2d0d06821a544de01005d9adaf6b0711878cf5250cf76e7"
+    },
+    "lakefile.toml": {
+      "bytes": 284,
+      "sha256": "86cc0c72956570973acbd1be5f25dafdd3f61d1bd999267e87cf88865c4c4870"
+    },
+    "lean-toolchain": {
+      "bytes": 25,
+      "sha256": "d5edba4e4b8faad9c1baeadb265716d20d03be4d1a2647dc5e35b0c0325bea7b"
+    },
+    "test_check.py": {
+      "bytes": 12171,
+      "sha256": "c3c8aade4b5ee70d5bbb00705cfeafdf74bebb4dd3f210b926ff28cebcc5b09b"
+    }
+  },
+  "source_before": {
+    "GrantCoverage.lean": {
+      "bytes": 24484,
+      "sha256": "655f9c73e5c02950f974089cabbc56736b54c1c260177879d675ffc8d8209975"
+    },
+    "Main.lean": {
+      "bytes": 18171,
+      "sha256": "3b74c804806b600efb241f7bde323e9f8f7327c505130e757aaf781de6597999"
+    },
+    "ReceiptCoverage.lean": {
+      "bytes": 25648,
+      "sha256": "0b1d9221c3a0e24e169eb6d68237569c28a4afe96a5006741eb828b42c7cb096"
+    },
+    "WorkerRoute.lean": {
+      "bytes": 15063,
+      "sha256": "e06703d430c6144f99ca85eab7ae22ca915ac8a9659e7ff9666096fb418caf8a"
+    },
+    "check.py": {
+      "bytes": 62688,
+      "sha256": "aeb3faff6837a786ac1f0bc926d67e133cf3b30ee1e73240d71f0b33acd57837"
+    },
+    "lake-manifest.json": {
+      "bytes": 148,
+      "sha256": "5a0b81d204d1aef5a2d0d06821a544de01005d9adaf6b0711878cf5250cf76e7"
+    },
+    "lakefile.toml": {
+      "bytes": 284,
+      "sha256": "86cc0c72956570973acbd1be5f25dafdd3f61d1bd999267e87cf88865c4c4870"
+    },
+    "lean-toolchain": {
+      "bytes": 25,
+      "sha256": "d5edba4e4b8faad9c1baeadb265716d20d03be4d1a2647dc5e35b0c0325bea7b"
+    },
+    "test_check.py": {
+      "bytes": 12171,
+      "sha256": "c3c8aade4b5ee70d5bbb00705cfeafdf74bebb4dd3f210b926ff28cebcc5b09b"
+    }
+  },
+  "source_hygiene_passed": true,
+  "source_project": "/data/langgraph/proofs/worker-route",
+  "source_refinement_proved": false,
+  "source_stable": true,
+  "started_at": "2026-10-30T03:46:06.241661+00:00",
+  "system_complete": false,
+  "unproved_obligations": [
+    "Python source call placement and all native effect paths correspond to the model.",
+    "Grant, obligation, plan and receipt fields faithfully project the actual admitted Python records; authorized grant provenance, digest preimages, adapter signatures, freshness, expiry, support claims and waiver authorization remain outside this finite composition model.",
+    "The selected Linux obligation generator corresponds to the checked full-record rule expansion and nine fixed complements; custom additional-obligation profiles are not covered.",
+    "Every authorization, identity, support, activation, result, cleanup and cancellation fact is truthful, complete and ordered.",
+    "JSON encoding/decoding preserves the model inputs and rejects ambiguous or unsupported inputs.",
+    "The Lean compiler, C toolchain, binary loader and deployed executable preserve the checked definitions.",
+    "The operating system, namespace, seccomp, LSM and lifetime mechanisms enforce the claimed native properties."
+  ]
+}
