@@ -1,0 +1,29 @@
+{
+  "classification": "parent-controller diagnostic; not a full execution benchmark",
+  "iterations": {
+    "exact_file": 100,
+    "file_digest_bubblewrap": 100,
+    "file_digest_python": 20,
+    "file_digest_worker": 100,
+    "full_grant_binding": 20,
+    "new_executor_frontend": 20,
+    "prepared_frontend_clone": 100,
+    "prepared_runtime_bind": 20
+  },
+  "means_ms": {
+    "exact_file": 0.01250842,
+    "file_digest_bubblewrap": 0.04445087,
+    "file_digest_python": 17.84041555,
+    "file_digest_worker": 0.01760821,
+    "full_grant_binding": 17.7783327,
+    "full_preflight_prepare_single_sample": 42.128604,
+    "new_executor_frontend": 42.6063406,
+    "prepared_frontend_clone": 0.00709827,
+    "prepared_runtime_bind": 18.30618595
+  },
+  "security_boundary": {
+    "bubblewrap_probe_bypassed": true,
+    "sandboxed_tool_executed": false,
+    "suitable_for_headline_latency": false
+  }
+}
