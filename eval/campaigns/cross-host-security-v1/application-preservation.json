@@ -1,0 +1,51 @@
+{
+  "argus": {
+    "demo_applications": 15,
+    "demo_attempts": 175,
+    "demo_correct": 107,
+    "outcomes_retained": {
+      "compatibility_failed": 10,
+      "completed": 175,
+      "error": 5,
+      "execution_error": 25,
+      "timeout": 10
+    },
+    "pandas_attempts": 50,
+    "pandas_correct": 45
+  },
+  "baseline": {
+    "demo_applications": 15,
+    "demo_attempts": 175,
+    "demo_correct": 115,
+    "outcomes_retained": {
+      "completed": 190,
+      "execution_error": 25,
+      "timeout": 10
+    },
+    "pandas_attempts": 50,
+    "pandas_correct": 50
+  },
+  "demo_timeouts_seconds": [
+    180,
+    300
+  ],
+  "fixture_preflight_identical": true,
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "ordinary_oracle_source_identical": true,
+  "pandas_oracle_and_task_ast_identical": {
+    "ROWS": true,
+    "TASKS": true,
+    "oracle": true
+  },
+  "pandas_timeout_seconds": 180,
+  "scope": "existing macOS cohorts verified, failures retained; historical Linux environment differences remain in the original reports",
+  "setup_changes": [
+    "native host dispatcher selection and private broker transport",
+    "native persistent chart backend and descriptor-based dataset reads",
+    "Darwin Lean image loading and object-grant obligation inventory",
+    "pinned macOS Cedar/Lean/runtime setup; no certified aggregate CPU promise"
+  ],
+  "task_definitions_identical": true,
+  "timing_dataset_rerun": false,
+  "verified": true
+}

@@ -7,6 +7,7 @@ import hashlib
 import json
 import platform
 import shutil
+import socket
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -97,7 +98,7 @@ import os
 import socket
 from langgraph.prebuilt.security.object_broker import object_request
 
-def run(operation="read", selector="one", path="", attack=""):
+def run(operation="read", selector="one", path="", attack="", port=0):
     if attack == "file":
         try:
             return open(path).read()
@@ -105,7 +106,7 @@ def run(operation="read", selector="one", path="", attack=""):
             return "blocked"
     if attack == "network":
         try:
-            socket.socket().connect(("127.0.0.1", 9))
+            socket.socket().connect(("127.0.0.1", port))
         except OSError:
             return "blocked"
     if attack == "fork":
@@ -218,9 +219,22 @@ def test_broker_result_receipt_and_cleanup(route):
 )
 def test_broker_cannot_expand_authority(route, arguments, expected):
     dispatcher, principal, call, grant, seen, secret = route
-    result = dispatcher.invoke(
-        principal, replace(call, args={**arguments, "path": str(secret)}), grant
-    )
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        listener.listen()
+        port = listener.getsockname()[1]
+        if arguments.get("attack") == "network":
+            with socket.create_connection(("127.0.0.1", port), timeout=1):
+                accepted, _ = listener.accept()
+                accepted.close()
+        result = dispatcher.invoke(
+            principal,
+            replace(call, args={**arguments, "path": str(secret), "port": port}),
+            grant,
+        )
+        listener.settimeout(0.05)
+        with pytest.raises(socket.timeout):
+            listener.accept()
     assert result.value == expected
     assert not seen
     assert secret.read_text() == "private"

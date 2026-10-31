@@ -1,0 +1,7 @@
+runs macos
+record read notes/alice need
+record write notes/alice need
+pump inspect pump-1 need
+pump set_flow pump-1 need
+trace append entry need
+returns normal
