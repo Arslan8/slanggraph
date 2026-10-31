@@ -1,4 +1,11 @@
 {
+  "application_parity": {
+    "closed_lean_route_integrated_on_macos": false,
+    "cross_os_performance_comparison_valid": false,
+    "evidence_level": "native_component_only",
+    "pandas_run_on_macos": false,
+    "same_15_demo_campaign_run_on_macos": false
+  },
   "attack_observations": 130,
   "attack_passed": 125,
   "attack_results": [

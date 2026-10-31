@@ -10,6 +10,26 @@ Run: `run-01`, macOS 26.7.2 / build 25G332, Apple M4 Pro arm64, CPython 3.13.1.
 Base revision: `fc6d2aafff281611d101daa9951aeb354075a058`; branch `macOS`,
 with all tested source bytes preserved in the run's content-addressed archive.
 
+## Application-level parity has not been evaluated
+
+**We have not run the same demos on Linux and macOS.** This campaign measures a
+two-file calculation and native attack/control cases. Its sampling structure
+resembles the Linux microbenchmarks, but the workloads, hardware, measurement
+boundaries, and enabled protections differ. Its timings are not an OS performance
+comparison. This is component-level portability evidence only.
+
+| Evaluation | Linux | macOS |
+| --- | --- | --- |
+| 15-application dataset, 350 attempts | Run in the ordinary-demo campaign | Not run |
+| Pandas case study | Attempted; latest protected cohort failed activation | Not run |
+| Native confinement tests | Linux-specific tests | Separate macOS-specific tests |
+| Complete admitted route with runtime Lean checks | Implemented | Not integrated |
+
+See the [ordinary-demo results](../langgraph-demos-v3/RESULTS.md), the
+[latest Pandas results](../pandas-matched-aggressive-v3-20261030/RESULTS.md), and
+[requirements for a matched application campaign](APPLICATION-PARITY.md).
+CPU qualification remains deferred independently of these application-route gaps.
+
 ## Observed results
 
 | Check | Result |
