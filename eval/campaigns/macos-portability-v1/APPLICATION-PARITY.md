@@ -1,10 +1,22 @@
 # Requirements for matched application portability
 
-Status: **baseline conditions executed; protected macOS route not integrated**.
-The [baseline campaign](../macos-baseline-v1/RESULTS.md) retained 175 demo attempts
-(115 correct) and 50 Pandas attempts (50 correct) using the frozen application
-sources and oracles. The requirements below remain for a matched protected
-application evaluation; baseline execution does not establish an admitted route.
+Status: **native object route integrated; full baseline and protected task
+matrices executed in separate macOS cohorts**. The
+[baseline campaign](../macos-baseline-v1/RESULTS.md) retained 175 demo attempts
+(115 correct) and 50 Pandas attempts (50 correct). The subsequent
+[Argus campaign](../macos-argus-v1/RESULTS.md) retained 175 demo attempts
+(107 correct) and 50 Pandas attempts (45 correct), with unchanged task definitions,
+fixtures and correctness oracles. It verified 341 retained native-call
+certificates through the compiled Lean core.
+
+This supplies protected application execution evidence. Full functional parity
+and an OS performance comparison remain unestablished: the cohorts were not
+interleaved, dependency environments and selected host protections differ,
+CPU qualification remains deferred, and application failures remain. The frozen
+RAG trials did not select a retrieval tool; a separate deterministic retrieval
+control exercised its admitted native route and is excluded from utility rates.
+The criteria below describe the common-workload requirements and the stronger
+conditions needed for a newly matched cross-OS timing experiment.
 
 ## Freeze the existing applications
 
@@ -35,11 +47,14 @@ actual model service instead of inferring it from its tag.
 
 ## Integrate and qualify the protected route first
 
-The macOS component currently uses typed mandatory policy and an experimental
-executor. It is not the same complete admitted route used by these applications.
-The demo adapters select Linux routes, while the resource monitors construct
-object-policy executors and broker-backed resources. Changing `runs linux` to
-`runs macos` is insufficient.
+The application host selection now uses `MacOSObjectDispatcher`, native Seatbelt
+lowering, private spawn-bound broker pipes, the existing resource mediators,
+Cedar/object policy, sealed operator MAC policy and closed admission. The
+compiled Lean transport supports the full object-grant obligation inventory
+and lifecycle gates on macOS. The persistent Python resource has native
+confinement as well. See the [implementation](../../../docs/security/users/macos-object-execution.md).
+The earlier experimental typed component and its frozen CPU failures remain
+separate historical evidence.
 
 Before crediting a protected application trial:
 
@@ -68,7 +83,7 @@ support matrix for every application and policy obligation. Do not count a
 planned unsupported job as an executed trial. If execution is attempted and
 refused, record the actual refusal stage and timing.
 
-For supported routes, preserve five paired repetition blocks and the existing
+For a new timing comparison, preserve five paired repetition blocks and the existing
 within-block shuffle seed 20261028. Use parent-subprocess wall time including
 startup and shutdown in both conditions. Exclude only shared preparation and
 warmup symmetrically, and record them. Preserve the existing per-application
@@ -87,7 +102,7 @@ and correct counts separately for each OS, application and condition. Retain raw
 outputs, resource-state snapshots, policy/receipt/audit evidence, model metadata,
 host metadata, source/fixture pins and subprocess logs.
 
-Apply the existing paired-block resampling to valid within-host application
+Apply the existing paired-block resampling only to valid paired within-host application
 comparisons. Exclude undefined ratios explicitly when a condition has no
 completed trials; never present fast refusal as successful execution overhead.
 Report OS/hardware differences and enabled-protection differences. Cross-host

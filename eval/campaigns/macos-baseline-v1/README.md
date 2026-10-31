@@ -4,6 +4,10 @@ Baseline-only execution of the existing ordinary-demo and Pandas workloads.
 This does not execute or qualify the protected macOS application route and does
 not establish a cross-OS performance effect.
 
+The subsequent [Argus campaign](../macos-argus-v1/RESULTS.md) evaluates the
+implemented protected macOS route against the same task matrix. Its cohort was
+executed separately from this baseline.
+
 The launcher reuses the ordinary-demo v3 command builder, task definitions,
 fixtures, timeout limits and correctness oracles, and the latest matched Pandas
 backend, ten tasks, dataset, workflow contract, computation API and oracle.

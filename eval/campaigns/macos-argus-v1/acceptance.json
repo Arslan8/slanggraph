@@ -1,0 +1,203 @@
+{
+  "applications": {
+    "D1-sql": {
+      "attempted": 25,
+      "correct": 10,
+      "mean_wall_ms": 21145.087258400745,
+      "statuses": {
+        "compatibility_failed": 2,
+        "completed": 23
+      },
+      "successful_protected_calls": 56,
+      "trials_with_successful_protected_calls": 23
+    },
+    "D2-rag": {
+      "attempted": 25,
+      "correct": 20,
+      "mean_wall_ms": 13698.605116599938,
+      "statuses": {
+        "completed": 25
+      },
+      "successful_protected_calls": 0,
+      "trials_with_successful_protected_calls": 0
+    },
+    "D3-plan-execute": {
+      "attempted": 25,
+      "correct": 0,
+      "mean_wall_ms": 33330.23059499916,
+      "statuses": {
+        "execution_error": 25
+      },
+      "successful_protected_calls": 69,
+      "trials_with_successful_protected_calls": 15
+    },
+    "D4-multi-agent": {
+      "attempted": 25,
+      "correct": 14,
+      "mean_wall_ms": 154004.45835323888,
+      "statuses": {
+        "compatibility_failed": 1,
+        "completed": 14,
+        "timeout": 10
+      },
+      "successful_protected_calls": 29,
+      "trials_with_successful_protected_calls": 15
+    },
+    "D5-support": {
+      "attempted": 25,
+      "correct": 18,
+      "mean_wall_ms": 20498.617681639153,
+      "statuses": {
+        "compatibility_failed": 2,
+        "completed": 23
+      },
+      "successful_protected_calls": 57,
+      "trials_with_successful_protected_calls": 25
+    },
+    "Pandas": {
+      "attempted": 50,
+      "correct": 45,
+      "mean_wall_ms": 17363.263745019998,
+      "statuses": {
+        "completed": 45,
+        "error": 5
+      },
+      "successful_protected_calls": 65,
+      "trials_with_successful_protected_calls": 50
+    },
+    "T1-add-tools": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 5925.819133003824,
+      "statuses": {
+        "completed": 5
+      },
+      "successful_protected_calls": 5,
+      "trials_with_successful_protected_calls": 5
+    },
+    "T10-time-travel": {
+      "attempted": 5,
+      "correct": 0,
+      "mean_wall_ms": 6872.4894499988295,
+      "statuses": {
+        "compatibility_failed": 5
+      },
+      "successful_protected_calls": 5,
+      "trials_with_successful_protected_calls": 5
+    },
+    "T2-custom-weather": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 5964.175791401067,
+      "statuses": {
+        "completed": 5
+      },
+      "successful_protected_calls": 5,
+      "trials_with_successful_protected_calls": 5
+    },
+    "T3-fixed-weather": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 4056.7765833984595,
+      "statuses": {
+        "completed": 5
+      },
+      "successful_protected_calls": 5,
+      "trials_with_successful_protected_calls": 5
+    },
+    "T4-parallel-weather": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 4021.7273082002066,
+      "statuses": {
+        "completed": 5
+      },
+      "successful_protected_calls": 10,
+      "trials_with_successful_protected_calls": 5
+    },
+    "T5-prebuilt-multiply": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 6554.768724998576,
+      "statuses": {
+        "completed": 5
+      },
+      "successful_protected_calls": 5,
+      "trials_with_successful_protected_calls": 5
+    },
+    "T6-return-direct": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 4545.3029668016825,
+      "statuses": {
+        "completed": 5
+      },
+      "successful_protected_calls": 5,
+      "trials_with_successful_protected_calls": 5
+    },
+    "T7-forced-tool": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 5228.886492198217,
+      "statuses": {
+        "completed": 5
+      },
+      "successful_protected_calls": 5,
+      "trials_with_successful_protected_calls": 5
+    },
+    "T8-serial-tools": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 11043.294866601354,
+      "statuses": {
+        "completed": 5
+      },
+      "successful_protected_calls": 10,
+      "trials_with_successful_protected_calls": 5
+    },
+    "T9-add-memory": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 9570.674850000069,
+      "statuses": {
+        "completed": 5
+      },
+      "successful_protected_calls": 10,
+      "trials_with_successful_protected_calls": 5
+    }
+  },
+  "archive_verifier_sha256": "e1f455341d5a2cd80cea47bd29d02bd1c84ae5e3c74ab9c37ef8dbe18f3d9e4e",
+  "attempted": 225,
+  "baseline_only": false,
+  "build_sources_verified": true,
+  "captured_verifier_sha256": "c1a731e186464d14e6dac09808e753777f4c02b3a2144a131889da351110b4fa",
+  "checksums_sha256": "cffebb8c473739acc77d95eba6831ec086a5bf638b36bb72c5fc43a6c3871b62",
+  "checksums_verified": true,
+  "correct": 152,
+  "cpu_budget": "not promised; qualification deferred",
+  "cross_os_speedup_claim": false,
+  "demo_attempts": 175,
+  "demo_correct": 107,
+  "evidence_bundle": {
+    "bytes": 89121132,
+    "path": "run-01.tar.gz",
+    "sha256": "7dd859658046e5b4234dcf806a61ccd8e38b142563488c06f693dcd594158508"
+  },
+  "evidence_mutations_rejected": 6,
+  "evidence_valid": true,
+  "execution_snapshots_verified": 333,
+  "framework_revision": "e19bf343ef341fa6541025d8ca263b6e91205a2a",
+  "host_sleep_interruption_observations_retained": true,
+  "interleaved_paired_timing_experiment": false,
+  "issues": [],
+  "native_call_count_scope": "341 retained successful-call certificates; exit-time export can lose journals in timeout-killed applications; lower bound on executed calls",
+  "pandas_attempts": 50,
+  "pandas_correct": 45,
+  "protected_application_evaluation": true,
+  "protected_application_parity": false,
+  "run": "run-01",
+  "source_unchanged": true,
+  "successful_protected_calls": 341,
+  "supplemental_rag_excluded_from_cohort": true,
+  "supplemental_rag_native_calls": 1
+}

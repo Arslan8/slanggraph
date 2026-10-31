@@ -10,28 +10,41 @@ Run: `run-01`, macOS 26.7.2 / build 25G332, Apple M4 Pro arm64, CPython 3.13.1.
 Base revision: `fc6d2aafff281611d101daa9951aeb354075a058`; branch `macOS`,
 with all tested source bytes preserved in the run's content-addressed archive.
 
-## Protected application parity remains open
+## Subsequent protected application evaluation
 
 The frozen baseline applications have now run on macOS in a
 [subsequent baseline-only campaign](../macos-baseline-v1/RESULTS.md): **175 demo
 attempts, 115 correct**, and **50 Pandas attempts, 50 correct**. All eight demo
 application sources match the Linux campaign. No demo logic was ported.
 
-We have not run the same **protected** application evaluation on Linux and
-macOS. This earlier native campaign measures a two-file calculation and native
-attack/control cases; its timings are not an OS performance comparison.
+The [subsequent Argus campaign](../macos-argus-v1/RESULTS.md) now runs the
+protected macOS condition: **175 demo attempts, 107 correct**, and **50 Pandas
+attempts, 45 correct**. The object-policy route integrates native Seatbelt
+workers, resource mediation, MAC policy, closed admission and compiled runtime
+Lean checks. All **341 retained successful-call certificates** replayed through
+the native core. Timeout-killed applications may lose exit-time journals, so
+this certificate count is a lower bound.
+
+The two macOS conditions cover the original 350-demo and 100-Pandas attempt
+denominators across separate cohorts. This earlier native component campaign
+still measures a two-file calculation and attack/control cases. Neither its
+timings nor the subsequent application cohorts establish an OS performance
+effect. Full functional parity is also unestablished; the new report retains
+the application failures, suspension interruptions and protection differences.
 
 | Evaluation | Linux | macOS |
 | --- | --- | --- |
-| 15-application paired dataset, 350 attempts | Run | 175 baseline attempts; protected condition not run |
-| Pandas case study | Latest baseline 50/50; protected cohort failed activation | Baseline 50/50; protected condition not run |
+| 15-application dataset, 350 attempts | Run | 175 Baseline + 175 Argus; separate cohorts |
+| Pandas case study | Latest baseline 50/50; protected cohort failed activation | Baseline 50/50; Argus 45/50 |
 | Native confinement tests | Linux-specific tests | Separate macOS-specific tests |
-| Complete admitted route with runtime Lean checks | Implemented | Not integrated |
+| Admitted object route with runtime Lean checks | Implemented | Integrated; declared CPU exception retained |
 
 See the [ordinary-demo results](../langgraph-demos-v3/RESULTS.md),
 [latest Linux Pandas results](../pandas-matched-aggressive-v3-20261030/RESULTS.md),
 and [remaining matched application requirements](APPLICATION-PARITY.md).
-CPU qualification remains deferred independently of these application-route gaps.
+The frozen RAG application did not choose its retrieval tool; a separately
+labeled deterministic control exercised that native route. CPU qualification
+remains deferred, and the original five CPU failures below remain unchanged.
 
 ## Observed results
 

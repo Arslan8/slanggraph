@@ -1,82 +1,141 @@
-# macOS Argus application readiness
+# macOS protected application results
 
-The unchanged protected entry points were attempted on macOS. **No protected
-tool execution qualified.** This is a first-task pilot and readiness result,
-not the full 175-demo-trial plus 50-Pandas-trial protected evaluation.
+The native macOS object route is implemented and the complete Argus matrix has
+run: **175 demo attempts, 107 correct; 50 Pandas attempts, 45 correct**. All
+**225 attempts** remain in the results. The verifier accepted the observations
+and replayed **341 retained successful-call certificates**, across 178 trials,
+through the compiled native Lean core.
 
-The native macOS component exists, but these applications still select Linux
-object/broker dispatchers. Running with `--mode Argus` does not select that
-experimental macOS component automatically.
+Together with the earlier baseline, this covers the original **350 demo attempts
+across 15 applications** and **100 Pandas attempts** on macOS. Conditions ran in
+separate cohorts. This is application execution evidence under the declared
+macOS protections; full functional parity and an OS performance effect remain
+unestablished.
 
-## Actual attempts
+## Utility and retained protected execution
 
-| Entry point | Result | Evidence |
-| --- | --- | --- |
-| D1 SQL | Process completed; incorrect | Tool denied with `object_policy:cedar:executable_unavailable`; no grant/lowering/broker record |
-| D2 RAG | Process completed; oracle-correct | Model answered without calling a tool; no grant/lowering/broker record |
-| D3 plan-execute | Execution error | `GraphRecursionError` after 25 model calls; no grant/lowering/broker record |
-| D4 multi-agent | Startup failed | `OSError: [Errno 78] Landlock ABI is unavailable` in persistent Python backend initialization |
-| D5 support | Process completed; oracle-correct | Model answered without calling a tool; no grant/lowering/broker record |
-| T1–T10 tutorials | All ten failed startup | Missing `proofs/worker-route/.lake/build/lib/libargus_worker_route.so` |
-| Pandas `C-full-lean` campaign | Preflight failed; no application task executed | Manifest selects missing `/data/langgraph/proofs/worker-route/.lake/build/lib/libargus_worker_route.so` |
-| Lean loader probe | Refused host | `_memfd()` raises `OSError: Linux sealed executables required` on macOS |
+The same task definitions, fixtures, model pin, model-visible tools, correctness
+checks and timeout boundaries were reused. Application changes select native
+host plumbing and confinement. No task, prompt or oracle was changed to improve
+these results.
 
-Demo counts: 15 attempted, 3 process completions, 1 execution error, 11
-nonzero-exit compatibility failures, 0 timeouts. Two completed outputs satisfy
-their existing answer oracle; **zero establish protected tool execution**.
-These pilot observations are not a full-cohort utility success rate. No
-overhead or OS performance comparison is calculated.
+| Application | Baseline correct | Argus correct | Retained native certificates |
+| --- | ---: | ---: | ---: |
+| D1-sql | 10/25 | 10/25 | 56 |
+| D2-rag | 20/25 | 20/25 | 0 |
+| D3-plan-execute | 0/25 | 0/25 | 69 |
+| D4-multi-agent | 15/25 | 14/25 | 29 |
+| D5-support | 20/25 | 18/25 | 57 |
+| T1-add-tools | 5/5 | 5/5 | 5 |
+| T2-custom-weather | 5/5 | 5/5 | 5 |
+| T3-fixed-weather | 5/5 | 5/5 | 5 |
+| T4-parallel-weather | 5/5 | 5/5 | 10 |
+| T5-prebuilt-multiply | 5/5 | 5/5 | 5 |
+| T6-return-direct | 5/5 | 5/5 | 5 |
+| T7-forced-tool | 5/5 | 5/5 | 5 |
+| T8-serial-tools | 5/5 | 5/5 | 10 |
+| T9-add-memory | 5/5 | 5/5 | 10 |
+| T10-time-travel | 5/5 | 0/5 | 5 |
+| Pandas | 50/50 | 45/50 | 65 |
+| **Demos total** | **115/175** | **107/175** | **276** |
+| **Combined** | **165/225** | **152/225** | **341** |
 
-## Setup and implementation work still required
+Correctness and protected execution are separate measurements. A tool can
+complete inside an application that later fails. The frozen RAG trials answered
+without choosing retrieval; their answers do not establish protected retrieval
+execution. A supplemental deterministic control selected that tool through the
+original admitted graph, matched the baseline retrieval bytes, and replayed its
+native certificate. It made no model request and is excluded from the cohort
+and all utility rates.
 
-Cedar is absent from this host's PATH. Installing the pinned CLI is ordinary
-environment preparation; that absence alone does not establish an OS limitation.
-The Lean build artifact is also absent. Building a macOS artifact alone is
-insufficient: the existing runtime bridge uses Linux sealed memfds and the
-applications pin Linux runtime paths and hashes.
+Journal export occurs at orderly application exit. Timeout-killed applications
+can lose in-memory journals, so **341 is a lower bound on executed calls**, not
+an exhaustive count. Online Lean gates still precede tool release and result
+delivery; published replay counts credit retained certificates only.
 
-The remaining implementation work is to connect macOS object-grant lowering and
-broker transport to the existing policy and resource mediators, port persistent
-Python/generated-code confinement, provide a pinned macOS Lean transport, and
-qualify closed admission and route validation. The existing native macOS adapter
-does not provide these complete application paths. Linux Landlock cannot be
-enabled on macOS by installing a dependency.
+## Failures retained
 
-The CPU-limit qualification exception remains deferred as requested. No other
-protection or policy obligation was disabled. Application sources were not
-edited to bypass these failures. Once the protected routes qualify, the full
-matched task matrix can run with the existing baseline protocol and oracles.
+Process outcomes: 175 completed, 25 execution errors, ten compatibility failures,
+ten timeouts and five Pandas errors. Of the completed processes, 23 failed their
+existing correctness oracle.
 
-## Reproduction and evidence
+- All 25 plan-execute attempts reached the graph recursion limit. The baseline
+  also had zero correct results, with a different `IndexError` failure.
+- Ten multi-agent chart attempts reached the original 300-second cap. The
+  baseline also retained ten such timeouts.
+- Five time-travel attempts failed checkpoint restore with
+  `checkpoint:broken_chain`, after a successful native tool call. The existing
+  checkpoint integrity policy was retained.
+- Five additional demo attempts failed native startup or their worker channel.
+  All five diagnostic intervals overlap sleep/wake events. Local system
+  documentation confirms that the guardian's `CLOCK_MONOTONIC` deadline includes
+  sleep, while Python's elapsed-time clock uses `mach_absolute_time`, which
+  excludes it. This supports a suspension explanation but is not a per-failure
+  proof. Idle-sleep prevention was added at 13:30:21 EDT for the remainder;
+  interrupted observations were retained without replacement.
+- All five Pandas monthly-mean attempts completed native computation, then
+  failed the application output boundary with `output_data:nonfinite_float`.
+  The computation response contains a null missing-period value; subsequent
+  application state reaches a nonfinite-float guard. The output rule was retained.
 
-Executed from revision `ac9ff2d57013c6cf90dfba417ded8961830e9329` with the added
-readiness launcher. Python 3.11.18, Apple M4 Pro, macOS 26.7.2. Ollama v0.40.13
-served the frozen `qwen3:8b` digest
-`500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41`.
-The original command builder, first task per application, prompts, timeout limits
-and correctness oracles were reused. Model settings remain in the original
-application code. CPU affinity was uncontrolled. The model's initial load was
-not excluded; these timings are diagnostic only.
+## Implemented protection scope
 
-```sh
-eval/.venv/bin/python eval/remaining/macos_argus_preflight.py \
-  --output eval/campaigns/macos-argus-v1/new-preflight
-```
+`MacOSObjectDispatcher` connects Cedar object authorization, sealed operator MAC
+policy and closed admission to per-call Seatbelt workers. The native launcher
+installs confinement before loading Python. Private inherited pipes bind broker
+requests to the original principal, tool, grant and spawn context. Semantic
+resource operations and credentials stay in the trusted parent. Persistent
+Python chart sessions have a separate native guardian and confined artifact
+writes. Direct filesystem grants support exact read-only regular files.
 
-Start the pinned local model service first as described in the
-[baseline setup](../macos-baseline-v1/README.md). The output directory must be new.
+The compiled Lean extension checks the generated resource-obligation inventory
+and certificate coverage, bound activation/GO transition, and result release
+after confirmed cleanup. Controller, decoder, mediator and OS correspondence
+remain explicit premises; replay is not a proof of all native behavior.
 
-[Raw evidence bundle](preflight-02.tar.gz), SHA-256
-`0f1da05262a0bc1f35b471c469719c511ee001632749741e15a062402e11e1d0`,
-contains commands, subprocess return codes, stdout/stderr, available application
-outputs/audits, model metadata, package versions, source hashes and all 113
-hashed source files. Source identities before and after execution agree.
-Record copies were checked and completed output oracles replayed. The bundle
-omits two copied database files; their sizes and hashes are retained in
-`bundle-omissions.json`.
+**CPU qualification remains deferred.** The certified application inventory
+promises no aggregate CPU ceiling. The hard rlimit remains a best-effort
+restriction. No Linux syscall-filter capability is advertised. The earlier
+component campaign's five CPU failures remain unchanged in
+[its historical report](../macos-portability-v1/RESULTS.md).
 
-An earlier exploratory `preflight-01` ran with the model service stopped and
-encountered connection errors. It remains local and is excluded from this
-reported pilot. `preflight-02` above verified the pinned served model first.
+## Verification and evidence
 
-The existing [baseline results](../macos-baseline-v1/RESULTS.md) remain separate.
+The [89,121,132-byte evidence bundle](run-01.tar.gz) was safely extracted and
+verified again with its checksum index required. SHA-256:
+`7dd859658046e5b4234dcf806a61ccd8e38b142563488c06f693dcd594158508`.
+Machine-readable results and scope are in [acceptance.json](acceptance.json).
+
+Verification checked the full matrix, raw-output oracles, record copies, model
+identity, matching before/after source inventories, all **333 copied Python
+execution files**, native build-source identities and every retained native
+certificate. Six mutations were rejected: changed obligation selector,
+unconfirmed cleanup, changed receipt context, and changed/missing/extra
+execution sources. All ten retained recovery records referred to absent original
+processes; no native workers remained after the campaign.
+
+Validation retained 16 passing native object-route tests, a broader group with
+339 passed/23 skipped, 196 passing Lean lifecycle tests, and ten passing resource
+and harness tests. These groups overlap and must not be added as distinct tests.
+Library `make format` and `make lint` passed. `make test` could not start Docker
+services because Docker is absent; direct pytest runs completed.
+
+The bundle retains raw trials, process/model logs, outputs, charts, resource
+observations, native journals, original sources, frozen execution copies,
+native Lean images, launcher, manifests and validation logs. Fifty per-trial
+database copies are omitted with sizes and hashes retained. The redundant
+uncompressed travel source blob is also omitted; the verifier reconstructs its
+exact pinned bytes from retained gzip. Checksums are integrity aids, not
+authenticated host attestation.
+
+Evaluated implementation: `e19bf343ef341fa6541025d8ca263b6e91205a2a`, branch
+`macOS`. Host: Apple M4 Pro arm64, 24 GiB, macOS 26.7.2, Python 3.11.18.
+Ollama 0.40.13 served the frozen `qwen3:8b` digest
+`500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41`
+with Metal and context 4096. Cedar CLI is 4.13.0; Lean is 4.34.1.
+Dependencies differ from the historical Linux environment and are recorded.
+CPU affinity is uncontrolled. Suspension and separate scheduling also prevent
+an overhead or cross-OS timing inference.
+
+See [README.md](README.md) for reproduction. Original failed startup probes
+remain in [PREFLIGHT.md](PREFLIGHT.md); they precede this implementation.
