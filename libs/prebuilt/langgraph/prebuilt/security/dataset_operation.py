@@ -39,8 +39,15 @@ request) -> Decision` callable, with the same shape and the same exact
 backed by the deployment's stack or Cedar policy for the `dataset_read`
 capability.
 
-Premises: Linux with `openat2` (5.6+) and a mounted `/proc`; other platforms
-refuse with `dataset:unavailable`. The registry is configured by the operator
+On macOS the directory walk uses `openat` with `O_SEARCH | O_NOFOLLOW`, holding
+each directory descriptor until the next component is pinned. The final file
+is opened read-only and nonblocking with `O_NOFOLLOW | O_NOCTTY`, checked as a
+regular file before reading, and read through a duplicate of that same live
+descriptor. No pathname is resolved again after pinning. `O_SEARCH` requests
+traversal, not directory listing access. Byte caps and digest checks are shared.
+
+Premises: Linux with `openat2` (5.6+) and a mounted `/proc`, or macOS with
+descriptor-relative opens and `O_SEARCH`; other platforms refuse. The registry is configured by the operator
 and its files are not writable by the attacker except as detected by the
 digest. The caller is trusted application code (advisor decision D11): it may
 pass attacker-influenced ids, which are only looked up, never resolved.
@@ -62,7 +69,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from types import MappingProxyType
 
-from langgraph.prebuilt.security.landlock import open_path_descriptor
+from langgraph.prebuilt.security._pinned_file import open_path_descriptor
 from langgraph.prebuilt.security.types import (
     Decision,
     Principal,
@@ -189,7 +196,7 @@ def _require_allow(decision: object) -> None:
 
 
 def _read_pinned(entry: DatasetEntry) -> bytes:
-    if sys.platform != "linux":
+    if sys.platform not in {"linux", "darwin"}:
         raise UnsupportedFeatureError("dataset:unavailable")
     pinned = None
     readable = None
@@ -197,7 +204,9 @@ def _read_pinned(entry: DatasetEntry) -> bytes:
         try:
             pinned = open_path_descriptor(entry.path, no_symlinks=True)
         except OSError as exc:
-            if exc.errno == errno.ELOOP:
+            if exc.errno == errno.ELOOP or (
+                sys.platform == "darwin" and exc.errno == errno.ENOTDIR
+            ):
                 raise UnsupportedFeatureError("dataset:changed") from None
             raise UnsupportedFeatureError("dataset:unavailable") from None
         identity = os.fstat(pinned)
@@ -206,9 +215,13 @@ def _read_pinned(entry: DatasetEntry) -> bytes:
         if identity.st_size > entry.max_bytes:
             raise UnsupportedFeatureError("dataset:too_large")
         # Reopen our own live descriptor; this never re-resolves entry.path.
-        readable = os.open(
-            f"/proc/self/fd/{pinned}",
-            os.O_RDONLY | os.O_CLOEXEC | os.O_NONBLOCK | os.O_NOCTTY,
+        readable = (
+            os.dup(pinned)
+            if sys.platform == "darwin"
+            else os.open(
+                f"/proc/self/fd/{pinned}",
+                os.O_RDONLY | os.O_CLOEXEC | os.O_NONBLOCK | os.O_NOCTTY,
+            )
         )
         opened = os.fstat(readable)
         if not stat.S_ISREG(opened.st_mode) or (opened.st_dev, opened.st_ino) != (

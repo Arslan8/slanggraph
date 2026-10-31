@@ -1,8 +1,8 @@
-"""Run the frozen ordinary-demo and Pandas baseline conditions on macOS.
+"""Run the frozen ordinary-demo and Pandas conditions on macOS.
 
 Reuses existing task commands, application sources and correctness oracles.
-Only host setup/protected-only campaign preflights are bypassed; no protected
-trial is manufactured. CPU affinity is uncontrolled and recorded explicitly.
+Baseline remains the default. Argus selects the native macOS application route.
+CPU affinity is uncontrolled and recorded explicitly.
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def jobs(demos, repetitions, pilot):
+def jobs(demos, repetitions, pilot, selected_mode="Baseline"):
     for repetition in range(repetitions):
         block = [
             demos.Job(app, task, repetition, mode)
@@ -56,7 +56,7 @@ def jobs(demos, repetitions, pilot):
             for mode in demos.MODES
         ]
         random.Random(demos.SEED + repetition).shuffle(block)
-        yield from (job for job in block if job.mode == "Baseline")
+        yield from (job for job in block if job.mode == selected_mode)
 
 
 def sources(upstream):
@@ -73,16 +73,28 @@ def sources(upstream):
     ):
         paths.update(folder.rglob("*.py"))
     paths.add(PANDAS_ROOT / "policy/manifest-v22-full.json")
+    paths.update((ROOT / "proofs/worker-route").glob("*.lean"))
+    for name in (
+        "build_native.py",
+        "lakefile.toml",
+        "lean-toolchain",
+        "native/worker_route_shim.c",
+    ):
+        path = ROOT / "proofs/worker-route" / name
+        if path.is_file():
+            paths.add(path)
+    paths.add(ROOT / "libs/prebuilt/langgraph/prebuilt/security/native/macos_launcher.c")
     v1 = ROOT / "eval/campaigns/langgraph-demos-v1"
     paths.add(v1 / "tasks.json")
     paths.add(v1 / "upstream/docs/docs/tutorials/customer-support/customer-support.ipynb")
     paths.update(p for p in (v1 / "fixtures").rglob("*") if p.is_file())
     for library in ("prebuilt", "langgraph", "checkpoint", "sdk-py"):
         paths.update((ROOT / "libs" / library / "langgraph").rglob("*.py"))
+    paths.update((ROOT / "libs/sdk-py/langgraph_sdk").rglob("*.py"))
     return {str(p.relative_to(ROOT)): sha(p) for p in sorted(paths)}
 
 
-def pandas_trial(output, upstream, framework, module, manifest, task, repetition):
+def pandas_trial(output, upstream, framework, module, manifest, task, repetition, mode="Baseline"):
     case, prompt, expected = task
     folder = output / "pandas" / f"rep-{repetition}" / case
     folder.mkdir(parents=True)
@@ -96,18 +108,18 @@ def pandas_trial(output, upstream, framework, module, manifest, task, repetition
         fixture_root=str(fixture.parent),
         output=str(folder / "output.json"),
         events=str(folder / "events.jsonl"),
-        configuration="Baseline",
-        reader_label="Baseline",
+        configuration="C-full-lean" if mode == "Argus" else "Baseline",
+        reader_label="slangGraph" if mode == "Argus" else "Baseline",
         integration=True,
         slanggraph_root=str(framework),
-        run_id=f"{case}-Baseline-{repetition}",
+        run_id=f"{case}-{mode}-{repetition}",
         principal_policy=manifest["principal_policy"],
         operator_policy=manifest["operator_policy"],
         sandbox_serialization=manifest["sandbox_serialization"],
         workflow_contract=manifest["workflow_contract"],
         computation_api=manifest["computation_api"],
         graph_retries=manifest["graph_retries"],
-        lean_worker=None,
+        lean_worker=manifest["lean_worker"] if mode == "Argus" else None,
         dataset=dict(
             path=str(fixture.resolve()),
             sha256=manifest["dataset"]["sha256"],
@@ -132,6 +144,14 @@ def pandas_trial(output, upstream, framework, module, manifest, task, repetition
                 stderr=subprocess.STDOUT,
                 timeout=180,
                 check=False,
+                env={
+                    **os.environ,
+                    "ARGUS_NATIVE_EVIDENCE_DIRECTORY": str(
+                        output / "native-evidence" / "pandas" / f"rep-{repetition}" / case
+                    ),
+                }
+                if mode == "Argus"
+                else None,
             )
             code = completed.returncode
             status = "completed" if code == 0 else "error"
@@ -154,16 +174,18 @@ def pandas_trial(output, upstream, framework, module, manifest, task, repetition
         application="Pandas",
         case_id=case,
         repetition=repetition,
-        mode="Baseline",
+        mode=mode,
         status=status,
         returncode=code,
         wall_ms=wall_ms,
         analysis_wall_ms=180_000.0 if status == "timeout" else wall_ms,
         correct=status == "completed"
         and oracle_match
-        and evidence is not None
-        and not any(evidence.values())
-        and not forbidden,
+        and (
+            (evidence is not None and not any(evidence.values()) and not forbidden)
+            if mode == "Baseline"
+            else protected_evidence(folder)
+        ),
         output_matches_oracle=oracle_match,
         baseline_security_evidence=evidence,
         security_evidence=forbidden,
@@ -175,6 +197,16 @@ def pandas_trial(output, upstream, framework, module, manifest, task, repetition
     return row
 
 
+def protected_evidence(folder):
+    receipts = folder / "activation-receipts.json"
+    if not receipts.is_file():
+        return False
+    values = json.loads(receipts.read_text())
+    return bool(values) and all(
+        item["mode"] == "enforced" and item["evidence"] and item["plan_digest"] for item in values
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
@@ -182,6 +214,7 @@ def main():
     parser.add_argument("--repetitions", type=int, default=5)
     parser.add_argument("--pilot", action="store_true", help="first task per app, one repetition")
     parser.add_argument("--only", choices=("demos", "pandas", "all"), default="all")
+    parser.add_argument("--mode", choices=("Baseline", "Argus"), default="Baseline")
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("repetitions must be positive")
@@ -227,7 +260,42 @@ def main():
     demos = load("ordinary_baseline_campaign", DEMO_ROOT / "run_campaign.py")
     pandas = load("pandas_baseline_campaign", PANDAS_ROOT / "closed_campaign.py")
     manifest = json.loads((PANDAS_ROOT / "policy/manifest-v22-full.json").read_text())
+    if args.mode == "Argus":
+        host = load("macos_campaign_host", ROOT / "eval/apps/demos/native_host.py")
+        cfg = host.macos_configuration()
+        lean = cfg["lean"]
+        manifest["lean_worker"] = pandas.campaign.capture_lean_worker(
+            output,
+            Path(lean["library"]),
+            lean["sha256"],
+            Path(lean["native_runtime"]),
+            lean["native_runtime_sha256"],
+        )
+        demos.WORKER = Path(manifest["lean_worker"]["binary"])
+        dump(output / "macos-host-configuration.json", cfg)
+        cedar = shutil.which("cedar")
+        if cedar is None:
+            raise RuntimeError("Native Argus campaign requires the pinned Cedar CLI")
+        if (
+            subprocess.check_output([cedar, "--version"], text=True).strip()
+            != "cedar-policy-cli 4.13.0"
+        ):
+            raise RuntimeError("Cedar CLI differs from the frozen 4.13.0 pin")
+        shutil.copy2(cfg["launcher"]["launcher"], output / "macos-launcher")
+        dump(
+            output / "cedar.json",
+            {
+                "path": cedar,
+                "sha256": sha(Path(cedar)),
+                "version": subprocess.check_output([cedar, "--version"], text=True).strip(),
+            },
+        )
     framework = pandas.campaign.freeze_framework(output)
+    shutil.copytree(
+        ROOT / "libs/sdk-py/langgraph_sdk",
+        framework / "libs/sdk-py/langgraph_sdk",
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+    )
     harness = output / "harness"
     shutil.copytree(
         ROOT / "eval/apps/demos",
@@ -251,7 +319,10 @@ def main():
     dump(
         output / "configuration.json",
         dict(
-            scope="baseline only; no protected application trial or cross-OS performance claim",
+            scope=f"{args.mode} macOS application evaluation; no cross-OS performance claim",
+            mode=args.mode,
+            cpu_budget="not promised; qualification deferred" if args.mode == "Argus" else None,
+            native_evidence_root="native-evidence; outside worker-writable artifact directories",
             only=args.only,
             repetitions=repetitions,
             pilot=args.pilot,
@@ -311,7 +382,17 @@ def main():
     with (output / "trials.jsonl").open("x") as stream:
         if args.only != "pandas":
             tasks = json.loads((demos.V1 / "tasks.json").read_text())
-            for job in jobs(demos, repetitions, args.pilot):
+            for job in jobs(demos, repetitions, args.pilot, args.mode):
+                if args.mode == "Argus":
+                    os.environ["ARGUS_NATIVE_EVIDENCE_DIRECTORY"] = str(
+                        output
+                        / "native-evidence"
+                        / "demos"
+                        / f"rep-{job.repetition}"
+                        / job.application
+                        / f"task-{job.task}"
+                        / job.mode
+                    )
                 row = demos.execute(job, output / "demos", tasks)
                 records.append(row)
                 stream.write(json.dumps(row) + "\n")
@@ -327,10 +408,10 @@ def main():
                 paired = [(mode, task) for mode in ("Baseline", "slangGraph") for task in selected]
                 random.Random(20261026 + repetition).shuffle(paired)
                 for mode, task in paired:
-                    if mode != "Baseline":
+                    if mode != ("slangGraph" if args.mode == "Argus" else "Baseline"):
                         continue
                     row = pandas_trial(
-                        output, upstream, framework, pandas, manifest, task, repetition
+                        output, upstream, framework, pandas, manifest, task, repetition, args.mode
                     )
                     records.append(row)
                     stream.write(json.dumps(row) + "\n")

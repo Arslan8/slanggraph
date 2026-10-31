@@ -16,7 +16,9 @@ role:
   mediated operations in later or concurrent calls.
 - [Run untrusted local tools on Linux](linux-host-execution.md) to activate the
   platform-neutral grant through the reference bubblewrap adapter.
-- [Experiment with native macOS execution](macos-host-execution.md) for the
+- [Run admitted macOS object-policy tools](macos-object-execution.md) with native
+  workers, typed brokers and per-call Lean checking.
+- [Experiment with direct typed macOS execution](macos-host-execution.md) for the
   opt-in Seatbelt portability pilot and its remaining validation gaps.
 - [Bound resources with `ResourceBoundary`](resource-boundary.md) to cap
   filesystem authority by operator policy without changing tools.

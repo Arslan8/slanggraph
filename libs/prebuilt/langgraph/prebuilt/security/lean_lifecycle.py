@@ -1,7 +1,10 @@
 """Bridge to the executable Lean worker-lifecycle decision core.
 
-The operator pins a built binary. Its bytes are captured once and executed from
-a sealed Linux memfd; there is no Python decision fallback. Lean proves the core
+The operator pins a built binary. Its bytes are captured once. Linux loads a
+sealed memfd; macOS loads a private, immutable snapshot and unlinks it after
+native loading/execution. The controller and its same-UID runtime ownership are
+trusted; same-UID debugging and malicious operator code are outside this loader
+contract. There is no Python decision fallback. Lean proves the core
 transition rules. Compiler/runtime, JSON transport, observation provenance and
 placement of these calls in the executor are separate correspondence obligations.
 """
@@ -15,6 +18,8 @@ import os
 import stat
 import subprocess
 import sys
+import tempfile
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass, field
 from types import MemberDescriptorType
 from typing import Any
@@ -41,6 +46,23 @@ _MAX_REQUEST = 1_048_576
 _PROTOCOL = "worker-route-grant-v3"
 
 
+@contextmanager
+def _macos_snapshot(image: bytes):
+    """Private immutable inode for dyld/exec; remove it after native loading."""
+    with tempfile.TemporaryDirectory(prefix="argus-lean-") as directory:
+        path = os.path.join(directory, "image")
+        with open(path, "xb") as target:
+            target.write(image)
+            target.flush()
+            os.fsync(target.fileno())
+        os.chmod(path, 0o500)
+        os.chflags(path, stat.UF_IMMUTABLE)
+        try:
+            yield path
+        finally:
+            os.chflags(path, 0)
+
+
 def _pinned_image(path: str, digest: str, *, maximum: int = _MAX_BINARY) -> bytes:
     descriptor = None
     image = None
@@ -65,6 +87,41 @@ def _pinned_image(path: str, digest: str, *, maximum: int = _MAX_BINARY) -> byte
 
 
 def _sealed_library(image: bytes, *, global_symbols: bool) -> tuple[ctypes.CDLL, int]:
+    if sys.platform == "darwin":
+        # dyld needs a Mach-O pathname. Materialize captured bytes in a private
+        # operator-owned directory, make the inode immutable during loading,
+        # then unlink it. No original mutable input path is passed to dyld.
+        # As with the rest of the controller, same-UID debugging/ptrace and
+        # malicious operator code are outside this trusted-loader contract.
+        with tempfile.TemporaryDirectory(prefix="argus-lean-") as directory:
+            path = os.path.join(directory, "image.dylib")
+            with open(path, "xb") as target:
+                target.write(image)
+                target.flush()
+                os.fsync(target.fileno())
+            os.chmod(path, 0o500)
+            descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+            try:
+                os.chflags(path, stat.UF_IMMUTABLE)
+                mode = os.RTLD_NOW | (
+                    os.RTLD_GLOBAL if global_symbols else os.RTLD_LOCAL
+                )
+                library = ctypes.CDLL(path, mode=mode)
+                if (
+                    _pinned_image(
+                        path,
+                        hashlib.sha256(image).hexdigest(),
+                        maximum=_MAX_NATIVE_RUNTIME,
+                    )
+                    != image
+                ):
+                    raise OSError("native checker snapshot changed")
+                return library, descriptor
+            except BaseException:
+                os.close(descriptor)
+                raise
+            finally:
+                os.chflags(path, 0)
     if fcntl is None:
         raise OSError("sealed native libraries require fcntl")
     descriptor = _memfd()
@@ -405,8 +462,8 @@ class LeanLifecycleChecker:
 
     A matching digest identifies bytes; it is not a proof of their build. Use
     the proof project's checked build output and retain its artifact manifest.
-    An executable uses the legacy sealed subprocess protocol. A `.so` library
-    and its pinned generated-code runtime are loaded from sealed memfds once and
+    Executables use the native subprocess protocol. A `.so`/`.dylib` and its
+    pinned generated-code runtime are loaded from captured images once and
     invoked inline. Arbitrary artifacts or forged build records are outside
     this contract.
     """
@@ -432,7 +489,7 @@ class LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_binary_configuration")
         image = _pinned_image(self.binary_path, self.binary_sha256)
         object.__setattr__(self, "_image", image)
-        if self.binary_path.endswith(".so"):
+        if self.binary_path.endswith((".so", ".dylib")):
             if (
                 type(self.runtime_path) is not str
                 or not self.runtime_path.startswith("/")
@@ -478,7 +535,13 @@ class LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_native_runtime_configuration")
 
     def require(
-        self, binding: dict, events: list, phase: str, *, certificate: dict
+        self,
+        binding: dict,
+        events: list,
+        phase: str,
+        *,
+        certificate: dict,
+        object_route: bool = False,
     ) -> None:
         """Require the compiled core's exact phase for this captured trace."""
         if type(self) is not LeanLifecycleChecker:
@@ -488,7 +551,7 @@ class LeanLifecycleChecker:
         self._require(
             {
                 "protocol": _PROTOCOL,
-                "kind": "route",
+                "kind": "object-route" if object_route else "route",
                 "binding": binding,
                 "certificate": certificate,
                 "events": events,
@@ -496,14 +559,16 @@ class LeanLifecycleChecker:
             phase,
         )
 
-    def require_grant(self, grant: dict, obligations: list) -> None:
+    def require_grant(
+        self, grant: dict, obligations: list, *, object_route: bool = False
+    ) -> None:
         """Require canonical grant generation before negotiation/activation."""
         if type(self) is not LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_binary_configuration")
         self._require(
             {
                 "protocol": _PROTOCOL,
-                "kind": "grant",
+                "kind": "object-grant" if object_route else "grant",
                 "grant": grant,
                 "obligations": obligations,
             },
@@ -550,26 +615,30 @@ class LeanLifecycleChecker:
         descriptor = None
         response = None
         try:
-            descriptor = _memfd()
-            with os.fdopen(descriptor, "wb", closefd=False) as target:
-                target.write(image)
-                target.flush()
-            # F_ADD_SEALS/F_GET_SEALS and all four immutable-file seals from
-            # linux/fcntl.h. Check the installed seals before executing bytes.
-            fcntl.fcntl(descriptor, 1033, 15)
-            if fcntl.fcntl(descriptor, 1034) & 15 != 15:
-                raise OSError("binary sealing unconfirmed")
-            completed = subprocess.run(
-                [f"/proc/self/fd/{descriptor}"],
-                input=request,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
-                pass_fds=(descriptor,),
-                close_fds=True,
-                timeout=5,
-                check=False,
-                env={"LANG": "C", "LC_ALL": "C"},
-            )
+            with ExitStack() as snapshots:
+                if sys.platform == "darwin":
+                    executable = snapshots.enter_context(_macos_snapshot(image))
+                else:
+                    descriptor = _memfd()
+                    with os.fdopen(descriptor, "wb", closefd=False) as target:
+                        target.write(image)
+                        target.flush()
+                    # F_ADD_SEALS/F_GET_SEALS, then verify all immutable-file seals.
+                    fcntl.fcntl(descriptor, 1033, 15)
+                    if fcntl.fcntl(descriptor, 1034) & 15 != 15:
+                        raise OSError("binary sealing unconfirmed")
+                    executable = f"/proc/self/fd/{descriptor}"
+                completed = subprocess.run(
+                    [executable],
+                    input=request,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                    pass_fds=(descriptor,) if descriptor is not None else (),
+                    close_fds=True,
+                    timeout=5,
+                    check=False,
+                    env={"LANG": "C", "LC_ALL": "C"},
+                )
             if completed.returncode == 0 and len(completed.stdout) <= 256:
                 response = json.loads(
                     completed.stdout, object_pairs_hook=_response_pairs
@@ -595,10 +664,22 @@ class LeanLifecycleChecker:
 class LeanLifecycleSession:
     """Controller-owned trace; a refused transition permanently closes it."""
 
-    __slots__ = ("_checker", "_binding", "_certificate", "_events", "_failed")
+    __slots__ = (
+        "_checker",
+        "_binding",
+        "_certificate",
+        "_events",
+        "_failed",
+        "_object_route",
+    )
 
     def __init__(
-        self, checker: LeanLifecycleChecker, binding: dict, certificate: dict
+        self,
+        checker: LeanLifecycleChecker,
+        binding: dict,
+        certificate: dict,
+        *,
+        object_route: bool = False,
     ) -> None:
         if type(checker) is not LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_binary_configuration")
@@ -607,6 +688,7 @@ class LeanLifecycleSession:
         self._certificate = _encoded(_data(certificate))
         self._events = b"[]"
         self._failed = False
+        self._object_route = object_route
 
     def permit_go(self, observed: dict, *, supported: bool) -> None:
         """Called only after grant negotiation and receipt validation succeed."""
@@ -645,6 +727,7 @@ class LeanLifecycleSession:
                 candidate,
                 phase,
                 certificate=json.loads(self._certificate),
+                **({"object_route": True} if self._object_route else {}),
             )
             self._events = captured
         except BaseException:

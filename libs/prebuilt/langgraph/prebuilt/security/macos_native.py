@@ -102,9 +102,92 @@ class MacOSNativeLauncher:
             "library_digest": launcher.library_digest,
             "stdlib": str(stdlib),
             "dynload": str(dynload),
+            "dependency_roots": [
+                str(path) for path in _runtime_dependency_roots(library, dynload)
+            ],
+            "runtime_aliases": _runtime_aliases(library, dynload),
+            "runtime_libraries": _runtime_libraries(library, dynload),
         }
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         return launcher
+
+
+def _runtime_dependency_roots(library: Path, dynload: Path) -> tuple[Path, ...]:
+    """Operator build inventory of absolute non-system dyld dependencies."""
+    pending = [library, *dynload.glob("*.so")]
+    seen, roots = set(), set()
+    while pending:
+        image = pending.pop().resolve(strict=True)
+        if image in seen:
+            continue
+        seen.add(image)
+        result = subprocess.run(
+            ["/Library/Developer/CommandLineTools/usr/bin/otool", "-L", str(image)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        for line in result.stdout.splitlines()[1:]:
+            dependency = line.strip().split(" (", 1)[0]
+            if dependency.startswith("/") and not dependency.startswith(
+                ("/System/", "/usr/lib/")
+            ):
+                path = Path(dependency).resolve(strict=True)
+                roots.add(path.parent)
+                pending.append(path)
+    return tuple(sorted(roots))
+
+
+def _runtime_aliases(library: Path, dynload: Path) -> dict[str, str]:
+    aliases = {}
+    for image in (library, *dynload.glob("*.so")):
+        result = subprocess.run(
+            ["/Library/Developer/CommandLineTools/usr/bin/otool", "-L", str(image)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        for line in result.stdout.splitlines()[1:]:
+            dependency = line.strip().split(" (", 1)[0]
+            if dependency.startswith("/") and not dependency.startswith(
+                ("/System/", "/usr/lib/")
+            ):
+                path = Path(dependency).parent
+                canonical = path.resolve(strict=True)
+                if path != canonical:
+                    aliases[str(path)] = str(canonical)
+    return aliases
+
+
+def _runtime_libraries(library: Path, dynload: Path) -> list[dict[str, str]]:
+    seen, images = set(), []
+
+    def visit(image):
+        image = image.resolve(strict=True)
+        if image in seen:
+            return
+        seen.add(image)
+        result = subprocess.run(
+            ["/Library/Developer/CommandLineTools/usr/bin/otool", "-L", str(image)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        for line in result.stdout.splitlines()[1:]:
+            dependency = line.strip().split(" (", 1)[0]
+            if dependency.startswith("/") and not dependency.startswith(
+                ("/System/", "/usr/lib/")
+            ):
+                path = Path(dependency).resolve(strict=True)
+                visit(path)
+                if path != library.resolve() and all(
+                    item["path"] != str(path) for item in images
+                ):
+                    images.append({"path": str(path), "sha256": file_digest(path)})
+
+    for image in (library, *dynload.glob("*.so")):
+        visit(image)
+    return images
 
 
 class MacOSWorkerProcess:

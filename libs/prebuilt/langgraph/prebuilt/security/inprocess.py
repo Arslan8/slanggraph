@@ -25,9 +25,9 @@ from typing import TYPE_CHECKING
 from langchain_core.tools import BaseTool, StructuredTool
 
 from langgraph.prebuilt.security._language_sandbox import LanguageProgram
+from langgraph.prebuilt.security._pinned_file import open_path_descriptor
 from langgraph.prebuilt.security.errors import SecurityConfigurationError
 from langgraph.prebuilt.security.execution import HostExecutionDenied
-from langgraph.prebuilt.security.landlock import open_path_descriptor
 from langgraph.prebuilt.security.language_verification import TerminalContract
 from langgraph.prebuilt.security.manifest_consistency import (
     ManifestOperation,
@@ -47,11 +47,12 @@ _active_grant: ContextVar[ObjectGrant | None] = ContextVar(
 
 
 def read_text(path: str) -> str:
-    """Read a grant-named regular file through a pinned Linux descriptor.
+    """Read a grant-named regular file through a pinned native descriptor.
 
     The policy names a canonical path, not a historical inode or content
     snapshot. Binding selects that path's object at this operation. Linux
-    `openat2` rejects symlinks in every canonical path component; subsequent
+    `openat2`, or Darwin's descriptor-relative `O_SEARCH | O_NOFOLLOW` walk,
+    rejects symlinks in every canonical path component; subsequent
     pathname replacement cannot redirect the descriptor read. Unsupported
     platforms or descriptor mechanisms fail closed without a pathname fallback.
     """
@@ -60,7 +61,7 @@ def read_text(path: str) -> str:
     grant = _active_grant.get()
     if grant is None:
         raise HostExecutionDenied("inprocess:resource_not_granted")
-    if sys.platform != "linux":
+    if sys.platform not in {"linux", "darwin"}:
         raise HostExecutionDenied("inprocess:descriptor_read_unsupported")
     try:
         canonical = str(Path(path).resolve(strict=True))
@@ -83,9 +84,13 @@ def read_text(path: str) -> str:
         # This path contains only our live kernel-assigned descriptor number.
         # It never re-resolves the candidate's pathname. Procfs and the native
         # descriptor API remain host primitives, unavailable to the admitted IR.
-        readable = os.open(
-            f"/proc/self/fd/{pinned}",
-            os.O_RDONLY | os.O_CLOEXEC | os.O_NONBLOCK | os.O_NOCTTY,
+        readable = (
+            os.dup(pinned)
+            if sys.platform == "darwin"
+            else os.open(
+                f"/proc/self/fd/{pinned}",
+                os.O_RDONLY | os.O_CLOEXEC | os.O_NONBLOCK | os.O_NOCTTY,
+            )
         )
         opened = os.fstat(readable)
         if not stat.S_ISREG(opened.st_mode) or (

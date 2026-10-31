@@ -1,5 +1,15 @@
 # Worker lifecycle, grant, and receipt decision core
 
+The macOS object route additionally uses `ResourceGrantCoverage.lean`. Its
+`object-grant` and `object-route` requests generate the channel, custody and
+bypass-prevention obligations for every service rule, including exact protected
+paths, required capabilities and dependency edges. They retain the complete
+receipt coverage and lifecycle checks. The extension adds four public theorems,
+including required service-guard coverage; the baseline theorem counts below
+describe the original Linux inventory. Native truth remains a correspondence
+premise. The application route deliberately excludes an aggregate CPU-budget
+promise while Darwin CPU qualification is deferred.
+
 This project implements a finite decision core in Lean 4.34.1. Protocol
 `worker-route-grant-v3` requires the admitted filtered grant, the independently
 compiled obligation inventory, a receipt certificate, and a matching lifecycle

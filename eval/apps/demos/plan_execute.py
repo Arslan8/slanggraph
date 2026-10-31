@@ -21,11 +21,11 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
     LinuxToolSpec,
-    ObjectBrokerDispatcher,
     Principal,
     install_mac_policy,
     with_principal,
 )
+from native_host import framework_library, native_broker_dispatcher
 from pydantic import BaseModel, Field
 from resource_monitors.api import SEARCH
 from resource_monitors.backends import ExactBrokerMediator, FrozenSearchBackend
@@ -116,7 +116,7 @@ def build(corpus_path: Path, mode: str, model_timing: ModelTiming):
             ),
         )
         worker = Path(__file__).with_name("resource_monitors") / "search_worker.py"
-        dispatcher = ObjectBrokerDispatcher(
+        dispatcher = native_broker_dispatcher(
             {
                 "tavily_search_results_json": LinuxToolSpec(
                     "resource_monitors.search_worker:frozen_search",
@@ -126,10 +126,10 @@ def build(corpus_path: Path, mode: str, model_timing: ModelTiming):
             },
             runtime_roots=(
                 Path(__file__).resolve().parent,
-                Path(__file__).resolve().parents[3] / "libs/prebuilt",
-                Path(__file__).resolve().parents[3] / "libs/langgraph",
-                Path(__file__).resolve().parents[3] / "libs/checkpoint",
-                Path(__file__).resolve().parents[3] / "libs/sdk-py",
+                framework_library("prebuilt"),
+                framework_library("langgraph"),
+                framework_library("checkpoint"),
+                framework_library("sdk-py"),
                 *(
                     Path(item).resolve()
                     for item in sys.path
@@ -201,9 +201,7 @@ If no more steps are needed, respond to the user. Otherwise return only steps st
         return {"past_steps": [(state["plan"][0], state["messages"][-1].content)]}
 
     async def plan_step(state: PlanExecute):
-        plan = await model_timing.ainvoke(
-            planner, {"messages": [("user", state["input"])]}
-        )
+        plan = await model_timing.ainvoke(planner, {"messages": [("user", state["input"])]})
         return {"plan": plan.steps}
 
     async def replan_step(state: PlanExecute):

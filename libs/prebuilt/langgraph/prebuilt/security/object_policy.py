@@ -1399,8 +1399,12 @@ def cedar_security(
     tool_manifest = parsed.tools[tool_name]
     if dispatcher is None and tool_manifest.runs != "inprocess":
         raise ValueError("cedar_security requires runs inprocess")
-    if dispatcher is not None and tool_manifest.runs not in {"linux", "broker"}:
-        raise ValueError("isolated cedar_security requires runs linux or runs broker")
+    if dispatcher is not None and tool_manifest.runs not in {
+        "linux",
+        "broker",
+        "macos",
+    }:
+        raise ValueError("isolated cedar_security requires runs linux, macos or broker")
     invalid_enforcers = sorted(
         {
             rule.class_name

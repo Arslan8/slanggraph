@@ -16,6 +16,7 @@ from langgraph.prebuilt.security.enforcement import AuthorityDomain, Grant, Gran
 
 _MAX_FRAME = 1_048_576
 _BROKER_FD_ENV = "SLANGGRAPH_BROKER_FD"
+_pipe_transport: Callable[[Mapping[str, Any]], Any] | None = None
 _IDENTITY_FIELDS = frozenset(
     {"principal", "principal_id", "tool", "tool_name", "grant", "grant_hash", "nonce"}
 )
@@ -334,6 +335,10 @@ def broker_request(
     Identity is deliberately absent from this protocol. The parent associates
     the inherited socket endpoint with its authenticated spawn record.
     """
+    if _pipe_transport is not None:
+        return _pipe_transport(
+            {"service": service, "operation": operation, "payload": dict(payload or {})}
+        )
     raw_fd = os.environ.get(_BROKER_FD_ENV)
     if raw_fd is None:
         raise PermissionError("broker:channel_unavailable")

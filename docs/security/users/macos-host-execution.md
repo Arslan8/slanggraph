@@ -1,5 +1,9 @@
 # Experimental macOS host execution
 
+For admitted application execution, use the
+[macOS object-policy route](macos-object-execution.md). This page describes the
+original direct typed component and its historical qualification results.
+
 `MacOSSandboxExecutor` is the first native implementation milestone of the
 macOS portability experiment. It is disabled unless the operator explicitly
 passes `experimental=True`. Closed graph admission continues to refuse this

@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -50,7 +51,7 @@ def main() -> int:
     )
     objects = [
         str(root / f".lake/build/ir/{name}.c.o.export")
-        for name in ("Main", "WorkerRoute", "ReceiptCoverage", "GrantCoverage")
+        for name in ("Main", "WorkerRoute", "ReceiptCoverage", "GrantCoverage", "ResourceGrantCoverage")
     ]
     lean_lib = str(Path(prefix) / "lib/lean")
     link = [
@@ -62,18 +63,18 @@ def main() -> int:
         *objects,
         "-L",
         lean_lib,
-        "-Wl,-rpath,$ORIGIN",
+        "-Wl,-rpath,@loader_path" if sys.platform == "darwin" else "-Wl,-rpath,$ORIGIN",
         "-lleanshared",
         "-lpthread",
-        "-ldl",
-        "-lrt",
         "-lm",
-        "-Wl,-z,defs",
-        "-Wl,-soname,libargus_worker_route.so",
     ]
+    if sys.platform == "darwin":
+        link.extend(["-Wl,-install_name,@rpath/libargus_worker_route.dylib"])
+    else:
+        link.extend(["-ldl", "-lrt", "-Wl,-z,defs", "-Wl,-soname,libargus_worker_route.so"])
     subprocess.run(link, check=True)
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
-    runtime = Path(prefix) / "lib/lean/libleanshared.so"
+    runtime = Path(prefix) / ("lib/lean/libleanshared.dylib" if sys.platform == "darwin" else "lib/lean/libleanshared.so")
     manifest = {
         "library": str(output),
         "sha256": digest,
@@ -86,6 +87,7 @@ def main() -> int:
                 root / "WorkerRoute.lean",
                 root / "ReceiptCoverage.lean",
                 root / "GrantCoverage.lean",
+                root / "ResourceGrantCoverage.lean",
                 root / "Main.lean",
                 root / "native/worker_route_shim.c",
             )

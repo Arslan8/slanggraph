@@ -12,6 +12,7 @@ import os
 import resource
 import sys
 import time
+import traceback
 from types import ModuleType
 
 _MAX_FRAME = 1_048_576
@@ -41,6 +42,18 @@ def main():
         source = base64.b64decode(request["source"], validate=True)
         if hashlib.sha256(source).hexdigest() != request["artifact_digest"]:
             raise ValueError("artifact digest mismatch")
+        runtime_handles = []
+        runtime_libraries = request.get("runtime_libraries", [])
+        if runtime_libraries:
+            import ctypes
+
+            for item in runtime_libraries:
+                with open(item["path"], "rb") as stream:
+                    if hashlib.sha256(stream.read()).hexdigest() != item["sha256"]:
+                        raise ValueError("runtime dependency changed")
+                runtime_handles.append(
+                    ctypes.CDLL(item["path"], mode=os.RTLD_NOW | os.RTLD_GLOBAL)
+                )
         if request["asynchronous"]:
             loop = asyncio.new_event_loop()
         _write(
@@ -55,6 +68,11 @@ def main():
                 "isolated": bool(sys.flags.isolated),
                 "site_loaded": "site" in sys.modules,
                 "startup_ports": globals()["__slanggraph_startup_ports"],
+                **(
+                    {"runtime_libraries": runtime_libraries}
+                    if runtime_libraries
+                    else {}
+                ),
             }
         )
         if sys.stdin.buffer.readline(16) != b"GO\n":
@@ -64,6 +82,17 @@ def main():
             result = True
         else:
             sys.path[:0] = request["runtime_roots"]
+            if request.get("broker"):
+                from langgraph.prebuilt.security import broker
+
+                def pipe_request(frame):
+                    _write({"status": "broker", "request": frame})
+                    response = _read()
+                    if response.get("status") != "ok":
+                        raise PermissionError(response.get("error", "broker:denied"))
+                    return response["result"]
+
+                broker._pipe_transport = pipe_request
             name, _, attribute = request["entrypoint"].partition(":")
             module = ModuleType(name)
             module.__file__ = request["artifact_path"]
@@ -85,7 +114,14 @@ def main():
         _write({"status": "ok", "result": result})
     except BaseException as exc:
         try:
-            _write({"status": "error", "error_type": type(exc).__name__})
+            _write(
+                {
+                    "status": "error",
+                    "error_type": type(exc).__name__,
+                    "diagnostic": str(exc)[:512],
+                    "traceback": traceback.format_exc(limit=8)[-4096:],
+                }
+            )
         except BaseException:
             pass
         raise SystemExit(70) from None

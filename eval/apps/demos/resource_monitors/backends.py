@@ -32,13 +32,17 @@ class ExactBrokerMediator:
         self.protected_paths = tuple(str(Path(path).resolve()) for path in protected_paths)
 
     def assess(self, line, host):
-        del line, host
+        del line
         return ResourceSupport(
             SupportLevel.EXACT,
             self.description,
             witness=self.witness,
             protected_paths=self.protected_paths,
-            required_capabilities=frozenset({"broker:spawn-bound", "seccomp:minimal"}),
+            required_capabilities=frozenset(
+                {"broker:spawn-bound", "seatbelt", "process:deny", "network:deny"}
+            )
+            if host.platform == "macos"
+            else frozenset({"broker:spawn-bound", "seccomp:minimal"}),
         )
 
     def validate(
@@ -155,6 +159,13 @@ class PersistentPythonBackend(PythonSessionAPI):
         self.artifact = artifact.resolve()
         self.observer = observer.resolve()
         self.artifact.parent.mkdir(parents=True, exist_ok=True)
+        if sys.platform == "darwin":
+            from .macos_python_session import MacOSPythonSession
+
+            self._macos_session = MacOSPythonSession(self.artifact, runtime_roots)
+            self.process = self._macos_session.process
+            self.lock = self._macos_session.lock
+            return
         system_roots = (Path("/usr/lib"), Path("/usr/share/fonts"), Path("/etc/fonts"))
         roots = tuple(
             dict.fromkeys(
@@ -241,6 +252,11 @@ class PersistentPythonBackend(PythonSessionAPI):
     def execute(self, code: str) -> str:
         if type(code) is not str or len(code.encode()) > 100_000:
             raise ValueError("python session code exceeds the accepted input boundary")
+        if getattr(self, "_macos_session", None) is not None:
+            result = self._macos_session.execute(code)
+            if result.get("lines"):
+                self.observer.write_text(json.dumps({"lines": result["lines"]}, indent=2) + "\n")
+            return json.dumps(result)
         with self.lock:
             if self.process.stdin is None:
                 raise RuntimeError("python session stdin is unavailable")
@@ -252,6 +268,9 @@ class PersistentPythonBackend(PythonSessionAPI):
             return json.dumps(result)
 
     def close(self) -> None:
+        if getattr(self, "_macos_session", None) is not None:
+            self._macos_session.close()
+            return
         process = getattr(self, "process", None)
         if process is None or process.poll() is not None:
             return

@@ -29,11 +29,11 @@ from langgraph.graph.message import AnyMessage, add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.prebuilt.security import (
     LinuxToolSpec,
-    ObjectBrokerDispatcher,
     Principal,
     install_mac_policy,
     with_principal,
 )
+from native_host import framework_library, native_broker_dispatcher
 from resource_monitors.api import POLICY, SEARCH, TRAVEL
 from resource_monitors.backends import (
     EmptySearchBackend,
@@ -253,14 +253,14 @@ def build(
             search_worker,
             hashlib.sha256(search_worker.read_bytes()).hexdigest(),
         )
-        dispatcher = ObjectBrokerDispatcher(
+        dispatcher = native_broker_dispatcher(
             specs,
             runtime_roots=(
                 Path(__file__).resolve().parent,
-                Path(__file__).resolve().parents[3] / "libs/prebuilt",
-                Path(__file__).resolve().parents[3] / "libs/langgraph",
-                Path(__file__).resolve().parents[3] / "libs/checkpoint",
-                Path(__file__).resolve().parents[3] / "libs/sdk-py",
+                framework_library("prebuilt"),
+                framework_library("langgraph"),
+                framework_library("checkpoint"),
+                framework_library("sdk-py"),
                 *(
                     Path(item).resolve()
                     for item in sys.path

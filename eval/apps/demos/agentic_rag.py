@@ -25,11 +25,11 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
     LinuxToolSpec,
-    ObjectBrokerDispatcher,
     Principal,
     install_mac_policy,
     with_principal,
 )
+from native_host import framework_library, native_broker_dispatcher
 from pydantic import BaseModel, Field
 from resource_monitors.api import RETRIEVER
 from resource_monitors.backends import ExactBrokerMediator, TFIDFRetrieverBackend
@@ -127,7 +127,7 @@ def build(paths: list[Path], mode: str, model_timing: ModelTiming):
             ),
         )
         worker = Path(__file__).with_name("resource_monitors") / "retriever_worker.py"
-        dispatcher = ObjectBrokerDispatcher(
+        dispatcher = native_broker_dispatcher(
             {
                 "retrieve_blog_posts": LinuxToolSpec(
                     "resource_monitors.retriever_worker:retrieve_blog_posts",
@@ -137,10 +137,10 @@ def build(paths: list[Path], mode: str, model_timing: ModelTiming):
             },
             runtime_roots=(
                 Path(__file__).resolve().parent,
-                Path(__file__).resolve().parents[3] / "libs/prebuilt",
-                Path(__file__).resolve().parents[3] / "libs/langgraph",
-                Path(__file__).resolve().parents[3] / "libs/checkpoint",
-                Path(__file__).resolve().parents[3] / "libs/sdk-py",
+                framework_library("prebuilt"),
+                framework_library("langgraph"),
+                framework_library("checkpoint"),
+                framework_library("sdk-py"),
                 *(
                     Path(item).resolve()
                     for item in sys.path
@@ -183,8 +183,7 @@ Give a binary score 'yes' or 'no' score to indicate whether the document is rele
         chain = prompt | model().with_structured_output(Grade)
         messages = state["messages"]
         score = model_timing.invoke(
-            chain,
-            {"question": messages[0].content, "context": messages[-1].content}
+            chain, {"question": messages[0].content, "context": messages[-1].content}
         ).binary_score
         return "generate" if score == "yes" else "rewrite"
 
@@ -201,7 +200,7 @@ Give a binary score 'yes' or 'no' score to indicate whether the document is rele
                     content=f"""Look at the input and reason about the underlying semantic intent.
 Here is the initial question:\n-------\n{question}\n-------\nFormulate an improved question:"""
                 )
-            ]
+            ],
         )
         return {"messages": [response]}
 
@@ -214,8 +213,7 @@ Context: {context}
 Answer:"""
         )
         response = model_timing.invoke(
-            prompt | model(),
-            {"context": messages[-1].content, "question": messages[0].content}
+            prompt | model(), {"context": messages[-1].content, "question": messages[0].content}
         )
         return {"messages": [response]}
 

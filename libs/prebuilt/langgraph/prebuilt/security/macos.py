@@ -71,6 +71,18 @@ from langgraph.prebuilt.security.types import (
 _ADAPTER_ID = "macos-seatbelt-v1"
 _MAX_FRAME = 1_048_576
 _LIMITS = {"cpu_ms": 10_000, "nofile": 64, "wall_ms": 30_000}
+_RUNTIME_SYSCTLS = (
+    "hw.ncpu",
+    "hw.logicalcpu",
+    "hw.activecpu",
+    "hw.physicalcpu",
+    "hw.memsize",
+    "hw.machine",
+    "kern.ostype",
+    "kern.osrelease",
+    "kern.version",
+    "kern.hostname",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -118,6 +130,10 @@ class MacOSSandboxExecutor:
         policy_backend: MandatoryPolicyBackend | None = None,
         startup_timeout_s: float = 5.0,
         default_limits: Mapping[str, int] | None = None,
+        executable_roots: Sequence[str | Path] = (),
+        lifecycle_checker: Any = None,
+        runtime_aliases: Mapping[str, str] | None = None,
+        runtime_libraries: Sequence[Mapping[str, str]] = (),
     ) -> None:
         if experimental is not True:
             raise HostExecutionDenied("macos:experimental_route_disabled")
@@ -149,6 +165,22 @@ class MacOSSandboxExecutor:
         self.runtime_roots = tuple(
             Path(root).resolve(strict=True) for root in runtime_roots
         )
+        self.executable_roots = tuple(
+            Path(root).resolve(strict=True) for root in executable_roots
+        )
+        self.lifecycle_checker = lifecycle_checker
+        self.runtime_aliases = MappingProxyType(dict(runtime_aliases or {}))
+        self.runtime_libraries = tuple(
+            MappingProxyType(dict(item)) for item in runtime_libraries
+        )
+        for item in self.runtime_libraries:
+            if (
+                set(item) != {"path", "sha256"}
+                or _file_digest(Path(item["path"])) != item["sha256"]
+            ):
+                raise ValueError("runtime library changed or invalid")
+        self._broker_handler = None
+        self._broker_nonce = "no-broker"
         if any(not root.is_dir() for root in self.runtime_roots):
             raise ValueError("runtime roots must be directories")
         self.principal_bindings = MappingProxyType(
@@ -168,6 +200,7 @@ class MacOSSandboxExecutor:
         self._boot = _boot_id()
         self._lock = RLock()
         self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
+        self._lifecycle_records: deque[dict[str, Any]] = deque(maxlen=1024)
         self._unresolved: dict[str, TerminationRecovery] = {}
         for record in self.recovery_directory.glob("*.json"):
             if record.is_symlink() or not re.fullmatch(
@@ -197,6 +230,9 @@ class MacOSSandboxExecutor:
                 "libpython_digest": launcher.library_digest,
                 "shim_digest": self._worker_digest,
                 "os_build": _sysctl_text("kern.osversion"),
+                "runtime_libraries": _digest(
+                    [dict(item) for item in self.runtime_libraries]
+                ),
             },
         )
         self._coordinator = EnforcementCoordinator(
@@ -222,6 +258,12 @@ class MacOSSandboxExecutor:
     def unresolved_terminations(self) -> tuple[TerminationRecovery, ...]:
         with self._lock:
             return tuple(self._unresolved.values())
+
+    def lifecycle_records(self) -> tuple[dict[str, Any], ...]:
+        with self._lock:
+            return tuple(
+                json.loads(json.dumps(item)) for item in self._lifecycle_records
+            )
 
     def confirm_termination(self, recovery: TerminationRecovery) -> bool:
         """Confirm absence of a retained PID/start-time identity without PID reuse kills."""
@@ -328,6 +370,7 @@ class MacOSSandboxExecutor:
                 self.launcher.stdlib,
                 Path("/System/Library"),
                 Path("/usr/lib"),
+                *self.executable_roots,
             )
         )
 
@@ -419,6 +462,29 @@ class MacOSSandboxExecutor:
                     baseline=True,
                 )
             )
+        rules.extend(
+            GrantRule(
+                f"runtime:sysctl:{name}",
+                AuthorityDomain.RUNTIME,
+                "inspect_system",
+                name,
+                baseline=True,
+            )
+            for name in _RUNTIME_SYSCTLS
+        )
+        rules.extend(
+            GrantRule(
+                f"runtime:alias:{index}",
+                AuthorityDomain.RUNTIME,
+                "dyld_alias",
+                alias,
+                {"target": target, "subtree": True},
+                baseline=True,
+            )
+            for index, (alias, target) in enumerate(
+                sorted(self.runtime_aliases.items())
+            )
+        )
         return tuple(rules)
 
     def _invoke(
@@ -432,13 +498,7 @@ class MacOSSandboxExecutor:
         spec = self.tools.get(call.tool.name)
         if spec is None:
             raise HostExecutionDenied("macos:tool_manifest_missing")
-        profile = self.profiles.principals.get(principal.user_id)
-        if (
-            profile is None
-            or profile.roles != principal.roles
-            or profile.scopes != principal.scopes
-        ):
-            raise HostExecutionDenied("macos:principal_profile_mismatch")
+        self._validate_principal_profile(principal)
         try:
             # Capture JSON input once so policy compilation, intent identity and
             # the released worker cannot observe different nested arguments.
@@ -455,49 +515,30 @@ class MacOSSandboxExecutor:
             source = spec.artifact_path.read_bytes()
             if hashlib.sha256(source).hexdigest() != spec.artifact_digest:
                 raise HostExecutionDenied("macos:artifact_changed")
-            evaluation = self.profiles.evaluate(
-                call.tool.name,
-                principal.user_id,
-                {**call.args, **call.normalized},
-                principal_bindings=self.principal_bindings,
-            )
-            if evaluation.denied:
-                raise HostExecutionDenied(f"macos:dac:{evaluation.reason}")
-            compiled = compile_grant(
-                evaluation,
-                principal_id=principal.user_id,
-                session_id=principal.session_id,
-                artifact_digest=spec.artifact_digest,
-                call_id=call.call_id,
-                normalized_intent_digest=_digest(
-                    {"args": dict(call.args), "normalized": dict(call.normalized)}
-                ),
-                policy_digest=_digest({"stage": "pre-mac"}),
-                baseline_rules=self._baseline(),
-            )
+            compiled = self._compile_grant(principal, call, spec)
             filtered = self.policy_backend.filter(
                 compiled.grant, compiled.ledger, constraints
             )
+            if self.lifecycle_checker is not None:
+                from langgraph.prebuilt.security.lean_grant import (
+                    _capture_filtered_grant,
+                )
+
+                captured = _capture_filtered_grant(filtered)
+                filtered = captured.filtered
+                self._lean_grant = json.loads(captured.projection)
             if not filtered.allowed or filtered.grant is None:
                 raise HostExecutionDenied(f"macos:{filtered.reason}")
-            grant = filtered.grant
-            challenge = secrets.token_hex(16)
-            host = self._adapter.attest(challenge)
-            negotiation = self._coordinator.negotiate(
-                grant,
-                filtered.ledger,
-                compile_obligations(grant),
-                host,
-                expected_nonce=challenge,
+            grant, host, plan = self._prepare_execution(filtered.grant, filtered.ledger)
+            native = next(
+                item
+                for item in plan.adapter_plans
+                if item.adapter_id == self._adapter.adapter_id
             )
-            if not negotiation.allowed or negotiation.plan is None:
-                raise HostExecutionDenied(f"macos:{negotiation.reason}")
-            plan = negotiation.plan
-            native = plan.adapter_plans[0]
             request = self._request(
                 dict(native.payload["limits"]),
                 str(native.payload["profile"]),
-                native.native_plan_digest,
+                plan.digest,
                 source,
                 spec,
                 dict(call.args),
@@ -508,6 +549,76 @@ class MacOSSandboxExecutor:
         except (OSError, KeyError, TypeError, ValueError, RecursionError) as exc:
             raise HostExecutionDenied("macos:grant_compilation_failed") from exc
         return self._run(request, grant, host, plan)
+
+    def _validate_principal_profile(self, principal):
+        profile = self.profiles.principals.get(principal.user_id)
+        if (
+            profile is None
+            or profile.roles != principal.roles
+            or profile.scopes != principal.scopes
+        ):
+            raise HostExecutionDenied("macos:principal_profile_mismatch")
+
+    def _compile_grant(self, principal, call, spec):
+        evaluation = self.profiles.evaluate(
+            call.tool.name,
+            principal.user_id,
+            {**call.args, **call.normalized},
+            principal_bindings=self.principal_bindings,
+        )
+        if evaluation.denied:
+            raise HostExecutionDenied(f"macos:dac:{evaluation.reason}")
+        compiled = compile_grant(
+            evaluation,
+            principal_id=principal.user_id,
+            session_id=principal.session_id,
+            artifact_digest=spec.artifact_digest,
+            call_id=call.call_id,
+            normalized_intent_digest=_digest(
+                {"args": dict(call.args), "normalized": dict(call.normalized)}
+            ),
+            policy_digest=_digest({"stage": "pre-mac"}),
+            baseline_rules=self._baseline(),
+        )
+        return compiled
+
+    def _prepare_execution(self, grant, ledger):
+        challenge = secrets.token_hex(16)
+        host = self._adapter.attest(challenge)
+        obligations = compile_obligations(grant)
+        if self.lifecycle_checker is not None:
+            self._check_lean_grant(grant, ledger, obligations)
+        self._execution_obligations = obligations
+        negotiation = self._coordinator.negotiate(
+            grant,
+            ledger,
+            obligations,
+            host,
+            expected_nonce=challenge,
+        )
+        if not negotiation.allowed or negotiation.plan is None:
+            raise HostExecutionDenied(f"macos:{negotiation.reason}")
+        return grant, host, negotiation.plan
+
+    def _check_lean_grant(self, grant, ledger, obligations):
+        from langgraph.prebuilt.security.lean_grant import (
+            _capture_filtered_grant,
+            _capture_obligations,
+        )
+        from langgraph.prebuilt.security.policy import PolicyFilterResult
+
+        captured = _capture_filtered_grant(
+            PolicyFilterResult(grant, ledger, "allow:captured")
+        )
+        self._lean_grant = json.loads(captured.projection)
+        self._lean_obligations = json.loads(
+            _capture_obligations(obligations).projection
+        )
+        self.lifecycle_checker.require_grant(
+            self._lean_grant,
+            self._lean_obligations,
+            object_route=getattr(self, "_lean_object_route", False),
+        )
 
     def _request(
         self,
@@ -532,6 +643,8 @@ class MacOSSandboxExecutor:
             "asynchronous": asynchronous,
             "runtime_roots": [str(root) for root in self.runtime_roots],
             "probe": spec is None,
+            "broker": self._broker_handler is not None,
+            "runtime_libraries": [dict(item) for item in self.runtime_libraries],
         }
 
     def _spawn(self, request: Mapping[str, Any]) -> MacOSWorkerProcess:
@@ -618,6 +731,11 @@ class MacOSSandboxExecutor:
             "limits": {name: request["limits"][name] for name in ("cpu_ms", "nofile")},
             "isolated": True,
             "site_loaded": False,
+            **(
+                {"runtime_libraries": request["runtime_libraries"]}
+                if request.get("runtime_libraries")
+                else {}
+            ),
         }
         if ready != expected:
             raise HostExecutionDenied("macos:worker_startup_protocol")
@@ -635,6 +753,10 @@ class MacOSSandboxExecutor:
             + "\n".join(
                 _runtime_map(path, subtree) for path, subtree in self._runtime_paths()
             )
+        )
+        profile += "\n" + "\n".join(
+            f"(allow sysctl-read (sysctl-name {json.dumps(name)}))"
+            for name in _RUNTIME_SYSCTLS
         )
         request = self._request(
             dict(self.default_limits), profile, _digest(profile), b"", None, {}, False
@@ -663,6 +785,8 @@ class MacOSSandboxExecutor:
         identity: str | None = None
         error: BaseException | None = None
         recovery: TerminationRecovery | None = None
+        lifecycle = None
+        observed = None
         try:
             identity = self._ready(process, request)
             context = ExecutionContext(
@@ -675,9 +799,13 @@ class MacOSSandboxExecutor:
                 },
                 _digest({"uid": os.getuid(), "gid": os.getgid()}),
                 "not-applicable",
-                "no-broker",
+                self._broker_nonce,
             )
-            native = plan.adapter_plans[0]
+            native = next(
+                item
+                for item in plan.adapter_plans
+                if item.adapter_id == self._adapter.adapter_id
+            )
             self._adapter.register(native, context)
             receipt = self._coordinator.activate(
                 grant, plan, host, context, nonce=secrets.token_hex(16)
@@ -694,8 +822,74 @@ class MacOSSandboxExecutor:
             self._retain_recovery(recovery)
             assert process.stdin is not None
             self._arm(process)
+            if self.lifecycle_checker is not None:
+                from langgraph.prebuilt.security.lean_lifecycle import (
+                    LeanLifecycleSession,
+                    _capture_receipt_certificate,
+                )
+
+                expected = {
+                    "principal": grant.principal_id,
+                    "session": grant.session_id,
+                    "call": grant.call_id,
+                    "tool": grant.tool_name,
+                    "artifact": grant.artifact_digest,
+                    "intent": grant.normalized_intent_digest,
+                    "policy": grant.policy_digest,
+                    "deployment": grant.deployment_digest,
+                    "runtime": grant.runtime_digest,
+                    "grant": grant.digest,
+                    "plan": plan.digest,
+                    "nonce": receipt.nonce,
+                    "host": host.digest,
+                    "context": context.digest,
+                    "worker": {
+                        "pid": str(process.pid),
+                        "startTime": identity,
+                        "bootId": host.boot_id,
+                    },
+                }
+                observed = {
+                    **expected,
+                    "grant": receipt.grant_digest,
+                    "plan": receipt.plan_digest,
+                    "artifact": receipt.artifact_digest,
+                    "host": receipt.host_digest,
+                    "context": receipt.context_digest,
+                }
+                certificate = _capture_receipt_certificate(
+                    plan,
+                    receipt,
+                    plan_digest=plan.digest,
+                    grant=self._lean_grant,
+                    obligations=self._lean_obligations,
+                )
+                lifecycle = LeanLifecycleSession(
+                    self.lifecycle_checker,
+                    expected,
+                    certificate,
+                    object_route=getattr(self, "_lean_object_route", False),
+                )
+                lifecycle.permit_go(observed, supported=not plan.waived_obligations)
             _write_all(process.stdin, b"GO\n")
-            response = _read_frame(process, request["limits"]["wall_ms"] / 1000)
+            deadline = time.monotonic() + request["limits"]["wall_ms"] / 1000
+            while True:
+                response = _read_frame(process, max(0, deadline - time.monotonic()))
+                if response.get("status") != "broker":
+                    break
+                if self._broker_handler is None or set(response) != {
+                    "status",
+                    "request",
+                }:
+                    raise ValueError("unexpected broker request")
+                answer = self._broker_handler(response["request"])
+                try:
+                    encoded = json.dumps(answer, allow_nan=False).encode()
+                    if len(encoded) + 1 > _MAX_FRAME:
+                        raise ValueError("broker response too large")
+                except (TypeError, ValueError, RecursionError):
+                    encoded = b'{"status":"denied","error":"broker:invalid_response"}'
+                _write_all(process.stdin, encoded + b"\n")
             if response.get("status") != "ok" or "result" not in response:
                 raise HostExecutionError(
                     "macos:tool_failed",
@@ -729,6 +923,30 @@ class MacOSSandboxExecutor:
                 error.termination_confirmed = confirmed
             if confirmed and recovery is not None:
                 self._clear_recovery(recovery)
+            if confirmed and error is None and lifecycle is not None:
+                try:
+                    lifecycle.permit_success(observed)
+                    with self._lock:
+                        self._lifecycle_records.append(
+                            {
+                                "binding": json.loads(lifecycle._binding),
+                                "certificate": json.loads(lifecycle._certificate),
+                                "events": json.loads(lifecycle._events),
+                                "object_route": getattr(
+                                    self, "_lean_object_route", False
+                                ),
+                                "phase": "ready",
+                                "cleanup_confirmed": True,
+                                "checker_sha256": self.lifecycle_checker.binary_sha256,
+                            }
+                        )
+                except HostExecutionDenied as exc:
+                    raise HostExecutionError(
+                        "host:lean_result_release_failed",
+                        receipt,
+                        ExecutionOutcome.INDETERMINATE,
+                        termination_confirmed=True,
+                    ) from exc
             if not confirmed:
                 recovery = recovery or TerminationRecovery(
                     secrets.token_hex(16),
@@ -815,6 +1033,32 @@ class _MacOSSeatbeltAdapter:
                 SupportLevel.EXACT,
                 "seatbelt+native:closed-startup-authority",
             )
+        elif (
+            obligation.kind is ObligationKind.OPERATE
+            and obligation.domain is AuthorityDomain.RUNTIME
+            and obligation.operation == "dyld_alias"
+            and set(obligation.conditions) == {"target", "subtree"}
+            and obligation.conditions["subtree"] is True
+        ):
+            alias = Path(obligation.selector)
+            try:
+                if (
+                    alias.is_absolute()
+                    and alias.is_dir()
+                    and str(alias.resolve(strict=True))
+                    == obligation.conditions["target"]
+                ):
+                    support, reason = SupportLevel.EXACT, "dyld:pinned-runtime-alias"
+            except OSError:
+                pass
+        elif (
+            obligation.kind is ObligationKind.OPERATE
+            and obligation.domain is AuthorityDomain.RUNTIME
+            and obligation.operation == "inspect_system"
+            and obligation.selector in _RUNTIME_SYSCTLS
+            and not obligation.conditions
+        ):
+            support, reason = SupportLevel.EXACT, "seatbelt:runtime-sysctl"
         elif (
             obligation.kind is ObligationKind.OPERATE
             and obligation.domain
@@ -918,6 +1162,7 @@ class _MacOSSeatbeltAdapter:
             for item in obligations
             if item.kind is ObligationKind.OPERATE
             and item.domain in {AuthorityDomain.FILESYSTEM, AuthorityDomain.RUNTIME}
+            and item.operation in {"read", "map_executable"}
         ]
         limits: dict[str, int] = {}
         for item in obligations:
@@ -938,6 +1183,40 @@ class _MacOSSeatbeltAdapter:
             ),
             "limits": limits,
         }
+        # An object route may omit a CPU-budget promise (qualification deferred).
+        # Keep installing a conservative hard rlimit without certifying that it
+        # establishes an aggregate CPU ceiling on Darwin.
+        payload["limits"].setdefault("cpu_ms", _LIMITS["cpu_ms"])
+        payload["profile"] += "\n" + "\n".join(
+            f"(allow sysctl-read (sysctl-name {json.dumps(item.selector)}))"
+            for item in obligations
+            if item.operation == "inspect_system"
+            and item.domain is AuthorityDomain.RUNTIME
+        )
+        for item in obligations:
+            if (
+                item.operation != "dyld_alias"
+                or item.domain is not AuthorityDomain.RUNTIME
+            ):
+                continue
+            target = item.conditions["target"]
+            if not all(
+                any(
+                    candidate.domain is AuthorityDomain.RUNTIME
+                    and candidate.operation == operation
+                    and candidate.selector == target
+                    and candidate.conditions.get("subtree") is True
+                    for candidate in obligations
+                )
+                for operation in ("read", "map_executable")
+            ):
+                raise ValueError(
+                    "runtime alias target lacks explicit read/map authority"
+                )
+            payload["profile"] += (
+                "\n" + _seatbelt_profile(((item.selector, True),)).splitlines()[-1]
+            )
+            payload["profile"] += "\n" + _runtime_map(item.selector, True)
         return AdapterPlan(
             self.adapter_id,
             frozenset(item.obligation_id for item in obligations),

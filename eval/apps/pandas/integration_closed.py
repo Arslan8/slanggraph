@@ -326,7 +326,6 @@ def install_compute(request, audit):
     from langgraph.graph import START, MessagesState, StateGraph
     from langgraph.prebuilt import ToolNode
     from langgraph.prebuilt.security import (
-        LinuxObjectDispatcher,
         LinuxToolSpec,
         cedar_security,
     )
@@ -334,7 +333,8 @@ def install_compute(request, audit):
     normalization(request)
     checker = lifecycle_checker(request)
     artifact = (HERE / "worker.py").resolve()
-    dispatcher = LinuxObjectDispatcher(
+    host = _load("pandas_native_host", "../demos/native_host.py")
+    dispatcher = host.native_object_dispatcher(
         {
             "compute": LinuxToolSpec(
                 "worker:compute",
@@ -358,7 +358,7 @@ def install_compute(request, audit):
 
     security = cedar_security(
         compute,
-        manifest="runs linux\nfs read @{sandbox_source} need",
+        manifest=f"runs {host.NATIVE_HOST}\nfs read @{{sandbox_source}} need",
         policy=request["principal_policy"],
         dispatcher=dispatcher,
     )

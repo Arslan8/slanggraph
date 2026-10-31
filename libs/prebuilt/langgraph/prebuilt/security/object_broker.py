@@ -94,7 +94,13 @@ class _ObjectBroker(CredentialBroker):
         self._audit: deque[BrokerAuditRecord] = deque(maxlen=4096)
         self._lock = RLock()
 
-    def open_session(self, spawn, grant):
+    def bind_spawn(self, spawn, grant):
+        if (
+            spawn.grant_hash != grant.digest
+            or spawn.principal_id != grant.principal_id
+            or spawn.tool_name != grant.tool_name
+        ):
+            raise ValueError("object broker spawn does not match grant")
         active: dict[str, set[tuple[str, str]]] = {}
         for rule in grant.rules:
             if rule.domain is AuthorityDomain.SERVICE:
@@ -108,9 +114,11 @@ class _ObjectBroker(CredentialBroker):
                 continue
             indexed[key] = None if key in indexed else line
         self._lines_by_request = indexed
-        session = super().open_session(spawn, grant)
         self.spawn = spawn
-        return session
+
+    def open_session(self, spawn, grant):
+        self.bind_spawn(spawn, grant)
+        return super().open_session(spawn, grant)
 
     def _handle_frame(
         self, frame: bytes, spawn: SpawnRecord, grant: Grant
@@ -157,6 +165,8 @@ class _ObjectBroker(CredentialBroker):
 
 
 class _ObjectWorker(LandlockSandboxExecutor):
+    _host_adapter_type = _LandlockObjectAdapter
+
     def __init__(
         self,
         object_grant: ObjectGrant,
@@ -241,7 +251,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
         return {"broker_client_imports": imports} if imports else {}
 
     def _prepare_grant(self, grant, ledger):
-        self.host_adapter = _LandlockObjectAdapter(self, grant)
+        self.host_adapter = self._host_adapter_type(self, grant)
         host = self.host_adapter.attest(secrets.token_hex(16))
         broker_lines = tuple(
             line
@@ -288,7 +298,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
                                 if support
                                 else (),
                                 "required_capabilities": tuple(
-                                    support.required_capabilities
+                                    sorted(support.required_capabilities)
                                 )
                                 if support
                                 else (),
@@ -330,6 +340,10 @@ class _ObjectWorker(LandlockSandboxExecutor):
                 )
                 for item in compile_obligations(grant, additional=additional)
             )
+            self._execution_obligations = obligations
+            checker = getattr(self, "lifecycle_checker", None)
+            if checker is not None:
+                self._check_lean_grant(grant, ledger, obligations)
             self.record, self.coordinator = negotiate_object_grant(
                 grant,
                 ledger,

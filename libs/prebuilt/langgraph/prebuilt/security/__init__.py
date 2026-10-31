@@ -137,6 +137,7 @@ from langgraph.prebuilt.security.linux_object import LinuxObjectDispatcher
 from langgraph.prebuilt.security.mac import install_mac_policy
 from langgraph.prebuilt.security.macos import MacOSSandboxExecutor, MacOSToolSpec
 from langgraph.prebuilt.security.macos_native import MacOSNativeLauncher
+from langgraph.prebuilt.security.macos_object import MacOSObjectDispatcher
 from langgraph.prebuilt.security.mcp_proxy import (
     McpServerSpec,
     McpStdioProxy,
@@ -358,6 +359,7 @@ __all__ = (
     "MacOSSandboxExecutor",
     "MacOSToolSpec",
     "MacOSNativeLauncher",
+    "MacOSObjectDispatcher",
     "IntegrityRecheckMode",
     "LinuxObjectDispatcher",
     "LinuxCapabilities",

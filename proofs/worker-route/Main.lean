@@ -2,6 +2,7 @@ import Lean
 import WorkerRoute
 import ReceiptCoverage
 import GrantCoverage
+import ResourceGrantCoverage
 
 /-! Typed JSON transport for the executable core. Decoder/compiler/IO correctness
 are explicit bridge premises, not consequences of the WorkerRoute theorems. -/
@@ -410,19 +411,24 @@ private def phaseName : Phase → String
 
 private def requestPhase (value : Json) : Except String String := do
   match ← textField value "kind" with
-    | "grant" => do
+    | "grant" | "object-grant" => do
       fields value ["protocol", "kind", "grant", "obligations"]
       let original ← grant (← value.getObjVal? "grant")
       let obligations ← recordArray value "obligations" obligation
-      return if GrantCoverage.obligationsAccept original obligations then "grant_ready" else "refused"
-    | "route" => do
+      let objectRoute := (← textField value "kind") == "object-grant"
+      let accepted := if objectRoute then ResourceGrantCoverage.obligationsAccept original obligations
+        else GrantCoverage.obligationsAccept original obligations
+      return if accepted then "grant_ready" else "refused"
+    | "route" | "object-route" => do
       fields value ["protocol", "kind", "binding", "certificate", "events"]
       let original ← binding (← value.getObjVal? "binding")
       let certificate ← certificate (← value.getObjVal? "certificate")
       let events ← (← value.getObjVal? "events").getArr?
       unless events.size ≤ 32 do throw "event budget"
       let events ← events.toList.mapM event
-      return phaseName (GrantCoverage.runCertified original certificate events).phase
+      let objectRoute := (← textField value "kind") == "object-route"
+      return phaseName (if objectRoute then ResourceGrantCoverage.runCertified original certificate events
+        else GrantCoverage.runCertified original certificate events).phase
     | _ => throw "unsupported request kind"
 
 private def check (input : String) : Except String Json := do
