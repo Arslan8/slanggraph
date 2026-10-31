@@ -10,24 +10,27 @@ Run: `run-01`, macOS 26.7.2 / build 25G332, Apple M4 Pro arm64, CPython 3.13.1.
 Base revision: `fc6d2aafff281611d101daa9951aeb354075a058`; branch `macOS`,
 with all tested source bytes preserved in the run's content-addressed archive.
 
-## Application-level parity has not been evaluated
+## Protected application parity remains open
 
-**We have not run the same demos on Linux and macOS.** This campaign measures a
-two-file calculation and native attack/control cases. Its sampling structure
-resembles the Linux microbenchmarks, but the workloads, hardware, measurement
-boundaries, and enabled protections differ. Its timings are not an OS performance
-comparison. This is component-level portability evidence only.
+The frozen baseline applications have now run on macOS in a
+[subsequent baseline-only campaign](../macos-baseline-v1/RESULTS.md): **175 demo
+attempts, 115 correct**, and **50 Pandas attempts, 50 correct**. All eight demo
+application sources match the Linux campaign. No demo logic was ported.
+
+We have not run the same **protected** application evaluation on Linux and
+macOS. This earlier native campaign measures a two-file calculation and native
+attack/control cases; its timings are not an OS performance comparison.
 
 | Evaluation | Linux | macOS |
 | --- | --- | --- |
-| 15-application dataset, 350 attempts | Run in the ordinary-demo campaign | Not run |
-| Pandas case study | Attempted; latest protected cohort failed activation | Not run |
+| 15-application paired dataset, 350 attempts | Run | 175 baseline attempts; protected condition not run |
+| Pandas case study | Latest baseline 50/50; protected cohort failed activation | Baseline 50/50; protected condition not run |
 | Native confinement tests | Linux-specific tests | Separate macOS-specific tests |
 | Complete admitted route with runtime Lean checks | Implemented | Not integrated |
 
-See the [ordinary-demo results](../langgraph-demos-v3/RESULTS.md), the
-[latest Pandas results](../pandas-matched-aggressive-v3-20261030/RESULTS.md), and
-[requirements for a matched application campaign](APPLICATION-PARITY.md).
+See the [ordinary-demo results](../langgraph-demos-v3/RESULTS.md),
+[latest Linux Pandas results](../pandas-matched-aggressive-v3-20261030/RESULTS.md),
+and [remaining matched application requirements](APPLICATION-PARITY.md).
 CPU qualification remains deferred independently of these application-route gaps.
 
 ## Observed results
@@ -118,7 +121,7 @@ is diagnostic only.
 | Session-level timing statistics and retained first-use/warmups | Implemented |
 | Lean-certified route and P3/P4/P5 pipeline | Not run; Linux memfd transport, no local `lake` |
 | Closed graph admission | Still refuses this executor |
-| Cedar/full LLM/Pandas application cohort | Not run / unqualified |
+| Protected Cedar/LLM/Pandas cohort | Not run; [baseline-only cohort completed](../macos-baseline-v1/RESULTS.md) |
 | Shared successful Linux/macOS profile | Open: macOS fixtures explicitly omit unsupported `@minimal` |
 | Cross-host equivalence and OS/architecture matrix | Not established |
 

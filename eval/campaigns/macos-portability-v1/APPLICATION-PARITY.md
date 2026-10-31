@@ -1,7 +1,10 @@
 # Requirements for matched application portability
 
-Status: **not executed on macOS**. This is the next evaluation milestone, not a
-result or evidence of an admitted macOS application route.
+Status: **baseline conditions executed; protected macOS route not integrated**.
+The [baseline campaign](../macos-baseline-v1/RESULTS.md) retained 175 demo attempts
+(115 correct) and 50 Pandas attempts (50 correct) using the frozen application
+sources and oracles. The requirements below remain for a matched protected
+application evaluation; baseline execution does not establish an admitted route.
 
 ## Freeze the existing applications
 

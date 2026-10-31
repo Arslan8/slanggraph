@@ -1,9 +1,15 @@
 {
   "application_parity": {
+    "baseline_demo_attempts": 175,
+    "baseline_demo_correct": 115,
+    "baseline_pandas_attempts": 50,
+    "baseline_pandas_correct": 50,
+    "baseline_report": "../macos-baseline-v1/RESULTS.md",
     "closed_lean_route_integrated_on_macos": false,
     "cross_os_performance_comparison_valid": false,
     "evidence_level": "native_component_only",
-    "pandas_run_on_macos": false,
+    "pandas_protected_run_on_macos": false,
+    "pandas_run_on_macos": true,
     "same_15_demo_campaign_run_on_macos": false
   },
   "attack_observations": 130,

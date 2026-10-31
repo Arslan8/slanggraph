@@ -1,0 +1,153 @@
+{
+  "applications": {
+    "D1-sql": {
+      "attempted": 25,
+      "correct": 10,
+      "mean_wall_ms": 11957.267319999519,
+      "statuses": {
+        "completed": 25
+      }
+    },
+    "D2-rag": {
+      "attempted": 25,
+      "correct": 20,
+      "mean_wall_ms": 8055.743018441135,
+      "statuses": {
+        "completed": 25
+      }
+    },
+    "D3-plan-execute": {
+      "attempted": 25,
+      "correct": 0,
+      "mean_wall_ms": 23208.714181599207,
+      "statuses": {
+        "execution_error": 25
+      }
+    },
+    "D4-multi-agent": {
+      "attempted": 25,
+      "correct": 15,
+      "mean_wall_ms": 140319.8171366396,
+      "statuses": {
+        "completed": 15,
+        "timeout": 10
+      }
+    },
+    "D5-support": {
+      "attempted": 25,
+      "correct": 20,
+      "mean_wall_ms": 15610.59276688029,
+      "statuses": {
+        "completed": 25
+      }
+    },
+    "Pandas": {
+      "attempted": 50,
+      "correct": 50,
+      "mean_wall_ms": 15180.688789240001,
+      "statuses": {
+        "completed": 50
+      }
+    },
+    "T1-add-tools": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 3403.360558595159,
+      "statuses": {
+        "completed": 5
+      }
+    },
+    "T10-time-travel": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 3421.3758248020895,
+      "statuses": {
+        "completed": 5
+      }
+    },
+    "T2-custom-weather": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 2749.5312502025627,
+      "statuses": {
+        "completed": 5
+      }
+    },
+    "T3-fixed-weather": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 1103.1048249977175,
+      "statuses": {
+        "completed": 5
+      }
+    },
+    "T4-parallel-weather": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 1278.5118168016197,
+      "statuses": {
+        "completed": 5
+      }
+    },
+    "T5-prebuilt-multiply": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 3595.5479752010433,
+      "statuses": {
+        "completed": 5
+      }
+    },
+    "T6-return-direct": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 2071.476058397093,
+      "statuses": {
+        "completed": 5
+      }
+    },
+    "T7-forced-tool": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 2068.834449996939,
+      "statuses": {
+        "completed": 5
+      }
+    },
+    "T8-serial-tools": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 3493.89566660102,
+      "statuses": {
+        "completed": 5
+      }
+    },
+    "T9-add-memory": {
+      "attempted": 5,
+      "correct": 5,
+      "mean_wall_ms": 5590.549757998087,
+      "statuses": {
+        "completed": 5
+      }
+    }
+  },
+  "attempted": 225,
+  "baseline_only": true,
+  "checksums_sha256": "672480288b4c1a5835522e5a8fd8ba319ea8d7b156cbd4694bc11f1ef4a92d9b",
+  "correct": 165,
+  "cross_os_speedup_claim": false,
+  "demo_attempts": 175,
+  "demo_correct": 115,
+  "evidence_bundle": {
+    "bytes": 64690060,
+    "path": "run-01.tar.gz",
+    "sha256": "0e9d7a7542d56b85572252f24227100c5a154fd6920bd997ff6396d5f37fc5eb"
+  },
+  "evidence_valid": true,
+  "execution_snapshots_verified": 283,
+  "harness_unit_tests_passed": 5,
+  "issues": [],
+  "pandas_attempts": 50,
+  "pandas_correct": 50,
+  "protected_application_parity": false,
+  "run": "run-01"
+}
