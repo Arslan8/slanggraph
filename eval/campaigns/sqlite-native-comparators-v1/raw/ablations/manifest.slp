@@ -1,0 +1,5 @@
+runs linux
+map operation=read db_record read @{record} need
+map operation=write db_record write @{record} need
+map operation=delete db_record delete @{record} need
+returns sensitive

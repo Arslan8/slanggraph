@@ -1,0 +1,63 @@
+{
+  "pins": {
+    "progent": "5be7b63fa96f70bc19b72fbcee81f1c0bcc1a565",
+    "nono": "8db15c939053374d9c6c6ad12365e25ee0552e95",
+    "sandlock": "620b2decd826d915edd818187244bf62ae25fe5d",
+    "apf": "77f5a23902fa5b47a059293c5a0074dfc3159690",
+    "camel": "f083b6b396399d3b3c7f2ddaf613a5945eaf32d8"
+  },
+  "attacks": [
+    "denied_read",
+    "denied_write",
+    "denied_delete",
+    "selector_substitution",
+    "omitted_write",
+    "omitted_delete",
+    "direct_database",
+    "direct_wal",
+    "direct_shm",
+    "retry_broker_then_direct",
+    "rpc_spoof"
+  ],
+  "repetitions": 5,
+  "oracle": "composition.py canary disclosure plus before/after SQLite state",
+  "worker_sha256": "d4794a9b30e970f4f881cb18f6d96128b695b8d712c73eadeb1c16cbff292062",
+  "binaries": {
+    "nono": {
+      "path": "/tmp/sqlite-comparators-build.MMhFzz/nono/target/release/nono",
+      "sha256": "9fef90a48418d1a109f93da5a9f6e82d0a29fac8eaf47bbb2636d34884c4f714"
+    },
+    "sandlock": {
+      "path": "/tmp/sqlite-comparators-build.MMhFzz/sandlock/target/release/sandlock",
+      "sha256": "a33d7a1a0266383e7457d9e280a60d06b00d25f471979a1ed86df24addf9d536"
+    }
+  },
+  "camel_source_revision": "f083b6b396399d3b3c7f2ddaf613a5945eaf32d8",
+  "scope": "documented configuration/mechanism gaps; not vulnerability claims",
+  "progent_source_revision": "5be7b63fa96f70bc19b72fbcee81f1c0bcc1a565",
+  "systems": [
+    "progent",
+    "nono",
+    "sandlock",
+    "apf",
+    "camel"
+  ],
+  "runtimes": {
+    "progent": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "nono_sandlock_apf_camel": "3.10.12 (main, Jul 26 2023, 13:20:36) [Clang 16.0.3 ]"
+  },
+  "progent_adapter": {
+    "policy": {
+      "read_record": {
+        "record": {
+          "type": "string",
+          "enum": [
+            "alice"
+          ]
+        }
+      }
+    },
+    "check": "secagent.tool.check_tool_call, as invoked by ToolCallFilterMiddleware",
+    "source_checkout": "eval/vendor/progent"
+  }
+}

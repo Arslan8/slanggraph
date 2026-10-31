@@ -1,0 +1,17 @@
+{
+  "requested_revision": "07eb844",
+  "checked_on": "2026-10-30",
+  "repositories": [
+    {
+      "url": "https://github.com/sunblaze-ucb/progent",
+      "github_commit_api_status": 422,
+      "github_commit_api_message": "No commit found for SHA: 07eb844"
+    },
+    {
+      "url": "https://github.com/Agentic-AI-Risk-Mitigation/progent",
+      "github_commit_api_status": 422,
+      "github_commit_api_message": "No commit found for SHA: 07eb844"
+    }
+  ],
+  "decision": "requested revision unavailable; use vendored checkout 5be7b63fa96f70bc19b72fbcee81f1c0bcc1a565 per user direction"
+}

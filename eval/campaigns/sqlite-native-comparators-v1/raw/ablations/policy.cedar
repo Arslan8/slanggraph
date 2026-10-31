@@ -1,0 +1,2 @@
+permit(principal == slangGraph::User::"alice", action in [slangGraph::Action::"db_record::read", slangGraph::Action::"db_record::write", slangGraph::Action::"db_record::delete"], resource)
+when { resource.selector == "notes/alice" };

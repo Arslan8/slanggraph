@@ -1,0 +1,765 @@
+{
+  "repetitions": 5,
+  "attack_bodies": [
+    "denied_read",
+    "denied_write",
+    "denied_delete",
+    "selector_substitution",
+    "omitted_write",
+    "omitted_delete",
+    "direct_database",
+    "direct_wal",
+    "direct_shm",
+    "retry_broker_then_direct",
+    "rpc_spoof"
+  ],
+  "configurations": {
+    "apf": {
+      "legitimate_reads": 5,
+      "legitimate_trials": 5,
+      "attacks": {
+        "denied_read": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_write": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_delete": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "selector_substitution": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_write": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_delete": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_database": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_wal": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_shm": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "retry_broker_then_direct": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "rpc_spoof": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 5
+        }
+      }
+    },
+    "call_authorization_native": {
+      "legitimate_reads": 5,
+      "legitimate_trials": 5,
+      "attacks": {
+        "denied_read": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "selector_substitution": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_write": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_delete": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_database": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_wal": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_shm": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "retry_broker_then_direct": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "rpc_spoof": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 5
+        }
+      }
+    },
+    "camel": {
+      "legitimate_reads": 5,
+      "legitimate_trials": 5,
+      "attacks": {
+        "denied_read": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "selector_substitution": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_write": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_delete": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_database": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_wal": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_shm": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "retry_broker_then_direct": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "rpc_spoof": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 5
+        }
+      }
+    },
+    "filesystem_accessible": {
+      "legitimate_reads": 5,
+      "legitimate_trials": 5,
+      "attacks": {
+        "denied_read": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "selector_substitution": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_write": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_delete": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_database": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_wal": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_shm": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "retry_broker_then_direct": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "rpc_spoof": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 5
+        }
+      }
+    },
+    "incomplete_broker_reference": {
+      "legitimate_reads": 5,
+      "legitimate_trials": 5,
+      "attacks": {
+        "denied_read": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "selector_substitution": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_database": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_wal": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_shm": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "retry_broker_then_direct": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "rpc_spoof": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 5
+        }
+      }
+    },
+    "nono": {
+      "legitimate_reads": 5,
+      "legitimate_trials": 5,
+      "attacks": {
+        "denied_read": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_write": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_delete": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "selector_substitution": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_write": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_delete": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_database": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_wal": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_shm": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "retry_broker_then_direct": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "rpc_spoof": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 5
+        }
+      }
+    },
+    "production_composition": {
+      "legitimate_reads": 5,
+      "legitimate_trials": 5,
+      "attacks": {
+        "denied_read": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 5,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "selector_substitution": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_database": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_wal": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_shm": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "retry_broker_then_direct": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "rpc_spoof": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        }
+      }
+    },
+    "progent": {
+      "legitimate_reads": 5,
+      "legitimate_trials": 5,
+      "attacks": {
+        "denied_read": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "selector_substitution": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_write": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_delete": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_database": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_wal": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_shm": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "retry_broker_then_direct": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "rpc_spoof": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 5
+        }
+      }
+    },
+    "sandlock": {
+      "legitimate_reads": 5,
+      "legitimate_trials": 5,
+      "attacks": {
+        "denied_read": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "denied_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 5,
+          "unsupported": 0
+        },
+        "denied_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 5,
+          "unsupported": 0
+        },
+        "selector_substitution": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "omitted_write": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 5,
+          "unsupported": 0
+        },
+        "omitted_delete": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 5,
+          "unsupported": 0
+        },
+        "direct_database": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_wal": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "direct_shm": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "retry_broker_then_direct": {
+          "effects": 5,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 0
+        },
+        "rpc_spoof": {
+          "effects": 0,
+          "trials": 5,
+          "errors": 0,
+          "nonzero_exits": 0,
+          "unsupported": 5
+        }
+      }
+    }
+  }
+}

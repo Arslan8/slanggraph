@@ -1,0 +1,50 @@
+{
+  "progent": {
+    "revision": "5be7b63fa96f70bc19b72fbcee81f1c0bcc1a565",
+    "mechanism": "secagent.tool.check_tool_call, invoked by secagent.progent_proxy.ToolCallFilterMiddleware before call_next",
+    "policy": {
+      "read_record": [
+        [
+          1,
+          0,
+          {
+            "record": {
+              "type": "string",
+              "enum": [
+                "alice"
+              ]
+            }
+          },
+          0
+        ]
+      ]
+    },
+    "result": "Alice allowed 5/5; declared Bob read/write/delete denied 5/5; hidden Bob and direct database/WAL effects observed 5/5",
+    "interpretation": "The proxy authorizes visible arguments but does not constrain native effects inside an allowed tool."
+  },
+  "nono": {
+    "revision": "8db15c939053374d9c6c6ad12365e25ee0552e95",
+    "command": "cargo +1.95.0 test -p nono-cli --bin nono test_from_profile_allow_net_overrides",
+    "result": "2 passed; 0 failed; 2267 filtered out",
+    "tests": [
+      "capability_ext::tests::test_from_profile_allow_net_overrides_blocked_network",
+      "capability_ext::tests::test_from_profile_allow_net_overrides_proxy_mode"
+    ],
+    "interpretation": "Documented CLI override precedence changes a blocking or proxy profile to AllowAll."
+  },
+  "apf": {
+    "revision": "77f5a23902fa5b47a059293c5a0074dfc3159690",
+    "commands": [
+      "cargo test -p apf-openshell-middleware fixed_fixture_runs_through_evaluate_apply_wire_pipeline",
+      "cargo test -p apf-openshell-middleware non_mcp_and_non_json_bodies_still_reach_evaluator"
+    ],
+    "result": "2 selected tests passed; 0 failed",
+    "documentation_evidence": [
+      "docs/about/architecture.mdx: tool invocation and credential handling are outside APF",
+      "docs/author-policies/content-controls.mdx: content controls see the request only",
+      "docs/security/enforcement-coverage-and-limitations.mdx: responses and tool results are not inspected"
+    ],
+    "interpretation": "The SQLite native-tool trial is outside the content-policy middleware surface documented by APF."
+  },
+  "scope": "Configuration and documented coverage behavior; not a vulnerability claim."
+}
