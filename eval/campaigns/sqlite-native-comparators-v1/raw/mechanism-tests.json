@@ -44,7 +44,7 @@
       "docs/author-policies/content-controls.mdx: content controls see the request only",
       "docs/security/enforcement-coverage-and-limitations.mdx: responses and tool results are not inspected"
     ],
-    "interpretation": "The SQLite native-tool trial is outside the content-policy middleware surface documented by APF."
+    "interpretation": "APF neither disallowed nor evaluated the SQLite native-tool trial: the path recorded zero middleware dispatches. APF is broken for this native-tool record-authorization objective in the tested configuration, as a documented enforcement-coverage failure rather than a bypass of an APF deny decision."
   },
   "scope": "Configuration and documented coverage behavior; not a vulnerability claim."
 }

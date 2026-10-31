@@ -133,9 +133,12 @@ def main() -> None:
             "Sandlock's read-only profile denied all four mutation bodies; its six "
             "content-read bodies landed. The native configurations have no record-broker "
             "identity protocol, so `rpc_spoof` is unsupported rather than counted as a "
-            "prevented effect. APF's label refers only to the documented content-policy "
-            "middleware configuration: native local tool invocation is outside that "
-            "surface. These are configuration-gap observations, not vulnerability claims.",
+            "prevented effect. APF neither disallowed nor evaluated the native local "
+            "tool: every trial recorded zero middleware dispatches, and the forbidden "
+            "effects landed. APF is therefore broken for this native-tool record-"
+            "authorization objective in the tested configuration. This is a documented "
+            "enforcement-coverage failure, not a bypass of an APF deny decision or a "
+            "general vulnerability claim.",
         ]
     )
     (ROOT / "RESULTS.md").write_text("\n".join(lines) + "\n")
