@@ -1,0 +1,931 @@
+{
+  "attack_observations": 130,
+  "attack_passed": 125,
+  "attack_results": [
+    {
+      "case": "allowed_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "denied_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "alias_allowed",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "alias_denied",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "symlink_escape",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "hardlink_inside",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "hardlink_outside",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "write",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "raw_fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "spawn",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "exec",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "network",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "signal",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "descriptors",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "cpu",
+      "issues": [
+        "attack/cpu/0: post-activation failure not contained"
+      ],
+      "passed": false,
+      "repeat": 0
+    },
+    {
+      "case": "wall",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "policy_forbid",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "wrong_principal",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "artifact_changed",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "unsupported_minimal",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "nonfinite_frame",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "receipt_grant",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "receipt_context",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "receipt_nonce",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "receipt_coverage",
+      "issues": [],
+      "passed": true,
+      "repeat": 0
+    },
+    {
+      "case": "allowed_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "denied_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "alias_allowed",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "alias_denied",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "symlink_escape",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "hardlink_inside",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "hardlink_outside",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "write",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "raw_fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "spawn",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "exec",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "network",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "signal",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "descriptors",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "cpu",
+      "issues": [
+        "attack/cpu/1: post-activation failure not contained"
+      ],
+      "passed": false,
+      "repeat": 1
+    },
+    {
+      "case": "wall",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "policy_forbid",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "wrong_principal",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "artifact_changed",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "unsupported_minimal",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "nonfinite_frame",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "receipt_grant",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "receipt_context",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "receipt_nonce",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "receipt_coverage",
+      "issues": [],
+      "passed": true,
+      "repeat": 1
+    },
+    {
+      "case": "allowed_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "denied_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "alias_allowed",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "alias_denied",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "symlink_escape",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "hardlink_inside",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "hardlink_outside",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "write",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "raw_fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "spawn",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "exec",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "network",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "signal",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "descriptors",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "cpu",
+      "issues": [
+        "attack/cpu/2: post-activation failure not contained"
+      ],
+      "passed": false,
+      "repeat": 2
+    },
+    {
+      "case": "wall",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "policy_forbid",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "wrong_principal",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "artifact_changed",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "unsupported_minimal",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "nonfinite_frame",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "receipt_grant",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "receipt_context",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "receipt_nonce",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "receipt_coverage",
+      "issues": [],
+      "passed": true,
+      "repeat": 2
+    },
+    {
+      "case": "allowed_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "denied_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "alias_allowed",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "alias_denied",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "symlink_escape",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "hardlink_inside",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "hardlink_outside",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "write",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "raw_fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "spawn",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "exec",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "network",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "signal",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "descriptors",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "cpu",
+      "issues": [
+        "attack/cpu/3: post-activation failure not contained"
+      ],
+      "passed": false,
+      "repeat": 3
+    },
+    {
+      "case": "wall",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "policy_forbid",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "wrong_principal",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "artifact_changed",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "unsupported_minimal",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "nonfinite_frame",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "receipt_grant",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "receipt_context",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "receipt_nonce",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "receipt_coverage",
+      "issues": [],
+      "passed": true,
+      "repeat": 3
+    },
+    {
+      "case": "allowed_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "denied_exact",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "alias_allowed",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "alias_denied",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "symlink_escape",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "hardlink_inside",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "hardlink_outside",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "write",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "raw_fork",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "spawn",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "exec",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "network",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "signal",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "descriptors",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "cpu",
+      "issues": [
+        "attack/cpu/4: post-activation failure not contained"
+      ],
+      "passed": false,
+      "repeat": 4
+    },
+    {
+      "case": "wall",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "policy_forbid",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "wrong_principal",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "artifact_changed",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "unsupported_minimal",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "nonfinite_frame",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "receipt_grant",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "receipt_context",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "receipt_nonce",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    },
+    {
+      "case": "receipt_coverage",
+      "issues": [],
+      "passed": true,
+      "repeat": 4
+    }
+  ],
+  "checksums_sha256": "f0de9865a143c26a8c877ba70ac3f06fd03e0d2360aaa0387f2c0d9e103cb18c",
+  "cross_host_validated": false,
+  "evidence_bundle": {
+    "path": "run-01.tar.gz",
+    "sha256": "0f0a1b868db0c7a6f441e53ab1c5328bfc3a6f71954935c1d2709ff7f6c231f7"
+  },
+  "issues": [
+    "attack/cpu/0: post-activation failure not contained",
+    "attack/cpu/1: post-activation failure not contained",
+    "attack/cpu/2: post-activation failure not contained",
+    "attack/cpu/3: post-activation failure not contained",
+    "attack/cpu/4: post-activation failure not contained"
+  ],
+  "lean_validated": false,
+  "measured_calls": 100,
+  "native_census": {
+    "exact": 13,
+    "unsupported": 8
+  },
+  "oracle_mutations_rejected": 11,
+  "passed": false,
+  "review_scope": {
+    "cpu_qualification": "deferred_by_user",
+    "full_campaign_result_unchanged": true,
+    "non_cpu_attack_observations": 125,
+    "non_cpu_attack_passed": 125
+  },
+  "run": "run-01",
+  "scope": "experimental native component; not closed/admitted, Cedar/Lean certified, or an LLM application",
+  "sessions": 5,
+  "statistics": {
+    "added_ms": {
+      "ci95": [
+        55.94526445418372,
+        73.27040660581628
+      ],
+      "mean": 64.60783553,
+      "sessions": 5
+    },
+    "baseline_ms": {
+      "ci95": [
+        0.06002323835127725,
+        0.09358086164872274
+      ],
+      "mean": 0.07680205,
+      "sessions": 5
+    },
+    "elapsed_ms": {
+      "ci95": [
+        56.0093479546293,
+        73.35992720537071
+      ],
+      "mean": 64.68463758,
+      "sessions": 5
+    },
+    "executor_setup_ms": {
+      "ci95": [
+        -58.32850217420665,
+        356.1896021742066
+      ],
+      "mean": 148.93054999999998,
+      "sessions": 5
+    },
+    "first_use_ms": {
+      "ci95": [
+        60.25057730885218,
+        72.7161726911478
+      ],
+      "mean": 66.483375,
+      "sessions": 5
+    },
+    "phases_ms": {
+      "activation_ms": {
+        "ci95": [
+          49.064687022597155,
+          65.45581223740284
+        ],
+        "mean": 57.26024963,
+        "sessions": 5
+      },
+      "audit_ms": {
+        "ci95": [
+          0.2538360338090882,
+          0.45052554619091184
+        ],
+        "mean": 0.35218079,
+        "sessions": 5
+      },
+      "cleanup_ms": {
+        "ci95": [
+          2.877242595190722,
+          2.9782347048092777
+        ],
+        "mean": 2.9277386499999998,
+        "sessions": 5
+      },
+      "execution_ms": {
+        "ci95": [
+          1.313805969272238,
+          1.846932370727762
+        ],
+        "mean": 1.58036917,
+        "sessions": 5
+      },
+      "framework_residual_ms": {
+        "ci95": [
+          0.08812047497071315,
+          0.1374231450292864
+        ],
+        "mean": 0.11277180999999978,
+        "sessions": 5
+      },
+      "preparation_authorization_negotiation_ms": {
+        "ci95": [
+          2.2334541403330577,
+          2.669200919666942
+        ],
+        "mean": 2.45132753,
+        "sessions": 5
+      }
+    },
+    "primitive_relative_multiple": {
+      "ci95": [
+        730.6325588705901,
+        978.1282313264384
+      ],
+      "mean": 854.3803950985142,
+      "sessions": 5
+    }
+  },
+  "system_complete": false,
+  "test_gates": {
+    "passed": 237,
+    "skipped": 53
+  }
+}
