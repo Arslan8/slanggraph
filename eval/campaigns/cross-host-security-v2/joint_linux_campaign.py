@@ -8,6 +8,7 @@ import platform
 import subprocess
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -104,7 +105,7 @@ def main():
     dump(out / "pandas-runtime-manifest.json", manifest)
     ledger = []
 
-    def stage(name, command):
+    def stage(name, command, validate=None):
         started = time.time_ns()
         with (out / f"{name}.log").open("w") as log:
             process = subprocess.run(
@@ -117,11 +118,28 @@ def main():
                 "started_ns": started,
                 "ended_ns": time.time_ns(),
                 "returncode": process.returncode,
+                "validation": validate() if validate is not None else None,
             }
         )
         dump(out / "stage-ledger.json", ledger)
         print(name, process.returncode, flush=True)
         return process.returncode
+
+    def validate_micro(route):
+        rows = [
+            json.loads(line)
+            for path in (out / "microbenchmarks" / route).glob("*.jsonl")
+            for line in path.read_text().splitlines()
+        ]
+        protected = [row for row in rows if row.get("kind") == "call" and row.get("route") == route]
+        phases = dict(Counter(row["phase"] for row in protected))
+        return {
+            "valid": phases == {"first_use": 5, "warmup": 50, "measured": 100}
+            and all(row.get("valid") is True for row in protected),
+            "protected_phases": phases,
+            "valid_protected_calls": sum(row.get("valid") is True for row in protected),
+            "invalid_protected_calls": sum(row.get("valid") is not True for row in protected),
+        }
 
     if "security" in args.stages:
         stage("security", [sys.executable, str(HERE / "run.py"), "--output", str(out / "security")])
@@ -155,6 +173,7 @@ def main():
                     "--output",
                     str(out / "microbenchmarks" / route),
                 ],
+                validate=lambda route=route: validate_micro(route),
             )
     if "pandas" in args.stages:
         stage(
@@ -183,7 +202,12 @@ def main():
             + (1 if "pandas" in args.stages else 0),
             "source_stable": before == after,
             "revision": revision,
-            "stage_failures": [item["name"] for item in ledger if item["returncode"]],
+            "stage_failures": [
+                item["name"]
+                for item in ledger
+                if item["returncode"]
+                or (item["validation"] is not None and not item["validation"]["valid"])
+            ],
         },
     )
 

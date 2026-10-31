@@ -4,6 +4,7 @@ import atexit
 import json
 import os
 import sys
+import sysconfig
 import uuid
 from dataclasses import asdict
 from pathlib import Path
@@ -111,6 +112,16 @@ def native_object_dispatcher(tools, **kwargs):
         return _macos_dispatcher(tools, **kwargs)
     from langgraph.prebuilt.security import LinuxObjectDispatcher
 
+    # Isolated Python starts without site initialization. Declare the trusted
+    # interpreter's package directories explicitly, as the Mac configuration does.
+    kwargs["runtime_roots"] = tuple(
+        dict.fromkeys(
+            (
+                *kwargs.get("runtime_roots", ()),
+                *(Path(sysconfig.get_path(name)).resolve() for name in ("purelib", "platlib")),
+            )
+        )
+    )
     return LinuxObjectDispatcher(tools, **kwargs)
 
 

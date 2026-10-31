@@ -151,6 +151,8 @@ def main():
     shutil.copytree(
         HERE, snapshot / "pandas", ignore=shutil.ignore_patterns("__pycache__", "*.pyc")
     )
+    (snapshot / "demos").mkdir()
+    shutil.copy2(HERE.parent / "demos/native_host.py", snapshot / "demos/native_host.py")
     shutil.copy2(ROOT / "eval/remaining/application_campaign.py", snapshot)
     sources = {
         str(p.relative_to(snapshot)): hashlib.sha256(p.read_bytes()).hexdigest()
