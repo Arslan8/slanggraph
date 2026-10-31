@@ -1,0 +1,57 @@
+{
+  "all_passed": true,
+  "controls": [
+    {
+      "name": "Bob disclosure",
+      "expected": "Failed",
+      "actual": "Failed",
+      "reason": "forbidden resource effect or mandatory gate omission"
+    },
+    {
+      "name": "listener accepted",
+      "expected": "Failed",
+      "actual": "Failed",
+      "reason": "forbidden resource effect or mandatory gate omission"
+    },
+    {
+      "name": "dead listener positive control",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "unprotected action did not demonstrate the intended effect"
+    },
+    {
+      "name": "allowed result lost",
+      "expected": "Failed",
+      "actual": "Failed",
+      "reason": "allowed operation did not succeed"
+    },
+    {
+      "name": "cleanup unconfirmed",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "cleanup unconfirmed"
+    },
+    {
+      "name": "cleanup window too short",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "observation window shorter than five seconds"
+    },
+    {
+      "name": "effect after cleanup",
+      "expected": "Failed",
+      "actual": "Failed",
+      "reason": "forbidden resource effect or mandatory gate omission"
+    },
+    {
+      "name": "mandatory gate omitted",
+      "expected": "Failed",
+      "actual": "Failed",
+      "reason": "forbidden resource effect or mandatory gate omission"
+    },
+    {
+      "name": "fabricated state vs SQLite backup",
+      "actual": "rejected"
+    }
+  ]
+}

@@ -12,6 +12,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("run", type=Path)
     args = parser.parse_args()
+    args.run = args.run.resolve()
     rows = [json.loads(line) for line in (args.run / "trials.jsonl").read_text().splitlines()]
     by_key = {(row["case"], row["condition"]): row for row in rows if row["repetition"] == 0}
     results = []
@@ -78,7 +79,8 @@ def main():
     folder = args.run / "trials/bob_read-0/Argus"
     try:
         check_row(folder, row)
-    except ValueError:
+    except ValueError as error:
+        assert "resource snapshot disagrees with SQLite backup" in str(error), str(error)
         results.append({"name": "fabricated state vs SQLite backup", "actual": "rejected"})
     else:
         raise AssertionError("fabricated SQLite snapshot accepted")

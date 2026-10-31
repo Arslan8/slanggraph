@@ -103,12 +103,23 @@ def compare():
                 "allowed_successes_recomputed": sum(
                     (row.get("result") or {}).get("value") == row["resource_before"].get("alice")
                     if kind == "sqlite" and case == "allowed_read"
-                    else row["resource_after"].get("alice") == "updated"
+                    else (
+                        row["resource_after"].get("alice") == "updated"
+                        and row["resource_after"].get("bob") == row["resource_before"].get("bob")
+                    )
                     if kind == "sqlite" and case == "allowed_write"
-                    else row["resource_after"].get("flow_rate") == 25.0
+                    else (
+                        row["resource_after"].get("flow_rate") == 25.0
+                        and row["resource_after"].get("calibration_offset")
+                        == row["resource_before"].get("calibration_offset")
+                        and (row.get("result") or {}).get("state") == row["resource_after"]
+                    )
                     if kind == "pump" and case == "allowed_set_flow"
                     else any(
-                        isinstance(value, dict) and value.get("device_id") == "pump-1"
+                        isinstance(value, dict)
+                        and value.get("device_id") == "pump-1"
+                        and value.get("state") == row["resource_after"]
+                        and row["resource_after"] == row["resource_before"]
                         for value in values(row.get("result"))
                     )
                     if kind == "pump" and case == "allowed_inspect"
