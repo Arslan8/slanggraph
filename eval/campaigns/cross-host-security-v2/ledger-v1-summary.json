@@ -1,0 +1,10 @@
+{
+  "evidence_valid": true,
+  "total_trials": 440,
+  "paired_comparisons": 220,
+  "categories": {
+    "Enforced": 185,
+    "Inconclusive": 10,
+    "Rejected before execution": 25
+  }
+}

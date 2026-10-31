@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "trials": 100,
+  "expected_trials": 100,
+  "successes": {
+    "slangGraph/grouped_mean": 5,
+    "slangGraph/monthly_chart": 5,
+    "Baseline/regional_totals": 5,
+    "slangGraph/missing_count": 5,
+    "slangGraph/duplicate_count": 5,
+    "slangGraph/product_totals": 5,
+    "slangGraph/top_products": 5,
+    "slangGraph/monthly_total": 5,
+    "Baseline/date_filtered_total": 5,
+    "Baseline/monthly_chart": 5,
+    "Baseline/grouped_mean": 5,
+    "Baseline/monthly_total": 5,
+    "Baseline/monthly_mean": 5,
+    "Baseline/duplicate_count": 5,
+    "slangGraph/regional_totals": 5,
+    "slangGraph/date_filtered_total": 5,
+    "Baseline/top_products": 5,
+    "Baseline/missing_count": 5,
+    "Baseline/product_totals": 5
+  },
+  "failures": {
+    "slangGraph/monthly_mean": 5
+  },
+  "timeouts": 0,
+  "issues": [],
+  "checks": [
+    "task/repetition pairing",
+    "trusted task list and oracle replay",
+    "common settings, model, fixture, and source identities",
+    "Baseline negative security evidence",
+    "slangGraph admission, policy, audit, and activation evidence",
+    "retained protected non-finite refusals"
+  ]
+}

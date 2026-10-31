@@ -1,0 +1,607 @@
+{
+  "platform": "macOS-26.7.2-arm64-arm-64bit",
+  "python": "3.11.18 (main, Oct 26 2026, 13:58:42) [Clang 23.1.3 ]",
+  "profile": "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+  "rows": [
+    {
+      "kind": "computation",
+      "condition": "seatbelt_only",
+      "repetition": 0,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000404, \"user_seconds\": 2.007403, \"system_seconds\": 0.022092999999999998}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.043536209006561,
+      "parent_observed_user_seconds": 2.009856,
+      "parent_observed_system_seconds": 0.022279999999999998
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 0,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0074018750165123,
+      "parent_observed_user_seconds": 0.993728,
+      "parent_observed_system_seconds": 0.007768000000000001
+    },
+    {
+      "kind": "computation",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 0,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0068973749876022,
+      "parent_observed_user_seconds": 0.9924949999999999,
+      "parent_observed_system_seconds": 0.009050000000000002
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_only",
+      "repetition": 0,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.00001, \"user_seconds\": 0.763508, \"system_seconds\": 1.254748}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.026287541986676,
+      "parent_observed_user_seconds": 0.765517,
+      "parent_observed_system_seconds": 1.2547869999999999
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 0,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000029, \"user_seconds\": 0.771083, \"system_seconds\": 1.242571}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0198602080054116,
+      "parent_observed_user_seconds": 0.7732080000000003,
+      "parent_observed_system_seconds": 1.2427890000000001
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 0,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000014, \"user_seconds\": 0.77172, \"system_seconds\": 1.246264}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0267751250066794,
+      "parent_observed_user_seconds": 0.7737639999999999,
+      "parent_observed_system_seconds": 1.24633
+    },
+    {
+      "kind": "computation",
+      "condition": "seatbelt_only",
+      "repetition": 1,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.0002299999999997, \"user_seconds\": 2.007948, \"system_seconds\": 0.010421}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.026130749989534,
+      "parent_observed_user_seconds": 2.0105720000000007,
+      "parent_observed_system_seconds": 0.01058799999999982
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 1,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0048023749841377,
+      "parent_observed_user_seconds": 0.9936299999999996,
+      "parent_observed_system_seconds": 0.007544000000000217
+    },
+    {
+      "kind": "computation",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 1,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0060624159814324,
+      "parent_observed_user_seconds": 0.9941870000000002,
+      "parent_observed_system_seconds": 0.0069509999999999295
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_only",
+      "repetition": 1,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.0000099999999996, \"user_seconds\": 0.7674099999999999, \"system_seconds\": 1.25056}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0247914580104407,
+      "parent_observed_user_seconds": 0.769482,
+      "parent_observed_system_seconds": 1.2506109999999997
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 1,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000015, \"user_seconds\": 0.780372, \"system_seconds\": 1.233322}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.019055209006183,
+      "parent_observed_user_seconds": 0.7824580000000001,
+      "parent_observed_system_seconds": 1.2334250000000004
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 1,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000022, \"user_seconds\": 0.774038, \"system_seconds\": 1.244103}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0259779169864487,
+      "parent_observed_user_seconds": 0.7761099999999992,
+      "parent_observed_system_seconds": 1.244408
+    },
+    {
+      "kind": "computation",
+      "condition": "seatbelt_only",
+      "repetition": 2,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.00035, \"user_seconds\": 2.006803, \"system_seconds\": 0.012251}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.02744558401173,
+      "parent_observed_user_seconds": 2.0089520000000007,
+      "parent_observed_system_seconds": 0.012401999999999802
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 2,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0048578330024611,
+      "parent_observed_user_seconds": 0.993017,
+      "parent_observed_system_seconds": 0.008227999999999902
+    },
+    {
+      "kind": "computation",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 2,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0062639169918839,
+      "parent_observed_user_seconds": 0.993034999999999,
+      "parent_observed_system_seconds": 0.008331000000000088
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_only",
+      "repetition": 2,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000039, \"user_seconds\": 0.7904049999999999, \"system_seconds\": 1.228959}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0275925830064807,
+      "parent_observed_user_seconds": 0.7931179999999998,
+      "parent_observed_system_seconds": 1.2292630000000004
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 2,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.0000299999999998, \"user_seconds\": 0.768176, \"system_seconds\": 1.249916}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.023035499994876,
+      "parent_observed_user_seconds": 0.7704349999999991,
+      "parent_observed_system_seconds": 1.250164999999999
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 2,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000024, \"user_seconds\": 0.7959689999999999, \"system_seconds\": 1.224975}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0282190419966355,
+      "parent_observed_user_seconds": 0.7980800000000023,
+      "parent_observed_system_seconds": 1.2251849999999997
+    },
+    {
+      "kind": "computation",
+      "condition": "seatbelt_only",
+      "repetition": 3,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000442, \"user_seconds\": 2.007894, \"system_seconds\": 0.011005}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0276465420029126,
+      "parent_observed_user_seconds": 2.0099969999999985,
+      "parent_observed_system_seconds": 0.011114000000000956
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 3,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0041377079905942,
+      "parent_observed_user_seconds": 0.9933280000000018,
+      "parent_observed_system_seconds": 0.007825000000000415
+    },
+    {
+      "kind": "computation",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 3,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0056451669952367,
+      "parent_observed_user_seconds": 0.9920709999999993,
+      "parent_observed_system_seconds": 0.009228999999999488
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_only",
+      "repetition": 3,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000014, \"user_seconds\": 0.8021119999999999, \"system_seconds\": 1.216123}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0243900830100756,
+      "parent_observed_user_seconds": 0.804158000000001,
+      "parent_observed_system_seconds": 1.2162819999999996
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 3,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000009, \"user_seconds\": 0.777893, \"system_seconds\": 1.235974}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.019342375017004,
+      "parent_observed_user_seconds": 0.7799949999999995,
+      "parent_observed_system_seconds": 1.2360109999999995
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 3,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000024, \"user_seconds\": 0.816962, \"system_seconds\": 1.201268}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0252684580045752,
+      "parent_observed_user_seconds": 0.8190799999999996,
+      "parent_observed_system_seconds": 1.2017160000000011
+    },
+    {
+      "kind": "computation",
+      "condition": "seatbelt_only",
+      "repetition": 4,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000047, \"user_seconds\": 2.007544, \"system_seconds\": 0.0118}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.034554374986328,
+      "parent_observed_user_seconds": 2.0096279999999993,
+      "parent_observed_system_seconds": 0.01235299999999917
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 4,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0117162500100676,
+      "parent_observed_user_seconds": 0.992998,
+      "parent_observed_system_seconds": 0.008290999999999826
+    },
+    {
+      "kind": "computation",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 4,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -24,
+      "signal": "SIGXCPU",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0234689170029014,
+      "parent_observed_user_seconds": 0.9912840000000003,
+      "parent_observed_system_seconds": 0.010285000000001432
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_only",
+      "repetition": 4,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [9223372036854775807, 9223372036854775807], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000033, \"user_seconds\": 0.7948189999999999, \"system_seconds\": 1.224056}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0369722500036005,
+      "parent_observed_user_seconds": 0.7969100000000005,
+      "parent_observed_system_seconds": 1.2243819999999985
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 4,
+      "command": [
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.0000120000000003, \"user_seconds\": 0.789729, \"system_seconds\": 1.223998}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0190543750068173,
+      "parent_observed_user_seconds": 0.7917670000000001,
+      "parent_observed_system_seconds": 1.2240430000000018
+    },
+    {
+      "kind": "syscall",
+      "condition": "seatbelt_and_rlimit",
+      "repetition": 4,
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1)(deny default)(allow process-exec)(allow file-read*)(allow file-map-executable)(allow sysctl-read)",
+        "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.00001, \"user_seconds\": 0.7855599999999999, \"system_seconds\": 1.232748}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.03683691698825,
+      "parent_observed_user_seconds": 0.7876399999999997,
+      "parent_observed_system_seconds": 1.2327869999999983
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "files_checked": 19715,
+  "all_match": true,
+  "issues": [],
+  "replays": {
+    "macos": {
+      "evidence_valid": true,
+      "categories": {
+        "Enforced": 185,
+        "Rejected before execution": 35
+      },
+      "total_trials": 440,
+      "native_success_certificates_replayed": 170
+    },
+    "linux": {
+      "evidence_valid": true,
+      "categories": {
+        "Enforced": 190,
+        "Inconclusive": 10,
+        "Rejected before execution": 20
+      },
+      "total_trials": 440,
+      "native_success_certificates_replayed": 0
+    },
+    "per_process_macos": {
+      "evidence_valid": true,
+      "categories": {
+        "Rejected before execution": 5
+      },
+      "total_trials": 10,
+      "native_success_certificates_replayed": 0
+    }
+  }
+}

@@ -18,12 +18,20 @@ confirmed cleanup before returning success. `ResourceGrantCoverage.lean`
 generates broker guard obligations from the captured grant. Compiler, decoder,
 controller, mediator and OS correspondence remain separate premises.
 
-CPU qualification is deferred. The application route's certified inventory
-therefore **does not promise an aggregate CPU ceiling**. The launcher still
-installs the hard rlimit as a best-effort restriction. Wall deadlines,
-descriptor limits and the remaining selected obligations are retained.
-Seatbelt does not advertise Linux `@minimal` syscall filtering. Unsupported
-required authority is refused.
+The policy parser recognizes `cpu per_process 1000 need`,
+`cpu aggregate 1000 need` and `syscalls @minimal need` on every platform.
+Recognition preserves the requested obligation; concrete host negotiation
+determines support. Mandatory unsupported controls produce a lowering refusal
+with the original grant, host capabilities, obligation parameters, adapter
+assessments and `tool_released: false`.
+
+The Mac adapter refuses per-process total CPU as unqualified after the
+syscall-heavy reproducer, aggregate CPU as unavailable, and Linux `@minimal`
+syscall filtering as unavailable. Its certified baseline omits CPU. The
+launcher already installs equal soft/hard RLIMIT_CPU before Seatbelt and Python;
+that guard remains a best-effort restriction. Wall deadlines, descriptor limits
+and the remaining selected obligations are retained. See the
+[qualification transcripts and review response](../../../eval/campaigns/cross-host-security-v2/REVIEW-RESPONSE.md).
 
 ## Build and configure
 

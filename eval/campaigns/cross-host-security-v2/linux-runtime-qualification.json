@@ -1,0 +1,14 @@
+{
+  "qualified_image": "sha256:835fd1d06e9dc127deac52ceb1cba538eaba692bdeba63e09cf78f39cfa28244",
+  "files": {
+    "/usr/local/bin/python3.11": "3e83cdfa4cdb93afd114c2b5742d48d653621fbbd7468ecd6e482e5143d1d4c4",
+    "/usr/local/lib/libpython3.11.so.1.0": "31e27c84b87e425d2372b0c47220072a770fbc04759631ac6c64c3bc2cd8b608",
+    "/usr/lib/aarch64-linux-gnu/libpython3.11.so.1.0": "31e27c84b87e425d2372b0c47220072a770fbc04759631ac6c64c3bc2cd8b608"
+  },
+  "identical_libpython_copy": true,
+  "package_roots": {
+    "purelib": "/opt/argus/lib/python3.11/site-packages",
+    "platlib": "/opt/argus/lib/python3.11/site-packages"
+  },
+  "reason": "Provide identical trusted libpython in default loader search; declare interpreter packages for isolated Python."
+}

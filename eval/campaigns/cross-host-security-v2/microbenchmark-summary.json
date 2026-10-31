@@ -1,0 +1,68 @@
+{
+  "landlock": {
+    "valid": true,
+    "phase_counts": {
+      "first_use": 5,
+      "warmup": 50,
+      "measured": 100
+    },
+    "valid_protected_calls": 155,
+    "invalid_protected_calls": 0,
+    "measured_calls": 100,
+    "mean_elapsed_ms": 66.42953087,
+    "median_elapsed_ms": 65.836738,
+    "baseline_mean_elapsed_ms": 0.02724017,
+    "session_mean_elapsed_ms": {
+      "0": 64.7133692,
+      "1": 68.34941055,
+      "2": 69.0830492,
+      "3": 65.47382525,
+      "4": 64.52800015
+    },
+    "operator_runtime_mac": false
+  },
+  "container": {
+    "valid": true,
+    "phase_counts": {
+      "first_use": 5,
+      "warmup": 50,
+      "measured": 100
+    },
+    "valid_protected_calls": 155,
+    "invalid_protected_calls": 0,
+    "measured_calls": 100,
+    "mean_elapsed_ms": 86.31607515,
+    "median_elapsed_ms": 86.3149145,
+    "baseline_mean_elapsed_ms": 0.03134515,
+    "session_mean_elapsed_ms": {
+      "0": 89.23954795,
+      "1": 86.788264,
+      "2": 86.79222955,
+      "3": 86.74244055,
+      "4": 82.0178937
+    },
+    "operator_runtime_mac": null
+  },
+  "broker": {
+    "valid": true,
+    "phase_counts": {
+      "first_use": 5,
+      "warmup": 50,
+      "measured": 100
+    },
+    "valid_protected_calls": 155,
+    "invalid_protected_calls": 0,
+    "measured_calls": 100,
+    "mean_elapsed_ms": 59.20040157,
+    "median_elapsed_ms": 57.918121,
+    "baseline_mean_elapsed_ms": 0.08682177,
+    "session_mean_elapsed_ms": {
+      "0": 56.3545775,
+      "1": 56.29088705,
+      "2": 60.33446965,
+      "3": 61.959551149999996,
+      "4": 61.0625225
+    },
+    "operator_runtime_mac": null
+  }
+}

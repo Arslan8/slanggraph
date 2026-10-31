@@ -1,0 +1,173 @@
+[
+    {
+        "Id": "sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd",
+        "RepoTags": [
+            "python:3.11-slim-bookworm"
+        ],
+        "RepoDigests": [
+            "python@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd"
+        ],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-10-28T02:10:20.356279661Z",
+        "Config": {
+            "Env": [
+                "PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D",
+                "PYTHON_VERSION=3.11.18",
+                "PYTHON_SHA256=9120e0a653868f6e3698d36cdd99e5a58903ec9469e448f21d98f7b16d8fa290"
+            ],
+            "Cmd": [
+                "python3"
+            ]
+        },
+        "Architecture": "arm64",
+        "Variant": "v8",
+        "Os": "linux",
+        "Size": 47287577,
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:8197d9c14b22d4cd79198c0722a18035760a85613211f2127ee6f5888735ca98",
+                "sha256:3b25b4762d3a2e7ec40bbecf336171c9c6cdbc444da1aad81cb4d0b59ffdd6e1",
+                "sha256:f0dfdf5c1d4f6ed1be3ba94267b20d74b753acd3affd15cb090a18122b05220c",
+                "sha256:ebcc1a78dcd919578bad3ead18b1f08937cc5cba4cf0a943fb788449ba93b6e0"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-10-31T20:10:13.927052174Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.oci.image.index.v1+json",
+            "digest": "sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd",
+            "size": 6546
+        },
+        "Identity": {
+            "Pull": [
+                {
+                    "Repository": "docker.io/library/python"
+                }
+            ]
+        }
+    },
+    {
+        "Architecture": "arm64",
+        "Config": {
+            "Cmd": [
+                "sleep",
+                "infinity"
+            ],
+            "Env": [
+                "PYTHONDONTWRITEBYTECODE=1",
+                "ARGUS_EVAL_NATIVE_MANIFEST=/opt/argus-proof/libargus_worker_route.so.json",
+                "ARGUS_EVAL_DOCKER_IMAGE=sha256:4a97331b53b1e9f2066da456a127a0ae4661daacc75172996e779220127efd5a",
+                "TMPDIR=/var/tmp/argus-eval",
+                "DOCKER_API_VERSION=1.44",
+                "PYTHONPATH=/Users/abk6349/Documents/ChatGPT/slanggraph/libs/prebuilt:/Users/abk6349/Documents/ChatGPT/slanggraph/libs/langgraph:/Users/abk6349/Documents/ChatGPT/slanggraph/libs/checkpoint:/Users/abk6349/Documents/ChatGPT/slanggraph/libs/sdk-py",
+                "OPENBLAS_NUM_THREADS=1",
+                "OMP_NUM_THREADS=1",
+                "PATH=/root/.cargo/bin:/opt/lean/bin:/opt/argus/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D",
+                "PYTHON_VERSION=3.11.18",
+                "PYTHON_SHA256=9120e0a653868f6e3698d36cdd99e5a58903ec9469e448f21d98f7b16d8fa290"
+            ],
+            "WorkingDir": "/Users/abk6349/Documents/ChatGPT/slanggraph"
+        },
+        "Created": "2026-10-31T17:24:20.414427994-04:00",
+        "Descriptor": {
+            "digest": "sha256:835fd1d06e9dc127deac52ceb1cba538eaba692bdeba63e09cf78f39cfa28244",
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "size": 3152
+        },
+        "Id": "sha256:835fd1d06e9dc127deac52ceb1cba538eaba692bdeba63e09cf78f39cfa28244",
+        "Metadata": {
+            "LastTagTime": "2026-10-31T21:24:20.72666743Z"
+        },
+        "Os": "linux",
+        "Parent": "sha256:eee2aefcf1fe8db615eb597df26a1e7e9314c7fed94a372a34b874e3ab7fc6d5",
+        "RepoDigests": [
+            "argus-joint-eval@sha256:835fd1d06e9dc127deac52ceb1cba538eaba692bdeba63e09cf78f39cfa28244"
+        ],
+        "RepoTags": [
+            "argus-joint-eval:qualified-v2"
+        ],
+        "RootFS": {
+            "Layers": [
+                "sha256:8197d9c14b22d4cd79198c0722a18035760a85613211f2127ee6f5888735ca98",
+                "sha256:3b25b4762d3a2e7ec40bbecf336171c9c6cdbc444da1aad81cb4d0b59ffdd6e1",
+                "sha256:f0dfdf5c1d4f6ed1be3ba94267b20d74b753acd3affd15cb090a18122b05220c",
+                "sha256:ebcc1a78dcd919578bad3ead18b1f08937cc5cba4cf0a943fb788449ba93b6e0",
+                "sha256:7887413f0e4379f5748916cf413d7742016867d59b954a9ff16e770e392af377",
+                "sha256:172053c14378ee35e4f89abc2698ee8b16d0b7156666351cc78b20261baefa5d",
+                "sha256:ac5dc65e6ce56548bb552facaff0d5d3d020a368ef3dbb238a2399fb16cb10cb",
+                "sha256:72cf142e4342394854fbd9f20d9bb48b0486f5d574d50cd11e286dbcfc1207af",
+                "sha256:a98ce7a347cd72d4aa839e5a57ee2c1c4a19603d48261acf01a3fc3b85d523f4",
+                "sha256:5416dc38b955679bdbe6e90498d2cdffe774f8ed9bbfa966b82971686f58b404",
+                "sha256:3f47394decb5b7154813a265b70b5c57b6aa7ce027a802f932be9e06acd3c100",
+                "sha256:52e7214b2d4c4387789490e964c1b25eba56fcee57a091c88575ca6e03e65fc2",
+                "sha256:06f573b0432e661396e66d4de12d7ea8866897c9e303d3808847c7be01acc0ac"
+            ],
+            "Type": "layers"
+        },
+        "Size": 2170269617
+    },
+    {
+        "Architecture": "arm64",
+        "Config": {
+            "Cmd": [
+                "sleep",
+                "infinity"
+            ],
+            "Env": [
+                "TMPDIR=/Users/abk6349/Documents/ChatGPT/slanggraph/eval/vendor/linux-run-tmp",
+                "OPENBLAS_NUM_THREADS=1",
+                "OMP_NUM_THREADS=1",
+                "PYTHONDONTWRITEBYTECODE=1",
+                "PYTHONPATH=/Users/abk6349/Documents/ChatGPT/slanggraph/libs/prebuilt:/Users/abk6349/Documents/ChatGPT/slanggraph/libs/langgraph:/Users/abk6349/Documents/ChatGPT/slanggraph/libs/checkpoint:/Users/abk6349/Documents/ChatGPT/slanggraph/libs/sdk-py",
+                "PATH=/root/.cargo/bin:/opt/lean/bin:/opt/argus/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D",
+                "PYTHON_VERSION=3.11.18",
+                "PYTHON_SHA256=9120e0a653868f6e3698d36cdd99e5a58903ec9469e448f21d98f7b16d8fa290"
+            ],
+            "WorkingDir": "/Users/abk6349/Documents/ChatGPT/slanggraph"
+        },
+        "Created": "2026-10-31T16:36:53.190071574-04:00",
+        "Descriptor": {
+            "digest": "sha256:4a97331b53b1e9f2066da456a127a0ae4661daacc75172996e779220127efd5a",
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "size": 2928
+        },
+        "Id": "sha256:4a97331b53b1e9f2066da456a127a0ae4661daacc75172996e779220127efd5a",
+        "Metadata": {
+            "LastTagTime": "2026-10-31T20:36:53.359254672Z"
+        },
+        "Os": "linux",
+        "Parent": "sha256:de6ea37a25b86546c799bc76da755e6cb700069495232737d433720d5d97af84",
+        "RepoDigests": [
+            "argus-joint-eval@sha256:4a97331b53b1e9f2066da456a127a0ae4661daacc75172996e779220127efd5a"
+        ],
+        "RepoTags": [
+            "argus-joint-eval:worker-v2"
+        ],
+        "RootFS": {
+            "Layers": [
+                "sha256:8197d9c14b22d4cd79198c0722a18035760a85613211f2127ee6f5888735ca98",
+                "sha256:3b25b4762d3a2e7ec40bbecf336171c9c6cdbc444da1aad81cb4d0b59ffdd6e1",
+                "sha256:f0dfdf5c1d4f6ed1be3ba94267b20d74b753acd3affd15cb090a18122b05220c",
+                "sha256:ebcc1a78dcd919578bad3ead18b1f08937cc5cba4cf0a943fb788449ba93b6e0",
+                "sha256:7887413f0e4379f5748916cf413d7742016867d59b954a9ff16e770e392af377",
+                "sha256:172053c14378ee35e4f89abc2698ee8b16d0b7156666351cc78b20261baefa5d",
+                "sha256:ac5dc65e6ce56548bb552facaff0d5d3d020a368ef3dbb238a2399fb16cb10cb",
+                "sha256:72cf142e4342394854fbd9f20d9bb48b0486f5d574d50cd11e286dbcfc1207af",
+                "sha256:a98ce7a347cd72d4aa839e5a57ee2c1c4a19603d48261acf01a3fc3b85d523f4",
+                "sha256:5416dc38b955679bdbe6e90498d2cdffe774f8ed9bbfa966b82971686f58b404",
+                "sha256:3f47394decb5b7154813a265b70b5c57b6aa7ce027a802f932be9e06acd3c100",
+                "sha256:e4dbfa21fb501635f2f1782187a4f86d48ca4f547dc5be5d10c634adf45a9113"
+            ],
+            "Type": "layers"
+        },
+        "Size": 2096567213
+    }
+]

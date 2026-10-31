@@ -1,0 +1,27 @@
+{
+  "main_matrix_comparisons": 220,
+  "main_matrix_condition_trials": 440,
+  "all_comparison_attempts": 221,
+  "all_condition_attempts": 442,
+  "complete_condition_records": 441,
+  "incomplete_condition_records": 1,
+  "all_attempt_categories": {
+    "Enforced": 190,
+    "Rejected before execution": 20,
+    "Inconclusive": 11
+  },
+  "main_matrix_categories": {
+    "Enforced": 190,
+    "Inconclusive": 10,
+    "Rejected before execution": 20
+  },
+  "original_failed_verification_stages": [
+    "security-verification",
+    "security-ledger"
+  ],
+  "resolved_by": [
+    "run-linux-02/security-reverification.log",
+    "run-linux-02/security-ledger-after-resumption.log"
+  ],
+  "source_unchanged_for_retry": true
+}

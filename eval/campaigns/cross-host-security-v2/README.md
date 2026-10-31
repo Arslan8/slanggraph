@@ -51,3 +51,17 @@ Use a trusted privileged outer container with seccomp/AppArmor unconfined, host 
 The unchanged Pandas harness expects its upstream at `/data/slanggraph-eval-upstreams/ai-data-science-team`. Inside the Linux outer container, copy `eval/vendor/ai-data-science-team` there (excluding caches and `.venv`), link that copy's `.venv` to `/opt/argus`, and install the copied project editable with `--no-deps`. Its upstream revision is `4ffeb7f38178aa250917f29b01355f8b89ba809e`; all 41 package Python sources were checked byte-identical after copying. This is environment path setup, not a task, policy or model change. The native runtime-manifest pins are the only Pandas CLI configuration change.
 
 The first joint attempt exposed two runtime packaging failures and is retained separately. Pandas snapshots now include `demos/native_host.py`; the Linux helper explicitly declares the selected interpreter's trusted purelib/platlib directories because isolated Python skips site initialization. The Docker image also copies the identical libpython bytes to the loader's default search directory, avoiding dependence on procfs-based origin lookup or the absent loader cache. These changes preserve task/policy/model/oracle semantics. Qualified outer runtime image: `sha256:835fd1d06e9dc127deac52ceb1cba538eaba692bdeba63e09cf78f39cfa28244`. The joint driver validates protected microbenchmark rows and expected phase counts independently of process exit status.
+
+Published final runs are `run-macos-02`, `run-linux-02` and the separate `per-process-macos-02` probe at implementation revision `79c6309604835277333393d426a0c7fc22eb49e0`. The first security matrices and failed application attempt are preserved separately. Linux needed one explicitly retained observer-race retry; the complete matrix has 220 comparisons, while the all-attempt ledger has 221 comparisons / 442 condition attempts (one incomplete condition record). Original failed verification logs and subsequent successful rechecks remain in the joint campaign. The post-campaign observer-only guard at `87e5fa3` handles ESRCH as process disappearance; the frozen records remain unchanged.
+
+Extract `security-runs.tar.gz`, `joint-linux-application.tar.gz`, `native-macos.tar.gz` and `native-linux.tar.gz` into this campaign directory. Copy the shared `run-macos-01/native` directory to `run-macos-02/native` and `per-process-macos-02/native`. `joint-linux-application-files.json` identifies the two captured Pandas native images to restore from `native-linux/`. File manifests and archive verification records cover all payloads. `development-evidence-files.json` similarly maps shared images for diagnostic runs; `security-runs-attempt-01.tar.gz` retains the first complete matrices. Verify archive hashes against `SHA256SUMS` before extraction.
+
+To regenerate the all-attempt ledger (including the incomplete harness attempt):
+
+```sh
+eval/.venv/bin/python eval/campaigns/cross-host-security-v2/validation/regenerate_all_attempts.py \
+  eval/campaigns/cross-host-security-v2/run-linux-02/security \
+  --output /tmp/linux-all-attempts.jsonl
+```
+
+This reproduces the published ledger byte-for-byte. The final Pandas validation checks all 100 rows and replays the frozen correctness oracle; `pandas-statistics.json` retains all-attempt and matched-success analyses separately. Route summaries retain their different guard mixes. The legacy `macOS_checkout` configuration key contains the same implementation revision on both hosts; `wip_evidence_tree` is only a historical reference.

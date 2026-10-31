@@ -11,10 +11,13 @@ new executor; it has not been added to a certified route allowlist.
 
 **Known limitation (CPU qualification deferred):** the native evaluation on macOS build 25G332 found
 that a syscall-heavy worker exceeded a one-second CPU limit in all five trials.
-The current CPU `exact` classification is contradicted by that evidence.
-Configured hard rlimits do not establish an effective aggregate CPU ceiling.
-The experimental adapter remains unqualified; see the
-[full evaluation](../../../eval/campaigns/macos-portability-v1/RESULTS.md).
+The original CPU `exact` classification was contradicted by that evidence.
+The adapter now refuses mandatory total-CPU obligations through host lowering;
+it does not include CPU in its certified baseline. Direct qualification on
+macOS 26.7.2 reproduces the overrun with and without Seatbelt, despite equal
+soft/hard RLIMIT_CPU. The native guard remains installed. See the historical
+[pilot](../../../eval/campaigns/macos-portability-v1/RESULTS.md) and the
+[follow-up transcripts and explanation](../../../eval/campaigns/cross-host-security-v2/REVIEW-RESPONSE.md).
 
 The native guardian forks a worker into a separate process group. The worker
 closes unrelated descriptors, inventories Mach rights, destroys unclassified

@@ -1,0 +1,53 @@
+{
+  "all_passed": true,
+  "controls": [
+    {
+      "name": "required_aggregate_cpu: no lowerer record",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "missing attributable host-lowerer refusal"
+    },
+    {
+      "name": "required_aggregate_cpu: wrong released",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "missing attributable host-lowerer refusal"
+    },
+    {
+      "name": "required_aggregate_cpu: wrong selector",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "missing attributable host-lowerer refusal"
+    },
+    {
+      "name": "required_syscall_filter: no lowerer record",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "missing attributable host-lowerer refusal"
+    },
+    {
+      "name": "required_syscall_filter: wrong released",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "missing attributable host-lowerer refusal"
+    },
+    {
+      "name": "required_syscall_filter: wrong selector",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "missing attributable host-lowerer refusal"
+    },
+    {
+      "name": "Linux minimal filter: no activation receipt",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "missing observed filter state or required-obligation activation evidence"
+    },
+    {
+      "name": "Linux minimal filter: no observed kernel state",
+      "expected": "Inconclusive",
+      "actual": "Inconclusive",
+      "reason": "missing observed filter state or required-obligation activation evidence"
+    }
+  ]
+}
