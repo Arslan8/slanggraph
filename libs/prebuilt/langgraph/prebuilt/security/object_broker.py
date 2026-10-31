@@ -45,6 +45,7 @@ from langgraph.prebuilt.security.execution import (
     HostExecutionResult,
     TerminationRecovery,
 )
+from langgraph.prebuilt.security.host_controls import host_control_rule
 from langgraph.prebuilt.security.landlock import LandlockSandboxExecutor
 from langgraph.prebuilt.security.linux import LinuxToolSpec
 from langgraph.prebuilt.security.object_policy import (
@@ -57,6 +58,7 @@ from langgraph.prebuilt.security.policy import TypedPolicyBackend
 from langgraph.prebuilt.security.profile import parse_profiles
 from langgraph.prebuilt.security.resource_mediator import (
     ObjectLoweringRecord,
+    ObjectLoweringRefused,
     ResourceMediatorAdapter,
     _BoundMediator,
     negotiate_object_grant,
@@ -185,7 +187,8 @@ class _ObjectWorker(LandlockSandboxExecutor):
     ) -> tuple[Grant, RequirementLedger]:
         obj = self.object_grant
         rules = tuple(
-            GrantRule(
+            host_control_rule(line)
+            or GrantRule(
                 line.line_id,
                 AuthorityDomain.FILESYSTEM
                 if line.enforcer is EnforcementKind.KERNEL and line.class_name == "fs"
@@ -358,6 +361,9 @@ class _ObjectWorker(LandlockSandboxExecutor):
                 key: value for key, value in routes.items() if key in retained
             }
             return self.record.grant
+        except ObjectLoweringRefused as exc:
+            self.lowering_refusal = {**exc.record, "object_grant": self.object_grant}
+            raise
         except HostExecutionDenied:
             raise
         except Exception as exc:
@@ -467,6 +473,18 @@ class ObjectBrokerDispatcher:
         self._audit: deque[BrokerAuditRecord] = deque(maxlen=4096)
         self._lock = RLock()
         self._lowering_records: deque[ObjectLoweringRecord] = deque(maxlen=1024)
+        self._lowering_refusals: deque[Mapping[str, Any]] = deque(maxlen=1024)
+        self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
+
+    def activation_receipts(self) -> tuple[ActivationReceipt, ...]:
+        """Retain verified activation evidence, including failed worker outcomes."""
+        with self._lock:
+            return tuple(self._receipts)
+
+    def lowering_refusals(self) -> tuple[Mapping[str, Any], ...]:
+        """Return attributable unsupported decisions without successful plans."""
+        with self._lock:
+            return tuple(self._lowering_refusals)
 
     def lowering_records(self) -> tuple[ObjectLoweringRecord, ...]:
         """Return negotiated host, baseline, obligations and effective authority."""
@@ -538,10 +556,14 @@ class ObjectBrokerDispatcher:
             result = worker._invoke(principal, call, (), asynchronous=asynchronous)
         except HostExecutionError as exc:
             exc.receipt = self._object_receipt(exc.receipt, grant)
+            with self._lock:
+                self._receipts.append(exc.receipt)
             raise
         finally:
             with self._lock:
                 self._audit.extend(broker.audit_records())
+                if getattr(worker, "lowering_refusal", None) is not None:
+                    self._lowering_refusals.append(worker.lowering_refusal)
                 if worker.record is not None:
                     self._lowering_records.append(worker.record)
             active_error = sys.exc_info()[1]
@@ -562,9 +584,10 @@ class ObjectBrokerDispatcher:
                         ExecutionOutcome.INDETERMINATE,
                     ) from exc
                 raise
-        return HostExecutionResult(
-            result.value, self._object_receipt(result.receipt, grant)
-        )
+        receipt = self._object_receipt(result.receipt, grant)
+        with self._lock:
+            self._receipts.append(receipt)
+        return HostExecutionResult(result.value, receipt)
 
     @staticmethod
     def _object_receipt(

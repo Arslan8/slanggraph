@@ -153,6 +153,21 @@ class ObjectClass:
         )
 
 
+_HOST_CONTROL_CLASSES = (
+    ObjectClass(
+        name="cpu",
+        operations=frozenset({"per_process", "aggregate"}),
+        object_kind="budget_ms",
+        enforced_by=EnforcementKind.KERNEL,
+    ),
+    ObjectClass(
+        name="syscalls",
+        operations=frozenset({"filter"}),
+        object_kind="filter",
+        enforced_by=EnforcementKind.KERNEL,
+    ),
+)
+
 _LANGUAGE_SANDBOX_CORE_CLASSES = (
     ObjectClass(
         name="fs",
@@ -1468,7 +1483,7 @@ def parse_security_manifest(
     registry = ObjectClassRegistry(
         normalizers=normalizers,
         enforcers=enforcers,
-        classes=classes,
+        classes=(*_HOST_CONTROL_CLASSES, *classes),
     )
     for kind, name, statements, line in blocks:
         if kind == "class":
@@ -1574,6 +1589,10 @@ def _parse_manifest_tool(
             resource_words = words[2:]
         else:
             resource_words = words
+        # Accept the native profile spelling on every host. Parsing names the
+        # obligation; only host negotiation decides whether it is enforceable.
+        if directive == "syscalls" and len(resource_words) == 3:
+            resource_words = ["syscalls", "filter", *resource_words[1:]]
         object_class = registry.classes.get(directive)
         if object_class is None:
             raise ProfileSyntaxError(

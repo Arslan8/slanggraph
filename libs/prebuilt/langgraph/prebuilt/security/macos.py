@@ -452,6 +452,10 @@ class MacOSSandboxExecutor:
             )
         )
         for name, value in self.default_limits.items():
+            if name == "cpu_ms":
+                # Install the native guard, but do not certify a total-CPU
+                # ceiling: syscall-heavy Darwin qualification has failed.
+                continue
             rules.append(
                 GrantRule(
                     f"runtime:limit:{name}",
@@ -994,7 +998,9 @@ class _MacOSSeatbeltAdapter:
             "macos",
             now,
             now + self._lease,
-            frozenset({"seatbelt", "read-only", "rlimit"}),
+            frozenset(
+                {"seatbelt", "read-only", "rlimit", "rlimit:nofile", "supervisor:wall"}
+            ),
             {},
             {
                 "kernel": platform.release(),
@@ -1122,12 +1128,27 @@ class _MacOSSeatbeltAdapter:
         ):
             support, reason = SupportLevel.EXACT, "spawn:closed-descriptors"
         elif (
+            obligation.kind is ObligationKind.OPERATE
+            and obligation.domain is AuthorityDomain.PROCESS
+            and obligation.operation == "syscall_set"
+        ):
+            reason = "macos:syscall_filter_unavailable"
+        elif (
             obligation.kind is ObligationKind.RESOURCE_LIMIT
             and obligation.domain is AuthorityDomain.RESOURCE_LIMIT
             and obligation.operation == "limit"
             and set(obligation.conditions) == {"maximum"}
         ):
             value = obligation.conditions["maximum"]
+            if obligation.selector in {"cpu_ms", "aggregate_cpu_ms"}:
+                return SupportAssessment(
+                    self.adapter_id,
+                    obligation.obligation_id,
+                    SupportLevel.UNSUPPORTED,
+                    "macos:aggregate_process_tree_cpu_budget_unavailable"
+                    if obligation.selector == "aggregate_cpu_ms"
+                    else "macos:total_cpu_ceiling_unqualified:syscall_heavy_reproducer",
+                )
             if (
                 type(value) is int
                 and value > 0

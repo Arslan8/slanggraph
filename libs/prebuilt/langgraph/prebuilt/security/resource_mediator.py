@@ -146,6 +146,24 @@ class ObjectLoweringRecord:
     plan: EnforcementPlan
 
 
+class ObjectLoweringRefused(HostExecutionDenied):
+    """Retain unsupported obligations and actual adapter assessments on refusal."""
+
+    def __init__(self, reason, grant, host, obligations, assessments):
+        super().__init__(reason)
+        self.record = {
+            "decision": "unsupported",
+            "reason": reason,
+            "candidate": grant,
+            "host": host,
+            "unsupported_obligations": tuple(
+                dict(item.canonical()) for item in obligations
+            ),
+            "assessments": tuple(assessments),
+            "tool_released": False,
+        }
+
+
 def negotiate_object_grant(
     grant: Grant,
     ledger: RequirementLedger,
@@ -177,10 +195,12 @@ def negotiate_object_grant(
             raise HostExecutionDenied(first.reason)
         by_id = {item.obligation_id: item for item in obligations}
         unsupported: set[str] = set()
+        assessments = []
         for obligation in obligations:
             candidates = []
             for adapter in adapters:
                 assessment = adapter.assess(obligation, host)
+                assessments.append(assessment)
                 if (
                     assessment.adapter_id != adapter.adapter_id
                     or assessment.obligation_id != obligation.obligation_id
@@ -214,7 +234,17 @@ def negotiate_object_grant(
             if rule.rule_id in removed and (
                 rule.baseline or rule.requirement is Requirement.NEED
             ):
-                raise HostExecutionDenied(f"required_authority_removed:{rule.rule_id}")
+                raise ObjectLoweringRefused(
+                    f"required_authority_removed:{rule.rule_id}",
+                    grant,
+                    host,
+                    tuple(
+                        item
+                        for item in obligations
+                        if item.obligation_id in unsupported
+                    ),
+                    assessments,
+                )
         retained = replace(
             grant,
             rules=tuple(rule for rule in grant.rules if rule.rule_id not in removed),

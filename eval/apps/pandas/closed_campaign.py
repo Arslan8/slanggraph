@@ -75,6 +75,11 @@ def main():
     parser.add_argument("--pilot", action="store_true")
     parser.add_argument("--manifest", choices=sorted(MANIFESTS), default="v22")
     parser.add_argument(
+        "--runtime-manifest",
+        type=Path,
+        help="Exact recorded manifest with this host's pinned native image paths and digests",
+    )
+    parser.add_argument(
         "--configuration",
         choices=(*MODES, *MATCHED_MODES, "all", "matched"),
         default="all",
@@ -83,7 +88,9 @@ def main():
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("repetitions must be positive")
-    manifest_path = MANIFESTS[args.manifest]
+    manifest_path = (
+        args.runtime_manifest.resolve() if args.runtime_manifest else MANIFESTS[args.manifest]
+    )
     manifest = json.loads(manifest_path.read_text())
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)

@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import ctypes
 import io
 import json
+import os
+import signal
 import sys
 import traceback
 from pathlib import Path
@@ -15,8 +18,15 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--artifact", type=Path, required=True)
     parser.add_argument("--ruleset-fd", type=int, required=True)
+    parser.add_argument("--owner-pid", type=int, required=True)
     parser.add_argument("--runtime-root", action="append", default=[])
     args = parser.parse_args()
+    # Install before imports or generated code, then close the parent-exit race.
+    libc = ctypes.CDLL(None, use_errno=True)
+    if libc.prctl(1, signal.SIGKILL, 0, 0, 0) != 0:
+        raise OSError(ctypes.get_errno(), "PR_SET_PDEATHSIG failed")
+    if os.getppid() != args.owner_pid:
+        return 1
     sys.path[:0] = args.runtime_root
 
     import matplotlib

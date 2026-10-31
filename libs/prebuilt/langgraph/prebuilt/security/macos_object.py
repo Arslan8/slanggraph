@@ -32,6 +32,7 @@ from langgraph.prebuilt.security.execution import (
     HostExecutionError,
     HostExecutionResult,
 )
+from langgraph.prebuilt.security.host_controls import host_control_rule
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.macos import (
     MacOSSandboxExecutor,
@@ -164,6 +165,10 @@ class _MacOSObjectWorker(MacOSSandboxExecutor):
             raise HostExecutionDenied("macos_object:ambiguous_grant")
         rules = []
         for line in obj.lines:
+            control = host_control_rule(line)
+            if control is not None:
+                rules.append(control)
+                continue
             if line.enforcer is EnforcementKind.KERNEL:
                 path = Path(line.selector)
                 if (
@@ -442,6 +447,8 @@ class MacOSObjectDispatcher:
             with self._lock:
                 self._audit.extend(worker.credential_broker.audit_records())
                 self._lifecycle_records.extend(worker.lifecycle_records())
+                if getattr(worker, "lowering_refusal", None) is not None:
+                    self._lowerings.append(_record_data(worker.lowering_refusal))
                 for recovery in worker.unresolved_terminations():
                     self._recoveries[recovery.recovery_id] = worker
                 if worker.record is not None:

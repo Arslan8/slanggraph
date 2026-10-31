@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import select
 import sqlite3
@@ -206,6 +207,8 @@ class PersistentPythonBackend(PythonSessionAPI):
             str(self.artifact),
             "--ruleset-fd",
             str(ruleset.fd),
+            "--owner-pid",
+            str(os.getpid()),
         ]
         for root in roots:
             command.extend(("--runtime-root", str(root)))

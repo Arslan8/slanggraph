@@ -348,3 +348,36 @@ def test_admitted_route_mutation_refused(closed_graph, field, tmp_path):
         _invoke_closed(closed_graph)
     assert not closed_graph[4]
     assert not dispatcher.activation_receipts()
+
+
+@pytest.mark.parametrize(
+    "class_name,operation,selector,reason",
+    [
+        ("cpu", "per_process", "1000", "total_cpu_ceiling_unqualified"),
+        ("cpu", "aggregate", "1000", "aggregate_process_tree_cpu_budget_unavailable"),
+        ("syscalls", "filter", "@minimal", "syscall_filter_unavailable"),
+    ],
+)
+def test_mandatory_host_controls_reach_lowerer_and_refuse(
+    route, class_name, operation, selector, reason
+):
+    dispatcher, principal, call, grant, seen, _ = route
+    line = ObjectGrantLine(
+        "required-control",
+        class_name,
+        operation,
+        selector,
+        {},
+        Requirement.NEED,
+        EnforcementKind.KERNEL,
+    )
+    grant = replace(grant, lines=(*grant.lines, line))
+    with pytest.raises(HostExecutionDenied, match="required_authority_removed"):
+        dispatcher.invoke(principal, call, grant)
+    record = dispatcher.lowering_records()[-1]
+    assert record["decision"] == "unsupported" and not record["tool_released"]
+    assert any(
+        item["rule_id"] == line.line_id for item in record["unsupported_obligations"]
+    )
+    assert any(reason in item["reason"] for item in record["assessments"])
+    assert not dispatcher.activation_receipts() and not seen
