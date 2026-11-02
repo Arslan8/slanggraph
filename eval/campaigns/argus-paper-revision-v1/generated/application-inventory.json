@@ -1,0 +1,673 @@
+{
+  "schema": 1,
+  "classification_method": "nonblank physical lines; AST function/class ranges containing security or environment vocabulary, then deterministic line fallback; patches are full adapter additions because upstream examples are notebooks/Markdown",
+  "applications": [
+    {
+      "application": "D1 SQL",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/sql_agent.py",
+        "sha256": "241beb611602ad3dabe976ce8d9c27ebb0e8aecbaf2cdadb54a6d46d01b1cf1e",
+        "environment_setup": 75,
+        "security_integration": 252,
+        "application_logic": 26,
+        "changed_lines": 353,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 1,
+        "cedar_bytes": 67
+      },
+      "exact_adapter_patch": "patches/sql_agent.patch",
+      "mediators": "SQL record mediator",
+      "supported_operations": "query/read",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          31,
+          651
+        ],
+        "owner_cedar": [
+          47,
+          1002
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "241beb611602ad3dabe976ce8d9c27ebb0e8aecbaf2cdadb54a6d46d01b1cf1e"
+      }
+    },
+    {
+      "application": "D2 RAG",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/agentic_rag.py",
+        "sha256": "c3990360fcbf3f78a59df6877a6685d8aed09a29269bb4f2184ae55f1726c293",
+        "environment_setup": 95,
+        "security_integration": 127,
+        "application_logic": 32,
+        "changed_lines": 254,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 1,
+        "cedar_bytes": 67
+      },
+      "exact_adapter_patch": "patches/agentic_rag.patch",
+      "mediators": "retriever mediator",
+      "supported_operations": "retrieve",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          21,
+          373
+        ],
+        "owner_cedar": [
+          15,
+          334
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "c3990360fcbf3f78a59df6877a6685d8aed09a29269bb4f2184ae55f1726c293"
+      }
+    },
+    {
+      "application": "D3 plan-execute",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/plan_execute.py",
+        "sha256": "aa265eabb5a71ad614566e5ba0e1ba0a1dc809625964064f2604f6d7a0fa7778",
+        "environment_setup": 58,
+        "security_integration": 186,
+        "application_logic": 28,
+        "changed_lines": 272,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 1,
+        "cedar_bytes": 67
+      },
+      "exact_adapter_patch": "patches/plan_execute.patch",
+      "mediators": "search mediator",
+      "supported_operations": "search",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          21,
+          390
+        ],
+        "owner_cedar": [
+          15,
+          356
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "aa265eabb5a71ad614566e5ba0e1ba0a1dc809625964064f2604f6d7a0fa7778"
+      }
+    },
+    {
+      "application": "D4 multi-agent",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/multi_agent.py",
+        "sha256": "bc023a396dbf08f7bb1bc4a71606b1bda56b3ccf5a7b3f587105069e5b60d6f8",
+        "environment_setup": 58,
+        "security_integration": 236,
+        "application_logic": 32,
+        "changed_lines": 326,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 1,
+        "cedar_bytes": 67
+      },
+      "exact_adapter_patch": "patches/multi_agent.patch",
+      "mediators": "persistent Python mediator",
+      "supported_operations": "search/execute",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          35,
+          664
+        ],
+        "owner_cedar": [
+          31,
+          671
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "bc023a396dbf08f7bb1bc4a71606b1bda56b3ccf5a7b3f587105069e5b60d6f8"
+      }
+    },
+    {
+      "application": "D5 support",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/customer_support.py",
+        "sha256": "b733bb0374fe6cc70c49f35c4e89339f038af7635145d6f961ea17e375046917",
+        "environment_setup": 97,
+        "security_integration": 357,
+        "application_logic": 38,
+        "changed_lines": 492,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 1,
+        "cedar_bytes": 67
+      },
+      "exact_adapter_patch": "patches/customer_support.patch",
+      "mediators": "travel/policy/search mediators",
+      "supported_operations": "read/search/update/cancel",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          64,
+          1412
+        ],
+        "owner_cedar": [
+          95,
+          2139
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "b733bb0374fe6cc70c49f35c4e89339f038af7635145d6f961ea17e375046917"
+      }
+    },
+    {
+      "application": "T1 add-tools",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/add_tools_protected.py",
+        "sha256": "6fd929dda79e579f391e29d50dfd069d353acc95cc97f7b1e75b681674aaa13f",
+        "environment_setup": 25,
+        "security_integration": 140,
+        "application_logic": 36,
+        "changed_lines": 201,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 6,
+        "cedar_bytes": 146
+      },
+      "exact_adapter_patch": "patches/add_tools_protected.patch",
+      "mediators": "search mediator",
+      "supported_operations": "search",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          4,
+          48
+        ],
+        "owner_cedar": [
+          6,
+          136
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          6,
+          83
+        ],
+        "source_sha256": "6fd929dda79e579f391e29d50dfd069d353acc95cc97f7b1e75b681674aaa13f"
+      }
+    },
+    {
+      "application": "T2 custom-weather",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/tool_calling_protected.py",
+        "sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0",
+        "environment_setup": 42,
+        "security_integration": 273,
+        "application_logic": 50,
+        "changed_lines": 365,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 2,
+        "cedar_bytes": 132
+      },
+      "exact_adapter_patch": "patches/tool_calling_protected.patch",
+      "mediators": "generic tool worker",
+      "supported_operations": "weather",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          4,
+          46
+        ],
+        "owner_cedar": [
+          6,
+          134
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0"
+      }
+    },
+    {
+      "application": "T3 fixed-weather",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/tool_calling_protected.py",
+        "sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0",
+        "environment_setup": 42,
+        "security_integration": 273,
+        "application_logic": 50,
+        "changed_lines": 365,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 2,
+        "cedar_bytes": 132
+      },
+      "exact_adapter_patch": "patches/tool_calling_protected.patch",
+      "mediators": "generic tool worker",
+      "supported_operations": "weather",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          4,
+          46
+        ],
+        "owner_cedar": [
+          6,
+          134
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0"
+      }
+    },
+    {
+      "application": "T4 parallel-weather",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/tool_calling_protected.py",
+        "sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0",
+        "environment_setup": 42,
+        "security_integration": 273,
+        "application_logic": 50,
+        "changed_lines": 365,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 2,
+        "cedar_bytes": 132
+      },
+      "exact_adapter_patch": "patches/tool_calling_protected.patch",
+      "mediators": "generic tool worker",
+      "supported_operations": "weather/parallel",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          8,
+          100
+        ],
+        "owner_cedar": [
+          13,
+          276
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0"
+      }
+    },
+    {
+      "application": "T5 multiply",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/tool_calling_protected.py",
+        "sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0",
+        "environment_setup": 42,
+        "security_integration": 273,
+        "application_logic": 50,
+        "changed_lines": 365,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 2,
+        "cedar_bytes": 132
+      },
+      "exact_adapter_patch": "patches/tool_calling_protected.patch",
+      "mediators": "generic tool worker",
+      "supported_operations": "multiply",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          4,
+          43
+        ],
+        "owner_cedar": [
+          6,
+          131
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0"
+      }
+    },
+    {
+      "application": "T6 return-direct",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/tool_calling_protected.py",
+        "sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0",
+        "environment_setup": 42,
+        "security_integration": 273,
+        "application_logic": 50,
+        "changed_lines": 365,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 2,
+        "cedar_bytes": 132
+      },
+      "exact_adapter_patch": "patches/tool_calling_protected.patch",
+      "mediators": "generic tool worker",
+      "supported_operations": "add",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          4,
+          38
+        ],
+        "owner_cedar": [
+          6,
+          126
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0"
+      }
+    },
+    {
+      "application": "T7 forced-tool",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/tool_calling_protected.py",
+        "sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0",
+        "environment_setup": 42,
+        "security_integration": 273,
+        "application_logic": 50,
+        "changed_lines": 365,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 2,
+        "cedar_bytes": 132
+      },
+      "exact_adapter_patch": "patches/tool_calling_protected.patch",
+      "mediators": "generic tool worker",
+      "supported_operations": "greet",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          4,
+          40
+        ],
+        "owner_cedar": [
+          6,
+          128
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0"
+      }
+    },
+    {
+      "application": "T8 serial-tools",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/tool_calling_protected.py",
+        "sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0",
+        "environment_setup": 42,
+        "security_integration": 273,
+        "application_logic": 50,
+        "changed_lines": 365,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 2,
+        "cedar_bytes": 132
+      },
+      "exact_adapter_patch": "patches/tool_calling_protected.patch",
+      "mediators": "generic tool worker",
+      "supported_operations": "add/multiply",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          8,
+          82
+        ],
+        "owner_cedar": [
+          13,
+          258
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          1,
+          67
+        ],
+        "source_sha256": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0"
+      }
+    },
+    {
+      "application": "T9 add-memory",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/persistence_protected.py",
+        "sha256": "2268b79d3ae88f26db6369cef84ce8f2bb7081b77bd9f0aa41eab7788e30e0ff",
+        "environment_setup": 21,
+        "security_integration": 125,
+        "application_logic": 21,
+        "changed_lines": 167,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 0,
+        "cedar_bytes": 0
+      },
+      "exact_adapter_patch": "patches/persistence_protected.patch",
+      "mediators": "search mediator",
+      "supported_operations": "search/checkpoint-tip",
+      "unsupported_operations": "operations absent from the manifest",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          4,
+          48
+        ],
+        "owner_cedar": [
+          6,
+          136
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          6,
+          83
+        ],
+        "source_sha256": "2268b79d3ae88f26db6369cef84ce8f2bb7081b77bd9f0aa41eab7788e30e0ff"
+      }
+    },
+    {
+      "application": "T10 time-travel",
+      "upstream_revision": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+      "adapter": {
+        "path": "eval/apps/demos/persistence_protected.py",
+        "sha256": "2268b79d3ae88f26db6369cef84ce8f2bb7081b77bd9f0aa41eab7788e30e0ff",
+        "environment_setup": 21,
+        "security_integration": 125,
+        "application_logic": 21,
+        "changed_lines": 167,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 0,
+        "cedar_bytes": 0
+      },
+      "exact_adapter_patch": "patches/persistence_protected.patch",
+      "mediators": "search + mediated checkpoint",
+      "supported_operations": "search/history-restore",
+      "unsupported_operations": "history branching without an authenticated continuation",
+      "runtime_configuration_size": {
+        "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+        "manifest": [
+          4,
+          48
+        ],
+        "owner_cedar": [
+          6,
+          136
+        ],
+        "principal_cedar": [
+          1,
+          65
+        ],
+        "sealed_operator_cedar": [
+          6,
+          83
+        ],
+        "source_sha256": "2268b79d3ae88f26db6369cef84ce8f2bb7081b77bd9f0aa41eab7788e30e0ff"
+      }
+    }
+  ],
+  "pandas": {
+    "application": "Pandas case study",
+    "upstream_revision": "4ffeb7f38178aa250917f29b01355f8b89ba809e",
+    "files": [
+      {
+        "path": "eval/apps/pandas/integration_closed.py",
+        "sha256": "242c37cb436b72e47647b9ed5213a68d2066d7846e3fb2b43efb0427dbff890a",
+        "environment_setup": 12,
+        "security_integration": 345,
+        "application_logic": 37,
+        "changed_lines": 394,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 0,
+        "cedar_bytes": 0,
+        "exact_adapter_patch": "patches/pandas-integration_closed.patch"
+      },
+      {
+        "path": "eval/apps/pandas/sandbox_codec.py",
+        "sha256": "dcf5528e0d501181473524d832ed86c13b98c59e07ce81e1e4f7cac82486b9ad",
+        "environment_setup": 8,
+        "security_integration": 0,
+        "application_logic": 127,
+        "changed_lines": 135,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 0,
+        "cedar_bytes": 0,
+        "exact_adapter_patch": "patches/pandas-sandbox_codec.patch"
+      },
+      {
+        "path": "eval/apps/pandas/workflow_contract.py",
+        "sha256": "49d8d51d5cb44fe92374aa82e566bdfa742d0b96f33ce33c619dbc8cb7ed2059",
+        "environment_setup": 5,
+        "security_integration": 2,
+        "application_logic": 166,
+        "changed_lines": 173,
+        "manifest_lines": 0,
+        "manifest_bytes": 0,
+        "cedar_lines": 0,
+        "cedar_bytes": 0,
+        "exact_adapter_patch": "patches/pandas-workflow_contract.patch"
+      }
+    ],
+    "mediators": "dataset read + output mediator; period helper newly implemented",
+    "supported_operations": "ten frozen analysis tasks",
+    "unsupported_operations": "arbitrary filesystem/network/process authority",
+    "runtime_configuration_size": {
+      "basis": "manifest-v23-full.json and its embedded UTF-8 Cedar strings",
+      "manifest": [
+        56,
+        2734
+      ],
+      "principal_cedar": [
+        1,
+        65
+      ],
+      "sealed_operator_cedar": [
+        1,
+        71
+      ]
+    },
+    "policy_manifest": {
+      "path": "eval/apps/pandas/policy/manifest-v23-full.json",
+      "sha256": "337c8cfc7de875da00ee0f1c1be87e2ebd15f16c4497d3ba9a08b40fd69ff0b8"
+    }
+  }
+}

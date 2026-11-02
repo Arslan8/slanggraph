@@ -1,0 +1,53 @@
+{
+  "protocol": "five paired repetition blocks; modes shuffled within each block",
+  "shuffle_seed": 20261028,
+  "bootstrap_seed": 20261028,
+  "model": "qwen3:8b",
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "temperature": 0,
+  "generation_seed": 20261005,
+  "reasoning_effort": "none",
+  "cedar_optimization": {
+    "typed_backend": "aggressive",
+    "object_authorizer": "exact-result cache (typed aggressive mode not on this route)"
+  },
+  "integrity_recheck": "preflight-only",
+  "upstream_commit": "23961cff61a42b52525f3b20b4094d8d2fba1744",
+  "task_digest": "5518b7cbf4e22276cda21c8425543dd32ca508f56841f75d473df49818a6d725",
+  "fixture_digests": {
+    "eval/campaigns/langgraph-demos-v1/fixtures/sql/Chinook.db": "84f5d9143ac4deebdb81650ab650e226d909e660106846b119a5c47c33f94c13",
+    "eval/campaigns/langgraph-demos-v1/fixtures/search/olympics.json": "b632fff8595de75c304c1fc6136c3acc78e3022862de762d06ef89e15ad24cdb",
+    "eval/campaigns/langgraph-demos-v1/fixtures/search/world-bank-gdp-2019-2023.json": "d67c7c415b35004aaa809a822d544495ce46649b2c422a11d78ca88f29726f39",
+    "eval/campaigns/langgraph-demos-v1/fixtures/customer-support/travel2.sqlite": "7646259e80230dc9bd92914466e13874bba82f461473d6a66552e819898eb66b",
+    "eval/campaigns/langgraph-demos-v1/fixtures/rag/2023-06-23-agent.html": "03b6ed75b1dc0dedd200a077367d1f7737f0a18e08c104e7f653115e1f52b0ef",
+    "eval/campaigns/langgraph-demos-v1/fixtures/rag/2023-03-15-prompt-engineering.html": "8f9fa3bda887450231845d9fd5367ee66d5d1b6dd9ad9420ef94c953ecf4edd4",
+    "eval/campaigns/langgraph-demos-v1/fixtures/rag/2023-10-25-adv-attack-llm.html": "86612bf758100148105aea452ac1e0ea068f8d2dba7bd3caf9632d42fd2cd55c"
+  },
+  "source_digests": {
+    "eval/apps/demos/add_tools_protected.py": "6fd929dda79e579f391e29d50dfd069d353acc95cc97f7b1e75b681674aaa13f",
+    "eval/apps/demos/tool_calling_protected.py": "95022363bd8d734dd62ddc798252cb468ba182f935d6d685aef4caccfb0088d0",
+    "eval/apps/demos/persistence_protected.py": "2268b79d3ae88f26db6369cef84ce8f2bb7081b77bd9f0aa41eab7788e30e0ff",
+    "eval/apps/demos/sql_agent.py": "241beb611602ad3dabe976ce8d9c27ebb0e8aecbaf2cdadb54a6d46d01b1cf1e",
+    "eval/apps/demos/agentic_rag.py": "c3990360fcbf3f78a59df6877a6685d8aed09a29269bb4f2184ae55f1726c293",
+    "eval/apps/demos/plan_execute.py": "aa265eabb5a71ad614566e5ba0e1ba0a1dc809625964064f2604f6d7a0fa7778",
+    "eval/apps/demos/multi_agent.py": "bc023a396dbf08f7bb1bc4a71606b1bda56b3ccf5a7b3f587105069e5b60d6f8",
+    "eval/apps/demos/customer_support.py": "b733bb0374fe6cc70c49f35c4e89339f038af7635145d6f961ea17e375046917"
+  },
+  "worker_route_digest": "6723590136270fcf1bbe6851d5df6b8c4ea9ecbc8f4a23b34b86f057ad099bc2",
+  "timeouts_seconds": {
+    "D1-D3_and_T1-T10": 180,
+    "D4-D5": 300
+  },
+  "primary_timer": "parent subprocess wall clock, including process startup",
+  "run_id": "argus-revision-smoke2-20261102",
+  "repetitions": 1,
+  "cedar_executable": {
+    "path": "/home/faculty/abk6349/.cargo/bin/cedar",
+    "sha256": "9ee94c099e52f900fee2f13751a0687fcc2fe856cbd9de63ae2a0eb0fd782b7a"
+  },
+  "bubblewrap_executable": {
+    "path": "/usr/bin/bwrap",
+    "sha256": "e318903862396f96de3df57264e0158682b952fd3fb53ac23d876413e7b30f71",
+    "preflight": "passed"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "lean": {
+    "binary": "/data/langgraph/proofs/worker-route/.lake/build/bin/workerRoute",
+    "sha256": "7d8b9f15e294fa37ff462d249e6e74cfaf58b22deaa9cfbb0253760203cce44d",
+    "protocol": "worker-route-grant-v3"
+  }
+}

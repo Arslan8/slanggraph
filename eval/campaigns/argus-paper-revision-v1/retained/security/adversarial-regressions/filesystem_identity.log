@@ -1,0 +1,29 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.1.1, pluggy-1.6.0 -- /data/langgraph/libs/prebuilt/.venv/bin/python3
+cachedir: .pytest_cache
+benchmark: 5.3.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'default'
+rootdir: /data/langgraph/libs/prebuilt
+configfile: pyproject.toml
+plugins: syrupy-6.0.0, cov-7.1.0, anyio-4.14.2, benchmark-5.3.0, asyncio-1.4.0, hypothesis-6.168.4, langsmith-0.8.18, mock-3.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 18 items / 11 deselected / 7 selected
+
+tests/security/test_linux_resource_resolution.py::test_ancestor_replaced_after_canonical_check_cannot_redirect_mount PASSED [ 14%]
+tests/security/test_linux_resource_resolution.py::test_hard_link_alias_resolves_to_the_authorized_object_identity PASSED [ 28%]
+tests/security/test_language_file_binding.py::test_preopen_symlink_swap_reproduces_old_read_and_is_now_refused[leaf] PASSED [ 42%]
+tests/security/test_language_file_binding.py::test_preopen_symlink_swap_reproduces_old_read_and_is_now_refused[ancestor] PASSED [ 57%]
+tests/security/test_language_file_binding.py::test_postpin_symlink_swap_keeps_the_granted_object[leaf] PASSED [ 71%]
+tests/security/test_language_file_binding.py::test_postpin_symlink_swap_keeps_the_granted_object[ancestor] PASSED [ 85%]
+tests/security/test_language_file_binding.py::test_initial_alias_to_an_authorized_canonical_target_preserves_useful_read PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/conftest.py:31
+  /data/langgraph/libs/prebuilt/tests/conftest.py:31: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.memory_assert
+    pytest.register_assert_rewrite("tests.memory_assert")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 5 durations ==============================
+
+(5 durations < 0.005s hidden.  Use -vv to show these durations.)
+================= 7 passed, 11 deselected, 1 warning in 0.26s ==================

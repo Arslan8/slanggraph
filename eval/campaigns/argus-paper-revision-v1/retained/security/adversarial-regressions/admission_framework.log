@@ -1,0 +1,38 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.1.1, pluggy-1.6.0 -- /data/langgraph/libs/prebuilt/.venv/bin/python3
+cachedir: .pytest_cache
+benchmark: 5.3.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'default'
+rootdir: /data/langgraph/libs/prebuilt
+configfile: pyproject.toml
+plugins: syrupy-6.0.0, cov-7.1.0, anyio-4.14.2, benchmark-5.3.0, asyncio-1.4.0, hypothesis-6.168.4, langsmith-0.8.18, mock-3.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 113 items / 100 deselected / 13 selected
+
+tests/security/test_admission.py::test_recheck_refuses_replaced_program_or_wrapper PASSED [  7%]
+tests/security/test_admission.py::test_unsupported_node_bodies_refuse_before_any_candidate_protocol[plain_function] PASSED [ 15%]
+tests/security/test_admission.py::test_unsupported_node_bodies_refuse_before_any_candidate_protocol[metadata_promoted] PASSED [ 23%]
+tests/security/test_admission.py::test_unsupported_node_bodies_refuse_before_any_candidate_protocol[wrapper_with_tool_node] PASSED [ 30%]
+tests/security/test_admission.py::test_unsupported_node_bodies_refuse_before_any_candidate_protocol[runnable_subclass] PASSED [ 38%]
+tests/security/test_admission.py::test_unsupported_node_bodies_refuse_before_any_candidate_protocol[async_function] PASSED [ 46%]
+tests/security/test_admission.py::test_unsupported_node_bodies_refuse_before_any_candidate_protocol[callable_marker] PASSED [ 53%]
+tests/security/test_checkpoint_placement.py::test_tampered_checkpoint_is_refused_before_state_restore[False] PASSED [ 61%]
+tests/security/test_checkpoint_placement.py::test_tampered_checkpoint_is_refused_before_state_restore[True] PASSED [ 69%]
+tests/security/test_checkpoint_placement.py::test_replayed_checkpoint_is_refused PASSED [ 76%]
+tests/security/test_placement.py::test_subgraph_dispatch_denial_executes_zero_child_nodes[False] PASSED [ 84%]
+tests/security/test_placement.py::test_subgraph_dispatch_denial_executes_zero_child_nodes[True] PASSED [ 92%]
+tests/security/test_tool_node_security.py::test_injected_store_allows_only_exact_declared_keys PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/conftest.py:31
+  /data/langgraph/libs/prebuilt/tests/conftest.py:31: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.memory_assert
+    pytest.register_assert_rewrite("tests.memory_assert")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 5 durations ==============================
+0.37s call     tests/security/test_admission.py::test_recheck_refuses_replaced_program_or_wrapper
+0.02s call     tests/security/test_tool_node_security.py::test_injected_store_allows_only_exact_declared_keys
+0.02s call     tests/security/test_checkpoint_placement.py::test_tampered_checkpoint_is_refused_before_state_restore[False]
+0.02s call     tests/security/test_checkpoint_placement.py::test_replayed_checkpoint_is_refused
+0.01s call     tests/security/test_checkpoint_placement.py::test_tampered_checkpoint_is_refused_before_state_restore[True]
+================ 13 passed, 100 deselected, 1 warning in 0.78s =================

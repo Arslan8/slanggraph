@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "distinct_cases": 45,
+  "repetitions_per_case": 5,
+  "conditions": ["Unprotected", "Argus"],
+  "selected_final_comparison_trials": 450,
+  "classifications": {
+    "Enforced": 39,
+    "Rejected before execution": 6,
+    "Failed": 0,
+    "Inconclusive": 0
+  },
+  "primary_44_case_run": {
+    "evidence_valid": true,
+    "trials": 440,
+    "Enforced": 155,
+    "Rejected before execution": 30,
+    "Inconclusive": 35,
+    "note": "seven dependency-missing session cases are preserved but replaced by the selected session rerun"
+  },
+  "selected_session_rerun": {
+    "distinct_cases": 7,
+    "trials": 70,
+    "Enforced": 35,
+    "evidence_valid": true,
+    "native_success_certificates_replayed": 20
+  },
+  "per_process_cpu_supplement": {
+    "distinct_cases": 1,
+    "trials": 10,
+    "Enforced": 5,
+    "evidence_valid": true
+  },
+  "boundary_regressions": {
+    "distinct_investigations": 51,
+    "scheduling_trials": 2000,
+    "all_passed": true
+  }
+}

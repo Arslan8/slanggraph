@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "sessions": 5,
+  "warmups_per_session": 10,
+  "measured_pairs": 100,
+  "cold_pairs": 5,
+  "all_calls_valid": true,
+  "preparation_mean_ms": {
+    "dispatcher": 0.4016276,
+    "admission_policy": 320.0572836,
+    "total": 320.4589112
+  },
+  "cold_mean_ms": {
+    "baseline": 0.1395832,
+    "protected": 415.5628598,
+    "ratio": 2977.1696006396187
+  },
+  "steady_ms": {
+    "baseline_mean": 0.14871533,
+    "protected_mean": 373.78146254,
+    "baseline_median": 0.1452735,
+    "protected_median": 373.819494,
+    "baseline_p95": 0.171394,
+    "protected_p95": 381.789106,
+    "ratio_of_means": 2513.4023677316923,
+    "absolute_delta_mean": 373.63274721
+  },
+  "protected_steady_breakdown_mean_ms": {
+    "authorization": 0.72032314,
+    "activation": 121.68809337416504,
+    "lean_grant": 71.20055752,
+    "lean_go": 72.8622002,
+    "lean_result": 72.97865049,
+    "transport": 14.852827695834964,
+    "resource_execution": 0.23512139,
+    "audit": 15.36620155,
+    "cleanup": 0.16912453,
+    "residual": 3.70836265,
+    "reconciled_elapsed": 373.78146254
+  }
+}

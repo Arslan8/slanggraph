@@ -1,8 +1,8 @@
 # Complete Alice/Bob example
 
 Run `preflight.py --run-example`. The readable source artifacts are
-`run_example.py` and `worker.py`; the generated `invocation.json` contains the
-exact grants, plans, receipts and trace.
+`run_example.py` and `worker.py`; `retained/example/invocation.json` contains
+the exact grants, plans, receipts and trace.
 
 ## Manifest
 

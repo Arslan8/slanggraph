@@ -38,6 +38,23 @@ APPLICATIONS = {
         "search/history-restore",
     ),
 }
+RUNTIME_CONFIGURATION_SIZES = {
+    "D1 SQL": ([31, 651], [47, 1002], [1, 65], [1, 67]),
+    "D2 RAG": ([21, 373], [15, 334], [1, 65], [1, 67]),
+    "D3 plan-execute": ([21, 390], [15, 356], [1, 65], [1, 67]),
+    "D4 multi-agent": ([35, 664], [31, 671], [1, 65], [1, 67]),
+    "D5 support": ([64, 1412], [95, 2139], [1, 65], [1, 67]),
+    "T1 add-tools": ([4, 48], [6, 136], [1, 65], [6, 83]),
+    "T2 custom-weather": ([4, 46], [6, 134], [1, 65], [1, 67]),
+    "T3 fixed-weather": ([4, 46], [6, 134], [1, 65], [1, 67]),
+    "T4 parallel-weather": ([8, 100], [13, 276], [1, 65], [1, 67]),
+    "T5 multiply": ([4, 43], [6, 131], [1, 65], [1, 67]),
+    "T6 return-direct": ([4, 38], [6, 126], [1, 65], [1, 67]),
+    "T7 forced-tool": ([4, 40], [6, 128], [1, 65], [1, 67]),
+    "T8 serial-tools": ([8, 82], [13, 258], [1, 65], [1, 67]),
+    "T9 add-memory": ([4, 48], [6, 136], [1, 65], [6, 83]),
+    "T10 time-travel": ([4, 48], [6, 136], [1, 65], [6, 83]),
+}
 SECURITY_WORDS = {
     "admission",
     "audit",
@@ -146,6 +163,7 @@ def main() -> None:
         patch(path, patches / f"{path.stem}.patch")
     rows = []
     for application, (filename, mediators, operations) in APPLICATIONS.items():
+        manifest, owner, principal, operator = RUNTIME_CONFIGURATION_SIZES[application]
         rows.append(
             {
                 "application": application,
@@ -161,6 +179,14 @@ def main() -> None:
                     if application == "T10 time-travel"
                     else "operations absent from the manifest"
                 ),
+                "runtime_configuration_size": {
+                    "basis": "captured rendered configuration; values are [lines, UTF-8 bytes]",
+                    "manifest": manifest,
+                    "owner_cedar": owner,
+                    "principal_cedar": principal,
+                    "sealed_operator_cedar": operator,
+                    "source_sha256": file_records[filename]["sha256"],
+                },
             }
         )
     pandas_files = [
@@ -175,6 +201,16 @@ def main() -> None:
         "mediators": "dataset read + output mediator; period helper newly implemented",
         "supported_operations": "ten frozen analysis tasks",
         "unsupported_operations": "arbitrary filesystem/network/process authority",
+        "runtime_configuration_size": {
+            "basis": "manifest-v23-full.json and its embedded UTF-8 Cedar strings",
+            "manifest": [56, 2734],
+            "principal_cedar": [1, 65],
+            "sealed_operator_cedar": [1, 71],
+        },
+        "policy_manifest": {
+            "path": "eval/apps/pandas/policy/manifest-v23-full.json",
+            "sha256": sha(ROOT / "eval/apps/pandas/policy/manifest-v23-full.json"),
+        },
     }
     for path in pandas_files:
         target = patches / f"pandas-{path.stem}.patch"

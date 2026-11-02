@@ -1,0 +1,6 @@
+{
+  "campaign_setup_ms": 4023.705090978183,
+  "model_warmup_ms": 393.3065669843927,
+  "excluded_from_every_trial_wall_timer": true,
+  "exclusion_is_symmetric": true
+}

@@ -1,0 +1,33 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.1.1, pluggy-1.6.0 -- /data/langgraph/libs/prebuilt/.venv/bin/python3
+cachedir: .pytest_cache
+benchmark: 5.3.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'default'
+rootdir: /data/langgraph/libs/prebuilt
+configfile: pyproject.toml
+plugins: syrupy-6.0.0, cov-7.1.0, anyio-4.14.2, benchmark-5.3.0, asyncio-1.4.0, hypothesis-6.168.4, langsmith-0.8.18, mock-3.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 50 items / 42 deselected / 8 selected
+
+tests/security/test_tool_node_security.py::test_parallel_tool_dispatch_records_one_identity_transfer_per_call[False] PASSED [ 12%]
+tests/security/test_tool_node_security.py::test_parallel_tool_dispatch_records_one_identity_transfer_per_call[True] PASSED [ 25%]
+tests/security/test_concurrency.py::test_thousand_parallel_sync_calls_have_unique_indices PASSED [ 37%]
+tests/security/test_concurrency.py::test_thousand_parallel_async_calls_have_unique_indices PASSED [ 50%]
+tests/security/test_broker.py::test_broker_rejects_worker_supplied_identity PASSED [ 62%]
+tests/security/test_broker.py::test_oversized_frame_cannot_smuggle_second_request PASSED [ 75%]
+tests/security/test_flow.py::test_parallel_read_and_egress_cannot_race_flow_state PASSED [ 87%]
+tests/security/test_flow.py::test_concurrent_source_cannot_start_while_egress_is_active PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/conftest.py:31
+  /data/langgraph/libs/prebuilt/tests/conftest.py:31: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.memory_assert
+    pytest.register_assert_rewrite("tests.memory_assert")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 5 durations ==============================
+1.62s call     tests/security/test_concurrency.py::test_thousand_parallel_sync_calls_have_unique_indices
+1.07s call     tests/security/test_concurrency.py::test_thousand_parallel_async_calls_have_unique_indices
+0.61s call     tests/security/test_broker.py::test_oversized_frame_cannot_smuggle_second_request
+0.03s call     tests/security/test_tool_node_security.py::test_parallel_tool_dispatch_records_one_identity_transfer_per_call[False]
+0.02s call     tests/security/test_flow.py::test_parallel_read_and_egress_cannot_race_flow_state
+================= 8 passed, 42 deselected, 1 warning in 3.64s ==================

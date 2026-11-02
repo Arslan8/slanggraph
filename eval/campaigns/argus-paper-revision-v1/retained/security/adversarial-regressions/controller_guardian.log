@@ -1,0 +1,31 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.1.1, pluggy-1.6.0 -- /data/langgraph/libs/prebuilt/.venv/bin/python3
+cachedir: .pytest_cache
+benchmark: 5.3.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'default'
+rootdir: /data/langgraph/libs/prebuilt
+configfile: pyproject.toml
+plugins: syrupy-6.0.0, cov-7.1.0, anyio-4.14.2, benchmark-5.3.0, asyncio-1.4.0, hypothesis-6.168.4, langsmith-0.8.18, mock-3.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 31 items / 22 deselected / 9 selected
+
+tests/security/test_native_async_lifetime.py::test_repeated_cancellation_waits_for_child_exit_and_remaining_cleanup[LandlockSandboxExecutor] PASSED [ 11%]
+tests/security/test_linux_pidfd_lifetime.py::test_changed_identity_is_not_signaled_and_handle_is_closed PASSED [ 22%]
+tests/security/test_linux_pidfd_lifetime.py::test_unavailable_handles_or_signals_do_not_confirm_cleanup[38-_open_worker_pidfd] PASSED [ 33%]
+tests/security/test_linux_pidfd_lifetime.py::test_unavailable_handles_or_signals_do_not_confirm_cleanup[38-_kill_worker_pidfd] PASSED [ 44%]
+tests/security/test_linux_pidfd_lifetime.py::test_unavailable_handles_or_signals_do_not_confirm_cleanup[1-_open_worker_pidfd] PASSED [ 55%]
+tests/security/test_linux_pidfd_lifetime.py::test_unavailable_handles_or_signals_do_not_confirm_cleanup[1-_kill_worker_pidfd] PASSED [ 66%]
+tests/security/test_linux_pidfd_lifetime.py::test_unavailable_handles_or_signals_do_not_confirm_cleanup[24-_open_worker_pidfd] PASSED [ 77%]
+tests/security/test_linux_pidfd_lifetime.py::test_unavailable_handles_or_signals_do_not_confirm_cleanup[24-_kill_worker_pidfd] PASSED [ 88%]
+tests/security/test_linux_pidfd_lifetime.py::test_poll_error_does_not_certify_exit PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/conftest.py:31
+  /data/langgraph/libs/prebuilt/tests/conftest.py:31: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.memory_assert
+    pytest.register_assert_rewrite("tests.memory_assert")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 5 durations ==============================
+
+(5 durations < 0.005s hidden.  Use -vv to show these durations.)
+================= 9 passed, 22 deselected, 1 warning in 0.23s ==================

@@ -1,0 +1,24 @@
+Linux worker startup probes
+Date: 2026-11-02
+Host: Linux
+Container image: slg-linux-test:latest
+Container image id: sha256:3bcfa1622e24814afee022c71236dadd92e31a5fff41ad99a23925bc98311504
+Container mode: privileged outer validation harness; production worker isolation remains the system under test
+
+Command:
+  cd libs/prebuilt && .venv/bin/python -m pytest -vv -s \
+    tests/security/test_linux_execution.py \
+    -k "clears_ambient_environment or inherits_no_ambient_descriptors"
+
+Result:
+  test_linux_worker_clears_ambient_environment PASSED
+  test_linux_worker_inherits_no_ambient_descriptors PASSED
+  2 passed, 49 deselected in 0.79s
+
+Independent observations made by the tests:
+  - unapproved environment variables and credential-like values are absent in the worker;
+  - only the protocol descriptors deliberately transferred into the worker remain open;
+  - ambient host descriptors do not become worker authority.
+
+These probes support the worker-startup row in SECURITY_RESULTS.md. They overlap
+the 51 boundary investigations conceptually and are not added to that count.

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "ordinary_applications": 15,
+  "matched_attempts": 30,
+  "correct_both_modes": 12,
+  "matched_failure_both_modes": ["D3-plan-execute"],
+  "protected_only_failures": {
+    "D4-multi-agent": "300 second timeout",
+    "T10-time-travel": "checkpoint:broken_chain"
+  },
+  "pandas_final": {
+    "manifest": "v23",
+    "baseline_correct": 10,
+    "baseline_total": 10,
+    "protected_correct": 10,
+    "protected_total": 10,
+    "output_validation_failures": 0
+  }
+}

@@ -1,50 +1,69 @@
-# Complete-configuration performance status
+# Complete Linux configuration performance
 
-## Final-measurement gate
+## Host and protocol
 
-No final timing headline is published from the current interactive development
-host. Dedicated/quiet execution, CPU-frequency control and background-load
-qualification have not been established. Launching a large campaign here would
-violate the measurement protocol.
+The final campaign ran at commit `e29c882ff3a2fefbd3218a5476844f26f675a8af`
+on Linux 6.17.0-1033-oem, Python 3.13.11, Cedar CLI 4.13.0, Landlock ABI 7,
+and checker SHA-256
+`7d8b9f15e294fa37ff462d249e6e74cfaf58b22deaa9cfbb0253760203cce44d`.
+All measured sources were identical before and after the campaign.
 
-Historical `cross-host-security-v2` broker measurements (59.200 ms mean over
-100 measured calls) do **not** include the Linux broker Lean integration and are
-not a complete-configuration result. Direct Linux Lean and broker/MAC timings
-have different guard mixes and must not be pooled.
+This is a shared 32-CPU Intel host, not a dedicated benchmark machine. CPU 26
+was selected and the runner pinned itself and every child to that CPU. During
+the 30-second qualification its utilization was 0.10%; load-1 fell from 2.83 to
+1.77. The host uses `intel_pstate`, `powersave`, 0.8–4.5 GHz dynamic frequency,
+with no isolated/nohz-full CPU. Results are therefore valid as an
+otherwise-quiet-host measurement and carry that limitation; they are not
+frequency-fixed dedicated-host numbers.
 
-## Required frozen protocol
+Five independent process sessions each retained one cold pair, ten warmups, and
+20 measured steady pairs. The baseline and protected calls both read the same
+Alice value from an identically initialized SQLite database. Conditions are
+interleaved within each session. The protected route enables authenticated
+principal, owner/caller/operator Cedar, closed admission, typed SQLite mediator,
+Landlock/no-new-privileges/seccomp/rlimits, activation receipt validation, all
+three Lean lifecycle gates, SQLite audit, and confirmed cleanup.
 
-The final runner must use the implementation commit recorded after the library
-gates and must abort if source hashes change. Each of five or more independent
-process sessions interleaves baseline and protected conditions, retains one cold
-call, excludes only declared warmups, and measures at least 20 steady calls.
-Useful work is the same exact Alice SQLite read in both conditions.
+## Boundaries and results
 
-Report these non-overlapping boundaries:
+| Boundary | Baseline | Complete Argus | Relative / delta |
+| --- | ---: | ---: | ---: |
+| Preparation (5 sessions, mean) | database/fixture creation reported separately by harness | dispatcher 0.402 ms + admission/policy preparation 320.057 ms | 320.459 ms protected setup |
+| Cold invocation (5 pairs, mean) | 0.140 ms | 415.563 ms | 2,977.17×; +415.423 ms |
+| Steady invocation (100 pairs, mean) | 0.149 ms | 373.781 ms | 2,513.40×; +373.633 ms |
+| Steady invocation (median) | 0.145 ms | 373.819 ms | — |
+| Steady invocation (p95) | 0.171 ms | 381.789 ms | — |
 
-| Boundary | Included work |
-| --- | --- |
-| Preparation | policy parse/validation, Cedar artifact preparation, lowering, Lean grant verification, artifact/runtime integrity, graph admission and worker preparation |
-| Cold invocation | first end-to-end protected call after preparation |
-| Steady state | later calls under explicitly documented reuse rules; no setup work silently omitted |
+Standard deviations are 0.013 ms baseline and 5.207 ms protected. Protected
+steady observations range from 362.095 to 394.555 ms. All 155 protected calls,
+all 155 baseline calls, audit counts, broker counts, and lifecycle counts passed
+their correctness checks.
 
-The per-call reconciliation is:
+## Reconciled steady-state cost
 
-`elapsed = authorization + lowering/activation + Lean lifecycle + transport + resource execution + validation + audit + cleanup + residual`.
+These are means over the 100 measured complete-route calls. The spans are
+non-overlapping; nested Lean time is subtracted from activation/transport.
 
-Nested spans must be subtracted. Residual remains named and is instrumented when
-substantial; it is not called generic framework overhead.
+| Component | Mean ms |
+| --- | ---: |
+| Cedar authorization | 0.720 |
+| Host lowering / activation excluding Lean grant check | 121.688 |
+| Lean grant check | 71.201 |
+| Lean pre-`GO` check | 72.862 |
+| Lean result/cleanup release check | 72.979 |
+| Broker transport excluding checker/resource work | 14.853 |
+| SQLite resource execution | 0.235 |
+| Audit | 15.366 |
+| Cleanup | 0.169 |
+| Instrumented framework residual | 3.708 |
+| **Reconciled end-to-end** | **373.781** |
 
-Host evidence must include kernel, architecture, CPU affinity, governor and
-frequency settings, turbo/boost state, background load, Python, Cedar, Lean,
-checker/native-runtime hashes, Landlock ABI, seccomp state, cgroup delegation,
-dependency lock hashes and source-before/source-after inventories.
+The component sum equals the measured end-to-end mean exactly. “Framework
+residual” is 0.99% of elapsed time and is retained rather than folded into a
+larger unnamed category.
 
-Diagnostic runs and any later code fix use separate directories. A measured-path
-fix invalidates and reruns the affected cohort.
-
-`run_performance.py` enforces an explicit controlled-host acknowledgement,
-runs the complete trace preflight, records load/frequency metadata and source
-hashes, and invokes the interleaved broker runner with a mandatory pinned
-checker. Omitting the checker or the host acknowledgement, failing any complete
-route assertion, or changing a measured source aborts the campaign.
+The exact qualification, environment, source hashes, preflight, raw JSONL
+records and logs are committed under `retained/performance/` and expanded under
+`raw/linux-performance-e29c882ff/`. Warmups and diagnostics are retained but
+excluded from the steady table; no older configuration is pooled into these
+headline numbers.

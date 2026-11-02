@@ -1,76 +1,78 @@
-# Argus paper-revision handoff
+# Argus Linux paper-revision handoff
 
-This directory is the revision entry point. It defines one complete Linux
-configuration, refuses to label a run complete when a component is absent, and
-links the retained macOS/application evidence without treating application
-completion as a security result.
+This directory is the revision entry point. macOS is explicitly out of scope.
+The authoritative implementation freeze is
+`e29c882ffc892cd1847c3190f21a0aa8cc4f0904`; later evidence/documentation
+commits do not change the measured implementation paths.
 
 ## Reproduction order
 
-1. Build the checked worker-route executable:
+1. Build the checked worker route:
 
    ```sh
    cd proofs/worker-route
    PATH="$HOME/.elan/bin:$PATH" lake build workerRoute
    ```
 
-2. Run the complete-route preflight and example from the repository root:
+2. Run the fail-closed complete-route preflight:
 
    ```sh
    PATH="$HOME/.cargo/bin:$PATH" uv run --project libs/prebuilt python \
      eval/campaigns/argus-paper-revision-v1/preflight.py \
      --checker proofs/worker-route/.lake/build/bin/workerRoute \
-     --output /tmp/argus-revision-preflight --run-example
+     --output /tmp/argus-preflight --run-example
    ```
 
-3. Run the focused implementation checks, then the library gates:
-
-   ```sh
-   PATH="$HOME/.elan/bin:$PATH" uv run --project libs/prebuilt pytest -q \
-     libs/prebuilt/tests/security/test_object_broker.py \
-     libs/prebuilt/tests/security/test_lean_lifecycle.py
-   cd libs/prebuilt
-   make format
-   make lint
-   make test
-   ```
-
-4. Only on a qualified quiet host, launch the final interleaved measurement:
+3. Run the deterministic boundary regressions:
 
    ```sh
    uv run --project libs/prebuilt python \
+     eval/campaigns/argus-paper-revision-v1/run_adversarial_regressions.py \
+     --output /tmp/argus-boundaries
+   ```
+
+4. Run the 44-case Linux matrix, the dependency-complete seven-session subset,
+   and the per-process CPU supplement with the commands recorded in
+   `SECURITY_RESULTS.md` and each raw `configuration.json`.
+
+5. Qualify a quiet CPU, then run complete-configuration measurements:
+
+   ```sh
+   uv run --project libs/prebuilt python \
+     eval/campaigns/argus-paper-revision-v1/qualify_host.py \
+     --output /tmp/argus-host.json --seconds 30
+
+   uv run --project libs/prebuilt python \
      eval/campaigns/argus-paper-revision-v1/run_performance.py \
      --checker proofs/worker-route/.lake/build/bin/workerRoute \
-     --output /retained/argus-final-linux \
+     --qualification /tmp/argus-host.json \
+     --output /tmp/argus-performance \
      --acknowledge-controlled-host
    ```
 
-   The acknowledgement is an operator assertion, not an automatic proof of a
-   quiet machine. The runner still executes the complete-route preflight and
-   records load, CPU configuration, hashes, and source stability.
+The qualification establishes only an otherwise-quiet selected CPU. This host
+is shared and dynamically frequency-scaled; that limitation is recorded and
+must accompany timing results.
 
-`preflight.json` is authoritative for the label. A missing Cedar executable,
-Landlock ABI below 5, missing checker, non-`wip` branch, or failed example makes
-the label `incomplete` and exits nonzero. `example/invocation.json` records the
-admission descriptor, outer grants, native lowerings, activation receipts,
-checker traces, broker decisions, security audit, and independent SQLite state.
+## Evidence map
 
-## Evidence generations
+- `CONFIGURATIONS.md`: complete-label criteria and production path.
+- `SECURITY_RESULTS.md`: 45 cases, controls, classifications, fixes, trust
+  assumptions, and retained inconclusive attempts.
+- `PERFORMANCE_RESULTS.md`: preparation/cold/steady boundaries and reconciled
+  timing results.
+- `APPLICATIONS.md`: 15 applications, Pandas, effort, compatibility, and failure
+  analysis.
+- `PROOF_MAP.md`: exact theorem/checker/assumption map.
+- `RUNNING_EXAMPLE.md`: readable Alice/Bob end-to-end trace.
+- `generated/application-inventory.json` and `generated/patches/`: exact
+  inventory and adaptation patches.
+- `raw/`: complete preflight/example plus retained campaign records or compact
+  archives/checksums referenced by the result documents.
 
-- `cross-host-security-v2` is the frozen pre-fix Linux/macOS matrix at
-  `79c6309604835277333393d426a0c7fc22eb49e0`. Its ten Linux altered/missing
-  Lean-obligation pairs are retained as inconclusive.
-- This revision adds the missing Linux object-broker checker integration. New
-  evidence must use implementation freeze
-  `0f7e4c1bf40328fa997cb75d05763d8e919659ea`, named in
-  `CONFIGURATIONS.md`.
-- `raw/linux-preflight-0f7e4c1bf/` is the retained complete invocation from
-  that freeze. It records Cedar 4.13.0, Linux 6.17.0-1033-oem, Landlock ABI 7,
-  Python 3.13.11, checker hash
-  `7d8b9f15e294fa37ff462d249e6e74cfaf58b22deaa9cfbb0253760203cce44d`,
-  dependency versions, source hashes, and stable before/after source identity.
-- Historical performance rows remain historical. A final campaign must run on
-  a controlled Linux host after the freeze; see `PERFORMANCE_RESULTS.md`.
+`preflight.json` is authoritative for `complete`. Missing Cedar, Landlock ABI
+below 5, a missing checker, non-`wip` branch, dirty implementation sources, or
+any failed example assertion yields `incomplete` and a nonzero exit.
 
-The two unrelated checkpoint README edits present in the development worktree
-are outside this campaign and are not part of its commits.
+The unrelated checkpoint README edits in the worktree are not part of this
+campaign or its commits.

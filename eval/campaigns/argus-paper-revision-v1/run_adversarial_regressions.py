@@ -15,8 +15,14 @@ ROOT = Path(__file__).resolve().parents[3]
 PROJECT = ROOT / "libs/prebuilt"
 GROUPS = {
     "authorization_to_resource": (
-        ["tests/security/test_mediation.py", "-k", "rebinding_after_authorization"],
-        "mutated request/principal bindings require a fresh decision",
+        [
+            "tests/security/test_mediation.py",
+            "tests/security/test_object_broker.py",
+            "-k",
+            "rebinding_after_authorization or each_physical_dispatch or "
+            "new_policy_decision or resource_support_rechecked",
+        ],
+        "mutated/delayed requests and changed support require a fresh current decision",
     ),
     "filesystem_identity": (
         [
@@ -31,10 +37,15 @@ GROUPS = {
     "worker_startup": (
         [
             "tests/security/test_object_broker.py",
+            "tests/security/test_landlock.py",
+            "tests/security/test_linux_setup_cleanup.py",
             "-k",
-            "no_direct_socket or import_time_effect or no_grant_means_no_broker_authority",
+            "no_direct_socket or import_time_effect or no_grant_means_no_broker_authority "
+            "or preconfined_broker_without_receiving_token or "
+            "success_transfers_each_used_descriptor_once",
         ],
-        "live listener/import effect and broker authority are independently observed",
+        "live listener/import effect, broker credential custody and inherited descriptor set "
+        "are independently observed",
     ),
     "child_processes": (
         [
@@ -48,10 +59,13 @@ GROUPS = {
     "controller_guardian": (
         [
             "tests/security/test_native_async_lifetime.py",
+            "tests/security/test_linux_pidfd_lifetime.py",
             "-k",
-            "repeated_cancellation_waits_for_child_exit and Landlock",
+            "(repeated_cancellation_waits_for_child_exit and Landlock) or "
+            "changed_identity_is_not_signaled or unavailable_handles_or_signals or "
+            "poll_error_does_not_certify_exit",
         ],
-        "cancellation is repeated and worker lifetime is checked independently",
+        "cancellation, PID identity changes and signal/poll failures are checked independently",
     ),
     "reused_contexts": (
         [
@@ -65,18 +79,26 @@ GROUPS = {
         [
             "tests/security/test_tool_node_security.py",
             "tests/security/test_concurrency.py",
+            "tests/security/test_broker.py",
+            "tests/security/test_flow.py",
             "-k",
-            "parallel_tool_dispatch_records_one_identity_transfer or thousand_parallel",
+            "parallel_tool_dispatch_records_one_identity_transfer or thousand_parallel or "
+            "worker_supplied_identity or oversized_frame or parallel_read_and_egress or "
+            "concurrent_source_cannot_start",
         ],
-        "two ToolNode modes plus 1,000 sync and 1,000 async calls check identity uniqueness",
+        "two ToolNode modes, 1,000 sync/async calls, identity substitution and frame "
+        "confusion checks",
     ),
     "admission_framework": (
         [
             "tests/security/test_admission.py",
             "tests/security/test_checkpoint_placement.py",
+            "tests/security/test_placement.py",
+            "tests/security/test_tool_node_security.py",
             "-k",
             "unsupported_node_bodies_refuse or recheck_refuses_replaced or "
-            "tampered_checkpoint or replayed_checkpoint",
+            "tampered_checkpoint or replayed_checkpoint or subgraph_dispatch_denial or "
+            "injected_store_allows_only_exact_declared_keys",
         ],
         "allowed framework shapes execute; modified bodies/artifacts and invalid "
         "history refuse before use",
