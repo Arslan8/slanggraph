@@ -83,6 +83,13 @@ def aggregate_periods(
             periods, fill_value=0 if operation in {"sum", "count"} else float("nan")
         )
     result = grouped.rename_axis(bucket_column).reset_index(name=result_column)
+    if result[result_column].isna().any():
+        # A numeric Pandas column coerces Python `None` back to NaN. Keep the
+        # column object-typed so the graph boundary sees JSON nulls while the
+        # strict non-finite output rule remains enabled.
+        result[result_column] = (
+            result[result_column].astype(object).where(result[result_column].notna(), None)
+        )
     result[bucket_column] = (
         result[bucket_column].dt.strftime(label_format)
         if label_format is not None

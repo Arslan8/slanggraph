@@ -5,6 +5,7 @@ import inspect
 from pathlib import Path
 
 import pytest
+from langgraph.prebuilt.security.output_data import validate_output_data
 
 pd = pytest.importorskip("pandas")
 spec = importlib.util.spec_from_file_location(
@@ -30,8 +31,9 @@ def test_partial_months_duplicates_and_empty_buckets():
     pd.testing.assert_frame_equal(frame, original)
     mean = aggregate([frame.iloc[:1], frame.iloc[1:]], "when", "amount", operation="mean")
     assert mean.amount.iloc[0] == 9
-    assert pd.isna(mean.amount.iloc[1])
+    assert mean.amount.iloc[1] is None
     assert mean.amount.iloc[2] == 31
+    validate_output_data({"data_wrangled": mean.to_dict()})
 
 
 def test_null_groups_and_invalid_requests():
