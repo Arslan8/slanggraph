@@ -12,6 +12,11 @@ The complete label is conjunctive. `preflight.py` does not infer completeness
 from a successful process exit. It requires all components and then validates a
 trace containing four checker-backed calls and independent database state.
 
+Implementation freeze: `0f7e4c1bf40328fa997cb75d05763d8e919659ea`.
+The retained successful preflight is
+`raw/linux-preflight-0f7e4c1bf/preflight.json`; its full invocation evidence is
+the adjacent `example/invocation.json`.
+
 ## Production path
 
 `ToolNode` closed admission → authenticated `Principal` →

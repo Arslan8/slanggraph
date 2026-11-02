@@ -61,7 +61,14 @@ checker traces, broker decisions, security audit, and independent SQLite state.
   `79c6309604835277333393d426a0c7fc22eb49e0`. Its ten Linux altered/missing
   Lean-obligation pairs are retained as inconclusive.
 - This revision adds the missing Linux object-broker checker integration. New
-  evidence must use the implementation freeze named in `CONFIGURATIONS.md`.
+  evidence must use implementation freeze
+  `0f7e4c1bf40328fa997cb75d05763d8e919659ea`, named in
+  `CONFIGURATIONS.md`.
+- `raw/linux-preflight-0f7e4c1bf/` is the retained complete invocation from
+  that freeze. It records Cedar 4.13.0, Linux 6.17.0-1033-oem, Landlock ABI 7,
+  Python 3.13.11, checker hash
+  `7d8b9f15e294fa37ff462d249e6e74cfaf58b22deaa9cfbb0253760203cce44d`,
+  dependency versions, source hashes, and stable before/after source identity.
 - Historical performance rows remain historical. A final campaign must run on
   a controlled Linux host after the freeze; see `PERFORMANCE_RESULTS.md`.
 
