@@ -5,6 +5,7 @@ import inspect
 
 VERSION = "recursive-json-v2"
 VERSIONS = {"recursive-json-v1", VERSION}
+JSON_NULL_SENTINEL = "__slanggraph_json_null_v1__"
 
 
 def _to_jsonable(obj, allow_periods=True):
@@ -59,6 +60,7 @@ def aggregate_periods(
     result_column=None,
     label_format=None,
     complete=True,
+    _missing_value=None,
 ):
     """Aggregate observed rows before completing and formatting calendar buckets."""
     import pandas as pd
@@ -88,7 +90,9 @@ def aggregate_periods(
         # column object-typed so the graph boundary sees JSON nulls while the
         # strict non-finite output rule remains enabled.
         result[result_column] = (
-            result[result_column].astype(object).where(result[result_column].notna(), None)
+            result[result_column]
+            .astype(object)
+            .where(result[result_column].notna(), _missing_value)
         )
     result[bucket_column] = (
         result[bucket_column].dt.strftime(label_format)
@@ -114,7 +118,7 @@ def repair_runner(source, version=VERSION, computation_api=None):
     replacement.args.defaults = [ast.Constant(version == VERSION)]
     tree.body[tree.body.index(matches[0])] = replacement
     if computation_api is not None:
-        if computation_api != "period-aggregation-v1":
+        if computation_api not in {"period-aggregation-v1", "period-aggregation-v2"}:
             raise ValueError("Unsupported computation API")
         assignments = [
             node
@@ -130,9 +134,15 @@ def repair_runner(source, version=VERSION, computation_api=None):
         # Compile the helper in the SAME restricted namespace as generated code.
         # Its globals must never retain this adapter's unrestricted host imports.
         assignment = assignments[0]
+        helper_source = inspect.getsource(aggregate_periods)
+        if computation_api == "period-aggregation-v2":
+            helper_tree = ast.parse(helper_source)
+            helper = helper_tree.body[0]
+            helper.args.defaults[-1] = ast.Constant(JSON_NULL_SENTINEL)
+            helper_source = ast.unparse(ast.fix_missing_locations(helper_tree))
         injection = ast.parse(
             "_primitive_globals = dict(exec_globals)\n"
-            f"exec({inspect.getsource(aggregate_periods)!r}, _primitive_globals)\n"
+            f"exec({helper_source!r}, _primitive_globals)\n"
             "exec_globals['aggregate_periods'] = _primitive_globals['aggregate_periods']"
         ).body
         for parent in ast.walk(tree):

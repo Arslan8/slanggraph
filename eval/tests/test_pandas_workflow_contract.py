@@ -39,6 +39,24 @@ def test_async_stage_preserves_original_request():
     assert graph.ainvoke.call_args.args[0]["user_instructions"].startswith(stage.request)
 
 
+def test_wrangling_stage_restores_only_versioned_json_null_sentinel():
+    graph = Mock(
+        invoke=Mock(
+            return_value={
+                "data_wrangled": {
+                    "month": {"0": "2026-04"},
+                    "mean_sales": {"0": contract.JSON_NULL_SENTINEL},
+                },
+                "messages": [contract.JSON_NULL_SENTINEL],
+            }
+        )
+    )
+    stage = contract.RequestPreservingStage(graph, "Return monthly means.", "wrangling")
+    result = stage.invoke({})
+    assert result["data_wrangled"]["mean_sales"]["0"] is None
+    assert result["messages"] == [contract.JSON_NULL_SENTINEL]
+
+
 def test_date_filter_is_not_treated_as_temporal_grouping():
     state = {"user_instructions": "lossy routing"}
     filtered = contract.RequestPreservingStage(

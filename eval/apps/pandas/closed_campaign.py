@@ -38,6 +38,7 @@ INTERNAL_CONFIGURATION = {
 }
 MANIFESTS = {
     "v22": HERE / "policy/manifest-v22-full.json",
+    "v23": HERE / "policy/manifest-v23-full.json",
 }
 
 

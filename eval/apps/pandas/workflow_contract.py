@@ -6,14 +6,16 @@ import math
 import re
 import struct
 
-VERSION = "preserve-request-v5"
+VERSION = "preserve-request-v6"
 VERSIONS = {
     "preserve-request-v1",
     "preserve-request-v2",
     "preserve-request-v3",
     "preserve-request-v4",
+    "preserve-request-v5",
     VERSION,
 }
+JSON_NULL_SENTINEL = "__slanggraph_json_null_v1__"
 
 TASK_STEPS = """Perform only the analysis requested by the user, not generic data cleaning.
 Preserve duplicate rows and missing values unless the requested operation explicitly changes them.
@@ -116,10 +118,29 @@ class RequestPreservingStage:
         return prepared
 
     def invoke(self, state, *args, **kwargs):
-        return self.graph.invoke(self.prepare(state), *args, **kwargs)
+        return self._restore(self.graph.invoke(self.prepare(state), *args, **kwargs))
 
     async def ainvoke(self, state, *args, **kwargs):
-        return await self.graph.ainvoke(self.prepare(state), *args, **kwargs)
+        return self._restore(await self.graph.ainvoke(self.prepare(state), *args, **kwargs))
+
+    def _restore(self, result):
+        if self.stage != "wrangling" or not isinstance(result, dict):
+            return result
+        if "data_wrangled" not in result:
+            return result
+
+        def restore(value):
+            if value == JSON_NULL_SENTINEL:
+                return None
+            if isinstance(value, dict):
+                return {key: restore(item) for key, item in value.items()}
+            if isinstance(value, list):
+                return [restore(item) for item in value]
+            return value
+
+        restored = dict(result)
+        restored["data_wrangled"] = restore(result["data_wrangled"])
+        return restored
 
 
 def portable_plot(plot):

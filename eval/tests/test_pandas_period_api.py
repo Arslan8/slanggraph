@@ -66,3 +66,23 @@ def run():
     assert "open" not in helper.__globals__["__builtins__"]
     with pytest.raises(ValueError, match="Unsupported computation"):
         codec.repair_runner(source, computation_api="unknown")
+
+
+def test_v2_period_helper_uses_a_json_safe_null_sentinel():
+    source = """
+def _to_jsonable(obj):
+    return obj
+_SAFE_BUILTINS = {"dict": dict}
+pd = None
+np = None
+def run():
+    exec_globals = {"__builtins__": _SAFE_BUILTINS, "pd": pd, "np": np}
+    return exec_globals
+"""
+    scope = {}
+    exec(codec.repair_runner(source, computation_api="period-aggregation-v2"), scope)
+    helper = scope["run"]()["aggregate_periods"]
+    frame = pd.DataFrame({"date": ["2026-01-01", "2026-02-01"], "sales": [1, None]})
+    result = helper(frame, "date", "sales", operation="mean")
+    assert result.sales.iloc[1] == codec.JSON_NULL_SENTINEL
+    validate_output_data({"data_wrangled": result.to_dict()})
