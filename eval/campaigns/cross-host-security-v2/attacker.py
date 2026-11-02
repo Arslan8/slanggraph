@@ -126,6 +126,17 @@ def run(task: dict):
             return {"created": True, "child_pid": pid}
 
         return attempt(fork_under_required_filter)
+    if case == "required_per_process_cpu":
+
+        def exceed_total_cpu_limit():
+            started = time.process_time()
+            value = 1
+            while time.process_time() - started < 2.5:
+                value = (value * 48271) % 2147483647
+            database(task, "update")
+            return {"cpu_seconds": time.process_time() - started, "value": value}
+
+        return attempt(exceed_total_cpu_limit)
     if case == "capture_old":
         frame = {
             "service": '["record","notes/alice"]',

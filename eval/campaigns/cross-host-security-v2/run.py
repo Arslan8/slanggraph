@@ -233,8 +233,9 @@ def main():
     for name, digest in sources.items():
         (blobs / digest).write_bytes((host.ROOT / name).read_bytes())
     revisions = {
-        name: subprocess.check_output([host.GIT, "rev-parse", ref], text=True).strip()
-        for name, ref in (("macOS_checkout", "HEAD"), ("wip_evidence_tree", "origin/wip"))
+        "implementation": subprocess.check_output(
+            [host.GIT, "rev-parse", "HEAD"], text=True
+        ).strip()
     }
     dump(
         output / "configuration.json",
@@ -269,6 +270,21 @@ def main():
             shutil.copy2(native[field], images / name)
         launcher = json.loads(config.read_text())["launcher"]["launcher"]
         shutil.copy2(launcher, images / "launcher")
+    else:
+        checker = Path(os.environ["ARGUS_LIFECYCLE_CHECKER"]).resolve(strict=True)
+        images = output / "native"
+        images.mkdir()
+        shutil.copy2(checker, images / "workerRoute")
+        dump(
+            output / "native-configuration.json",
+            {
+                "lean": {
+                    "binary": str(checker),
+                    "sha256": host.sha(checker),
+                    "protocol": "worker-route-grant-v3",
+                }
+            },
+        )
     cedar = shutil.which("cedar")
     dump(
         output / "environment.json",

@@ -4,6 +4,7 @@ import dataclasses
 import enum
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from collections.abc import Mapping
@@ -33,7 +34,7 @@ def plain(value):
         return {str(key): plain(item) for key, item in value.items()}
     if isinstance(value, enum.Enum):
         return value.value
-    if isinstance(value, (list, tuple, set, frozenset)):
+    if isinstance(value, list | tuple | set | frozenset):
         return [plain(item) for item in value]
     if isinstance(value, Path):
         return str(value)
@@ -70,11 +71,16 @@ def dispatcher(code, mediators, timeout):
             specs, runtime_roots=roots(code), mediators=mediators, wall_timeout_s=timeout
         )
     from langgraph.prebuilt.security import ObjectBrokerDispatcher
+    from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 
-    # Current WIP broker API has no lifecycle_checker parameter. Do not inject a
-    # replacement executor to hide that integration gap.
+    checker_path = Path(os.environ["ARGUS_LIFECYCLE_CHECKER"]).resolve(strict=True)
+    checker = LeanLifecycleChecker(str(checker_path), sha(checker_path))
     return ObjectBrokerDispatcher(
-        specs, runtime_roots=roots(code), mediators=mediators, wall_timeout_s=timeout
+        specs,
+        runtime_roots=roots(code),
+        mediators=mediators,
+        wall_timeout_s=timeout,
+        lifecycle_checker=checker,
     )
 
 

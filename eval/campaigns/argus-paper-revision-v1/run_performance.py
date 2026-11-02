@@ -40,6 +40,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--checker", type=Path, required=True)
+    parser.add_argument("--qualification", type=Path, required=True)
     parser.add_argument("--acknowledge-controlled-host", action="store_true")
     parser.add_argument("--sessions", type=int, default=5)
     parser.add_argument("--warmups", type=int, default=10)
@@ -50,6 +51,13 @@ def main() -> int:
             "final measurements require --acknowledge-controlled-host after checking "
             "load/frequency isolation"
         )
+    qualification = json.loads(args.qualification.resolve(strict=True).read_text())
+    if qualification.get("otherwise_quiet") is not True:
+        parser.error("host qualification did not establish an otherwise quiet CPU")
+    selected_cpu = qualification.get("selected_cpu")
+    if type(selected_cpu) is not int or selected_cpu not in os.sched_getaffinity(0):
+        parser.error("qualified CPU is not available to this process")
+    os.sched_setaffinity(0, {selected_cpu})
     args.output.mkdir(parents=True, exist_ok=False)
     preflight = subprocess.run(
         [
@@ -93,6 +101,8 @@ def main() -> int:
         },
         "source_before": before,
         "controlled_host_acknowledged": True,
+        "qualification": qualification,
+        "cpu_affinity": sorted(os.sched_getaffinity(0)),
     }
     (args.output / "environment.json").write_text(json.dumps(metadata, indent=2) + "\n")
     command = [

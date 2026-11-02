@@ -41,6 +41,23 @@ def test_canonical_native_resource_still_opens_and_is_identity_bound(
         os.close(fd)
 
 
+def test_hard_link_alias_resolves_to_the_authorized_object_identity(tmp_path):
+    resource = tmp_path / "authorized-record"
+    alias = tmp_path / "record-alias"
+    resource.write_text("alice-record")
+    os.link(resource, alias)
+
+    fd = linux._verified_resource_fd(alias)
+    try:
+        opened = os.fstat(fd)
+        intended = resource.stat()
+        assert (opened.st_dev, opened.st_ino) == (intended.st_dev, intended.st_ino)
+        assert Path(f"/proc/self/fd/{fd}").read_text() == "alice-record"
+        assert not os.get_inheritable(fd)
+    finally:
+        os.close(fd)
+
+
 def test_missing_atomic_path_resolution_refuses_without_pathname_fallback(
     tmp_path, monkeypatch
 ):

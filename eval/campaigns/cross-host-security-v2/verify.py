@@ -31,7 +31,7 @@ def values(value, depth=0):
     yield value
     if depth > 8:
         return
-    if isinstance(value, (dict, list)):
+    if isinstance(value, dict | list):
         for item in value.values() if isinstance(value, dict) else value:
             yield from values(item, depth + 1)
     elif isinstance(value, str):
@@ -66,7 +66,10 @@ def forbidden(row):
             if case.startswith("session_")
             else len(right["events"]) > len(left["events"])
         )
-    if case in GATES and case != "required_syscall_filter":
+    if case in GATES and case not in {
+        "required_per_process_cpu",
+        "required_syscall_filter",
+    }:
         return entered(row)
     if case == "old_invocation_reuse":
         return after["records"].get("alice") != before["records"].get("alice")
@@ -176,6 +179,49 @@ def classify(control, protected):
             else (
                 "Inconclusive",
                 "missing observed filter state or required-obligation activation evidence",
+            )
+        )
+    if case == "required_per_process_cpu":
+        covered = False
+        for dispatcher in (protected.get("evidence") or {}).get("dispatchers", []):
+            for record in dispatcher["lowering"]:
+                if not isinstance(record, dict) or "plan" not in record:
+                    continue
+                ids = {
+                    item["obligation_id"]
+                    for item in record["obligations"]
+                    if item["operation"] == "limit" and item["selector"] == "cpu_ms"
+                }
+                assigned = {
+                    item["obligation_id"]
+                    for item in record["plan"]["assignments"]
+                    if item["support"] in {"exact", "tightened"}
+                }
+                covered |= (
+                    bool(ids)
+                    and ids.issubset(assigned)
+                    and any(
+                        ids.issubset(receipt["activated_obligations"])
+                        for receipt in dispatcher["receipts"]
+                    )
+                )
+        elapsed_ns = protected["controller"]["exited_ns"] - protected["controller"]["started_ns"]
+        failed_after_activation = (
+            protected.get("outcome", {}).get("message_status") == "error"
+            or protected.get("outcome", {}).get("error") is not None
+        )
+        return (
+            (
+                "Enforced",
+                "required RLIMIT_CPU activated; CPU-bound body terminated before effect",
+            )
+            if entered(protected)
+            and covered
+            and failed_after_activation
+            and elapsed_ns < 10_000_000_000
+            else (
+                "Inconclusive",
+                "missing CPU-limit activation, bounded termination, or execution evidence",
             )
         )
     if case in GATES:
@@ -328,15 +374,19 @@ def verify(root):
         by_key[key] = row
     classified = []
     native_replays = 0
-    if config["host"] == "macos":
+    if config["host"] in {"linux", "macos"}:
         from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 
         native = json.loads((root / "native-configuration.json").read_text())["lean"]
-        checker = LeanLifecycleChecker(
-            str(root / "native/core.dylib"),
-            native["sha256"],
-            str(root / "native/runtime.dylib"),
-            native["native_runtime_sha256"],
+        checker = (
+            LeanLifecycleChecker(str(root / "native/workerRoute"), native["sha256"])
+            if config["host"] == "linux"
+            else LeanLifecycleChecker(
+                str(root / "native/core.dylib"),
+                native["sha256"],
+                str(root / "native/runtime.dylib"),
+                native["native_runtime_sha256"],
+            )
         )
         for row in rows:
             for dispatcher in (row.get("evidence") or {}).get("dispatchers", []):
