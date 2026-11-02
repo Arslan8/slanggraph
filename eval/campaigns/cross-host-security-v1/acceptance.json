@@ -1,0 +1,53 @@
+{
+  "accepted": true,
+  "execution_commit": "a5a61400b668351c4c00a64ea855bf0bb0b29aeb",
+  "wip_historical_evidence_tree": "60a73efb1c072b95aa38f6b1d7c39fe3ea6db5f1",
+  "exact_same_policy_security_equivalence_established": false,
+  "new_linux_trials": 0,
+  "distinct_cases": 44,
+  "repetitions_per_case_per_condition": 5,
+  "total_trials": 440,
+  "categories": {
+    "Enforced": 185,
+    "Inconclusive": 10,
+    "Rejected before execution": 25
+  },
+  "forbidden_effects_observed_in_protected_trials": 0,
+  "positive_controls_demonstrated": 220,
+  "allowed_operations_correct": 25,
+  "native_success_certificates_replayed": 170,
+  "checksum_files_verified": 9419,
+  "archive_extraction_verified": true,
+  "archive_reverification_matches": true,
+  "mutation_controls_passed": 9,
+  "archive_bytes": 65045377,
+  "archive_sha256": "7a86a067008f31ab4e046206ad40fa4aa1b87f257ef01aced96c61e3c169a5f4",
+  "analysis_sources_sha256": {
+    "application_preservation.py": "9259ca8c544afed9ebffa8bdccc5e985f2b3d6f18c131d0ee1e2f8cda50fc29d",
+    "attacker.py": "6a1915bbd6db98b5e98fd61947f3abcf479d3edcedf249eb79c4cfa782502054",
+    "controller.py": "94809b837d2925f6b5b788ea1ece8c14abbeca533c0f49c5035d2cc15ff45d43",
+    "fixtures.py": "7e36e79c254270b85d2ad355ee9efb8573aae9550ddf1b56126194e070929233",
+    "host.py": "80377368e7c33f6e94bd62ba22740e32062ec09970f25b4501f5ac01a6d62ad6",
+    "linux_reference.py": "6e33d25e30a6c757a3f6594b9d1d104dd7a06fcaf7425e04ed7a2b9de167e6fa",
+    "mutation_controls.py": "f5fbf258ffe4b9af80e230a4d5ad2bf067121584e871d9701a2f8060f5537710",
+    "run.py": "fcccb8fb367368cb6c4a498ea31afc610f71f391fd9015ba2dbdd219b8e6a8c6",
+    "specification.py": "a81e22b617f8e60195201818731b8ae9d7eff9655eb6c4ca295c0edbf7f33aea",
+    "verify.py": "b3b5a0763186a8168ca75fad510814f8ae8efd77bd5684c01f2185aec7196fab"
+  },
+  "post_run_analysis_changes": [
+    "Resolve relative paths in mutation controls and require the intended SQLite mismatch exception",
+    "Strengthen historical Linux allowed-response/state comparisons; outcomes unchanged"
+  ],
+  "runtime_sources_unchanged_during_execution": true,
+  "validation": {
+    "focused_native_tests": 16,
+    "make_format": "passed",
+    "make_lint": "passed",
+    "make_test": "Docker services could not start: docker executable absent"
+  },
+  "limitations": [
+    "Two first-class CPU/syscall policy-interface gaps; extensible unknown kernel contracts rejected without qualifying CPU/filter semantics",
+    "Historical Linux policies/envelopes/admission/Lean route differ; unmatched requirements are not cross-platform validation",
+    "Persistent interpreter uses production native activation/guardian; Lean replay covers admitted object wrapper, without a separate session lifecycle certificate"
+  ]
+}

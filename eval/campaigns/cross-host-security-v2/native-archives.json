@@ -1,0 +1,12 @@
+[
+  {
+    "file": "native-macos.tar.gz",
+    "bytes": 47807837,
+    "sha256": "9b8ba2ea87928b1cae71f471e20e1a926f082453fc6712090d79e0492fc6df44"
+  },
+  {
+    "file": "native-linux.tar.gz",
+    "bytes": 60177460,
+    "sha256": "8cfe9b182f167d2e777e3f0a45514e5946ecac5eed7965d1c4ca6dc0fbf63b17"
+  }
+]

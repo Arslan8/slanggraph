@@ -837,6 +837,18 @@ class LandlockSandboxExecutor:
         }:
             return SupportLevel.EXACT, "worker:protocol-fd"
         if rule.domain is AuthorityDomain.RESOURCE_LIMIT:
+            if rule.selector == "aggregate_cpu_ms":
+                return (
+                    SupportLevel.UNSUPPORTED,
+                    "aggregate_cpu_budget_not_enforced_by_cpu_max_or_rlimit",
+                )
+            if rule.selector == "cpu_ms":
+                maximum = rule.conditions.get("maximum")
+                if type(maximum) is not int or maximum <= 0 or maximum % 1000:
+                    return (
+                        SupportLevel.UNSUPPORTED,
+                        "rlimit_cpu_requires_positive_whole_seconds",
+                    )
             if rule.selector == "nofile":
                 return SupportLevel.EXACT, "rlimit:nofile"
             if rule.selector == "wall_ms":

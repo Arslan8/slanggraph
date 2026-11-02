@@ -865,6 +865,7 @@ def _tool_node_state(
     from langgraph.prebuilt.security.container import DockerObjectDispatcher
     from langgraph.prebuilt.security.linux import LinuxSandboxExecutor
     from langgraph.prebuilt.security.linux_object import LinuxObjectDispatcher
+    from langgraph.prebuilt.security.macos_object import MacOSObjectDispatcher
     from langgraph.prebuilt.security.object_broker import ObjectBrokerDispatcher
     from langgraph.prebuilt.security.object_policy import (
         CedarObjectAuthorizer,
@@ -927,6 +928,9 @@ def _tool_node_state(
         elif dispatcher_type is LinuxObjectDispatcher:
             kind = AdmittedKind.NATIVE_DEPLOYMENT
             details = _linux_object_details(dispatcher, tool_names)
+        elif dispatcher_type is MacOSObjectDispatcher:
+            kind = AdmittedKind.NATIVE_DEPLOYMENT
+            details = _macos_object_details(dispatcher, tool_names)
         elif dispatcher_type is ObjectBrokerDispatcher:
             kind = AdmittedKind.TOOL_NODE
             details = _broker_details(dispatcher, tool_names)
@@ -1079,16 +1083,84 @@ def _linux_details(executor: Any, tool_names: tuple[str, ...]) -> dict[str, Any]
     }
 
 
-def _tool_specs(registry: Any, tool_names: tuple[str, ...]) -> list[dict[str, Any]]:
+def _macos_object_details(
+    dispatcher: Any, tool_names: tuple[str, ...]
+) -> dict[str, Any]:
+    from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
+    from langgraph.prebuilt.security.macos import MacOSToolSpec
+    from langgraph.prebuilt.security.macos_native import MacOSNativeLauncher
+    from langgraph.prebuilt.security.resource_mediator import ResourceMediatorAdapter
+
+    specs = _tool_specs(dispatcher.tools, tool_names, spec_type=MacOSToolSpec)
+    launcher, checker = dispatcher.launcher, dispatcher.lifecycle_checker
+    if (
+        type(launcher) is not MacOSNativeLauncher
+        or type(checker) is not LeanLifecycleChecker
+    ):
+        raise PermissionError(UNSUPPORTED_NODE_BODY)
+    if (
+        type(dispatcher.runtime_roots) is not tuple
+        or type(dispatcher.executable_roots) is not tuple
+    ):
+        raise PermissionError(DESCRIPTOR_CHANGED)
+    mediators, callback_sources = [], []
+    if type(dispatcher.mediators) is not tuple:
+        raise PermissionError(DESCRIPTOR_CHANGED)
+    for mediator in dispatcher.mediators:
+        if type(mediator) is not ResourceMediatorAdapter:
+            raise PermissionError(UNSUPPORTED_NODE_BODY)
+        callbacks = {}
+        for name in ("assess", "invoke", "preflight", "activate", "release"):
+            callback = getattr(mediator, name)
+            if callback is None:
+                callbacks[name] = None
+                continue
+            function = callback.__func__ if type(callback) is MethodType else callback
+            if type(function) is not FunctionType:
+                raise PermissionError(UNSUPPORTED_NODE_BODY)
+            source = hashlib.sha256(
+                _encode(_code_identity(function.__code__)).encode()
+            ).hexdigest()
+            callbacks[name] = {"identity": id(callback), "code": source}
+            callback_sources.append(source)
+        mediators.append({"adapter": mediator.adapter_id, "callbacks": callbacks})
+    return {
+        "host": "macos_object",
+        "specs": specs,
+        "runtime_roots": [_path_text(root) for root in dispatcher.runtime_roots],
+        "executable_roots": [_path_text(root) for root in dispatcher.executable_roots],
+        "launcher": _path_text(launcher.path),
+        "launcher_sha256": launcher.digest,
+        "libpython": _path_text(launcher.library),
+        "libpython_sha256": launcher.library_digest,
+        "stdlib": _path_text(launcher.stdlib),
+        "dynload": _path_text(launcher.dynload),
+        "lean_worker_sha256": checker.binary_sha256,
+        "lean_runtime_sha256": checker.runtime_sha256,
+        "wall_timeout_s": dispatcher.wall_timeout_s,
+        "bindings": sorted(dispatcher.bindings.items()),
+        "mediators": mediators,
+        "runtime_aliases": sorted(dispatcher.runtime_aliases.items()),
+        "runtime_libraries": [dict(item) for item in dispatcher.runtime_libraries],
+        "sources": [spec["artifact_sha256"] for spec in specs] + callback_sources,
+    }
+
+
+def _tool_specs(
+    registry: Any, tool_names: tuple[str, ...], *, spec_type: Any = None
+) -> list[dict[str, Any]]:
     """Project exact `LinuxToolSpec` records for the node's registered tools."""
     from langgraph.prebuilt.security.linux import LinuxToolSpec
+
+    if spec_type is None:
+        spec_type = LinuxToolSpec
 
     if type(registry) is not MappingProxyType:
         raise PermissionError(DESCRIPTOR_CHANGED)
     specs = []
     for name in tool_names:
         spec = registry.get(name)
-        if type(spec) is not LinuxToolSpec:
+        if type(spec) is not spec_type:
             raise PermissionError(UNSUPPORTED_NODE_BODY)
         entrypoint = spec.entrypoint
         digest = spec.artifact_digest
@@ -1100,7 +1172,7 @@ def _tool_specs(registry: Any, tool_names: tuple[str, ...]) -> list[dict[str, An
                 "entrypoint": entrypoint,
                 "artifact_path": _path_text(spec.artifact_path),
                 "artifact_sha256": digest,
-                "deployment": spec.deployment is not None,
+                "deployment": getattr(spec, "deployment", None) is not None,
             }
         )
     return specs

@@ -21,7 +21,6 @@ from langgraph.prebuilt.security import (
     CedarPolicySet,
     DacOverrides,
     EnforcementKind,
-    LinuxObjectDispatcher,
     LinuxToolSpec,
     MemoryAuditSink,
     ObjectPolicyHostExecutor,
@@ -32,8 +31,8 @@ from langgraph.prebuilt.security import (
     parse_security_manifest,
     with_principal,
 )
-from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.object_policy import _language_sandbox_owner_policy
+from native_host import NATIVE_HOST, native_object_dispatcher, selected_lifecycle_checker
 from timing import ModelTiming
 from tool_calling_worker import add as worker_add
 from tool_calling_worker import get_coolest_cities as worker_get_coolest_cities
@@ -130,13 +129,10 @@ def security(
 ):
     worker_route = worker_route.resolve()
     audit = MemoryAuditSink()
-    checker = LeanLifecycleChecker(
-        binary_path=str(worker_route),
-        binary_sha256=hashlib.sha256(worker_route.read_bytes()).hexdigest(),
-        runtime_path=LEAN_RUNTIME,
-        runtime_sha256=LEAN_RUNTIME_SHA256,
+    checker = selected_lifecycle_checker(
+        worker_route, runtime_path=LEAN_RUNTIME, runtime_sha256=LEAN_RUNTIME_SHA256
     )
-    dispatcher = LinuxObjectDispatcher(
+    dispatcher = native_object_dispatcher(
         {
             name: LinuxToolSpec(f"tool_calling_worker:{name}", WORKER, WORKER_DIGEST)
             for name in tool_names
@@ -145,7 +141,9 @@ def security(
         lifecycle_checker=checker,
         integrity_recheck="preflight-only",
     )
-    manifest = "\n".join(f"tool {name} {{\nruns linux\nreturns normal\n}}" for name in tool_names)
+    manifest = "\n".join(
+        f"tool {name} {{\nruns {NATIVE_HOST}\nreturns normal\n}}" for name in tool_names
+    )
     parsed = parse_security_manifest(
         manifest,
         enforcers={EnforcementKind.KERNEL: dispatcher},

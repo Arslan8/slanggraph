@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import sys
 from datetime import UTC, datetime, timedelta
@@ -92,7 +93,11 @@ def test_travel_monitor_binds_logical_principal_and_preserves_mutations(
     assert "successfully cancelled" in backend.cancel_ticket("T1", "alice")
 
 
-@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="Landlock is Linux-only")
+@pytest.mark.skipif(
+    sys.platform != "linux"
+    and not (sys.platform == "darwin" and os.environ.get("ARGUS_MACOS_CONFIGURATION")),
+    reason="native host setup required",
+)
 def test_persistent_python_monitor_preserves_state_and_denies_sibling_file(
     tmp_path: Path,
 ) -> None:
@@ -116,5 +121,28 @@ def test_persistent_python_monitor_preserves_state_and_denies_sibling_file(
         assert state["stdout"].strip() == "42"
         denied = json.loads(backend.execute(f"print(open({str(forbidden)!r}).read())"))
         assert denied["error"].startswith("PermissionError:")
+        denied_write = json.loads(backend.execute(f"open({str(forbidden)!r}, 'w').write('forged')"))
+        assert denied_write["error"].startswith("PermissionError:")
+        assert forbidden.read_text() == "not-readable"
+    finally:
+        backend.close()
+
+
+@pytest.mark.skipif(
+    sys.platform != "darwin" or not os.environ.get("ARGUS_MACOS_CONFIGURATION"),
+    reason="macOS native setup required",
+)
+def test_macos_python_timeout_reaps_session(tmp_path):
+    from langgraph.prebuilt.security.macos import _process_identity
+
+    backend = PersistentPythonBackend(
+        tmp_path / "chart.png", tmp_path / "observer.json", runtime_roots=()
+    )
+    pid = backend.process.pid
+    try:
+        with pytest.raises(TimeoutError):
+            backend._macos_session.execute("while True: pass", timeout=0.1)
+        assert _process_identity(pid) is None
+        assert backend._macos_session.recovery is None
     finally:
         backend.close()

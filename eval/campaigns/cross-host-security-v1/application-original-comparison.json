@@ -1,0 +1,33 @@
+{
+  "verified": true,
+  "wip_containing_commit": "60a73efb1c072b95aa38f6b1d7c39fe3ea6db5f1",
+  "linux_demo_configuration_path": "eval/campaigns/langgraph-demos-v3/raw/aggressive-inline-docker-cedar-20261030/configuration.json",
+  "task_digest": "5518b7cbf4e22276cda21c8425543dd32ca508f56841f75d473df49818a6d725",
+  "fixture_digests_match": true,
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "demo_timeouts_seconds": [
+    180,
+    300
+  ],
+  "pandas_task_rows_oracle_ast": {
+    "oracle": {
+      "linux_sha256": "0958657636dc501755bf947bd251d982b2e300a21add8688b6f8396e28ac1161",
+      "macos_sha256": "0958657636dc501755bf947bd251d982b2e300a21add8688b6f8396e28ac1161"
+    },
+    "TASKS": {
+      "linux_sha256": "472e539d6e4a8b0f5b5538fbc6bb095610492c4370e923d9ab77119af9debe25",
+      "macos_sha256": "472e539d6e4a8b0f5b5538fbc6bb095610492c4370e923d9ab77119af9debe25"
+    },
+    "ROWS": {
+      "linux_sha256": "3b973737c1ea6e827130efff1c09373f4fb7be98d365fb8eaad5ce5493fdfb28",
+      "macos_sha256": "3b973737c1ea6e827130efff1c09373f4fb7be98d365fb8eaad5ce5493fdfb28"
+    }
+  },
+  "ordinary_full_runner_hash_matches": true,
+  "scope": "Frozen original task/fixture/model/oracle definitions; host setup and historical activation outcomes differ. No rerun.",
+  "reference_sha256": {
+    "linux-application_campaign.py.txt": "355ac06b9e252d4801d05011889d3e313ec512ce12eedd61e578a8331a9ee9fe",
+    "linux-configuration.json": "889774bbd8aaa11aa474ca0fcd256b4e262f048347407ceb522e9340cb234ef7",
+    "linux-run_campaign.py.txt": "195d891c0d153a39efeb2bec956dfcba113b7c9acbb4a562393e84fb8db0a1e2"
+  }
+}

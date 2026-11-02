@@ -33,7 +33,9 @@ from langgraph.prebuilt.security.unsupported import (
     UnsupportedFeatureError,
 )
 
-pytestmark = pytest.mark.skipif(sys.platform != "linux", reason="openat2 route")
+pytestmark = pytest.mark.skipif(
+    sys.platform not in {"linux", "darwin"}, reason="native pinned read required"
+)
 
 PRINCIPAL = Principal("analyst", frozenset(), frozenset(), "session-1")
 ALLOW = Decision(Verdict.ALLOW, "dataset_read permitted")

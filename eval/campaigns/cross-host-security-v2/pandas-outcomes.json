@@ -1,0 +1,54 @@
+{
+  "trials": 100,
+  "conditions": {
+    "Baseline": {
+      "attempts": 50,
+      "correct": 50,
+      "timeouts": 0
+    },
+    "slangGraph": {
+      "attempts": 50,
+      "correct": 45,
+      "timeouts": 0
+    }
+  },
+  "all_source_checks_stable": true,
+  "protected_computation_calls": 65,
+  "failure_rows": [
+    {
+      "run_id": "monthly_mean-slangGraph-0",
+      "status": "error",
+      "legitimate_result": false,
+      "execution_errors": 0,
+      "output_validation_failures": 1
+    },
+    {
+      "run_id": "monthly_mean-slangGraph-1",
+      "status": "error",
+      "legitimate_result": false,
+      "execution_errors": 0,
+      "output_validation_failures": 1
+    },
+    {
+      "run_id": "monthly_mean-slangGraph-2",
+      "status": "error",
+      "legitimate_result": false,
+      "execution_errors": 0,
+      "output_validation_failures": 1
+    },
+    {
+      "run_id": "monthly_mean-slangGraph-3",
+      "status": "error",
+      "legitimate_result": false,
+      "execution_errors": 0,
+      "output_validation_failures": 1
+    },
+    {
+      "run_id": "monthly_mean-slangGraph-4",
+      "status": "error",
+      "legitimate_result": false,
+      "execution_errors": 0,
+      "output_validation_failures": 1
+    }
+  ]
+}

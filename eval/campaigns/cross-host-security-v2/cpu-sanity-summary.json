@@ -1,0 +1,92 @@
+[
+  {
+    "kind": "computation",
+    "condition": "seatbelt_only",
+    "observations": 5,
+    "returncodes": {
+      "0": 5
+    },
+    "parent_observed_cpu_seconds": [
+      2.032136,
+      2.0211600000000005,
+      2.0213540000000005,
+      2.0211109999999994,
+      2.0219809999999985
+    ]
+  },
+  {
+    "kind": "computation",
+    "condition": "rlimit_only",
+    "observations": 5,
+    "returncodes": {
+      "-24": 5
+    },
+    "parent_observed_cpu_seconds": [
+      1.001496,
+      1.0011739999999998,
+      1.001245,
+      1.0011530000000022,
+      1.0012889999999999
+    ]
+  },
+  {
+    "kind": "computation",
+    "condition": "seatbelt_and_rlimit",
+    "observations": 5,
+    "returncodes": {
+      "-24": 5
+    },
+    "parent_observed_cpu_seconds": [
+      1.001545,
+      1.001138,
+      1.001365999999999,
+      1.0012999999999987,
+      1.0015690000000017
+    ]
+  },
+  {
+    "kind": "syscall",
+    "condition": "seatbelt_only",
+    "observations": 5,
+    "returncodes": {
+      "0": 5
+    },
+    "parent_observed_cpu_seconds": [
+      2.020304,
+      2.0200929999999997,
+      2.022381,
+      2.0204400000000007,
+      2.021291999999999
+    ]
+  },
+  {
+    "kind": "syscall",
+    "condition": "rlimit_only",
+    "observations": 5,
+    "returncodes": {
+      "0": 5
+    },
+    "parent_observed_cpu_seconds": [
+      2.0159970000000005,
+      2.0158830000000005,
+      2.020599999999998,
+      2.016005999999999,
+      2.015810000000002
+    ]
+  },
+  {
+    "kind": "syscall",
+    "condition": "seatbelt_and_rlimit",
+    "observations": 5,
+    "returncodes": {
+      "0": 5
+    },
+    "parent_observed_cpu_seconds": [
+      2.020094,
+      2.020517999999999,
+      2.023265000000002,
+      2.0207960000000007,
+      2.020426999999998
+    ]
+  }
+]

@@ -1,0 +1,78 @@
+{
+  "evidence_tree_commit": "60a73efb1c072b95aa38f6b1d7c39fe3ea6db5f1",
+  "execution_commit": "not recorded as a full commit in these trial rows; source_revision is the worker source hash",
+  "files": [
+    {
+      "member": "sqlite/trials.jsonl",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/sqlite-composition-v1/trials.jsonl",
+      "git_blob": "f9618c88b88037f2d5b8d7922501c25797b1c2c3",
+      "bytes": 6059942,
+      "sha256": "82ec6cb13e12651a86d0857e45c49be7e146275e3f759f5da0ed963065903d98"
+    },
+    {
+      "member": "sqlite/plan.json",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/sqlite-composition-v1/plan.json",
+      "git_blob": "3850d9d42915e78a3267921ae5c102a3486c7f5c",
+      "bytes": 1485,
+      "sha256": "e2c62d7b555ae83e7096763c40f3d4e7ca99748f8c299ff14ab438c7a3268930"
+    },
+    {
+      "member": "sqlite/policy.cedar",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/sqlite-composition-v1/policy.cedar",
+      "git_blob": "1037c02a2eeab3afccc0e58ea7a3018bbf44c6dd",
+      "bytes": 233,
+      "sha256": "d11a1c9797412c9b7a04a25304fcec126070f7e9c0343272a6863e04f24eb7d2"
+    },
+    {
+      "member": "sqlite/manifest.slp",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/sqlite-composition-v1/manifest.slp",
+      "git_blob": "acc8e846021e11fc2efdb2e78eecc959687fa601",
+      "bytes": 181,
+      "sha256": "020baba18a77b52a625f75193d398a7aad90ddcbb1d9719d85ff2aa4e1201ef5"
+    },
+    {
+      "member": "sqlite/worker.py",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/sqlite-composition-v1/worker.py",
+      "git_blob": "7fee73f894314ecf9c397b6aa65df7e031557836",
+      "bytes": 1700,
+      "sha256": "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+    },
+    {
+      "member": "pump/trials.jsonl",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/pump-composition-v1/trials.jsonl",
+      "git_blob": "bb14cc497de5662e12fbf60d54879728c16d60f2",
+      "bytes": 2161160,
+      "sha256": "92839cb9a3b38e7d67729a856b84b48a5f63fc327bf75efbb58b3ce52073cf9d"
+    },
+    {
+      "member": "pump/plan.json",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/pump-composition-v1/plan.json",
+      "git_blob": "cabd0d6790acbd32ee7fd5123a4b02d026c830e6",
+      "bytes": 832,
+      "sha256": "58fe7b2b8c20f707f1d39a654bbd6cb95725bfd8ad02890ad23b614f09f4f1f6"
+    },
+    {
+      "member": "pump/policy.cedar",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/pump-composition-v1/policy.cedar",
+      "git_blob": "17495d9efcd160d8612e8d75d3f26b74f9fd12cf",
+      "bytes": 970,
+      "sha256": "4412d6a79270470e22ad1efc5f332aaccffc170a8067b6937f8cfc733993dc37"
+    },
+    {
+      "member": "pump/manifest.slp",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/pump-composition-v1/manifest.slp",
+      "git_blob": "48eae4e67550d99aa8de0f41de3edf0c1adebfe8",
+      "bytes": 315,
+      "sha256": "72e0676897578df9caebade6e094a72ebe12dbf617da60d74d246bea5a799538"
+    },
+    {
+      "member": "pump/worker.py",
+      "repository_path": "eval/campaigns/current-implementation-v1/raw/pump-composition-v1/worker.py",
+      "git_blob": "dc32da738f5b8795fe972c53d538cbfda0bb6db9",
+      "bytes": 1026,
+      "sha256": "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+    }
+  ],
+  "archive_sha256": "f36df514d299a506d85ebde15616e29046ef180221d6f68bfbb6ecce164afe17",
+  "scope": "historical Linux resource-composition evidence; no Linux execution in the new campaign"
+}

@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Annotated
 
 import matplotlib
+from native_host import framework_library, native_broker_dispatcher
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -25,7 +26,6 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
     LinuxToolSpec,
-    ObjectBrokerDispatcher,
     Principal,
     install_mac_policy,
     with_principal,
@@ -155,10 +155,10 @@ def build(
         )
         runtime_roots = (
             Path(__file__).resolve().parent,
-            Path(__file__).resolve().parents[3] / "libs/prebuilt",
-            Path(__file__).resolve().parents[3] / "libs/langgraph",
-            Path(__file__).resolve().parents[3] / "libs/checkpoint",
-            Path(__file__).resolve().parents[3] / "libs/sdk-py",
+            framework_library("prebuilt"),
+            framework_library("langgraph"),
+            framework_library("checkpoint"),
+            framework_library("sdk-py"),
             *(
                 Path(item).resolve()
                 for item in sys.path
@@ -179,7 +179,7 @@ def build(
         monitor_dir = Path(__file__).with_name("resource_monitors")
         search_worker = monitor_dir / "search_worker.py"
         python_worker = monitor_dir / "python_worker.py"
-        dispatcher = ObjectBrokerDispatcher(
+        dispatcher = native_broker_dispatcher(
             {
                 "tavily_search": LinuxToolSpec(
                     "resource_monitors.search_worker:frozen_search",
@@ -242,9 +242,7 @@ def build(
             "You can only generate charts. You are working with a researcher colleague."
         )
         return {
-            "messages": [
-                model_timing.invoke(chart_model, [("system", prompt), *state["messages"]])
-            ]
+            "messages": [model_timing.invoke(chart_model, [("system", prompt), *state["messages"]])]
         }
 
     def route_research(state: MessagesState):

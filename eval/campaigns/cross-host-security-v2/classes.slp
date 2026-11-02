@@ -1,0 +1,42 @@
+class record {
+operations read write delete
+object row
+normalizer identity
+attrs
+enforced_by broker
+}
+class pump {
+operations inspect set_flow calibrate
+object device
+normalizer identity
+attrs
+enforced_by broker
+}
+class trace {
+operations append
+object log
+normalizer identity
+attrs
+enforced_by broker
+}
+class session {
+operations execute
+object interpreter
+normalizer identity
+attrs
+enforced_by broker
+}
+class host_cpu {
+operations require
+object contract
+normalizer identity
+attrs
+enforced_by kernel
+}
+class host_syscalls {
+operations require
+object contract
+normalizer identity
+attrs
+enforced_by kernel
+}

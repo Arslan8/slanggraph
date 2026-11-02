@@ -17,6 +17,7 @@ from langgraph.prebuilt.security import (
     parse_security_manifest,
 )
 from langgraph.prebuilt.security.object_policy import _language_sandbox_owner_policy
+from native_host import NATIVE_HOST
 
 FS_CLASS = """class fs {
  operations read write truncate
@@ -47,7 +48,7 @@ def monitored_security(
     declarations.extend(by_class.values())
     blocks = []
     for item in tools:
-        lines = ["runs linux", *(permissions[item.name]), "returns normal"]
+        lines = [f"runs {NATIVE_HOST}", *(permissions[item.name]), "returns normal"]
         blocks.append(f"tool {item.name} {{\n" + "\n".join(lines) + "\n}")
     parsed = parse_security_manifest(
         "\n".join((*declarations, *blocks)),

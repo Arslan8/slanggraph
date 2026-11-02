@@ -22,11 +22,11 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
     LinuxToolSpec,
-    ObjectBrokerDispatcher,
     Principal,
     install_mac_policy,
     with_principal,
 )
+from native_host import framework_library, native_broker_dispatcher
 from resource_monitors.api import SQL_DATABASE
 from resource_monitors.backends import ExactBrokerMediator, ReadOnlySQLBackend
 from resource_monitors.security import monitored_security
@@ -146,14 +146,14 @@ def build(db_path: Path, events: Path, mode: str, model_timing: ModelTiming):
                 hashlib.sha256(worker.read_bytes()).hexdigest(),
             ),
         }
-        dispatcher = ObjectBrokerDispatcher(
+        dispatcher = native_broker_dispatcher(
             specs,
             runtime_roots=(
                 Path(__file__).resolve().parent,
-                Path(__file__).resolve().parents[3] / "libs/prebuilt",
-                Path(__file__).resolve().parents[3] / "libs/langgraph",
-                Path(__file__).resolve().parents[3] / "libs/checkpoint",
-                Path(__file__).resolve().parents[3] / "libs/sdk-py",
+                framework_library("prebuilt"),
+                framework_library("langgraph"),
+                framework_library("checkpoint"),
+                framework_library("sdk-py"),
                 *(
                     Path(item).resolve()
                     for item in sys.path
@@ -242,8 +242,7 @@ DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the databa
     def generate_query(state: MessagesState):
         model = llm.bind_tools([run_query_tool])
         response = model_timing.invoke(
-            model,
-            [{"role": "system", "content": generate_prompt}] + state["messages"]
+            model, [{"role": "system", "content": generate_prompt}] + state["messages"]
         )
         return {"messages": [response]}
 

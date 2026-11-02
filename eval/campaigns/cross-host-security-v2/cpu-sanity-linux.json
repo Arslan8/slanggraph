@@ -1,0 +1,365 @@
+{
+  "platform": "Linux-7.0.0-42-generic-aarch64-with-glibc2.36",
+  "rows": [
+    {
+      "kind": "computation",
+      "condition": "no_limit",
+      "repetition": 0,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000401305, \"user_seconds\": 1.9714909999999999, \"system_seconds\": 0.041967}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.089997212000071,
+      "parent_observed_user_seconds": 1.973735,
+      "parent_observed_system_seconds": 0.042949999999999995
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 0,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0286892169999646,
+      "parent_observed_user_seconds": 0.9756329999999998,
+      "parent_observed_system_seconds": 0.016873
+    },
+    {
+      "kind": "syscall",
+      "condition": "no_limit",
+      "repetition": 0,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000009463, \"user_seconds\": 0.7897299999999999, \"system_seconds\": 1.223681}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0695963709999887,
+      "parent_observed_user_seconds": 0.7925690000000003,
+      "parent_observed_system_seconds": 1.223681
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 0,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0394868559999395,
+      "parent_observed_user_seconds": 0.5100239999999996,
+      "parent_observed_system_seconds": 0.484175
+    },
+    {
+      "kind": "computation",
+      "condition": "no_limit",
+      "repetition": 1,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.0002826220000003, \"user_seconds\": 2.007532, \"system_seconds\": 0.004998}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0464543479999975,
+      "parent_observed_user_seconds": 2.0105020000000007,
+      "parent_observed_system_seconds": 0.004998999999999976
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 1,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0306547519999185,
+      "parent_observed_user_seconds": 0.9875689999999997,
+      "parent_observed_system_seconds": 0.016058000000000128
+    },
+    {
+      "kind": "syscall",
+      "condition": "no_limit",
+      "repetition": 1,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000010249, \"user_seconds\": 0.845441, \"system_seconds\": 1.167847}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0673655400000825,
+      "parent_observed_user_seconds": 0.8475259999999993,
+      "parent_observed_system_seconds": 1.1689669999999999
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 1,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0113797289998274,
+      "parent_observed_user_seconds": 0.516255000000001,
+      "parent_observed_system_seconds": 0.48037600000000014
+    },
+    {
+      "kind": "computation",
+      "condition": "no_limit",
+      "repetition": 2,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.0003110640000004, \"user_seconds\": 2.008948, \"system_seconds\": 0.0039959999999999996}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.0230351389998305,
+      "parent_observed_user_seconds": 2.0121140000000004,
+      "parent_observed_system_seconds": 0.003997000000000028
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 2,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0175379340000745,
+      "parent_observed_user_seconds": 0.9679449999999985,
+      "parent_observed_system_seconds": 0.022788999999999948
+    },
+    {
+      "kind": "syscall",
+      "condition": "no_limit",
+      "repetition": 2,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.0000089570000004, \"user_seconds\": 0.795647, \"system_seconds\": 1.21799}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.063031785000021,
+      "parent_observed_user_seconds": 0.797441000000001,
+      "parent_observed_system_seconds": 1.2186739999999996
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 2,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0054168570000002,
+      "parent_observed_user_seconds": 0.5108909999999991,
+      "parent_observed_system_seconds": 0.48889600000000044
+    },
+    {
+      "kind": "computation",
+      "condition": "no_limit",
+      "repetition": 3,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000161454, \"user_seconds\": 2.00849, \"system_seconds\": 0.003006}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.035801992000188,
+      "parent_observed_user_seconds": 2.010396,
+      "parent_observed_system_seconds": 0.004000999999999699
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 3,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0190696320000825,
+      "parent_observed_user_seconds": 0.9984830000000002,
+      "parent_observed_system_seconds": 0.0010060000000002844
+    },
+    {
+      "kind": "syscall",
+      "condition": "no_limit",
+      "repetition": 3,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.0000103869999997, \"user_seconds\": 0.841881, \"system_seconds\": 1.170663}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.048208401000011,
+      "parent_observed_user_seconds": 0.8449590000000011,
+      "parent_observed_system_seconds": 1.1707859999999997
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 3,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0285914329999741,
+      "parent_observed_user_seconds": 0.49977499999999964,
+      "parent_observed_system_seconds": 0.49579400000000007
+    },
+    {
+      "kind": "computation",
+      "condition": "no_limit",
+      "repetition": 4,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.000576792, \"user_seconds\": 1.962714, \"system_seconds\": 0.051018}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.076461039999913,
+      "parent_observed_user_seconds": 1.9656020000000005,
+      "parent_observed_system_seconds": 0.05104100000000056
+    },
+    {
+      "kind": "computation",
+      "condition": "rlimit_only",
+      "repetition": 4,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2:\n for i in range(10000): value = (value * 1664525 + 1013904223) & 0xffffffff\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0119385870000315,
+      "parent_observed_user_seconds": 0.980598999999998,
+      "parent_observed_system_seconds": 0.015944999999999432
+    },
+    {
+      "kind": "syscall",
+      "condition": "no_limit",
+      "repetition": 4,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": 0,
+      "signal": null,
+      "stdout": "{\"stage\": \"entered\", \"limits\": [-1, -1], \"handler\": 0}\n{\"stage\": \"completed\", \"cpu_seconds\": 2.0000078099999996, \"user_seconds\": 0.815032, \"system_seconds\": 1.198577}\n",
+      "stderr": "",
+      "elapsed_seconds": 2.072175464999873,
+      "parent_observed_user_seconds": 0.8175710000000009,
+      "parent_observed_system_seconds": 1.1985769999999993
+    },
+    {
+      "kind": "syscall",
+      "condition": "rlimit_only",
+      "repetition": 4,
+      "command": [
+        "/opt/argus/bin/python",
+        "-I",
+        "-c",
+        "import json,resource,signal,time\nresource.setrlimit(resource.RLIMIT_CPU, (1,1))\nprint(json.dumps({'stage':'entered','limits':resource.getrlimit(resource.RLIMIT_CPU),'handler':signal.getsignal(signal.SIGXCPU)}),flush=True)\nvalue=1\nstart=time.process_time()\nwhile time.process_time()-start < 2: pass\nu=resource.getrusage(resource.RUSAGE_SELF)\nprint(json.dumps({'stage':'completed','cpu_seconds':time.process_time()-start,'user_seconds':u.ru_utime,'system_seconds':u.ru_stime}),flush=True)\n"
+      ],
+      "returncode": -9,
+      "signal": "SIGKILL",
+      "stdout": "{\"stage\": \"entered\", \"limits\": [1, 1], \"handler\": 0}\n",
+      "stderr": "",
+      "elapsed_seconds": 1.0262664070000937,
+      "parent_observed_user_seconds": 0.4874490000000016,
+      "parent_observed_system_seconds": 0.5093800000000002
+    }
+  ]
+}

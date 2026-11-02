@@ -1,0 +1,61 @@
+{
+  "scope": "Development diagnostics only; not pooled with the frozen full campaign. Preserve setup failures and source drift rather than claim successful validation. Native binary/framework execution copies omitted from this diagnostic archive; their recorded digests/source blobs remain.",
+  "known_setup_failure": "pilot-02 added CPU/syscall policy action permits before declaring their classes in the schema; Cedar validation refused the ordinary envelope. Corrected before the full run.",
+  "pilots": [
+    {
+      "pilot": "pilot-01",
+      "trials": 24,
+      "diagnostic_categories_using_final_oracle": {
+        "Enforced": 9,
+        "Rejected before execution": 2,
+        "Inconclusive": 1
+      },
+      "source_before_after_equal": false,
+      "formal_campaign": false
+    },
+    {
+      "pilot": "pilot-02",
+      "trials": 88,
+      "diagnostic_categories_using_final_oracle": {
+        "Failed": 5,
+        "Inconclusive": 34,
+        "Rejected before execution": 5
+      },
+      "source_before_after_equal": true,
+      "formal_campaign": false
+    },
+    {
+      "pilot": "pilot-03",
+      "trials": 18,
+      "diagnostic_categories_using_final_oracle": {
+        "Enforced": 7,
+        "Rejected before execution": 2
+      },
+      "source_before_after_equal": true,
+      "formal_campaign": false
+    },
+    {
+      "pilot": "pilot-04",
+      "trials": 74,
+      "diagnostic_categories_using_final_oracle": {
+        "Enforced": 30,
+        "Inconclusive": 2,
+        "Rejected before execution": 5
+      },
+      "source_before_after_equal": true,
+      "formal_campaign": false
+    },
+    {
+      "pilot": "pilot-05",
+      "trials": 12,
+      "diagnostic_categories_using_final_oracle": {
+        "Enforced": 5,
+        "Rejected before execution": 1
+      },
+      "source_before_after_equal": true,
+      "formal_campaign": false
+    }
+  ],
+  "archive_bytes": 8303271,
+  "archive_sha256": "3fc4c9106ff0c461ee4932c8a54af9485579c8789c7c08c23742fd1402950f32"
+}

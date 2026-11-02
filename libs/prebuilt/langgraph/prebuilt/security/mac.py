@@ -369,6 +369,7 @@ class RuntimeMAC:
     def _check_tool_node(self, node: Any) -> None:
         from langgraph.prebuilt.security.container import DockerObjectDispatcher
         from langgraph.prebuilt.security.linux_object import LinuxObjectDispatcher
+        from langgraph.prebuilt.security.macos_object import MacOSObjectDispatcher
         from langgraph.prebuilt.security.object_broker import ObjectBrokerDispatcher
         from langgraph.prebuilt.security.object_policy import (
             CedarObjectAuthorizer,
@@ -386,6 +387,7 @@ class RuntimeMAC:
         if type(executor.dispatcher) not in (
             DockerObjectDispatcher,
             LinuxObjectDispatcher,
+            MacOSObjectDispatcher,
             ObjectBrokerDispatcher,
             _LanguageSandboxDispatcher,
         ):

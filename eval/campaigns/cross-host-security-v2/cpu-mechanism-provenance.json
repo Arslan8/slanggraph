@@ -1,0 +1,28 @@
+{
+  "macos": [
+    {
+      "revision": "33504f3",
+      "path": "libs/prebuilt/langgraph/prebuilt/security/native/macos_launcher.c",
+      "sha256": "7c72dee589ee62f3e7e1f143b9a4c16b822040c12e3290e2159b828bba47f169",
+      "cpu_install_line": 131
+    },
+    {
+      "revision": "ac11f52f1160fa2e0d8685aab1914149a03854a5",
+      "path": "libs/prebuilt/langgraph/prebuilt/security/native/macos_launcher.c",
+      "sha256": "7c72dee589ee62f3e7e1f143b9a4c16b822040c12e3290e2159b828bba47f169",
+      "cpu_install_line": 131
+    },
+    {
+      "revision": "79c6309604835277333393d426a0c7fc22eb49e0",
+      "path": "libs/prebuilt/langgraph/prebuilt/security/native/macos_launcher.c",
+      "sha256": "7c72dee589ee62f3e7e1f143b9a4c16b822040c12e3290e2159b828bba47f169",
+      "cpu_install_line": 131
+    }
+  ],
+  "linux": {
+    "source": "libs/prebuilt/langgraph/prebuilt/security/_linux_worker.py",
+    "primitive": "setrlimit(RLIMIT_CPU, (seconds, seconds))",
+    "optional_cgroup_cpu_max": "100000 100000",
+    "aggregate_cumulative_cpu_budget": false
+  }
+}

@@ -23,7 +23,6 @@ from langgraph.prebuilt.security import (
     CedarPolicySet,
     DacOverrides,
     EnforcementKind,
-    LinuxObjectDispatcher,
     LinuxToolSpec,
     MemoryAuditSink,
     ObjectPolicyHostExecutor,
@@ -34,8 +33,8 @@ from langgraph.prebuilt.security import (
     parse_security_manifest,
     with_principal,
 )
-from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.object_policy import _language_sandbox_owner_policy
+from native_host import NATIVE_HOST, native_object_dispatcher, selected_lifecycle_checker
 from timing import ModelTiming
 from typing_extensions import TypedDict
 
@@ -86,20 +85,17 @@ def serial(value):
 def security(worker_route: Path):
     worker_route = worker_route.resolve()
     audit = MemoryAuditSink()
-    checker = LeanLifecycleChecker(
-        binary_path=str(worker_route),
-        binary_sha256=hashlib.sha256(worker_route.read_bytes()).hexdigest(),
-        runtime_path=LEAN_RUNTIME,
-        runtime_sha256=LEAN_RUNTIME_SHA256,
+    checker = selected_lifecycle_checker(
+        worker_route, runtime_path=LEAN_RUNTIME, runtime_sha256=LEAN_RUNTIME_SHA256
     )
-    dispatcher = LinuxObjectDispatcher(
+    dispatcher = native_object_dispatcher(
         {"tavily_search": LinuxToolSpec("frozen_search_worker:search", WORKER, WORKER_DIGEST)},
         runtime_roots=(HERE,),
         lifecycle_checker=checker,
         integrity_recheck="preflight-only",
     )
     parsed = parse_security_manifest(
-        "tool tavily_search {\nruns linux\nreturns normal\n}",
+        f"tool tavily_search {{\nruns {NATIVE_HOST}\nreturns normal\n}}",
         enforcers={EnforcementKind.KERNEL: dispatcher},
     )
     policies = CedarPolicySet(

@@ -1,0 +1,71 @@
+{
+  "cases": {
+    "required_per_process_cpu": {
+      "Rejected before execution": 5
+    }
+  },
+  "categories": {
+    "Rejected before execution": 5
+  },
+  "classified": [
+    {
+      "allowed_success": null,
+      "case": "required_per_process_cpu",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_per_process_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "required_per_process_cpu",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_per_process_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+      "repetition": 1
+    },
+    {
+      "allowed_success": null,
+      "case": "required_per_process_cpu",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_per_process_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+      "repetition": 2
+    },
+    {
+      "allowed_success": null,
+      "case": "required_per_process_cpu",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_per_process_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+      "repetition": 3
+    },
+    {
+      "allowed_success": null,
+      "case": "required_per_process_cpu",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_per_process_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+      "repetition": 4
+    }
+  ],
+  "distinct_cases": 1,
+  "evidence_valid": true,
+  "full_requested_matrix": false,
+  "host": "macos",
+  "linux_executed_here": false,
+  "native_success_certificates_replayed": 0,
+  "per_condition_trials": 5,
+  "repetitions": 5,
+  "total_trials": 10
+}

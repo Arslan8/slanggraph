@@ -14,3 +14,6 @@ name = "GrantCoverage"
 [[lean_exe]]
 name = "workerRoute"
 root = "Main"
+
+[[lean_lib]]
+name = "ResourceGrantCoverage"

@@ -1,0 +1,355 @@
+{
+  "evidence_tree_commit": "60a73efb1c072b95aa38f6b1d7c39fe3ea6db5f1",
+  "exact_same_policy_cross_host_validation": false,
+  "historical_cases": {
+    "pump/allowed_calibrate": {
+      "allowed_successes_recomputed": 0,
+      "controls_with_intended_forbidden_effect": null,
+      "production_forbidden_effects": null,
+      "production_trials": 5,
+      "source_revision_values": [
+        "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+      ]
+    },
+    "pump/allowed_inspect": {
+      "allowed_successes_recomputed": 5,
+      "controls_with_intended_forbidden_effect": null,
+      "production_forbidden_effects": null,
+      "production_trials": 5,
+      "source_revision_values": [
+        "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+      ]
+    },
+    "pump/allowed_set_flow": {
+      "allowed_successes_recomputed": 5,
+      "controls_with_intended_forbidden_effect": null,
+      "production_forbidden_effects": null,
+      "production_trials": 5,
+      "source_revision_values": [
+        "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+      ]
+    },
+    "pump/broker_escalation": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 5,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+      ]
+    },
+    "pump/denied_declared": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 0,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+      ]
+    },
+    "pump/direct_socket": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 5,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+      ]
+    },
+    "sqlite/allowed_delete": {
+      "allowed_successes_recomputed": 0,
+      "controls_with_intended_forbidden_effect": null,
+      "production_forbidden_effects": null,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/allowed_read": {
+      "allowed_successes_recomputed": 5,
+      "controls_with_intended_forbidden_effect": null,
+      "production_forbidden_effects": null,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/allowed_write": {
+      "allowed_successes_recomputed": 5,
+      "controls_with_intended_forbidden_effect": null,
+      "production_forbidden_effects": null,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/denied_delete": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 0,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/denied_read": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 0,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/denied_write": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 0,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/direct_database": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 5,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/direct_shm": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 0,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/direct_wal": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 5,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/omitted_delete": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 0,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/omitted_write": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 0,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/rpc_spoof": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 0,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    },
+    "sqlite/selector_substitution": {
+      "allowed_successes_recomputed": null,
+      "controls_with_intended_forbidden_effect": 5,
+      "production_forbidden_effects": 0,
+      "production_trials": 5,
+      "source_revision_values": [
+        "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+      ]
+    }
+  },
+  "limitation": "Policies, envelopes, admission and Lean integration differ. Target requirements provide supporting historical evidence, not an identical-policy experiment.",
+  "mapping": {
+    "allowed_pump_inspect": {
+      "counts": {
+        "allowed_successes_recomputed": 5,
+        "controls_with_intended_forbidden_effect": null,
+        "production_forbidden_effects": null,
+        "production_trials": 5,
+        "source_revision_values": [
+          "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+        ]
+      },
+      "equivalence": "target requirement comparable; full policy not identical",
+      "reference": "pump/allowed_inspect",
+      "scope": "Alice inspects the same simulated pump; response fields and other rights differ."
+    },
+    "allowed_pump_set_flow": {
+      "counts": {
+        "allowed_successes_recomputed": 5,
+        "controls_with_intended_forbidden_effect": null,
+        "production_forbidden_effects": null,
+        "production_trials": 5,
+        "source_revision_values": [
+          "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+        ]
+      },
+      "equivalence": "target requirement comparable; full policy not identical",
+      "reference": "pump/allowed_set_flow",
+      "scope": "Alice sets flow to 25 in both; payload names and other rights differ."
+    },
+    "allowed_record_read": {
+      "counts": {
+        "allowed_successes_recomputed": 5,
+        "controls_with_intended_forbidden_effect": null,
+        "production_forbidden_effects": null,
+        "production_trials": 5,
+        "source_revision_values": [
+          "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+        ]
+      },
+      "equivalence": "target requirement comparable; full policy not identical",
+      "reference": "sqlite/allowed_read",
+      "scope": "Same Alice-only read; db_record is alpha-renamed record. Old policy also allows Alice deletion."
+    },
+    "allowed_record_update": {
+      "counts": {
+        "allowed_successes_recomputed": 5,
+        "controls_with_intended_forbidden_effect": null,
+        "production_forbidden_effects": null,
+        "production_trials": 5,
+        "source_revision_values": [
+          "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+        ]
+      },
+      "equivalence": "target requirement comparable; full policy not identical",
+      "reference": "sqlite/allowed_write",
+      "scope": "same Alice-only update and Bob unchanged; old policy also grants Alice deletion"
+    },
+    "bob_delete": {
+      "counts": {
+        "allowed_successes_recomputed": null,
+        "controls_with_intended_forbidden_effect": 0,
+        "production_forbidden_effects": 0,
+        "production_trials": 5,
+        "source_revision_values": [
+          "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+        ]
+      },
+      "equivalence": "related only",
+      "reference": "sqlite/denied_delete",
+      "scope": "Not equivalent: old denial precedes release; new attempt is inside the worker."
+    },
+    "bob_read": {
+      "counts": {
+        "allowed_successes_recomputed": null,
+        "controls_with_intended_forbidden_effect": 5,
+        "production_forbidden_effects": 0,
+        "production_trials": 5,
+        "source_revision_values": [
+          "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+        ]
+      },
+      "equivalence": "target requirement comparable; full policy not identical",
+      "reference": "sqlite/selector_substitution",
+      "scope": "same internal Bob substitution after Alice authorization; tool envelope differs"
+    },
+    "bob_update": {
+      "counts": {
+        "allowed_successes_recomputed": null,
+        "controls_with_intended_forbidden_effect": 0,
+        "production_forbidden_effects": 0,
+        "production_trials": 5,
+        "source_revision_values": [
+          "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+        ]
+      },
+      "equivalence": "related only",
+      "reference": "sqlite/denied_write",
+      "scope": "Not equivalent: old denial precedes release; new attempt is inside the worker."
+    },
+    "direct_database_read": {
+      "counts": {
+        "allowed_successes_recomputed": null,
+        "controls_with_intended_forbidden_effect": 5,
+        "production_forbidden_effects": 0,
+        "production_trials": 5,
+        "source_revision_values": [
+          "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+        ]
+      },
+      "equivalence": "target requirement comparable; full policy not identical",
+      "reference": "sqlite/direct_database",
+      "scope": "same worker direct SQLite Bob read with independent state/canary observations"
+    },
+    "direct_device": {
+      "counts": {
+        "allowed_successes_recomputed": null,
+        "controls_with_intended_forbidden_effect": 5,
+        "production_forbidden_effects": 0,
+        "production_trials": 5,
+        "source_revision_values": [
+          "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+        ]
+      },
+      "equivalence": "related only",
+      "reference": "pump/direct_socket",
+      "scope": "Not equivalent: Unix socket/set_flow versus TCP/calibration."
+    },
+    "direct_shm": {
+      "counts": {
+        "allowed_successes_recomputed": null,
+        "controls_with_intended_forbidden_effect": 0,
+        "production_forbidden_effects": 0,
+        "production_trials": 5,
+        "source_revision_values": [
+          "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+        ]
+      },
+      "equivalence": "related only",
+      "reference": "sqlite/direct_shm",
+      "scope": "Related only: the old Bob oracle does not establish SHM confidentiality."
+    },
+    "direct_wal": {
+      "counts": {
+        "allowed_successes_recomputed": null,
+        "controls_with_intended_forbidden_effect": 5,
+        "production_forbidden_effects": 0,
+        "production_trials": 5,
+        "source_revision_values": [
+          "69a93b46e97bca56583bc2c5909639f405d50c02000e372e8170843e9339cb0d"
+        ]
+      },
+      "equivalence": "target requirement comparable; full policy not identical",
+      "reference": "sqlite/direct_wal",
+      "scope": "Same WAL probe; positive controls must actually disclose their Bob marker."
+    },
+    "pump_calibrate": {
+      "counts": {
+        "allowed_successes_recomputed": null,
+        "controls_with_intended_forbidden_effect": 5,
+        "production_forbidden_effects": 0,
+        "production_trials": 5,
+        "source_revision_values": [
+          "6b291e6f2a5d76e42ce25181ff6b1db2896bcc503905db12f0fe03231d80d6f5"
+        ]
+      },
+      "equivalence": "related only",
+      "reference": "pump/broker_escalation",
+      "scope": "Not equivalent: Charlie escalates inspect to set_flow, not Alice calibration."
+    },
+    "retry_after_denial": {
+      "counts": null,
+      "equivalence": "unavailable",
+      "reference": "sqlite/retry_broker_then_direct",
+      "scope": "No such retained case in the selected frozen Linux matrix."
+    }
+  },
+  "new_linux_trials": 0
+}

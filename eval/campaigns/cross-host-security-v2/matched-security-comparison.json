@@ -1,0 +1,420 @@
+{
+  "implementation_revision": "79c6309604835277333393d426a0c7fc22eb49e0",
+  "same_revision": true,
+  "identical_source_inventory": true,
+  "full_matrices": true,
+  "same_cases": true,
+  "categories": {
+    "macos": {
+      "Enforced": 185,
+      "Rejected before execution": 35
+    },
+    "linux": {
+      "Enforced": 190,
+      "Inconclusive": 10,
+      "Rejected before execution": 20
+    }
+  },
+  "cases": [
+    {
+      "case": "allowed_record_read",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "allowed_record_update",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "bob_read",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "bob_update",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "bob_delete",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "direct_database_read",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "direct_database_update",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "direct_database_delete",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "direct_wal",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "direct_shm",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "direct_journal",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "retry_after_denial",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "allowed_pump_inspect",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "allowed_pump_set_flow",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "pump_calibrate",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "direct_device",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "identity_principal",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "identity_tool",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "identity_invocation",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "identity_session",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "old_invocation_reuse",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "private_file_read",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "outside_artifact_write",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "live_network",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "process_fork",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "process_subprocess",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "process_exec",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "timeout",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "cancellation",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "controller_termination",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "session_own_state",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "session_other_variable",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "session_other_artifact",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "session_other_artifact_write",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "session_timeout",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "session_cancellation",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "session_controller_termination",
+      "macos": {
+        "Enforced": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "required_aggregate_cpu",
+      "macos": {
+        "Rejected before execution": 5
+      },
+      "linux": {
+        "Rejected before execution": 5
+      }
+    },
+    {
+      "case": "required_syscall_filter",
+      "macos": {
+        "Rejected before execution": 5
+      },
+      "linux": {
+        "Enforced": 5
+      }
+    },
+    {
+      "case": "extensible_required_cpu",
+      "macos": {
+        "Rejected before execution": 5
+      },
+      "linux": {
+        "Rejected before execution": 5
+      }
+    },
+    {
+      "case": "extensible_required_syscalls",
+      "macos": {
+        "Rejected before execution": 5
+      },
+      "linux": {
+        "Rejected before execution": 5
+      }
+    },
+    {
+      "case": "missing_obligation",
+      "macos": {
+        "Rejected before execution": 5
+      },
+      "linux": {
+        "Inconclusive": 5
+      }
+    },
+    {
+      "case": "altered_obligation",
+      "macos": {
+        "Rejected before execution": 5
+      },
+      "linux": {
+        "Inconclusive": 5
+      }
+    },
+    {
+      "case": "admission_mutation",
+      "macos": {
+        "Rejected before execution": 5
+      },
+      "linux": {
+        "Rejected before execution": 5
+      }
+    }
+  ],
+  "all_controls_demonstrated": {
+    "macos": true,
+    "linux": true
+  }
+}

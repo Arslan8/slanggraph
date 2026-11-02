@@ -1,0 +1,11 @@
+# Review follow-up plan and evidence boundaries
+
+Implement recognized CPU/supported-syscall policy vocabulary independently of platform. Preserve the exact requirement in grant obligations, negotiate against the attested host capability set, and retain unsupported decisions including obligation IDs, parameters, adapter assessments, host evidence and no-release observation. Do not relabel parser errors as host refusal.
+
+The requested RLIMIT_CPU install already exists in the macOS native launcher, including revision 33504f3, before Seatbelt and Python loading. Linux also uses setrlimit; its optional cgroup CPU control is bandwidth rather than a cumulative process-tree budget. Direct qualification must test both computation-heavy and syscall-heavy loops, without and with a (1,1) limit, including Seatbelt, retaining every transcript. A failing total-CPU probe requires conservative refusal, even if a computation-heavy loop is killed. No requested aggregate budget will be silently renamed per-process.
+
+Preserve the v1 44-case definition and historical artifacts. Rerun the formerly parser-rejected requirements through actual closed admission and compiled Lean to the host lowerer; add a separately identified per-process CPU qualification probe. Publish the original attempt ledger and a regenerated split. Explain the earlier pilot's executed CPU request versus v1's rejected manifest: the native primitive was not absent and the probe/route changed.
+
+Run matching host cases at one pinned implementation revision. Fold Linux security into one Docker campaign with the requested relaxed outer AppArmor/seccomp, a positive bubblewrap activation gate, Pandas, and Linux/container/mediator microbenchmark stages. Keep stage failures and unsupported routes explicit; no failed activation counts as protected execution. Use a task-owned local Linux VM/runtime rather than wait for SSH. Preserve eval/STATUS.md as unrelated user work.
+
+Corridor analyzePlan is unavailable in this session. Security constraints: native installation precedes Python; no mocked lowerer; unknown mandatory requirements refuse; no CPU guarantee based on getrlimit alone; resource controls and trusted observations remain independent; report missing Linux Lean/resource-route integration if actual execution exposes it.

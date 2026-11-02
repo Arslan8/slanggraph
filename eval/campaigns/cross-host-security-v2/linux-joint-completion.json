@@ -1,0 +1,9 @@
+{
+  "all_requested_stages_attempted": true,
+  "source_stable": true,
+  "revision": "79c6309604835277333393d426a0c7fc22eb49e0",
+  "stage_failures": [
+    "security-verification",
+    "security-ledger"
+  ]
+}
