@@ -31,6 +31,7 @@ from langgraph.prebuilt.security import (
     with_principal,
 )
 from langgraph.prebuilt.security.landlock import LandlockSandboxExecutor
+from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.mediators.records import RECORDS
 from langgraph.prebuilt.security.object_policy import ObjectPolicyHostExecutor
 
@@ -63,6 +64,10 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
     """Run one independent process session."""
     output.parent.mkdir(parents=True, exist_ok=True)
     os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
+    checker_path = Path(os.environ["ARGUS_LIFECYCLE_CHECKER"]).resolve(strict=True)
+    checker = LeanLifecycleChecker(
+        str(checker_path), hashlib.sha256(checker_path.read_bytes()).hexdigest()
+    )
     install_mac_policy(MANDATORY)
     with tempfile.TemporaryDirectory(prefix="slg-broker-cost-") as folder:
         root = Path(folder)
@@ -100,6 +105,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             runtime_roots=tuple(
                 Path(item).resolve() for item in sys.path if item and Path(item).is_dir()
             ),
+            lifecycle_checker=checker,
         )
         dispatcher_setup_ms = (time.perf_counter_ns() - setup_start) / 1e6
         sink = SqliteAuditSink(root / "audit.sqlite")
@@ -120,13 +126,21 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
         admission_setup_ms = (time.perf_counter_ns() - admission_start) / 1e6
         principal = Principal("alice", frozenset(), frozenset(), f"session-{session}")
         config = with_principal({}, principal, modules=security.modules)
-        spans = {"authorization_ms": 0.0, "audit_ms": 0.0, "cleanup_ms": 0.0}
+        spans = {
+            "authorization_ms": 0.0,
+            "audit_ms": 0.0,
+            "cleanup_ms": 0.0,
+            "lean_grant_ms": 0.0,
+            "lean_go_ms": 0.0,
+            "lean_result_ms": 0.0,
+        }
         dispatch = {"start_wall": 0.0, "elapsed_ms": 0.0, "activated_at": 0.0}
         originals = {
             "authorize": ObjectPolicyHostExecutor._authorize,
             "dispatch": dispatcher.invoke,
             "cleanup": LandlockSandboxExecutor._cleanup_worker,
             "audit": sink.write,
+            "lean": LeanLifecycleChecker._require,
         }
 
         def timed(name, function):
@@ -142,6 +156,20 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
         ObjectPolicyHostExecutor._authorize = timed("authorization_ms", originals["authorize"])
         LandlockSandboxExecutor._cleanup_worker = timed("cleanup_ms", originals["cleanup"])
         sink.write = timed("audit_ms", originals["audit"])
+
+        def timed_lean(instance, payload, phase):
+            name = {
+                "grant_ready": "lean_grant_ms",
+                "running": "lean_go_ms",
+                "ready": "lean_result_ms",
+            }[phase]
+            start = time.perf_counter_ns()
+            try:
+                return originals["lean"](instance, payload, phase)
+            finally:
+                spans[name] += (time.perf_counter_ns() - start) / 1e6
+
+        LeanLifecycleChecker._require = timed_lean
 
         def timed_dispatch(*args, **kwargs):
             dispatch["start_wall"] = time.time()
@@ -166,13 +194,21 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                         "mandatory_policy": MANDATORY,
                         "policy": POLICY,
                         "manifest": MANIFEST,
+                        "lifecycle_checker_sha256": checker.binary_sha256,
                     },
                 )
                 for index in range(1 + warmups + measured):
                     phase = (
                         "first_use" if index == 0 else "warmup" if index <= warmups else "measured"
                     )
-                    spans.update(authorization_ms=0.0, audit_ms=0.0, cleanup_ms=0.0)
+                    spans.update(
+                        authorization_ms=0.0,
+                        audit_ms=0.0,
+                        cleanup_ms=0.0,
+                        lean_grant_ms=0.0,
+                        lean_go_ms=0.0,
+                        lean_result_ms=0.0,
+                    )
                     mediator_spans["operation_ms"] = 0.0
                     dispatch.update(start_wall=0.0, elapsed_ms=0.0, activated_at=0.0)
                     request = {
@@ -193,20 +229,26 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                     result = graph.invoke(request, config=config)
                     elapsed_ms = (time.perf_counter_ns() - start) / 1e6
                     content = result["messages"][-1].content
-                    activation_ms = max(
+                    activation_inclusive_ms = max(
                         0.0, (dispatch["activated_at"] - dispatch["start_wall"]) * 1000
                     )
+                    activation_ms = max(0.0, activation_inclusive_ms - spans["lean_grant_ms"])
                     broker_after_activation_ms = max(
                         0.0,
-                        dispatch["elapsed_ms"] - activation_ms - spans["cleanup_ms"],
+                        dispatch["elapsed_ms"] - activation_inclusive_ms - spans["cleanup_ms"],
                     )
                     mediator_transport_ms = max(
                         0.0,
-                        broker_after_activation_ms - mediator_spans["operation_ms"],
+                        broker_after_activation_ms
+                        - mediator_spans["operation_ms"]
+                        - spans["lean_go_ms"]
+                        - spans["lean_result_ms"],
                     )
+                    lean_ms = spans["lean_grant_ms"] + spans["lean_go_ms"] + spans["lean_result_ms"]
                     accounted = (
                         spans["authorization_ms"]
                         + activation_ms
+                        + lean_ms
                         + mediator_transport_ms
                         + mediator_spans["operation_ms"]
                         + spans["audit_ms"]
@@ -223,6 +265,9 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                             "elapsed_ms": elapsed_ms,
                             "authorization_ms": spans["authorization_ms"],
                             "activation_ms": activation_ms,
+                            "lean_grant_ms": spans["lean_grant_ms"],
+                            "lean_go_ms": spans["lean_go_ms"],
+                            "lean_result_ms": spans["lean_result_ms"],
                             "execution_ms": mediator_spans["operation_ms"],
                             "mediator_transport_ms": mediator_transport_ms,
                             "audit_ms": spans["audit_ms"],
@@ -231,6 +276,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                             "valid": "AUTHORIZED_RECORD" in content,
                             "audit_records": len(sink.records()),
                             "broker_records": len(dispatcher.audit_records()),
+                            "lifecycle_records": len(dispatcher.lifecycle_records()),
                         },
                     )
                     start = time.perf_counter_ns()
@@ -254,6 +300,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
         finally:
             ObjectPolicyHostExecutor._authorize = originals["authorize"]
             LandlockSandboxExecutor._cleanup_worker = originals["cleanup"]
+            LeanLifecycleChecker._require = originals["lean"]
 
 
 def main() -> None:
@@ -263,7 +310,12 @@ def main() -> None:
     parser.add_argument("--warmups", type=int, default=10)
     parser.add_argument("--measured", type=int, default=20)
     parser.add_argument("--session", type=int)
+    parser.add_argument("--checker", type=Path)
     args = parser.parse_args()
+    if args.checker is not None:
+        os.environ["ARGUS_LIFECYCLE_CHECKER"] = str(args.checker.resolve(strict=True))
+    if "ARGUS_LIFECYCLE_CHECKER" not in os.environ:
+        parser.error("--checker is required for the complete configuration")
     if args.session is not None:
         run_session(args.output, args.session, args.warmups, args.measured)
         return

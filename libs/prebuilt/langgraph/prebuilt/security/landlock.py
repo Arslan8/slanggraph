@@ -21,6 +21,7 @@ from collections import deque
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from threading import RLock
 from types import MappingProxyType, SimpleNamespace
 from typing import Any
 
@@ -42,6 +43,8 @@ from langgraph.prebuilt.security.enforcement import (
     AuthorityDomain,
     EnforcementMode,
     GrantRule,
+    RequirementEntry,
+    RequirementLedger,
     RuleEnforcement,
     SupportLevel,
     compile_grant,
@@ -51,6 +54,11 @@ from langgraph.prebuilt.security.execution import (
     HostExecutionDenied,
     HostExecutionError,
     HostExecutionResult,
+)
+from langgraph.prebuilt.security.lean_lifecycle import (
+    LeanLifecycleChecker,
+    LeanLifecycleSession,
+    _capture_receipt_certificate,
 )
 from langgraph.prebuilt.security.policy import MandatoryPolicyBackend
 from langgraph.prebuilt.security.profile import ProfileDocument
@@ -177,6 +185,7 @@ class LandlockSandboxExecutor:
         default_limits: Mapping[str, int] | None = None,
         attestation_key: bytes | None = None,
         credential_broker: CredentialBroker | None = None,
+        lifecycle_checker: LeanLifecycleChecker | None = None,
     ) -> None:
         from langgraph.prebuilt.security.linux import (
             _canonical_existing_path,
@@ -241,7 +250,15 @@ class LandlockSandboxExecutor:
         )
         self._key = attestation_key or secrets.token_bytes(32)
         self.credential_broker = credential_broker
+        if (
+            lifecycle_checker is not None
+            and type(lifecycle_checker) is not LeanLifecycleChecker
+        ):
+            raise HostExecutionDenied("host:lean_binary_configuration")
+        self.lifecycle_checker = lifecycle_checker
         self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
+        self._lifecycle_records: deque[dict[str, Any]] = deque(maxlen=1024)
+        self._lifecycle_lock = RLock()
 
     def validate_tools(self, tool_names: Sequence[str]) -> None:
         """Require one pinned manifest for every reachable tool."""
@@ -254,6 +271,13 @@ class LandlockSandboxExecutor:
     def activation_receipts(self) -> tuple[ActivationReceipt, ...]:
         """Return the bounded activation receipt history."""
         return tuple(self._receipts)
+
+    def lifecycle_records(self) -> tuple[dict[str, Any], ...]:
+        """Return detached successful Lean route traces."""
+        with self._lifecycle_lock:
+            return tuple(
+                json.loads(json.dumps(item)) for item in self._lifecycle_records
+            )
 
     def invoke(
         self,
@@ -346,6 +370,27 @@ class LandlockSandboxExecutor:
                 raise HostExecutionDenied(f"host:{filtered.reason}")
             grant = filtered.grant
             grant = self._prepare_grant(grant, filtered.ledger)
+            if self.lifecycle_checker is not None:
+                record = getattr(self, "record", None)
+                lean_ledger = filtered.ledger
+                lean_obligations = compile_obligations(grant)
+                if record is not None:
+                    lean_ledger = RequirementLedger(
+                        tuple(
+                            RequirementEntry(
+                                rule.rule_id,
+                                rule.requirement,
+                                frozenset({rule.rule_id}),
+                            )
+                            for rule in grant.rules
+                        )
+                    )
+                    lean_obligations = record.obligations
+                self._check_lean_grant(
+                    grant,
+                    lean_ledger,
+                    lean_obligations,
+                )
             landlock_rules, enforcement = self._lower(grant)
             ruleset = build_ruleset(landlock_rules, abi=self.abi)
             limits = self._limits(grant)
@@ -411,6 +456,9 @@ class LandlockSandboxExecutor:
         pidfd: int | None = None
         cgroup: CgroupV2Scope | None = None
         receipt: ActivationReceipt | None = None
+        lifecycle: LeanLifecycleSession | None = None
+        lifecycle_observed: dict[str, Any] | None = None
+        result: HostExecutionResult | None = None
         released = False
         try:
             if self._cgroup_root is not None:
@@ -469,6 +517,59 @@ class LandlockSandboxExecutor:
                 raise HostExecutionDenied("host:worker_startup_protocol")
             receipt = self._receipt(grant, process.pid, enforcement)
             self._receipts.append(receipt)
+            if self.lifecycle_checker is not None:
+                host = self.host_adapter.host
+                context = self.host_adapter.context
+                plan = self.record.plan
+                if host is None or context is None:
+                    raise HostExecutionDenied("host:lean_activation_evidence_missing")
+                start_time = context.process_identity.rpartition(":")[2]
+                expected = {
+                    "principal": grant.principal_id,
+                    "session": grant.session_id,
+                    "call": grant.call_id,
+                    "tool": grant.tool_name,
+                    "artifact": grant.artifact_digest,
+                    "intent": grant.normalized_intent_digest,
+                    "policy": grant.policy_digest,
+                    "deployment": grant.deployment_digest,
+                    "runtime": grant.runtime_digest,
+                    "grant": grant.digest,
+                    "plan": plan.digest,
+                    "nonce": receipt.nonce,
+                    "host": host.digest,
+                    "context": context.digest,
+                    "worker": {
+                        "pid": str(process.pid),
+                        "startTime": start_time,
+                        "bootId": context.boot_id,
+                    },
+                }
+                lifecycle_observed = {
+                    **expected,
+                    "artifact": receipt.artifact_digest,
+                    "grant": receipt.grant_digest,
+                    "plan": receipt.plan_digest,
+                    "host": receipt.host_digest,
+                    "context": receipt.context_digest,
+                }
+                certificate = _capture_receipt_certificate(
+                    plan,
+                    receipt,
+                    plan_digest=plan.digest,
+                    grant=self._lean_grant,
+                    obligations=self._lean_obligations,
+                )
+                lifecycle = LeanLifecycleSession(
+                    self.lifecycle_checker,
+                    expected,
+                    certificate,
+                    object_route=getattr(self, "_lean_object_route", False),
+                )
+                lifecycle.permit_go(
+                    lifecycle_observed,
+                    supported=not plan.waived_obligations,
+                )
             process.stdin.write(b"GO\n")
             process.stdin.flush()
             released = True
@@ -477,12 +578,13 @@ class LandlockSandboxExecutor:
             )
             return_code = process.wait(timeout=1)
             if response.get("status") == "ok" and return_code == 0:
-                return HostExecutionResult(response["result"], receipt)
-            raise HostExecutionError(
-                f"sandboxed tool failed:{response.get('error_type', 'Exception')}",
-                receipt,
-                ExecutionOutcome.FAILED,
-            )
+                result = HostExecutionResult(response["result"], receipt)
+            else:
+                raise HostExecutionError(
+                    f"sandboxed tool failed:{response.get('error_type', 'Exception')}",
+                    receipt,
+                    ExecutionOutcome.FAILED,
+                )
         except TimeoutError as exc:
             if receipt is not None and released:
                 raise HostExecutionError(
@@ -510,6 +612,56 @@ class LandlockSandboxExecutor:
                 receipt=receipt,
                 active_error=sys.exc_info()[1],
             )
+        if result is None:
+            raise HostExecutionDenied("host:worker_result_missing")
+        if lifecycle is not None:
+            assert lifecycle_observed is not None
+            try:
+                lifecycle.permit_success(lifecycle_observed)
+            except HostExecutionDenied as exc:
+                raise HostExecutionError(
+                    "host:lean_result_release_failed",
+                    result.receipt,
+                    ExecutionOutcome.INDETERMINATE,
+                    termination_confirmed=True,
+                ) from exc
+            with self._lifecycle_lock:
+                self._lifecycle_records.append(
+                    {
+                        "binding": json.loads(lifecycle._binding),
+                        "certificate": json.loads(lifecycle._certificate),
+                        "events": json.loads(lifecycle._events),
+                        "object_route": getattr(self, "_lean_object_route", False),
+                        "phase": "ready",
+                        "cleanup_confirmed": True,
+                        "checker_sha256": self.lifecycle_checker.binary_sha256,
+                    }
+                )
+        return result
+
+    def _check_lean_grant(self, grant, ledger, obligations) -> None:
+        """Capture and admit the exact native grant before host effects."""
+        from langgraph.prebuilt.security.lean_grant import (
+            _capture_filtered_grant,
+            _capture_obligations,
+        )
+        from langgraph.prebuilt.security.policy import PolicyFilterResult
+
+        checker = self.lifecycle_checker
+        if type(checker) is not LeanLifecycleChecker:
+            raise HostExecutionDenied("host:lean_binary_configuration")
+        captured = _capture_filtered_grant(
+            PolicyFilterResult(grant, ledger, "allow:captured")
+        )
+        self._lean_grant = json.loads(captured.projection)
+        self._lean_obligations = json.loads(
+            _capture_obligations(obligations).projection
+        )
+        checker.require_grant(
+            self._lean_grant,
+            self._lean_obligations,
+            object_route=getattr(self, "_lean_object_route", False),
+        )
 
     def _cleanup_worker(
         self,

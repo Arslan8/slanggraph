@@ -47,6 +47,7 @@ from langgraph.prebuilt.security.execution import (
 )
 from langgraph.prebuilt.security.host_controls import host_control_rule
 from langgraph.prebuilt.security.landlock import LandlockSandboxExecutor
+from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.linux import LinuxToolSpec
 from langgraph.prebuilt.security.object_policy import (
     EnforcementKind,
@@ -199,7 +200,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
                 else _service(line.class_name, line.selector),
                 {"exact_file": True, "lowering": line.lowering}
                 if line.enforcer is EnforcementKind.KERNEL and line.class_name == "fs"
-                else {"object": dict(line.canonical())},
+                else {"object_grant": obj.digest, "line": line.line_id},
                 requirement=line.requirement,
             )
             for line in obj.lines
@@ -265,6 +266,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
             _BoundMediator(item, broker_lines, host) for item in self.mediators
         )
         routes: dict[str, _BoundMediator] = {}
+        resource_conditions: dict[str, Mapping[str, Any]] = {}
         additional = []
         dependencies = {}
         try:
@@ -280,6 +282,17 @@ class _ObjectWorker(LandlockSandboxExecutor):
                         f"adapter_ownership_conflict:{line.line_id}"
                     )
                 support = candidates[0][1] if candidates else None
+                resource_conditions[line.line_id] = {
+                    "resource_selector": line.selector,
+                    "protected_paths": tuple(support.protected_paths)
+                    if support
+                    else (),
+                    "required_capabilities": tuple(
+                        sorted(support.required_capabilities)
+                    )
+                    if support
+                    else (),
+                }
                 if candidates:
                     routes[line.line_id] = candidates[0][0]
                 ids = {
@@ -334,6 +347,22 @@ class _ObjectWorker(LandlockSandboxExecutor):
                         ),
                     )
                 )
+            grant = replace(
+                grant,
+                rules=tuple(
+                    replace(
+                        rule,
+                        conditions={
+                            **rule.conditions,
+                            **resource_conditions[rule.rule_id],
+                        },
+                    )
+                    if rule.rule_id in resource_conditions
+                    else rule
+                    for rule in grant.rules
+                ),
+            )
+            self.host_adapter.grant = grant
             obligations = tuple(
                 replace(
                     item,
@@ -344,9 +373,6 @@ class _ObjectWorker(LandlockSandboxExecutor):
                 for item in compile_obligations(grant, additional=additional)
             )
             self._execution_obligations = obligations
-            checker = getattr(self, "lifecycle_checker", None)
-            if checker is not None:
-                self._check_lean_grant(grant, ledger, obligations)
             self.record, self.coordinator = negotiate_object_grant(
                 grant,
                 ledger,
@@ -356,6 +382,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
                 host,
                 expected_nonce=host.nonce,
             )
+            self._execution_obligations = self.record.obligations
             retained = {rule.rule_id for rule in self.record.grant.rules}
             self.credential_broker.routes = {
                 key: value for key, value in routes.items() if key in retained
@@ -438,6 +465,7 @@ class ObjectBrokerDispatcher:
         mediators: Sequence[ResourceMediatorAdapter] = (),
         resources: Sequence[Any] = (),
         wall_timeout_s: float = 30.0,
+        lifecycle_checker: LeanLifecycleChecker | None = None,
     ) -> None:
         self.tools = MappingProxyType(dict(tools))
         if handlers:
@@ -470,16 +498,32 @@ class ObjectBrokerDispatcher:
             raise ValueError("wall_timeout_s must be finite and positive")
         self.runtime_roots = tuple(runtime_roots)
         self.wall_timeout_s = wall_timeout_s
+        if (
+            lifecycle_checker is not None
+            and type(lifecycle_checker) is not LeanLifecycleChecker
+        ):
+            raise ValueError(
+                "object broker lifecycle checker must be a pinned Lean checker"
+            )
+        self.lifecycle_checker = lifecycle_checker
         self._audit: deque[BrokerAuditRecord] = deque(maxlen=4096)
         self._lock = RLock()
         self._lowering_records: deque[ObjectLoweringRecord] = deque(maxlen=1024)
         self._lowering_refusals: deque[Mapping[str, Any]] = deque(maxlen=1024)
         self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
+        self._lifecycle_records: deque[Mapping[str, Any]] = deque(maxlen=1024)
 
     def activation_receipts(self) -> tuple[ActivationReceipt, ...]:
         """Retain verified activation evidence, including failed worker outcomes."""
         with self._lock:
             return tuple(self._receipts)
+
+    def lifecycle_records(self) -> tuple[Mapping[str, Any], ...]:
+        """Return successful checker-backed grant and lifecycle traces."""
+        with self._lock:
+            return tuple(
+                json.loads(json.dumps(item)) for item in self._lifecycle_records
+            )
 
     def lowering_refusals(self) -> tuple[Mapping[str, Any], ...]:
         """Return attributable unsupported decisions without successful plans."""
@@ -550,7 +594,9 @@ class ObjectBrokerDispatcher:
             credential_broker=broker,
             mediators=self.mediators,
             default_wall_timeout_s=self.wall_timeout_s,
+            lifecycle_checker=self.lifecycle_checker,
         )
+        worker._lean_object_route = True
         result = None
         try:
             result = worker._invoke(principal, call, (), asynchronous=asynchronous)
@@ -566,6 +612,7 @@ class ObjectBrokerDispatcher:
                     self._lowering_refusals.append(worker.lowering_refusal)
                 if worker.record is not None:
                     self._lowering_records.append(worker.record)
+                self._lifecycle_records.extend(worker.lifecycle_records())
             active_error = sys.exc_info()[1]
             try:
                 worker.close_mediators()

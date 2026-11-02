@@ -1,5 +1,6 @@
 """Real kernel-confined object broker tests, including hostile requests."""
 
+import copy
 import hashlib
 import socket
 import sys
@@ -30,6 +31,8 @@ from langgraph.prebuilt.security.types import (
     ToolDac,
 )
 from tests.security.mediator_fixtures import exact_mediator
+from tests.security.test_lean_lifecycle import binary as binary
+from tests.security.test_lean_lifecycle import checker as checker
 
 
 @pytest.fixture
@@ -122,6 +125,79 @@ def test_exact_capability(setup, operation, selector, expected):
     assert result.value == expected
     assert seen == ([("inspect", "pump-1")] if expected == "inspected" else [])
     assert result.receipt.grant_digest == grant.digest
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+def test_object_route_executes_pinned_lean_grant_and_lifecycle_checks(setup, checker):
+    dispatcher, principal, call, grant, seen = setup
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        mediators=dispatcher.mediators,
+        runtime_roots=dispatcher.runtime_roots,
+        lifecycle_checker=checker,
+    )
+
+    result = dispatcher.invoke(principal, call, grant)
+
+    assert result.value == "inspected"
+    assert seen == [("inspect", "pump-1")]
+    records = dispatcher.lifecycle_records()
+    assert len(records) == 1
+    assert records[0]["object_route"] is True
+    assert records[0]["phase"] == "ready"
+    assert records[0]["cleanup_confirmed"] is True
+    assert [event["kind"] for event in records[0]["events"]] == [
+        "authorize",
+        "activate",
+        "go",
+        "result",
+        "cleanup",
+    ]
+    assert (
+        records[0]["certificate"]["grant"]["policy"]
+        == dispatcher.lowering_records()[0].candidate.policy_digest
+    )
+    assert (
+        records[0]["certificate"]["receipt"]["grant"]
+        == records[0]["certificate"]["grant"]["digest"]
+    )
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+@pytest.mark.parametrize("mutation", ["missing", "selector", "dependency", "custody"])
+def test_linux_lean_refuses_resource_inventory_mutations_before_effect(
+    setup, checker, monkeypatch, mutation
+):
+    dispatcher, principal, call, grant, seen = setup
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        mediators=dispatcher.mediators,
+        runtime_roots=dispatcher.runtime_roots,
+        lifecycle_checker=checker,
+    )
+    original = type(checker).require_grant
+
+    def altered(instance, captured, obligations, *, object_route=False):
+        changed = copy.deepcopy(obligations)
+        row = next(item for item in changed if item["id"].endswith(":bypass"))
+        if mutation == "missing":
+            changed.remove(row)
+        elif mutation == "selector":
+            row["selector"] = "pump-2"
+        elif mutation == "dependency":
+            row["dependencies"] = []
+        else:
+            next(item for item in changed if item["id"].endswith(":custody"))[
+                "operation"
+            ] = "worker_credentials"
+        return original(instance, captured, changed, object_route=object_route)
+
+    monkeypatch.setattr(type(checker), "require_grant", altered)
+    with pytest.raises(HostExecutionDenied, match="lean_lifecycle_refused"):
+        dispatcher.invoke(principal, call, grant)
+    assert seen == []
+    assert dispatcher.activation_receipts() == ()
+    assert dispatcher.lifecycle_records() == ()
 
 
 @pytest.mark.skipif(probe_landlock_abi() < 1, reason="Landlock required")
