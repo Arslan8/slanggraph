@@ -1,0 +1,102 @@
+{
+  "applications": {
+    "final_pandas": {
+      "activated_receipts": 65,
+      "complete": true,
+      "correct": 50,
+      "correct_by_case": {
+        "date_filtered_total": 5,
+        "duplicate_count": 5,
+        "grouped_mean": 5,
+        "missing_count": 5,
+        "monthly_chart": 5,
+        "monthly_mean": 5,
+        "monthly_total": 5,
+        "product_totals": 5,
+        "regional_totals": 5,
+        "top_products": 5
+      },
+      "evidence_valid": true,
+      "trials": 50
+    },
+    "historical_15_demo_correct": "107/175",
+    "historical_pandas_correct": "45/50",
+    "targeted_regressions_passed": true
+  },
+  "artifact_sha256": {
+    "advanced-trials.jsonl.gz": "7981113cb2703af69bd59532fa7bf30f88fa6b2e83f03aa91997f5ab83f40699",
+    "advanced-verification.json": "6fdf431facf6ae19a75c482937829210c7ef774bdaf77331715053c6968d655e",
+    "application-regressions.json": "80c0e8c990f21ad48ebf146b240e581fca4a1491ca8d62d315c2ae341db44f0a",
+    "before-fix-aliases.jsonl.gz": "e1684a876dc0bc6e23a11a918bc8af60c0c7d35b156afc49f73fcba3011bc214",
+    "concurrency-stress.json": "576d510d6763486c2c6526fd2379802cccf831812d9f76a684d11b0a4daea3a9",
+    "macos-pandas-runtime-manifest.json": "f913655863faee49fe13a84db49085ad736b1c0fbabe67036ebe7a31cb1a5446",
+    "mutation-controls.json": "d40b8e528af84f6692b12a9aa8c6df7f69c86cb886cc4ce0e1df98b10f6397c8",
+    "pandas-framework-sources.json": "fcc3cd0ab12a6e53506a5b602232b8af49efa35626cc875c252982378f35704c",
+    "pandas-trials.jsonl.gz": "f5a70974dcf39d17fffa0ed0a9d185b9bf2808adb1ec5fa048cc2e99818c74aa",
+    "pandas-verification.json": "0b380e243d945c15f4ab7dca8f87281a34166ff47a0b40c573e7c546bcbbdbfe",
+    "per-process-trials.jsonl.gz": "573d97cf54ee5e7d0b8ffc5efbab1ec3d1b28ad42b1cd20e5cde8f33b4928677",
+    "per-process-verification.json": "a95d19ab5f5df54f0f6b6b904088af69afa509c5c6455546cfb12eaacb2f44c7",
+    "persistent-rotation.json": "6b821deca534260c03ea6cfbeaf155b15b4785eef4a34379b97089a89a9ff07e",
+    "security-sources.json": "298d23b371dcb7fd5b3aefa36b218107bb2b515e38b0778e6a576662e859ac86",
+    "security-trials.jsonl.gz": "b18f6733795bcfbb975b5890ed3528599064eb97015f093283e5e2dafd62dd56",
+    "security-verification.json": "bc04183cba8f26f0be2bc6a03f67b27fc2d43887438d1bd3a7f86a7ad9bfaccf"
+  },
+  "local_raw_runs": {
+    "before_fix_aliases": "advanced-run-01",
+    "concurrency": "concurrency-stress-02",
+    "main": "security-final-03",
+    "pandas": "pandas-argus-rerun-11",
+    "per_process_cpu": "required-per-process-01",
+    "persistent_rotation": "persistent-rotation-03",
+    "supplemental": "advanced-run-02"
+  },
+  "remaining_qualifications": [
+    "Nine supplemental observations remain inconclusive and nine qualified; see advanced-verification.json.",
+    "Debugger denial also occurs in the unprotected control, so a Seatbelt-specific debug claim is not established.",
+    "Historical startup/channel errors overlapped sleep/wake, but causality was not established by actual host sleep/wake reproduction.",
+    "Historical time-travel checkpoint failures are intentional linear-integrity restrictions; branch restore would require explicit authority.",
+    "Declared trusted graph-node Python remains in the controller.",
+    "Linux owner has not agreed to this source and test revision, so no new matched-host claim is made."
+  ],
+  "scope": "macOS-only implementation and validation; no Linux execution or new performance benchmark",
+  "security": {
+    "concurrency_stress_passed": true,
+    "main": {
+      "categories": {
+        "Enforced": 185,
+        "Rejected before execution": 95,
+        "Result refused": 10
+      },
+      "distinct_cases": 58,
+      "evidence_valid": true,
+      "native_success_certificates_replayed": 170,
+      "repetitions": 5,
+      "total_trials": 580
+    },
+    "mutation_controls_passed": true,
+    "per_process_cpu": {
+      "categories": {
+        "Rejected before execution": 1
+      },
+      "distinct_cases": 1,
+      "evidence_valid": true
+    },
+    "persistent_rotation_passed": true,
+    "supplemental": {
+      "categories": {
+        "Enforced": 45,
+        "Inconclusive": 9,
+        "Qualified": 9
+      },
+      "distinct_cases": 21,
+      "evidence_valid": true,
+      "paired_trials": 63
+    },
+    "unsupported_mandatory": [
+      "cpu per_process 1000 need",
+      "cpu aggregate 1000 need",
+      "syscalls @minimal need",
+      "direct filesystem object read need"
+    ]
+  }
+}

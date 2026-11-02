@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "orders": [
+    [
+      2,
+      4
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      2,
+      4
+    ]
+  ],
+  "raw": "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/campaigns/macos-resubmission-v1/concurrency-stress-02"
+}

@@ -11,9 +11,11 @@ generated computation passes a separate secured `ToolNode` graph. In C-closed:
   and its conditional branches in `trusted_application_branches` (D11). The
   declarations are pinned in the manifest and must equal the builder's names;
   nothing is inferred;
-- generated computation goes through the same compute route as C: an exact
-  `ToolNode` dispatching to `LinuxSandboxExecutor` with the selected Lean
-  grant-v3 lifecycle checker. That dispatch graph is also compiled under
+- generated computation goes through an exact `ToolNode` dispatching to the
+  selected native object dispatcher with the Lean grant-v3 lifecycle checker.
+  On macOS, the trusted controller supplies the pinned vendor sandbox source
+  as an argument because direct filesystem object identity cannot be promised.
+  That dispatch graph is also compiled under
   closed admission (it declares nothing trusted; its single node is admitted
   as an exact `ToolNode`);
 - the input dataset is read through the `dataset_read` runtime operation
@@ -32,6 +34,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import math
 import types
 from dataclasses import replace
 from pathlib import Path
@@ -131,15 +134,15 @@ STATE_NORMALIZATIONS = frozenset({"json-null-v1"})
 
 
 def json_state(value):
-    """JSON transport of controller state: string keys, non-finite floats -> null.
+    """JSON transport of controller state: string keys and missing cells.
 
     `json-null-v1` (manifest-v21-closed). The vendor stores `df.to_dict()`
     (integer index keys, NaN for missing values) in graph state, which the
     closed graph's `OutputMediator` refuses (`output_data:string_key_required`,
-    `output_data:nonfinite_float`). This applies the same JSON transport C
-    already applies to the compute payload, plus NaN/Infinity -> `None`.
+    `output_data:nonfinite_float`). Infinity remains non-finite and is refused
+    by the output guard.
     """
-    return json.loads(json.dumps(value), parse_constant=lambda _: None)
+    return missing_value_transport(value)
 
 
 def normalization(request):
@@ -218,12 +221,44 @@ def builder_names(builder):
     )
 
 
-def close_graph(label, compiled, declaration, audit):
+def missing_value_transport(value):
+    """Carry Pandas missing cells as JSON null; keep infinities invalid."""
+    if type(value) is float and math.isnan(value):
+        return None
+    if type(value) is dict:
+        return {str(key): missing_value_transport(item) for key, item in value.items()}
+    if type(value) is list:
+        return [missing_value_transport(item) for item in value]
+    return value
+
+
+def normalize_wrangler_node(builder):
+    """Adapt the trusted vendor's DataFrame-to-dict return before validation."""
+    from langgraph._internal._runnable import coerce_to_runnable
+
+    name = "execute_data_wrangler_code"
+    node = builder.nodes[name]
+    original = node.runnable
+
+    def transported(state, config):
+        result = original.invoke(state, config)
+        if type(result) is dict and result.get("data_wrangled") is not None:
+            result = {**result, "data_wrangled": missing_value_transport(result["data_wrangled"])}
+        return result
+
+    builder.nodes[name] = replace(
+        node, runnable=coerce_to_runnable(transported, name=name, trace=False)
+    )
+
+
+def close_graph(label, compiled, declaration, audit, *, normalize_missing=False):
     """Recompile a vendor graph's own builder under closed admission."""
     builder = compiled.builder
     nodes, branches = builder_names(builder)
     if nodes != sorted(declaration["nodes"]) or branches != sorted(declaration["branches"]):
         raise ValueError(f"Pinned trusted declaration differs from vendor graph: {label}")
+    if normalize_missing and label == "data_wrangling_agent":
+        normalize_wrangler_node(builder)
     return builder.compile(
         checkpointer=compiled.checkpointer,
         name=compiled.name,
@@ -245,7 +280,7 @@ def inventory(label, closed):
 
 
 def install_compute(request, audit):
-    """Install the Cedar-authorized Linux bridge under closed admission.
+    """Install the Cedar-authorized native bridge under closed admission.
 
     Returns the closed dispatch graph so its inventory can be recorded.
     """
@@ -352,13 +387,18 @@ def install_compute(request, audit):
     )
 
     @tool
-    def compute(sandbox_source: str, payload: dict) -> dict:
+    def compute(sandbox_source: str, payload: dict, sandbox_text: str | None = None) -> dict:
         """Run the generated computation, preserving the upstream sandbox checks."""
         raise RuntimeError("Unconfined fallback is forbidden")
 
+    source_text = source.read_text() if host.NATIVE_HOST == "macos" else None
     security = cedar_security(
         compute,
-        manifest=f"runs {host.NATIVE_HOST}\nfs read @{{sandbox_source}} need",
+        manifest=(
+            "runs macos\nreturns normal"
+            if host.NATIVE_HOST == "macos"
+            else "runs linux\nfs read @{sandbox_source} need"
+        ),
         policy=request["principal_policy"],
         dispatcher=dispatcher,
     )
@@ -403,6 +443,9 @@ def install_compute(request, audit):
         )
         if timeout != 15 or memory_limit_mb != 512:
             raise ValueError("Version a new manifest for changed upstream sandbox limits")
+        compute_args = {"sandbox_source": str(source), "payload": payload}
+        if source_text is not None:
+            compute_args["sandbox_text"] = source_text
         response = node_graph.invoke(
             {
                 "messages": [
@@ -411,7 +454,7 @@ def install_compute(request, audit):
                         tool_calls=[
                             {
                                 "name": "compute",
-                                "args": {"sandbox_source": str(source), "payload": payload},
+                                "args": compute_args,
                                 "id": "compute-call",
                             }
                         ],

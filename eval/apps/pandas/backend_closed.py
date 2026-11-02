@@ -141,6 +141,7 @@ def main():
             run_wrangling,
             declarations["data_wrangling_agent"],
             audit,
+            normalize_missing=closed.normalization(request) is not None,
         )
         run_visualization = closed.close_graph(
             "data_visualization_agent",

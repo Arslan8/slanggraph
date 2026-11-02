@@ -94,6 +94,19 @@ class _MacOSObjectAdapter(_MacOSSeatbeltAdapter):
                 "macos:untrusted_host",
             )
         if (
+            item.kind is ObligationKind.OPERATE
+            and item.domain is AuthorityDomain.FILESYSTEM
+            and item.operation == "read"
+        ):
+            # The object-policy grant names a selected object. Seatbelt's path
+            # rule follows replacements and cannot preserve that identity.
+            return SupportAssessment(
+                self.adapter_id,
+                item.obligation_id,
+                SupportLevel.UNSUPPORTED,
+                "seatbelt:filesystem-object-identity-not-enforced",
+            )
+        if (
             item.kind is ObligationKind.AUTHENTICATED_CHANNEL
             and item.operation == "spawn_bound_broker"
         ):

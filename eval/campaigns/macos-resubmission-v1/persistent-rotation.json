@@ -1,0 +1,109 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "principal": "alice",
+      "permitted": "session-a",
+      "requested": "session-a",
+      "result": {
+        "artifact": "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/campaigns/macos-resubmission-v1/persistent-rotation-03/private/session-a/chart.png",
+        "lines": [],
+        "stdout": "ALICE_520a4506d765d0bbae111f113c84eeaa773c1e76dbc4f4de\n"
+      },
+      "call": "2b29e4e8a20e5021778aa18e"
+    },
+    {
+      "principal": "bob",
+      "permitted": "session-b",
+      "requested": "session-b",
+      "result": {
+        "artifact": "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/campaigns/macos-resubmission-v1/persistent-rotation-03/private/session-b/chart.png",
+        "lines": [],
+        "stdout": "False\n"
+      },
+      "call": "a5af7cd06b5f3f72548e5391"
+    },
+    {
+      "principal": "bob",
+      "permitted": "session-b",
+      "requested": "session-b",
+      "result": {
+        "artifact": "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/campaigns/macos-resubmission-v1/persistent-rotation-03/private/session-b/chart.png",
+        "lines": [],
+        "stdout": "False\nFalse\n"
+      },
+      "call": "a13214cd12d7861ecba46a85"
+    },
+    {
+      "principal": "bob",
+      "permitted": "session-b",
+      "requested": "session-b",
+      "result": {
+        "error": "PermissionError: [Errno 1] Operation not permitted: '/Users/abk6349/Documents/ChatGPT/slanggraph/eval/campaigns/macos-resubmission-v1/persistent-rotation-03/private/session-a/temp.txt'"
+      },
+      "call": "bb52f53b3480344511307ac6"
+    },
+    {
+      "principal": "bob",
+      "permitted": "session-b",
+      "requested": "session-a",
+      "result": {
+        "denied": "broker:not_granted"
+      },
+      "call": "7915f3b3ae0e53104b423c2c"
+    },
+    {
+      "principal": "alice",
+      "permitted": "session-a",
+      "requested": "session-b",
+      "result": {
+        "denied": "broker:not_granted"
+      },
+      "call": "072f900e19b16d3e0185cff2"
+    },
+    {
+      "principal": "alice",
+      "permitted": "session-a",
+      "requested": "session-a",
+      "result": {
+        "artifact": "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/campaigns/macos-resubmission-v1/persistent-rotation-03/private/session-a/chart.png",
+        "lines": [],
+        "stdout": "ALICE_520a4506d765d0bbae111f113c84eeaa773c1e76dbc4f4de\nALICE_520a4506d765d0bbae111f113c84eeaa773c1e76dbc4f4de\n"
+      },
+      "call": "322679205a67ff2922605277"
+    }
+  ],
+  "mediator_invocations": [
+    {
+      "principal": "alice",
+      "selector": "session-a",
+      "call": "2b29e4e8a20e5021778aa18e"
+    },
+    {
+      "principal": "bob",
+      "selector": "session-b",
+      "call": "a5af7cd06b5f3f72548e5391"
+    },
+    {
+      "principal": "bob",
+      "selector": "session-b",
+      "call": "a13214cd12d7861ecba46a85"
+    },
+    {
+      "principal": "bob",
+      "selector": "session-b",
+      "call": "bb52f53b3480344511307ac6"
+    },
+    {
+      "principal": "alice",
+      "selector": "session-a",
+      "call": "322679205a67ff2922605277"
+    }
+  ],
+  "surviving_sessions": [],
+  "artifact_sha256": {
+    "session-a": "ceba0d8210110f57008e5fbd81825624d20eaa59bedb1022bc517302edbf95cc",
+    "session-b": "dd72bd5652963e4b03e2c1770bb8c12539ce4d6c5a949f9003a30407376bc72c"
+  },
+  "scope": "object dispatcher plus persistent Python backends; Cedar policy checked separately"
+}

@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "events": [
+    {
+      "stage": "before_fix",
+      "error": "output_data:nonfinite_float",
+      "conversion": "JSON null -> pandas.DataFrame -> to_dict -> NaN"
+    },
+    {
+      "stage": "after_fix",
+      "missing_cell": null,
+      "infinity_still_rejected": true,
+      "validator_unchanged": true
+    },
+    {
+      "stage": "historical_checkpoint",
+      "refusal": "checkpoint:invalid_sequence",
+      "policy": "authenticated linear ancestry; historical rollback is not authorized"
+    }
+  ]
+}

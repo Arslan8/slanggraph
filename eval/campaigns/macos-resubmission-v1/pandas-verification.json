@@ -1,0 +1,24 @@
+{
+  "activated_receipts": 65,
+  "complete": true,
+  "correct": 50,
+  "correct_by_case": {
+    "date_filtered_total": 5,
+    "duplicate_count": 5,
+    "grouped_mean": 5,
+    "missing_count": 5,
+    "monthly_chart": 5,
+    "monthly_mean": 5,
+    "monthly_total": 5,
+    "product_totals": 5,
+    "regional_totals": 5,
+    "top_products": 5
+  },
+  "evidence_valid": true,
+  "issues": [],
+  "scope": "macOS-only complete Pandas cohort; no performance or cross-host claim",
+  "status": {
+    "completed": 50
+  },
+  "trials": 50
+}

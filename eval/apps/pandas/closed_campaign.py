@@ -20,6 +20,7 @@ import random
 import shutil
 import sqlite3
 import subprocess
+import sys
 import time
 import urllib.request
 import uuid
@@ -53,7 +54,12 @@ def _campaign():
 campaign = _campaign()
 TASKS = campaign.TASKS
 ROWS = campaign.ROWS
-UPSTREAM = campaign.UPSTREAM
+UPSTREAM = (
+    ROOT / "eval/vendor/ai-data-science-team" if sys.platform == "darwin" else campaign.UPSTREAM
+)
+RUN_PYTHON = (
+    ROOT / "eval/.venv/bin/python" if sys.platform == "darwin" else UPSTREAM / ".venv/bin/python"
+)
 oracle = campaign.oracle
 
 
@@ -190,8 +196,8 @@ def main():
         "integrity_recheck": "preflight-only",
         "dataset": dataset,
         "timeout_s": 180,
-        "cpu": min(os.sched_getaffinity(0)),
-        "python": str(UPSTREAM / ".venv/bin/python"),
+        "cpu": min(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None,
+        "python": str(RUN_PYTHON),
         "backend_source_sha256": sources["pandas/backend_closed.py"],
         "integration_source_sha256": sources["pandas/integration_closed.py"],
     }
@@ -215,12 +221,24 @@ def main():
             "closed_admission": True,
             "principal_authorization": True,
             "sealed_operator_policy": True,
-            "host_isolation": "bubblewrap+Landlock+seccomp",
-            "resource_mediation": "Cedar exact-file object grant and dataset operation",
+            "host_isolation": (
+                "native Seatbelt worker"
+                if sys.platform == "darwin"
+                else "bubblewrap+Landlock+seccomp"
+            ),
+            "resource_mediation": (
+                "Cedar object grant, trusted sandbox-source transport, and dataset operation"
+                if sys.platform == "darwin"
+                else "Cedar exact-file object grant and dataset operation"
+            ),
             "security_audit": True,
             "runtime_contract_validator": "worker-route-grant-v3 per call",
             "integrity_recheck": "preflight-only",
-            "computation": "ObjectPolicyHostExecutor/LinuxObjectDispatcher",
+            "computation": (
+                "ObjectPolicyHostExecutor/MacOSObjectDispatcher"
+                if sys.platform == "darwin"
+                else "ObjectPolicyHostExecutor/LinuxObjectDispatcher"
+            ),
         },
     }
     if args.configuration == "matched" and set(modes) != set(treatments):
@@ -365,13 +383,12 @@ def main():
             status = "error"
             code = None
             command = [
-                "taskset",
-                "--cpu-list",
-                str(min(os.sched_getaffinity(0))),
-                str(UPSTREAM / ".venv/bin/python"),
+                str(RUN_PYTHON),
                 str(snapshot / "pandas/backend_closed.py"),
                 str(folder / "request.json"),
             ]
+            if hasattr(os, "sched_getaffinity"):
+                command[:0] = ["taskset", "--cpu-list", str(min(os.sched_getaffinity(0)))]
             with (folder / "process.log").open("w") as log:
                 try:
                     completed = subprocess.run(
@@ -462,6 +479,8 @@ def main():
                 concrete_executor=(
                     "direct vendor sandbox subprocess"
                     if internal_configuration == "Baseline"
+                    else "ObjectPolicyHostExecutor/MacOSObjectDispatcher"
+                    if sys.platform == "darwin"
                     else "ObjectPolicyHostExecutor/LinuxObjectDispatcher"
                 ),
                 run_id=run_id,

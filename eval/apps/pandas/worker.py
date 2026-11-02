@@ -1,4 +1,4 @@
-"""Run the unmodified upstream sandbox program in the existing Linux worker."""
+"""Run the unmodified upstream sandbox program in a native worker."""
 
 import io
 import json
@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 
-def compute(sandbox_source: str, payload: dict) -> dict:
+def compute(sandbox_source: str, payload: dict, sandbox_text: str | None = None) -> dict:
     attack = payload.pop("attack", None)
     observation = None
     if attack is not None:
@@ -26,7 +26,8 @@ def compute(sandbox_source: str, payload: dict) -> dict:
         except (OSError, sqlite3.Error) as error:
             observation["blocked"] = type(error).__name__
     module = {"__name__": "upstream_sandbox"}
-    exec(compile(Path(sandbox_source).read_text(), sandbox_source, "exec"), module)
+    source = Path(sandbox_source).read_text() if sandbox_text is None else sandbox_text
+    exec(compile(source, sandbox_source, "exec"), module)
     if payload.get("sandbox_serialization") is not None:
         from sandbox_codec import VERSIONS, repair_runner
 

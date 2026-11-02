@@ -1,0 +1,391 @@
+{
+  "categories": {
+    "Enforced": 45,
+    "Inconclusive": 9,
+    "Qualified": 9
+  },
+  "distinct_cases": 21,
+  "evidence_valid": true,
+  "issues": [],
+  "paired_trials": 63,
+  "results": [
+    {
+      "case": "inherited_fd",
+      "category": "Enforced",
+      "reason": "worker inherited no private descriptor",
+      "seed": 0
+    },
+    {
+      "case": "inherited_env",
+      "category": "Enforced",
+      "reason": "credential absent from worker environment",
+      "seed": 0
+    },
+    {
+      "case": "startup_inventory",
+      "category": "Enforced",
+      "reason": "bounded descriptor and environment inventory",
+      "seed": 0
+    },
+    {
+      "case": "mach_inventory",
+      "category": "Inconclusive",
+      "reason": "Mach names retained; right semantics need separate validation",
+      "seed": 0
+    },
+    {
+      "case": "signal_controller",
+      "category": "Enforced",
+      "reason": "signal blocked with independent controller observation",
+      "seed": 0
+    },
+    {
+      "case": "signal_guardian",
+      "category": "Enforced",
+      "reason": "signal blocked with independent controller observation",
+      "seed": 0
+    },
+    {
+      "case": "debug_controller",
+      "category": "Inconclusive",
+      "reason": "task_for_pid failed in both conditions",
+      "seed": 0
+    },
+    {
+      "case": "child_channel",
+      "category": "Enforced",
+      "reason": "Bob unchanged in protected SQLite copy",
+      "seed": 0
+    },
+    {
+      "case": "race_rename",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 0
+    },
+    {
+      "case": "race_symlink",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 0
+    },
+    {
+      "case": "race_hardlink",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 0
+    },
+    {
+      "case": "private_alias",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 0
+    },
+    {
+      "case": "import_side_effect",
+      "category": "Enforced",
+      "reason": "Bob unchanged in protected SQLite copy",
+      "seed": 0
+    },
+    {
+      "case": "artifact_changed",
+      "category": "Enforced",
+      "reason": "admission refused before resource effect",
+      "seed": 0
+    },
+    {
+      "case": "direct_node",
+      "category": "Enforced",
+      "reason": "admission refused before resource effect",
+      "seed": 0
+    },
+    {
+      "case": "nested_entry",
+      "category": "Enforced",
+      "reason": "admission refused before resource effect",
+      "seed": 0
+    },
+    {
+      "case": "parallel_confusion",
+      "category": "Enforced",
+      "reason": "eight calls; mediator records only Alice's bound selector",
+      "seed": 0
+    },
+    {
+      "case": "pending_cancellation",
+      "category": "Inconclusive",
+      "reason": "mediator completed; graph worker completion not independently verified",
+      "seed": 0
+    },
+    {
+      "case": "suspended_worker",
+      "category": "Qualified",
+      "reason": "SIGSTOP/SIGCONT completed; this is not host sleep/wake",
+      "seed": 0
+    },
+    {
+      "case": "suspended_guardian",
+      "category": "Qualified",
+      "reason": "SIGSTOP/SIGCONT completed; this is not host sleep/wake",
+      "seed": 0
+    },
+    {
+      "case": "optional_permission",
+      "category": "Qualified",
+      "reason": "Cedar omitted want; no lowerer tightening observed",
+      "seed": 0
+    },
+    {
+      "case": "inherited_fd",
+      "category": "Enforced",
+      "reason": "worker inherited no private descriptor",
+      "seed": 1
+    },
+    {
+      "case": "inherited_env",
+      "category": "Enforced",
+      "reason": "credential absent from worker environment",
+      "seed": 1
+    },
+    {
+      "case": "startup_inventory",
+      "category": "Enforced",
+      "reason": "bounded descriptor and environment inventory",
+      "seed": 1
+    },
+    {
+      "case": "mach_inventory",
+      "category": "Inconclusive",
+      "reason": "Mach names retained; right semantics need separate validation",
+      "seed": 1
+    },
+    {
+      "case": "signal_controller",
+      "category": "Enforced",
+      "reason": "signal blocked with independent controller observation",
+      "seed": 1
+    },
+    {
+      "case": "signal_guardian",
+      "category": "Enforced",
+      "reason": "signal blocked with independent controller observation",
+      "seed": 1
+    },
+    {
+      "case": "debug_controller",
+      "category": "Inconclusive",
+      "reason": "task_for_pid failed in both conditions",
+      "seed": 1
+    },
+    {
+      "case": "child_channel",
+      "category": "Enforced",
+      "reason": "Bob unchanged in protected SQLite copy",
+      "seed": 1
+    },
+    {
+      "case": "race_rename",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 1
+    },
+    {
+      "case": "race_symlink",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 1
+    },
+    {
+      "case": "race_hardlink",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 1
+    },
+    {
+      "case": "private_alias",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 1
+    },
+    {
+      "case": "import_side_effect",
+      "category": "Enforced",
+      "reason": "Bob unchanged in protected SQLite copy",
+      "seed": 1
+    },
+    {
+      "case": "artifact_changed",
+      "category": "Enforced",
+      "reason": "admission refused before resource effect",
+      "seed": 1
+    },
+    {
+      "case": "direct_node",
+      "category": "Enforced",
+      "reason": "admission refused before resource effect",
+      "seed": 1
+    },
+    {
+      "case": "nested_entry",
+      "category": "Enforced",
+      "reason": "admission refused before resource effect",
+      "seed": 1
+    },
+    {
+      "case": "parallel_confusion",
+      "category": "Enforced",
+      "reason": "eight calls; mediator records only Alice's bound selector",
+      "seed": 1
+    },
+    {
+      "case": "pending_cancellation",
+      "category": "Inconclusive",
+      "reason": "mediator completed; graph worker completion not independently verified",
+      "seed": 1
+    },
+    {
+      "case": "suspended_worker",
+      "category": "Qualified",
+      "reason": "SIGSTOP/SIGCONT completed; this is not host sleep/wake",
+      "seed": 1
+    },
+    {
+      "case": "suspended_guardian",
+      "category": "Qualified",
+      "reason": "SIGSTOP/SIGCONT completed; this is not host sleep/wake",
+      "seed": 1
+    },
+    {
+      "case": "optional_permission",
+      "category": "Qualified",
+      "reason": "Cedar omitted want; no lowerer tightening observed",
+      "seed": 1
+    },
+    {
+      "case": "inherited_fd",
+      "category": "Enforced",
+      "reason": "worker inherited no private descriptor",
+      "seed": 2
+    },
+    {
+      "case": "inherited_env",
+      "category": "Enforced",
+      "reason": "credential absent from worker environment",
+      "seed": 2
+    },
+    {
+      "case": "startup_inventory",
+      "category": "Enforced",
+      "reason": "bounded descriptor and environment inventory",
+      "seed": 2
+    },
+    {
+      "case": "mach_inventory",
+      "category": "Inconclusive",
+      "reason": "Mach names retained; right semantics need separate validation",
+      "seed": 2
+    },
+    {
+      "case": "signal_controller",
+      "category": "Enforced",
+      "reason": "signal blocked with independent controller observation",
+      "seed": 2
+    },
+    {
+      "case": "signal_guardian",
+      "category": "Enforced",
+      "reason": "signal blocked with independent controller observation",
+      "seed": 2
+    },
+    {
+      "case": "debug_controller",
+      "category": "Inconclusive",
+      "reason": "task_for_pid failed in both conditions",
+      "seed": 2
+    },
+    {
+      "case": "child_channel",
+      "category": "Enforced",
+      "reason": "Bob unchanged in protected SQLite copy",
+      "seed": 2
+    },
+    {
+      "case": "race_rename",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 2
+    },
+    {
+      "case": "race_symlink",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 2
+    },
+    {
+      "case": "race_hardlink",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 2
+    },
+    {
+      "case": "private_alias",
+      "category": "Enforced",
+      "reason": "private inode read in control; protected release refused",
+      "seed": 2
+    },
+    {
+      "case": "import_side_effect",
+      "category": "Enforced",
+      "reason": "Bob unchanged in protected SQLite copy",
+      "seed": 2
+    },
+    {
+      "case": "artifact_changed",
+      "category": "Enforced",
+      "reason": "admission refused before resource effect",
+      "seed": 2
+    },
+    {
+      "case": "direct_node",
+      "category": "Enforced",
+      "reason": "admission refused before resource effect",
+      "seed": 2
+    },
+    {
+      "case": "nested_entry",
+      "category": "Enforced",
+      "reason": "admission refused before resource effect",
+      "seed": 2
+    },
+    {
+      "case": "parallel_confusion",
+      "category": "Enforced",
+      "reason": "eight calls; mediator records only Alice's bound selector",
+      "seed": 2
+    },
+    {
+      "case": "pending_cancellation",
+      "category": "Inconclusive",
+      "reason": "mediator completed; graph worker completion not independently verified",
+      "seed": 2
+    },
+    {
+      "case": "suspended_worker",
+      "category": "Qualified",
+      "reason": "SIGSTOP/SIGCONT completed; this is not host sleep/wake",
+      "seed": 2
+    },
+    {
+      "case": "suspended_guardian",
+      "category": "Qualified",
+      "reason": "SIGSTOP/SIGCONT completed; this is not host sleep/wake",
+      "seed": 2
+    },
+    {
+      "case": "optional_permission",
+      "category": "Qualified",
+      "reason": "Cedar omitted want; no lowerer tightening observed",
+      "seed": 2
+    }
+  ]
+}

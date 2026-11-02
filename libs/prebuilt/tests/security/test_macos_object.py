@@ -247,6 +247,36 @@ def test_wrong_grant_binding_refused(route):
     assert not seen
 
 
+def test_object_read_rejects_unstable_filesystem_identity(route, tmp_path):
+    dispatcher, principal, call, grant, seen, _ = route
+    path = tmp_path / "selected"
+    path.write_text("original")
+    line = ObjectGrantLine(
+        "selected-file",
+        "fs",
+        "read",
+        str(path.resolve()),
+        {},
+        Requirement.NEED,
+        EnforcementKind.KERNEL,
+    )
+    grant = replace(grant, lines=(*grant.lines, line))
+    with pytest.raises(HostExecutionDenied, match="required_authority_removed"):
+        dispatcher.invoke(principal, call, grant)
+    refusal = dispatcher.lowering_records()[-1]
+    assert refusal["decision"] == "unsupported"
+    assert refusal["tool_released"] is False
+    assert any(
+        item["rule_id"] == line.line_id for item in refusal["unsupported_obligations"]
+    )
+    assert any(
+        "filesystem-object-identity-not-enforced" in item["reason"]
+        for item in refusal["assessments"]
+    )
+    assert path.read_text() == "original"
+    assert not seen
+
+
 @pytest.mark.parametrize("mutation", ["missing", "selector", "dependency", "custody"])
 def test_lean_refuses_resource_inventory_mutations(route, monkeypatch, mutation):
     dispatcher, principal, call, grant, seen, _ = route
