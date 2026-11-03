@@ -182,7 +182,7 @@ def test_helper_rejects_implicit_or_trusted_execution(isolated):
         """Schema only."""
         raise AssertionError
 
-    with pytest.raises(ValueError, match="runs linux or runs broker"):
+    with pytest.raises(ValueError, match="runs linux, macos or broker"):
         cedar_security(schema, policy=POLICY, dispatcher=dispatcher)
     with pytest.raises(ValueError, match="missing manifests"):
         cedar_security(

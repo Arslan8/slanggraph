@@ -12,6 +12,7 @@ import os
 import posixpath
 import secrets
 import signal
+import socket
 import stat
 import subprocess
 import sys
@@ -168,6 +169,34 @@ class LandlockRuleset:
         os.close(self.fd)
 
 
+@dataclass(slots=True)
+class _PooledLandlockWorker:
+    """Single-use confined worker waiting without an authorized broker."""
+
+    pool_key: str
+    process: subprocess.Popen[bytes]
+    pidfd: int | None
+    cgroup: CgroupV2Scope | None
+    private_tmp: tempfile.TemporaryDirectory
+    artifact_tmp: tempfile.TemporaryDirectory
+    spec: Any
+    parent_channel: socket.socket
+    broker_fd: int
+    created_at: float
+
+
+@dataclass(slots=True)
+class _LandlockWorkerPoolState:
+    workers: dict[str, deque[_PooledLandlockWorker]]
+    lock: RLock
+    hits: int = 0
+    misses: int = 0
+
+    @classmethod
+    def create(cls) -> _LandlockWorkerPoolState:
+        return cls({}, RLock())
+
+
 class LandlockSandboxExecutor:
     """Run one fresh namespace-free worker under Landlock, seccomp, and limits."""
 
@@ -186,6 +215,9 @@ class LandlockSandboxExecutor:
         attestation_key: bytes | None = None,
         credential_broker: CredentialBroker | None = None,
         lifecycle_checker: LeanLifecycleChecker | None = None,
+        worker_pool_capacity: int = 0,
+        worker_pool_idle_s: float = 300.0,
+        _worker_pool_state: _LandlockWorkerPoolState | None = None,
     ) -> None:
         from langgraph.prebuilt.security.linux import (
             _canonical_existing_path,
@@ -256,6 +288,18 @@ class LandlockSandboxExecutor:
         ):
             raise HostExecutionDenied("host:lean_binary_configuration")
         self.lifecycle_checker = lifecycle_checker
+        if (
+            type(worker_pool_capacity) is not int
+            or worker_pool_capacity < 0
+            or worker_pool_idle_s <= 0
+        ):
+            raise ValueError("Landlock worker pool settings must be non-negative")
+        self.worker_pool_capacity = worker_pool_capacity
+        self.worker_pool_idle_s = float(worker_pool_idle_s)
+        self._worker_pool_state = (
+            _worker_pool_state or _LandlockWorkerPoolState.create()
+        )
+        self._prepared_pool_key: str | None = None
         self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
         self._lifecycle_records: deque[dict[str, Any]] = deque(maxlen=1024)
         self._lifecycle_lock = RLock()
@@ -278,6 +322,327 @@ class LandlockSandboxExecutor:
             return tuple(
                 json.loads(json.dumps(item)) for item in self._lifecycle_records
             )
+
+    def worker_pool_stats(self) -> Mapping[str, int]:
+        """Return prepared-worker occupancy and exact claim counters."""
+        state = self._worker_pool_state
+        with state.lock:
+            return MappingProxyType(
+                {
+                    "capacity": self.worker_pool_capacity,
+                    "idle": sum(len(items) for items in state.workers.values()),
+                    "hits": state.hits,
+                    "misses": state.misses,
+                }
+            )
+
+    def prewarm(
+        self,
+        principal: Principal,
+        call: ToolCall,
+        constraints: Sequence[PolicyConstraint],
+        *,
+        count: int = 1,
+        asynchronous: bool = False,
+    ) -> int:
+        """Prepare confined single-use workers without attaching authority."""
+        if type(count) is not int or count < 0:
+            raise ValueError("prewarm count must be a non-negative integer")
+        if asynchronous:
+            raise HostExecutionDenied("host:prepared_async_route_unavailable")
+        if count and self.worker_pool_capacity == 0:
+            raise HostExecutionDenied("host:worker_pool_disabled")
+        prepared = 0
+        for _ in range(min(count, self.worker_pool_capacity)):
+            self._prewarm_one(principal, call, constraints)
+            prepared += 1
+        return prepared
+
+    def close(self) -> None:
+        """Terminate every unclaimed prepared worker."""
+        state = self._worker_pool_state
+        with state.lock:
+            workers = [item for values in state.workers.values() for item in values]
+            state.workers.clear()
+        for worker in workers:
+            self._close_pooled_worker(worker)
+
+    def _pool_key(
+        self,
+        spec: Any,
+        grant: Any,
+        landlock_rules: Sequence[GrantRule],
+        enforcement: Sequence[Any],
+        extras: Mapping[str, Any],
+    ) -> str:
+        del grant
+        return _digest(
+            {
+                "artifact": spec.artifact_digest,
+                "entrypoint": spec.entrypoint,
+                "extras": dict(extras),
+                "landlock_rules": [dict(rule.canonical()) for rule in landlock_rules],
+                "enforcement": [
+                    (item.rule_id, item.support.value, item.mechanism)
+                    for item in enforcement
+                ],
+                "runtime_roots": [os.fspath(item) for item in self.runtime_roots],
+            }
+        )
+
+    def _claim_pooled_worker(self) -> _PooledLandlockWorker | None:
+        key = self._prepared_pool_key
+        if not self.worker_pool_capacity or key is None:
+            return None
+        state = self._worker_pool_state
+        stale: list[_PooledLandlockWorker] = []
+        with state.lock:
+            cutoff = time.monotonic() - self.worker_pool_idle_s
+            values = state.workers.get(key)
+            while values:
+                worker = values.popleft()
+                if worker.created_at >= cutoff and worker.process.poll() is None:
+                    state.hits += 1
+                    if not values:
+                        state.workers.pop(key, None)
+                    return worker
+                stale.append(worker)
+            state.workers.pop(key, None)
+            state.misses += 1
+        for worker in stale:
+            self._close_pooled_worker(worker)
+        return None
+
+    def _close_pooled_worker(self, worker: _PooledLandlockWorker) -> None:
+        try:
+            worker.parent_channel.close()
+        except OSError:
+            pass
+        try:
+            if worker.process.poll() is None:
+                worker.process.kill()
+            worker.process.wait(timeout=2)
+        except (OSError, subprocess.SubprocessError):
+            pass
+        for stream in (
+            worker.process.stdin,
+            worker.process.stdout,
+            worker.process.stderr,
+        ):
+            if stream is not None:
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+        if worker.pidfd is not None:
+            try:
+                os.close(worker.pidfd)
+            except OSError:
+                pass
+        if worker.cgroup is not None:
+            try:
+                worker.cgroup.close()
+            except Exception:
+                pass
+        worker.private_tmp.cleanup()
+        worker.artifact_tmp.cleanup()
+
+    def _prewarm_one(
+        self,
+        principal: Principal,
+        call: ToolCall,
+        constraints: Sequence[PolicyConstraint],
+    ) -> None:
+        """Lower an exact template and stop a confined worker at its bind barrier."""
+        from langgraph.prebuilt.security.linux import (
+            _encode_worker_request,
+            _file_digest,
+            _readline_json,
+        )
+
+        configured = self.tools.get(call.tool.name)
+        if configured is None:
+            raise HostExecutionDenied("host:tool_manifest_missing")
+        private_tmp = tempfile.TemporaryDirectory(prefix="slanggraph-worker-")
+        artifact_tmp = tempfile.TemporaryDirectory(prefix="slanggraph-artifact-")
+        ruleset: LandlockRuleset | None = None
+        process: subprocess.Popen[bytes] | None = None
+        pidfd: int | None = None
+        cgroup: CgroupV2Scope | None = None
+        parent_channel: socket.socket | None = None
+        worker_channel: socket.socket | None = None
+        retained = False
+        try:
+            source = Path(configured.artifact_path).read_bytes()
+            if hashlib.sha256(source).hexdigest() != configured.artifact_digest:
+                raise HostExecutionDenied("host:artifact_changed")
+            pinned = Path(artifact_tmp.name) / "tool.py"
+            pinned.write_bytes(source)
+            pinned.chmod(0o400)
+            spec = SimpleNamespace(
+                entrypoint=configured.entrypoint,
+                artifact_path=pinned,
+                artifact_digest=configured.artifact_digest,
+            )
+            if (
+                _file_digest(self.python_executable) != self.python_digest
+                or _file_digest(self.worker_script) != self.worker_digest
+            ):
+                raise HostExecutionDenied("host:runtime_changed")
+            grant, ledger = self._compile_grant(
+                principal, call, spec, Path(private_tmp.name)
+            )
+            filtered = self.policy_backend.filter(grant, ledger, constraints)
+            if not filtered.allowed or filtered.grant is None:
+                raise HostExecutionDenied(f"host:{filtered.reason}")
+            grant = self._prepare_grant(filtered.grant, filtered.ledger)
+            if self.lifecycle_checker is not None:
+                record = getattr(self, "record", None)
+                lean_ledger = filtered.ledger
+                obligations = compile_obligations(grant)
+                if record is not None:
+                    lean_ledger = RequirementLedger(
+                        tuple(
+                            RequirementEntry(
+                                rule.rule_id,
+                                rule.requirement,
+                                frozenset({rule.rule_id}),
+                            )
+                            for rule in grant.rules
+                        )
+                    )
+                    obligations = record.obligations
+                self._check_lean_grant(grant, lean_ledger, obligations)
+            landlock_rules, enforcement = self._lower(grant)
+            ruleset = build_ruleset(landlock_rules, abi=self.abi)
+            limits = self._limits(grant)
+            extras = self._worker_request_extras(grant)
+            pool_key = self._pool_key(spec, grant, landlock_rules, enforcement, extras)
+            parent_channel, worker_channel = socket.socketpair(
+                socket.AF_UNIX, socket.SOCK_STREAM
+            )
+            parent_channel.set_inheritable(False)
+            worker_channel.set_inheritable(False)
+            broker_fd = worker_channel.fileno()
+            request = {
+                "args": {},
+                "artifact_path": os.fspath(spec.artifact_path),
+                "asynchronous": False,
+                "broker_fd": broker_fd,
+                "call_id": "",
+                "entrypoint": spec.entrypoint,
+                "landlock_ruleset_fd": ruleset.fd,
+                "limits": limits,
+                "pool_bootstrap": True,
+                "pool_key": pool_key,
+                "runtime_roots": [os.fspath(item) for item in self.runtime_roots],
+                "tool_name": call.tool.name,
+            }
+            if set(request).intersection(extras):
+                raise HostExecutionDenied("host:worker_protocol_extension_conflict")
+            request.update(extras)
+            environment = {
+                "PATH": "/usr/bin",
+                "PYTHONCOERCECLOCALE": "0",
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "PYTHONNOUSERSITE": "1",
+                "PYTHONSAFEPATH": "1",
+                "PYTHONUNBUFFERED": "1",
+                "PYTHONUTF8": "1",
+                "SLANGGRAPH_BROKER_FD": str(broker_fd),
+                "TMPDIR": private_tmp.name,
+            }
+            if self._cgroup_root is not None:
+                cgroup = CgroupV2Scope.create(self._cgroup_root, limits)
+            process = subprocess.Popen(
+                (
+                    os.fspath(self.python_executable),
+                    "-I",
+                    "-S",
+                    "-B",
+                    "-u",
+                    "-X",
+                    "utf8",
+                    os.fspath(self.worker_script),
+                ),
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                close_fds=True,
+                pass_fds=(ruleset.fd, broker_fd),
+                cwd=private_tmp.name,
+                env=environment,
+            )
+            if cgroup is not None:
+                cgroup.assign(process.pid)
+            try:
+                pidfd = os.pidfd_open(process.pid)
+            except (AttributeError, OSError):
+                pidfd = None
+            ruleset.close()
+            ruleset = None
+            worker_channel.close()
+            worker_channel = None
+            if process.stdin is None or process.stdout is None:
+                raise HostExecutionDenied("host:worker_pipe_failed")
+            process.stdin.write(_encode_worker_request(request))
+            process.stdin.flush()
+            if _readline_json(process, self.startup_timeout_s) != {
+                "pool_key": pool_key,
+                "status": "pooled",
+            }:
+                raise HostExecutionDenied("host:worker_pool_protocol")
+            pooled = _PooledLandlockWorker(
+                pool_key,
+                process,
+                pidfd,
+                cgroup,
+                private_tmp,
+                artifact_tmp,
+                spec,
+                parent_channel,
+                broker_fd,
+                time.monotonic(),
+            )
+            state = self._worker_pool_state
+            with state.lock:
+                if (
+                    sum(len(items) for items in state.workers.values())
+                    >= self.worker_pool_capacity
+                ):
+                    raise HostExecutionDenied("host:worker_pool_full")
+                state.workers.setdefault(pool_key, deque()).append(pooled)
+            self._prepared_pool_key = pool_key
+            retained = True
+        finally:
+            if not retained:
+                if ruleset is not None:
+                    try:
+                        ruleset.close()
+                    except OSError:
+                        pass
+                if worker_channel is not None:
+                    worker_channel.close()
+                if parent_channel is not None:
+                    parent_channel.close()
+                if process is not None:
+                    try:
+                        process.kill()
+                        process.wait(timeout=2)
+                    except (OSError, subprocess.SubprocessError):
+                        pass
+                if pidfd is not None:
+                    try:
+                        os.close(pidfd)
+                    except OSError:
+                        pass
+                if cgroup is not None:
+                    try:
+                        cgroup.close()
+                    except Exception:
+                        pass
+                private_tmp.cleanup()
+                artifact_tmp.cleanup()
 
     def invoke(
         self,
@@ -336,29 +701,49 @@ class LandlockSandboxExecutor:
             _readline_json,
         )
 
-        spec = self.tools.get(call.tool.name)
-        if spec is None:
+        configured = self.tools.get(call.tool.name)
+        if configured is None:
             raise HostExecutionDenied("host:tool_manifest_missing")
-        private_tmp = tempfile.TemporaryDirectory(prefix="slanggraph-worker-")
+        pooled = self._claim_pooled_worker()
+        if self.worker_pool_capacity and pooled is None:
+            raise HostExecutionDenied("host:prepared_worker_unavailable")
+        private_tmp = (
+            pooled.private_tmp
+            if pooled is not None
+            else tempfile.TemporaryDirectory(prefix="slanggraph-worker-")
+        )
         private_tmp_path = Path(private_tmp.name)
-        artifact_tmp = tempfile.TemporaryDirectory(prefix="slanggraph-artifact-")
+        artifact_tmp = (
+            pooled.artifact_tmp
+            if pooled is not None
+            else tempfile.TemporaryDirectory(prefix="slanggraph-artifact-")
+        )
         broker_session: BrokerSession | None = None
         worker_broker_fd: int | None = None
         ruleset: LandlockRuleset | None = None
         try:
-            source = Path(spec.artifact_path).read_bytes()
-            if hashlib.sha256(source).hexdigest() != spec.artifact_digest:
+            source = Path(configured.artifact_path).read_bytes()
+            if hashlib.sha256(source).hexdigest() != configured.artifact_digest:
                 raise HostExecutionDenied("host:artifact_changed")
-            # The source path may change after authorization. Execute only the
-            # verified bytes, in a separate directory with no worker write grant.
-            pinned = Path(artifact_tmp.name) / "tool.py"
-            pinned.write_bytes(source)
-            pinned.chmod(0o400)
-            spec = SimpleNamespace(
-                entrypoint=spec.entrypoint,
-                artifact_path=pinned,
-                artifact_digest=spec.artifact_digest,
-            )
+            if pooled is None:
+                # Execute a verified private snapshot, never the mutable source path.
+                pinned = Path(artifact_tmp.name) / "tool.py"
+                pinned.write_bytes(source)
+                pinned.chmod(0o400)
+                spec = SimpleNamespace(
+                    entrypoint=configured.entrypoint,
+                    artifact_path=pinned,
+                    artifact_digest=configured.artifact_digest,
+                )
+            else:
+                spec = pooled.spec
+                if (
+                    spec.entrypoint != configured.entrypoint
+                    or spec.artifact_digest != configured.artifact_digest
+                    or hashlib.sha256(Path(spec.artifact_path).read_bytes()).hexdigest()
+                    != configured.artifact_digest
+                ):
+                    raise HostExecutionDenied("host:prepared_artifact_changed")
             if (
                 _file_digest(self.python_executable) != self.python_digest
                 or _file_digest(self.worker_script) != self.worker_digest
@@ -392,8 +777,14 @@ class LandlockSandboxExecutor:
                     lean_obligations,
                 )
             landlock_rules, enforcement = self._lower(grant)
-            ruleset = build_ruleset(landlock_rules, abi=self.abi)
             limits = self._limits(grant)
+            extras = self._worker_request_extras(grant)
+            pool_key = self._pool_key(spec, grant, landlock_rules, enforcement, extras)
+            if pooled is not None:
+                if pool_key != pooled.pool_key:
+                    raise HostExecutionDenied("host:prepared_policy_changed")
+            else:
+                ruleset = build_ruleset(landlock_rules, abi=self.abi)
             if any(rule.domain is AuthorityDomain.SERVICE for rule in grant.rules):
                 if self.credential_broker is None:
                     raise HostExecutionDenied("host:service_broker_unavailable")
@@ -403,35 +794,49 @@ class LandlockSandboxExecutor:
                     grant.digest,
                     secrets.token_hex(16),
                 )
-                broker_session = self.credential_broker.open_session(spawn, grant)
-                worker_broker_fd = broker_session.detach_worker()
+                if pooled is None:
+                    broker_session = self.credential_broker.open_session(spawn, grant)
+                    worker_broker_fd = broker_session.detach_worker()
+                else:
+                    broker_session = self.credential_broker.bind_prepared_session(
+                        pooled.parent_channel, spawn, grant
+                    )
             request = {
                 "args": _json_value({**call.args, **call.normalized}),
                 "artifact_path": os.fspath(spec.artifact_path),
                 "asynchronous": asynchronous,
                 "call_id": call.call_id,
                 "entrypoint": spec.entrypoint,
-                "landlock_ruleset_fd": ruleset.fd,
                 "limits": limits,
                 "plan_digest": self._worker_plan_digest(grant, enforcement),
                 "runtime_roots": [os.fspath(item) for item in self.runtime_roots],
                 "startup_challenge": secrets.token_hex(16),
                 "tool_name": call.tool.name,
             }
-            extras = self._worker_request_extras(grant)
+            if ruleset is not None:
+                request["landlock_ruleset_fd"] = ruleset.fd
+            if pooled is not None:
+                request["pool_key"] = pool_key
             if set(request).intersection(extras):
                 raise HostExecutionDenied("host:worker_protocol_extension_conflict")
             request.update(extras)
             if worker_broker_fd is not None:
                 request["broker_fd"] = worker_broker_fd
+            elif pooled is not None:
+                request["broker_fd"] = pooled.broker_fd
             encoded = _encode_worker_request(request)
         except BaseException:
+            if pooled is not None and broker_session is None:
+                try:
+                    pooled.parent_channel.close()
+                except OSError:
+                    pass
             self._cleanup_worker(
-                process=None,
+                process=pooled.process if pooled is not None else None,
                 ruleset=ruleset,
                 worker_broker_fd=worker_broker_fd,
-                pidfd=None,
-                cgroup=None,
+                pidfd=pooled.pidfd if pooled is not None else None,
+                cgroup=pooled.cgroup if pooled is not None else None,
                 broker_session=broker_session,
                 private_tmp=private_tmp,
                 artifact_tmp=artifact_tmp,
@@ -452,58 +857,65 @@ class LandlockSandboxExecutor:
         }
         if worker_broker_fd is not None:
             environment["SLANGGRAPH_BROKER_FD"] = str(worker_broker_fd)
-        process: subprocess.Popen[bytes] | None = None
-        pidfd: int | None = None
-        cgroup: CgroupV2Scope | None = None
+        process: subprocess.Popen[bytes] | None = (
+            pooled.process if pooled is not None else None
+        )
+        pidfd: int | None = pooled.pidfd if pooled is not None else None
+        cgroup: CgroupV2Scope | None = pooled.cgroup if pooled is not None else None
         receipt: ActivationReceipt | None = None
         lifecycle: LeanLifecycleSession | None = None
         lifecycle_observed: dict[str, Any] | None = None
         result: HostExecutionResult | None = None
         released = False
         try:
-            if self._cgroup_root is not None:
+            if pooled is None and self._cgroup_root is not None:
                 try:
                     cgroup = CgroupV2Scope.create(self._cgroup_root, limits)
                 except (OSError, ValueError) as exc:
                     raise HostExecutionDenied("host:cgroup_activation_failed") from exc
-            passed_fds = (
-                (ruleset.fd, worker_broker_fd)
-                if worker_broker_fd is not None
-                else (ruleset.fd,)
-            )
-            process = subprocess.Popen(
-                (
-                    os.fspath(self.python_executable),
-                    "-I",
-                    "-S",
-                    "-B",
-                    "-u",
-                    "-X",
-                    "utf8",
-                    os.fspath(self.worker_script),
-                ),
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                close_fds=True,
-                pass_fds=passed_fds,
-                cwd=private_tmp_path,
-                env=environment,
-            )
-            if worker_broker_fd is not None:
-                os.close(worker_broker_fd)
-                worker_broker_fd = None
-            if cgroup is not None:
+            if pooled is None:
+                assert ruleset is not None
+                passed_fds = (
+                    (ruleset.fd, worker_broker_fd)
+                    if worker_broker_fd is not None
+                    else (ruleset.fd,)
+                )
+                process = subprocess.Popen(
+                    (
+                        os.fspath(self.python_executable),
+                        "-I",
+                        "-S",
+                        "-B",
+                        "-u",
+                        "-X",
+                        "utf8",
+                        os.fspath(self.worker_script),
+                    ),
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    close_fds=True,
+                    pass_fds=passed_fds,
+                    cwd=private_tmp_path,
+                    env=environment,
+                )
+                if worker_broker_fd is not None:
+                    os.close(worker_broker_fd)
+                    worker_broker_fd = None
+                if cgroup is not None:
+                    try:
+                        cgroup.assign(process.pid)
+                    except OSError as exc:
+                        raise HostExecutionDenied(
+                            "host:cgroup_assignment_failed"
+                        ) from exc
                 try:
-                    cgroup.assign(process.pid)
-                except OSError as exc:
-                    raise HostExecutionDenied("host:cgroup_assignment_failed") from exc
-            try:
-                pidfd = os.pidfd_open(process.pid)
-            except (AttributeError, OSError):
-                pidfd = None
-            ruleset.close()
-            ruleset = None
+                    pidfd = os.pidfd_open(process.pid)
+                except (AttributeError, OSError):
+                    pidfd = None
+                ruleset.close()
+                ruleset = None
+            assert process is not None
             if process.stdin is None or process.stdout is None:
                 raise HostExecutionDenied("host:worker_pipe_failed")
             process.stdin.write(encoded)

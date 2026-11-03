@@ -32,6 +32,7 @@ from langgraph.prebuilt.security import (
 from langgraph.prebuilt.security.admission import describe
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.mediators.records import RECORDS
+from langgraph.prebuilt.security.types import Tool, ToolCall, ToolDac
 
 ROOT = Path(__file__).resolve().parents[3]
 WORKER = Path(__file__).with_name("worker.py")
@@ -90,10 +91,23 @@ def invoke(graph, security, args: dict, call_id: str):
             )
         ]
     }
+    principal = Principal("alice", frozenset(), frozenset(), "revision-session")
     config = with_principal(
         {},
-        Principal("alice", frozenset(), frozenset(), "revision-session"),
+        principal,
         modules=security.modules,
+    )
+    security.host_executor.prewarm(
+        principal,
+        ToolCall(
+            Tool("read_record", ToolDac("owner", {}), frozenset(), ()),
+            args,
+            {},
+            call_id,
+            0,
+        ),
+        (),
+        count=1,
     )
     result = graph.invoke(request, config)
     message = result["messages"][-1]
@@ -108,13 +122,19 @@ def invoke(graph, security, args: dict, call_id: str):
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--checker", type=Path, required=True)
+    parser.add_argument("--checker-library", type=Path, required=True)
+    parser.add_argument("--checker-runtime", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    checker_path = args.checker.resolve(strict=True)
+    checker_path = args.checker_library.resolve(strict=True)
+    runtime_path = args.checker_runtime.resolve(strict=True)
     checker = LeanLifecycleChecker(
-        str(checker_path), hashlib.sha256(checker_path.read_bytes()).hexdigest()
+        str(checker_path),
+        hashlib.sha256(checker_path.read_bytes()).hexdigest(),
+        str(runtime_path),
+        hashlib.sha256(runtime_path.read_bytes()).hexdigest(),
     )
+    checker.require_inline()
     args.output.mkdir(parents=True, exist_ok=False)
     install_mac_policy(OPERATOR_POLICY)
     with tempfile.TemporaryDirectory(prefix="argus-revision-example-") as directory:
@@ -139,6 +159,7 @@ def main() -> int:
             ),
             mediators=(mediator,),
             lifecycle_checker=checker,
+            worker_pool_capacity=1,
         )
         audit = MemoryAuditSink()
         security = replace(
@@ -200,6 +221,9 @@ def main() -> int:
             "checker": {
                 "path": str(checker_path),
                 "sha256": checker.binary_sha256,
+                "runtime_path": str(runtime_path),
+                "runtime_sha256": checker.runtime_sha256,
+                "inline": checker.inline,
             },
             "admission": admission,
             "authorization_grants": serial(security.host_executor.authorization_grants()),
@@ -223,16 +247,20 @@ def main() -> int:
             "writes_absent": before == after,
             "direct_access_blocked": "direct_blocked" in denied_direct,
             "closed_admission_recorded": bool(admission),
-            "authorization_recorded": len(evidence["authorization_grants"]) == 4,
+            "authorization_recorded": len(evidence["authorization_grants"]) == 8,
             "lowering_recorded": len(evidence["lowering"]) == 4,
             "activation_recorded": len(evidence["activation"]) == 4,
             "lean_grant_and_lifecycle_recorded": len(lifecycle) == 4
             and all(item["phase"] == "ready" for item in lifecycle),
             "cleanup_confirmed": len(lifecycle) == 4
             and all(item["cleanup_confirmed"] for item in lifecycle),
+            "inline_checker_only": checker.statistics()["subprocess_calls"] == 0,
+            "prepared_worker_hits": dispatcher.worker_pool_stats()["hits"] == 4,
+            "no_online_policy_relowering": dispatcher.worker_pool_stats()["policy_lowerings"] == 1,
         }
         evidence["complete"] = all(evidence["assertions"].values())
         (args.output / "invocation.json").write_text(json.dumps(evidence, indent=2) + "\n")
+        dispatcher.close()
     print(json.dumps({"complete": evidence["complete"], "output": str(args.output)}))
     return 0 if evidence["complete"] else 1
 

@@ -13,14 +13,19 @@ import sys
 from pathlib import Path
 
 from langgraph.prebuilt.security.capabilities import probe_landlock_abi
+from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 
 ROOT = Path(__file__).resolve().parents[3]
 IMPLEMENTATION_SOURCES = (
     Path("libs/prebuilt/langgraph/prebuilt/security/landlock.py"),
+    Path("libs/prebuilt/langgraph/prebuilt/security/lean_lifecycle.py"),
     Path("libs/prebuilt/langgraph/prebuilt/security/object_broker.py"),
     Path("eval/campaigns/argus-paper-revision-v1/preflight.py"),
     Path("eval/campaigns/argus-paper-revision-v1/run_example.py"),
     Path("eval/campaigns/argus-paper-revision-v1/worker.py"),
+    Path("eval/campaigns/cross-host-security-v2/microbenchmarks/run_broker_costs.py"),
+    Path("proofs/worker-route/ResourceGrantCoverage.lean"),
+    Path("proofs/worker-route/build_native.py"),
 )
 
 
@@ -36,12 +41,36 @@ def digest(path: Path) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--checker", type=Path, required=True)
+    parser.add_argument("--checker-library", type=Path, required=True)
+    parser.add_argument("--checker-runtime", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--run-example", action="store_true")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
-    checker = args.checker.resolve(strict=True)
+    checker_library = args.checker_library.resolve(strict=True)
+    checker_runtime = args.checker_runtime.resolve(strict=True)
+    manifest_path = checker_library.with_suffix(checker_library.suffix + ".json")
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.is_file() else {}
+    checker = LeanLifecycleChecker(
+        str(checker_library),
+        digest(checker_library),
+        str(checker_runtime),
+        digest(checker_runtime),
+    )
+    checker.require_inline()
+    expected_sources = manifest.get("source_sha256", {})
+    proof_root = ROOT / "proofs/worker-route"
+    source_manifest_current = bool(expected_sources) and all(
+        next(
+            (
+                digest(path) == value
+                for path in (proof_root / name, proof_root / "native" / name)
+                if path.is_file()
+            ),
+            False,
+        )
+        for name, value in expected_sources.items()
+    )
     cedar = shutil.which("cedar")
     source_clean = (
         subprocess.run(
@@ -56,7 +85,12 @@ def main() -> int:
         "wip_branch": command("git", "branch", "--show-current") == "wip",
         "cedar_cli": cedar is not None,
         "landlock_abi_5": probe_landlock_abi() >= 5,
-        "lean_checker_nonempty": checker.is_file() and checker.stat().st_size > 0,
+        "lean_checker_library_nonempty": checker_library.stat().st_size > 0,
+        "lean_runtime_library_nonempty": checker_runtime.stat().st_size > 0,
+        "lean_checker_inline": checker.inline,
+        "lean_checker_loaded_during_preparation": checker.statistics()["loads"] == 1,
+        "lean_native_manifest_current": source_manifest_current,
+        "lean_object_grant_source_included": "ResourceGrantCoverage.lean" in expected_sources,
         "implementation_sources_committed": source_clean,
         "closed_admission_required": True,
         "sealed_operator_policy_required": True,
@@ -84,8 +118,13 @@ def main() -> int:
             "version": command(cedar, "--version") if cedar else None,
         },
         "checker": {
-            "path": str(checker),
-            "sha256": digest(checker),
+            "library": str(checker_library),
+            "library_sha256": digest(checker_library),
+            "runtime": str(checker_runtime),
+            "runtime_sha256": digest(checker_runtime),
+            "manifest": str(manifest_path),
+            "source_sha256": expected_sources,
+            "statistics": checker.statistics(),
         },
         "landlock_abi": probe_landlock_abi(),
         "implementation_sources": {
@@ -116,8 +155,10 @@ def main() -> int:
             [
                 sys.executable,
                 str(Path(__file__).with_name("run_example.py")),
-                "--checker",
-                str(checker),
+                "--checker-library",
+                str(checker_library),
+                "--checker-runtime",
+                str(checker_runtime),
                 "--output",
                 str(example),
             ],

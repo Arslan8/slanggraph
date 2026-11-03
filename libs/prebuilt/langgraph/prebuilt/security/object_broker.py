@@ -7,6 +7,7 @@ bound to their invocation, never adapters or resource credentials.
 from __future__ import annotations
 
 import asyncio
+import copy
 import hashlib
 import json
 import math
@@ -30,13 +31,16 @@ from langgraph.prebuilt.security.broker import (
 from langgraph.prebuilt.security.enforcement import (
     ActivationReceipt,
     AuthorityDomain,
+    EnforcementCoordinator,
     EnforcementObligation,
+    EnforcementPlan,
     Grant,
     GrantRule,
     ObligationKind,
     RequirementEntry,
     RequirementLedger,
     SupportLevel,
+    _obligation_digest,
     compile_obligations,
 )
 from langgraph.prebuilt.security.execution import (
@@ -46,9 +50,12 @@ from langgraph.prebuilt.security.execution import (
     TerminationRecovery,
 )
 from langgraph.prebuilt.security.host_controls import host_control_rule
-from langgraph.prebuilt.security.landlock import LandlockSandboxExecutor
+from langgraph.prebuilt.security.landlock import (
+    LandlockSandboxExecutor,
+    _LandlockWorkerPoolState,
+)
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
-from langgraph.prebuilt.security.linux import LinuxToolSpec
+from langgraph.prebuilt.security.linux import LinuxToolSpec, _host_configuration_digest
 from langgraph.prebuilt.security.object_policy import (
     EnforcementKind,
     ObjectClass,
@@ -67,6 +74,25 @@ from langgraph.prebuilt.security.resource_mediator import (
 from langgraph.prebuilt.security.types import ExecutionOutcome, Principal, ToolCall
 
 Handler = Callable[[ObjectGrantLine, Mapping[str, Any]], Any]
+
+
+def _object_authority_key(grant: ObjectGrant) -> str:
+    """Identify static authority without carrying invocation identity."""
+    return hashlib.sha256(
+        json.dumps(
+            {
+                "lines": [
+                    line.canonical()
+                    for line in sorted(grant.lines, key=lambda item: item.line_id)
+                ],
+                "policy": grant.policy_digest,
+                "tool": grant.tool_name,
+                "waivers": dict(grant.enforcement_waivers),
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
 
 
 def _service(class_name: str, selector: str) -> str:
@@ -122,6 +148,10 @@ class _ObjectBroker(CredentialBroker):
     def open_session(self, spawn, grant):
         self.bind_spawn(spawn, grant)
         return super().open_session(spawn, grant)
+
+    def bind_prepared_session(self, parent, spawn, grant):
+        self.bind_spawn(spawn, grant)
+        return super().bind_prepared_session(parent, spawn, grant)
 
     def _handle_frame(
         self, frame: bytes, spawn: SpawnRecord, grant: Grant
@@ -181,6 +211,8 @@ class _ObjectWorker(LandlockSandboxExecutor):
         self.mediators = tuple(mediators)
         self.bound_mediators: tuple[_BoundMediator, ...] = ()
         self.record: ObjectLoweringRecord | None = None
+        self._prepared_record: ObjectLoweringRecord | None = None
+        self._used_prepared_policy = False
         super().__init__(*args, **kwargs)
 
     def _compile_grant(
@@ -373,15 +405,23 @@ class _ObjectWorker(LandlockSandboxExecutor):
                 for item in compile_obligations(grant, additional=additional)
             )
             self._execution_obligations = obligations
-            self.record, self.coordinator = negotiate_object_grant(
-                grant,
-                ledger,
-                obligations,
-                (self.host_adapter, *self.bound_mediators),
-                self.host_adapter,
-                host,
-                expected_nonce=host.nonce,
-            )
+            adapters = (self.host_adapter, *self.bound_mediators)
+            if self._prepared_record is None:
+                self.record, self.coordinator = negotiate_object_grant(
+                    grant,
+                    ledger,
+                    obligations,
+                    adapters,
+                    self.host_adapter,
+                    host,
+                    expected_nonce=host.nonce,
+                )
+                self._used_prepared_policy = False
+            else:
+                self.record, self.coordinator = self._bind_prepared_policy(
+                    grant, obligations, adapters, host
+                )
+                self._used_prepared_policy = True
             self._execution_obligations = self.record.obligations
             retained = {rule.rule_id for rule in self.record.grant.rules}
             self.credential_broker.routes = {
@@ -395,6 +435,88 @@ class _ObjectWorker(LandlockSandboxExecutor):
             raise
         except Exception as exc:
             raise HostExecutionDenied(f"object_lowering:{type(exc).__name__}") from exc
+
+    @staticmethod
+    def _prepared_value(value: Any, *, _top: bool = True) -> Any:
+        """Remove only invocation digests from reusable-policy comparisons."""
+        if isinstance(value, Mapping):
+            prepared = {
+                str(key): _ObjectWorker._prepared_value(item, _top=False)
+                for key, item in value.items()
+                if key != "object_grant" and not (_top and key in {"grant", "host"})
+            }
+            rule_id = prepared.get("rule_id", prepared.get("rule"))
+            if isinstance(rule_id, str) and rule_id.startswith(
+                ("runtime:artifact", "runtime:tmp")
+            ):
+                prepared["selector"] = "<prepared-runtime-path>"
+            return prepared
+        if isinstance(value, tuple | list):
+            return [_ObjectWorker._prepared_value(item, _top=False) for item in value]
+        return value
+
+    def _bind_prepared_policy(
+        self,
+        grant: Grant,
+        obligations: tuple[EnforcementObligation, ...],
+        adapters: tuple[Any, ...],
+        host: Any,
+    ) -> tuple[ObjectLoweringRecord, EnforcementCoordinator]:
+        """Bind fresh identity and activation state to an exact prepared plan."""
+        prepared = self._prepared_record
+        if prepared is None:
+            raise HostExecutionDenied("object_lowering:prepared_policy_missing")
+        if _host_configuration_digest(prepared.host) != _host_configuration_digest(
+            host
+        ):
+            raise HostExecutionDenied("object_lowering:prepared_host_changed")
+        if prepared.candidate.rules != prepared.grant.rules:
+            raise HostExecutionDenied(
+                "object_lowering:prepared_attenuation_unsupported"
+            )
+        if self._prepared_value(
+            [rule.canonical() for rule in prepared.candidate.rules]
+        ) != self._prepared_value([rule.canonical() for rule in grant.rules]):
+            raise HostExecutionDenied("object_lowering:prepared_authority_changed")
+        by_id = {item.obligation_id: item for item in obligations}
+        if len(by_id) != len(obligations) or self._prepared_value(
+            [item.canonical() for item in prepared.obligations]
+        ) != self._prepared_value([item.canonical() for item in obligations]):
+            raise HostExecutionDenied("object_lowering:prepared_obligations_changed")
+        grouped: dict[str, list[EnforcementObligation]] = {}
+        for assignment in prepared.plan.assignments:
+            obligation = by_id.get(assignment.obligation_id)
+            if obligation is None:
+                raise HostExecutionDenied("object_lowering:prepared_assignment_changed")
+            grouped.setdefault(assignment.adapter_id, []).append(obligation)
+        adapter_by_id = {item.adapter_id: item for item in adapters}
+        if set(grouped) != set(adapter_by_id):
+            raise HostExecutionDenied("object_lowering:prepared_adapter_changed")
+        prior_plans = {item.adapter_id: item for item in prepared.plan.adapter_plans}
+        plans = []
+        for adapter_id, assigned in sorted(grouped.items()):
+            plan = adapter_by_id[adapter_id].lower(grant, tuple(assigned), host)
+            prior = prior_plans.get(adapter_id)
+            if (
+                prior is None
+                or plan.obligation_ids != prior.obligation_ids
+                or self._prepared_value(plan.payload)
+                != self._prepared_value(prior.payload)
+            ):
+                raise HostExecutionDenied("object_lowering:prepared_plan_changed")
+            plans.append(plan)
+        plan = EnforcementPlan(
+            grant.digest,
+            host.digest,
+            _obligation_digest(obligations),
+            prepared.plan.mode,
+            prepared.plan.assignments,
+            tuple(plans),
+            prepared.plan.waived_obligations,
+            prepared.plan.removed_wants,
+        )
+        coordinator = EnforcementCoordinator(adapters, self.host_adapter)
+        return ObjectLoweringRecord(grant, grant, host, obligations, plan), coordinator
 
     def _lower(self, grant):
         # Only the host-owned subset becomes kernel rules. Semantic operations
@@ -466,6 +588,8 @@ class ObjectBrokerDispatcher:
         resources: Sequence[Any] = (),
         wall_timeout_s: float = 30.0,
         lifecycle_checker: LeanLifecycleChecker | None = None,
+        worker_pool_capacity: int = 0,
+        worker_pool_idle_s: float = 300.0,
     ) -> None:
         self.tools = MappingProxyType(dict(tools))
         if handlers:
@@ -506,6 +630,27 @@ class ObjectBrokerDispatcher:
                 "object broker lifecycle checker must be a pinned Lean checker"
             )
         self.lifecycle_checker = lifecycle_checker
+        if (
+            type(worker_pool_capacity) is not int
+            or worker_pool_capacity < 0
+            or worker_pool_idle_s <= 0
+        ):
+            raise ValueError("object broker worker pool settings must be non-negative")
+        self.worker_pool_capacity = worker_pool_capacity
+        if worker_pool_capacity and lifecycle_checker is not None:
+            lifecycle_checker.require_inline()
+        self.worker_pool_idle_s = float(worker_pool_idle_s)
+        self._worker_pool_state = _LandlockWorkerPoolState.create()
+        self._prepared_workers: dict[str, _ObjectWorker] = {}
+        self._preparation_stats = {
+            "preparations": 0,
+            "prepared_path_hits": 0,
+            "prepared_policy_bindings": 0,
+            "policy_lowerings": 0,
+            "repreparations": 0,
+            "replenishments": 0,
+            "fallbacks": 0,
+        }
         self._audit: deque[BrokerAuditRecord] = deque(maxlen=4096)
         self._lock = RLock()
         self._lowering_records: deque[ObjectLoweringRecord] = deque(maxlen=1024)
@@ -540,6 +685,57 @@ class ObjectBrokerDispatcher:
         with self._lock:
             return tuple(self._audit)
 
+    def worker_pool_stats(self) -> Mapping[str, int]:
+        state = self._worker_pool_state
+        with state.lock, self._lock:
+            return MappingProxyType(
+                {
+                    "capacity": self.worker_pool_capacity,
+                    "idle": sum(len(items) for items in state.workers.values()),
+                    "hits": state.hits,
+                    "misses": state.misses,
+                    **self._preparation_stats,
+                }
+            )
+
+    def prewarm(
+        self,
+        principal: Principal,
+        call: ToolCall,
+        grant: ObjectGrant,
+        *,
+        count: int = 1,
+        asynchronous: bool = False,
+    ) -> int:
+        """Prepare an exact-authority worker with no attached resource grant."""
+        call = replace(call, args={**call.args, **call.normalized})
+        worker = self._new_worker(principal, call, grant, preflight=True)
+        prepared = worker.prewarm(
+            principal, call, (), count=count, asynchronous=asynchronous
+        )
+        worker._prepared_record = worker.record
+        key = _object_authority_key(grant)
+        with self._lock:
+            if key in self._prepared_workers:
+                self._preparation_stats["repreparations"] += 1
+                self._preparation_stats["replenishments"] += 1
+            self._prepared_workers[key] = worker
+            self._preparation_stats["preparations"] += 1
+            if worker._used_prepared_policy:
+                self._preparation_stats["prepared_policy_bindings"] += 1
+            else:
+                self._preparation_stats["policy_lowerings"] += 1
+        worker.close_mediators()
+        return prepared
+
+    def close(self) -> None:
+        """Terminate all unclaimed prepared workers."""
+        with self._lock:
+            workers = tuple(self._prepared_workers.values())
+            self._prepared_workers.clear()
+        if workers:
+            workers[0].close()
+
     def supports(self, object_class: ObjectClass, line: ObjectGrantLine) -> bool:
         """Host-independent discovery cannot certify concrete enforceability."""
         return False
@@ -565,38 +761,9 @@ class ObjectBrokerDispatcher:
         *,
         asynchronous: bool,
     ) -> HostExecutionResult:
-        if (
-            grant.principal_id != principal.user_id
-            or grant.tool_name != call.tool.name
-            or grant.call_id != call.call_id
-            or grant.enforcement_waivers
-        ):
-            raise HostExecutionDenied("object_broker:grant_binding")
-        if call.tool.name not in self.tools:
-            raise HostExecutionDenied("object_broker:tool_manifest_missing")
-        ids = [line.line_id for line in grant.lines]
-        if len(ids) != len(set(ids)) or any(
-            item.startswith("runtime:") for item in ids
-        ):
-            raise HostExecutionDenied("object_broker:ambiguous_grant")
-        # Deliver the same canonical arguments inspected by authorization.
-        call = replace(call, args={**call.args, **call.normalized})
-        profiles = parse_profiles(
-            f"tool {call.tool.name} {{\n owner broker\n runs linux\n syscalls @minimal\n}}"
-        )
-        broker = _ObjectBroker(grant, self.bindings)
-        worker = _ObjectWorker(
-            grant,
-            profiles,
-            {call.tool.name: self.tools[call.tool.name]},
-            runtime_roots=self.runtime_roots,
-            policy_backend=TypedPolicyBackend(),
-            credential_broker=broker,
-            mediators=self.mediators,
-            default_wall_timeout_s=self.wall_timeout_s,
-            lifecycle_checker=self.lifecycle_checker,
-        )
-        worker._lean_object_route = True
+        worker = self._new_worker(principal, call, grant)
+        broker = worker.credential_broker
+        lifecycle_before = len(worker.lifecycle_records())
         result = None
         try:
             result = worker._invoke(principal, call, (), asynchronous=asynchronous)
@@ -608,11 +775,15 @@ class ObjectBrokerDispatcher:
         finally:
             with self._lock:
                 self._audit.extend(broker.audit_records())
+                if worker._used_prepared_policy:
+                    self._preparation_stats["prepared_policy_bindings"] += 1
                 if getattr(worker, "lowering_refusal", None) is not None:
                     self._lowering_refusals.append(worker.lowering_refusal)
                 if worker.record is not None:
                     self._lowering_records.append(worker.record)
-                self._lifecycle_records.extend(worker.lifecycle_records())
+                self._lifecycle_records.extend(
+                    worker.lifecycle_records()[lifecycle_before:]
+                )
             active_error = sys.exc_info()[1]
             try:
                 worker.close_mediators()
@@ -635,6 +806,68 @@ class ObjectBrokerDispatcher:
         with self._lock:
             self._receipts.append(receipt)
         return HostExecutionResult(result.value, receipt)
+
+    def _new_worker(
+        self,
+        principal: Principal,
+        call: ToolCall,
+        grant: ObjectGrant,
+        *,
+        preflight: bool = False,
+    ) -> _ObjectWorker:
+        if (
+            grant.principal_id != principal.user_id
+            or grant.tool_name != call.tool.name
+            or grant.call_id != call.call_id
+            or grant.enforcement_waivers
+        ):
+            raise HostExecutionDenied("object_broker:grant_binding")
+        if call.tool.name not in self.tools:
+            raise HostExecutionDenied("object_broker:tool_manifest_missing")
+        ids = [line.line_id for line in grant.lines]
+        if len(ids) != len(set(ids)) or any(
+            item.startswith("runtime:") for item in ids
+        ):
+            raise HostExecutionDenied("object_broker:ambiguous_grant")
+        # Deliver the same canonical arguments inspected by authorization.
+        call = replace(call, args={**call.args, **call.normalized})
+        key = _object_authority_key(grant)
+        with self._lock:
+            prepared = self._prepared_workers.get(key)
+        broker = _ObjectBroker(grant, self.bindings)
+        if prepared is not None:
+            worker = copy.copy(prepared)
+            worker.object_grant = grant
+            worker.credential_broker = broker
+            worker.bound_mediators = ()
+            worker.record = None
+            worker.lowering_refusal = None
+            worker._used_prepared_policy = False
+            if not preflight:
+                with self._lock:
+                    self._preparation_stats["prepared_path_hits"] += 1
+            return worker
+        if self.worker_pool_capacity and not preflight:
+            raise HostExecutionDenied("object_broker:prepared_policy_missing")
+        profiles = parse_profiles(
+            f"tool {call.tool.name} {{\n owner broker\n runs linux\n syscalls @minimal\n}}"
+        )
+        worker = _ObjectWorker(
+            grant,
+            profiles,
+            {call.tool.name: self.tools[call.tool.name]},
+            runtime_roots=self.runtime_roots,
+            policy_backend=TypedPolicyBackend(),
+            credential_broker=broker,
+            mediators=self.mediators,
+            default_wall_timeout_s=self.wall_timeout_s,
+            lifecycle_checker=self.lifecycle_checker,
+            worker_pool_capacity=self.worker_pool_capacity,
+            worker_pool_idle_s=self.worker_pool_idle_s,
+            _worker_pool_state=self._worker_pool_state,
+        )
+        worker._lean_object_route = True
+        return worker
 
     @staticmethod
     def _object_receipt(

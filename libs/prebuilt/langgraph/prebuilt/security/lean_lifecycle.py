@@ -21,6 +21,7 @@ import sys
 import tempfile
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass, field
+from threading import RLock
 from types import MemberDescriptorType
 from typing import Any
 
@@ -477,8 +478,14 @@ class LeanLifecycleChecker:
         init=False, repr=False, compare=False, default=()
     )
     _native_check: Any = field(init=False, repr=False, compare=False, default=None)
+    _stats: dict[str, int] = field(init=False, repr=False, compare=False)
+    _stats_lock: RLock = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "_stats", {"loads": 0, "inline_calls": 0, "subprocess_calls": 0}
+        )
+        object.__setattr__(self, "_stats_lock", RLock())
         if (
             type(self.binary_path) is not str
             or not self.binary_path.startswith("/")
@@ -531,8 +538,24 @@ class LeanLifecycleChecker:
                     os.close(library_descriptor)
             object.__setattr__(self, "_native_libraries", (runtime, library))
             object.__setattr__(self, "_native_check", function)
+            self._stats["loads"] = 1
         elif self.runtime_path is not None or self.runtime_sha256 is not None:
             raise HostExecutionDenied("host:lean_native_runtime_configuration")
+
+    @property
+    def inline(self) -> bool:
+        """Whether decisions use the once-loaded native checker in-process."""
+        return self._native_check is not None
+
+    def require_inline(self) -> None:
+        """Refuse an optimized configuration that could spawn checker processes."""
+        if not self.inline:
+            raise HostExecutionDenied("host:lean_inline_required")
+
+    def statistics(self) -> dict[str, int | bool]:
+        """Return detached checker loading and invocation instrumentation."""
+        with self._stats_lock:
+            return {**self._stats, "inline": self.inline}
 
     def require(
         self,
@@ -590,6 +613,8 @@ class LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_protocol_shape")
         native = self._native_check
         if native is not None:
+            with self._stats_lock:
+                self._stats["inline_calls"] += 1
             output = ctypes.create_string_buffer(257)
             size = native(request, len(request), output, len(output))
             response = None
@@ -614,6 +639,8 @@ class LeanLifecycleChecker:
             return
         descriptor = None
         response = None
+        with self._stats_lock:
+            self._stats["subprocess_calls"] += 1
         try:
             with ExitStack() as snapshots:
                 if sys.platform == "darwin":

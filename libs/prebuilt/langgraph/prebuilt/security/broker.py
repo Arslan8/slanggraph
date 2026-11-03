@@ -109,7 +109,7 @@ class BrokerSession:
     def __init__(
         self,
         parent: socket.socket,
-        worker: socket.socket,
+        worker: socket.socket | None,
         thread: Thread,
         stopped: Event | None = None,
     ) -> None:
@@ -126,10 +126,16 @@ class BrokerSession:
     @property
     def worker_fd(self) -> int:
         """Return the non-inheritable worker endpoint for explicit `pass_fds`."""
+        if self._worker is None:
+            raise RuntimeError(
+                "prepared broker channel has no parent-owned worker endpoint"
+            )
         return self._worker.fileno()
 
     def detach_worker(self) -> int:
         """Transfer ownership of the worker endpoint to the process launcher."""
+        if self._worker is None:
+            raise RuntimeError("prepared broker channel is already in the worker")
         descriptor = self._worker.detach()
         os.set_inheritable(descriptor, False)
         return descriptor
@@ -147,7 +153,8 @@ class BrokerSession:
     def close(self) -> None:
         """Close both endpoints owned by this session."""
         try:
-            self._worker.close()
+            if self._worker is not None:
+                self._worker.close()
         finally:
             self.close_parent()
 
@@ -172,6 +179,31 @@ class CredentialBroker:
 
     def open_session(self, spawn: SpawnRecord, grant: Grant) -> BrokerSession:
         """Create the channel before confinement and bind it to trusted state."""
+        parent, worker = socket.socketpair(socket.AF_UNIX, socket.SOCK_STREAM)
+        parent.set_inheritable(False)
+        worker.set_inheritable(False)
+        return self._open_bound_session(parent, worker, spawn, grant)
+
+    def bind_prepared_session(
+        self, parent: socket.socket, spawn: SpawnRecord, grant: Grant
+    ) -> BrokerSession:
+        """Bind an inert prepared-worker channel to fresh authorized state.
+
+        The worker endpoint is already confined in a process waiting at the
+        prepared-request barrier.  No serving thread or grant is attached to
+        `parent` until this method validates the fresh spawn binding.
+        """
+        if type(parent) is not socket.socket or parent.fileno() < 0:
+            raise ValueError("prepared broker channel is unavailable")
+        return self._open_bound_session(parent, None, spawn, grant)
+
+    def _open_bound_session(
+        self,
+        parent: socket.socket,
+        worker: socket.socket | None,
+        spawn: SpawnRecord,
+        grant: Grant,
+    ) -> BrokerSession:
         if grant.digest != spawn.grant_hash:
             raise ValueError("spawn record does not match grant")
         if (
@@ -179,9 +211,9 @@ class CredentialBroker:
             or grant.tool_name != spawn.tool_name
         ):
             raise ValueError("spawn identity does not match grant")
-        parent, worker = socket.socketpair(socket.AF_UNIX, socket.SOCK_STREAM)
         parent.set_inheritable(False)
-        worker.set_inheritable(False)
+        if worker is not None:
+            worker.set_inheritable(False)
         stopped = Event()
         thread = Thread(
             target=self._serve,

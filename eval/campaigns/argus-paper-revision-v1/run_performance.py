@@ -16,12 +16,17 @@ BENCHMARK = ROOT / "eval/campaigns/cross-host-security-v2/microbenchmarks/run_br
 PREFLIGHT = Path(__file__).with_name("preflight.py")
 SOURCES = (
     ROOT / "libs/prebuilt/langgraph/prebuilt/security/landlock.py",
+    ROOT / "libs/prebuilt/langgraph/prebuilt/security/broker.py",
+    ROOT / "libs/prebuilt/langgraph/prebuilt/security/lean_lifecycle.py",
     ROOT / "libs/prebuilt/langgraph/prebuilt/security/object_broker.py",
     BENCHMARK,
     PREFLIGHT,
     Path(__file__).resolve(),
     Path(__file__).with_name("run_example.py"),
     Path(__file__).with_name("worker.py"),
+    Path(__file__).with_name("summarize_performance.py"),
+    ROOT / "proofs/worker-route/ResourceGrantCoverage.lean",
+    ROOT / "proofs/worker-route/build_native.py",
 )
 
 
@@ -39,7 +44,8 @@ def read(path: str) -> str | None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--checker", type=Path, required=True)
+    parser.add_argument("--checker-library", type=Path, required=True)
+    parser.add_argument("--checker-runtime", type=Path, required=True)
     parser.add_argument("--qualification", type=Path, required=True)
     parser.add_argument("--acknowledge-controlled-host", action="store_true")
     parser.add_argument("--sessions", type=int, default=5)
@@ -63,8 +69,10 @@ def main() -> int:
         [
             sys.executable,
             str(PREFLIGHT),
-            "--checker",
-            str(args.checker.resolve(strict=True)),
+            "--checker-library",
+            str(args.checker_library.resolve(strict=True)),
+            "--checker-runtime",
+            str(args.checker_runtime.resolve(strict=True)),
             "--output",
             str(args.output / "preflight"),
             "--run-example",
@@ -96,8 +104,10 @@ def main() -> int:
             "boost": read("/sys/devices/system/cpu/cpufreq/boost"),
         },
         "checker": {
-            "path": str(args.checker.resolve(strict=True)),
-            "sha256": digest(args.checker.resolve(strict=True)),
+            "library": str(args.checker_library.resolve(strict=True)),
+            "library_sha256": digest(args.checker_library.resolve(strict=True)),
+            "runtime": str(args.checker_runtime.resolve(strict=True)),
+            "runtime_sha256": digest(args.checker_runtime.resolve(strict=True)),
         },
         "source_before": before,
         "controlled_host_acknowledged": True,
@@ -110,8 +120,10 @@ def main() -> int:
         str(BENCHMARK),
         "--output",
         str(args.output / "raw"),
-        "--checker",
-        str(args.checker.resolve(strict=True)),
+        "--checker-library",
+        str(args.checker_library.resolve(strict=True)),
+        "--checker-runtime",
+        str(args.checker_runtime.resolve(strict=True)),
         "--sessions",
         str(args.sessions),
         "--warmups",

@@ -255,6 +255,8 @@ def test_inline_native_checker_runs_without_per_decision_process(
         raise AssertionError("inline checker must not launch a subprocess")
 
     monkeypatch.setattr(subprocess, "run", unexpected)
+    native_checker.require_inline()
+    before = native_checker.statistics()
     bound = binding()
     proof = certificate(bound)
     native_checker.require_grant(proof["grant"], proof["obligations"])
@@ -265,6 +267,11 @@ def test_inline_native_checker_runs_without_per_decision_process(
     changed["nonce"] = "different"
     with pytest.raises(HostExecutionDenied, match="lean_lifecycle_refused"):
         native_checker.require(changed, trace(bound)[:3], "running", certificate=proof)
+    after = native_checker.statistics()
+    assert after["inline"] is True
+    assert after["loads"] == 1
+    assert after["inline_calls"] - before["inline_calls"] == 4
+    assert after["subprocess_calls"] - before["subprocess_calls"] == 0
 
 
 def test_inline_native_checker_pins_generated_runtime(native_checker):
@@ -275,6 +282,37 @@ def test_inline_native_checker_pins_generated_runtime(native_checker):
             native_checker.runtime_path,
             "0" * 64,
         )
+
+
+@pytest.mark.parametrize(
+    "case",
+    ["running", "ready", "wrong_nonce", "missing_assignment", "early_result"],
+)
+def test_inline_and_executable_checkers_agree_on_certificate_corpus(
+    checker, native_checker, case
+):
+    bound = binding()
+    proof = certificate(bound)
+    events = trace(bound) if case != "running" else trace(bound)[:3]
+    phase = "running" if case == "running" else "ready"
+    candidate = bound
+    if case == "wrong_nonce":
+        candidate = {**bound, "nonce": "wrong"}
+    elif case == "missing_assignment":
+        proof = copy.deepcopy(proof)
+        proof["plan"]["assignments"].pop()
+    elif case == "early_result":
+        events = trace(bound)[:2] + trace(bound)[3:]
+
+    decisions = []
+    for selected in (checker, native_checker):
+        try:
+            selected.require(candidate, events, phase, certificate=proof)
+        except HostExecutionDenied:
+            decisions.append(False)
+        else:
+            decisions.append(True)
+    assert decisions[0] == decisions[1], f"checker disagreement for {case}: {decisions}"
 
 
 def raw_check(binary, payload):

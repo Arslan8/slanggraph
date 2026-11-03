@@ -3,6 +3,7 @@
 import copy
 import hashlib
 import socket
+import subprocess
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -33,6 +34,7 @@ from langgraph.prebuilt.security.types import (
 from tests.security.mediator_fixtures import exact_mediator
 from tests.security.test_lean_lifecycle import binary as binary
 from tests.security.test_lean_lifecycle import checker as checker
+from tests.security.test_lean_lifecycle import native_checker as native_checker
 
 
 @pytest.fixture
@@ -161,6 +163,103 @@ def test_object_route_executes_pinned_lean_grant_and_lifecycle_checks(setup, che
         records[0]["certificate"]["receipt"]["grant"]
         == records[0]["certificate"]["grant"]["digest"]
     )
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+def test_prepared_object_broker_claims_authority_free_worker(setup, native_checker):
+    dispatcher, principal, call, grant, seen = setup
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        mediators=dispatcher.mediators,
+        runtime_roots=dispatcher.runtime_roots,
+        lifecycle_checker=native_checker,
+        worker_pool_capacity=1,
+    )
+
+    assert dispatcher.prewarm(principal, call, grant) == 1
+    before = dict(dispatcher.worker_pool_stats())
+    assert before["idle"] == 1
+    assert seen == []
+
+    runtime_call = replace(call, call_id="call-2")
+    runtime_grant = replace(grant, call_id="call-2")
+    result = dispatcher.invoke(principal, runtime_call, runtime_grant)
+
+    assert result.value == "inspected"
+    assert seen == [("inspect", "pump-1")]
+    after = dict(dispatcher.worker_pool_stats())
+    assert after["hits"] == 1
+    assert after["misses"] == 0
+    assert after["prepared_path_hits"] == 1
+    assert after["prepared_policy_bindings"] == 1
+    assert after["policy_lowerings"] == 1
+    assert after["fallbacks"] == 0
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+def test_optimized_invocation_launches_no_checker_subprocess(
+    setup, native_checker, monkeypatch
+):
+    dispatcher, principal, call, grant, seen = setup
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        mediators=dispatcher.mediators,
+        runtime_roots=dispatcher.runtime_roots,
+        lifecycle_checker=native_checker,
+        worker_pool_capacity=1,
+    )
+    dispatcher.prewarm(principal, call, grant)
+
+    def unexpected(*args, **kwargs):
+        raise AssertionError("optimized checker invocation launched a subprocess")
+
+    monkeypatch.setattr(subprocess, "run", unexpected)
+    before = native_checker.statistics()
+    assert dispatcher.invoke(principal, call, grant).value == "inspected"
+    after = native_checker.statistics()
+    assert after["inline_calls"] - before["inline_calls"] == 3
+    assert after["subprocess_calls"] - before["subprocess_calls"] == 0
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+def test_prepared_context_refuses_changed_policy_without_claim(setup, native_checker):
+    dispatcher, principal, call, grant, seen = setup
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        mediators=dispatcher.mediators,
+        runtime_roots=dispatcher.runtime_roots,
+        lifecycle_checker=native_checker,
+        worker_pool_capacity=1,
+    )
+    dispatcher.prewarm(principal, call, grant)
+    with pytest.raises(HostExecutionDenied, match="prepared_policy_missing"):
+        dispatcher.invoke(principal, call, replace(grant, policy_digest="changed"))
+    assert dispatcher.worker_pool_stats()["idle"] == 1
+    assert seen == []
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+def test_prepared_context_rebinds_fresh_principal_and_is_single_use(
+    setup, native_checker
+):
+    dispatcher, alice, call, grant, seen = setup
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        mediators=dispatcher.mediators,
+        runtime_roots=dispatcher.runtime_roots,
+        lifecycle_checker=native_checker,
+        worker_pool_capacity=1,
+    )
+    dispatcher.prewarm(alice, call, grant)
+    bob = replace(alice, user_id="bob", session_id="bob-session")
+    bob_grant = replace(grant, principal_id="bob")
+
+    assert dispatcher.invoke(bob, call, bob_grant).value == "inspected"
+    assert dispatcher.audit_records()[-1].principal_id == "bob"
+    assert dispatcher.activation_receipts()[-1].grant_digest == bob_grant.digest
+    with pytest.raises(HostExecutionDenied, match="prepared_worker_unavailable"):
+        dispatcher.invoke(bob, call, bob_grant)
+    assert dispatcher.worker_pool_stats()["misses"] == 1
 
 
 @pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
