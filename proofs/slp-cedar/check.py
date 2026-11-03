@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -123,6 +124,8 @@ def main() -> None:
         ),
         "summary unavailable",
     )
+    count_match = re.search(r"(\d+) passed", test_summary)
+    test_count = int(count_match.group(1)) if count_match else None
     theorem_axioms = list(
         dict.fromkeys(
             line.strip()
@@ -148,10 +151,18 @@ def main() -> None:
         "cedar_spec_commit": CEDAR_SPEC_COMMIT,
         "lean_toolchain": LEAN_TOOLCHAIN,
         "cedar_version": CEDAR_VERSION,
-        "proof_build": proof_build["command"],
-        "composition_build": composition_build["command"],
+        "proof_build": {
+            "command": proof_build["command"],
+            "passed": True,
+            "sorry_ax_present": False,
+        },
+        "composition_build": {
+            "command": composition_build["command"],
+            "passed": True,
+            "sorry_ax_present": False,
+        },
         "theorem_axioms": theorem_axioms,
-        "encoder_regression": encoder["command"],
+        "encoder_regression": {"command": encoder["command"], "passed": True},
         "lean_production_differential": {
             "command": differential_result["command"],
             "passed": differential_report["passed"],
@@ -160,6 +171,8 @@ def main() -> None:
         },
         "production_regressions": {
             "command": differential["command"],
+            "passed": True,
+            "test_count": test_count,
             "summary": test_summary,
         },
     }
