@@ -10,6 +10,7 @@ SECURITY_REPORT ?= security-verification-report.json
 # Lean audit written under SECURITY_EVIDENCE_DIR (a new directory per run).
 SECURITY_EVIDENCE_DIR ?= security-route-evidence
 security-verify:
+	uv run python ../../proofs/slp-cedar/check.py
 	uv run python -m langgraph.prebuilt.security.developer_verification --output "$(SECURITY_REPORT)" --evidence-dir "$(SECURITY_EVIDENCE_DIR)"
 
 # Same gate without the Lean audit; the lean-audit check then fails closed.

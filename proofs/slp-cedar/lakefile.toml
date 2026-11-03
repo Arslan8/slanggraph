@@ -2,6 +2,11 @@ name = "slp-cedar"
 version = "0.1.0"
 defaultTargets = ["SlpCedar", "TranslationFailure", "ProductionCapture"]
 
+[[require]]
+name = "Cedar"
+git = { url = "https://github.com/cedar-policy/cedar-spec.git", subDir = "cedar-lean" }
+rev = "8aa1a2a67f62d824abead35a9aef757ad3a35595"
+
 [[lean_lib]]
 name = "SlpCedar"
 

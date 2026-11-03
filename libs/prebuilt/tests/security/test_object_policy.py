@@ -38,10 +38,12 @@ from langgraph.prebuilt.security import (
     ToolDac,
     cedar_security,
     effects,
+    mac,
     parse_security_manifest,
     with_principal,
 )
 from langgraph.prebuilt.security.inprocess import read_text
+from langgraph.prebuilt.security.object_policy import _cedar
 
 MANIFEST = """
 class db {
@@ -513,6 +515,169 @@ def test_authorizer_uses_cedar_cli_request_encoding() -> None:
         "reports.q4",
         "reporting_api_key",
     ]
+
+
+@pytest.mark.parametrize(
+    "principal_id",
+    ["josé", "e\N{COMBINING ACUTE ACCENT}", 'quoted"user', r"domain\\user"],
+)
+def test_cedar_cli_preserves_supported_identity_characters(
+    principal_id: str,
+) -> None:
+    cedar = shutil.which("cedar")
+    if cedar is None:
+        pytest.skip("Cedar CLI is not installed")
+    manifest = parse_security_manifest(
+        MANIFEST,
+        enforcers={EnforcementKind.BROKER: _Broker()},
+    )
+    permit = "permit(principal, action, resource);"
+
+    grant = CedarObjectAuthorizer(
+        manifest,
+        CedarPolicySet({"run_report": permit}, permit),
+        executable=cedar,
+    ).authorize(
+        principal_id=principal_id,
+        roles={"analyst"},
+        tool_name="run_report",
+        tool_owner="reporting",
+        call_id="character-regression",
+        arguments={"quarter": "Q4"},
+    )
+
+    assert grant.principal_id == principal_id
+    assert len(grant.lines) == 2
+
+
+def test_cedar_string_encoder_uses_only_supported_escapes() -> None:
+    assert _cedar('quote"slash\\line\nreturn\rtab\t') == (
+        'quote\\"slash\\\\line\\nreturn\\rtab\\t'
+    )
+    assert _cedar("josé") == "josé"
+
+
+def test_official_semantics_differential_through_argus_construction() -> None:
+    """Exercise the concrete cases covered by the official-semantics bridge."""
+    cedar = shutil.which("cedar")
+    if cedar is None:
+        pytest.skip("Cedar CLI is not installed")
+    manifest = parse_security_manifest(
+        MANIFEST,
+        enforcers={EnforcementKind.BROKER: _Broker()},
+    )
+    owner = """
+permit(principal, action == slangGraph::Action::"call", resource);
+permit(principal, action in [
+  slangGraph::Action::"db::select",
+  slangGraph::Action::"secret::read"
+], resource) when {
+  context.tool == slangGraph::Tool::"run_report"
+};
+"""
+    envelope = """
+permit(principal, action == slangGraph::Action::"call", resource);
+permit(principal, action, resource) when {
+  principal.roles.contains("analyst")
+};
+"""
+    forbids = """
+forbid(principal, action in [
+  slangGraph::Action::"db::select",
+  slangGraph::Action::"secret::read"
+], resource) when { resource.owner == "blocked" };
+"""
+    authorizer = CedarObjectAuthorizer(
+        manifest,
+        CedarPolicySet({"run_report": owner}, envelope, mac_forbids=forbids),
+        executable=cedar,
+    )
+
+    grant = authorizer.authorize(
+        principal_id="alice",
+        roles={"analyst"},
+        tool_name="run_report",
+        tool_owner="reporting",
+        call_id="differential-allow",
+        arguments={"quarter": "Q4"},
+        labels={
+            ("db", "reports.q4"): {"owner": "finance"},
+            ("secret", "reporting_api_key"): {"owner": "blocked"},
+        },
+    )
+    assert [line.class_name for line in grant.lines] == ["db"]
+
+    with pytest.raises(ObjectPolicyDenied, match="mac:forbid:run_report:0"):
+        authorizer.authorize(
+            principal_id="alice",
+            roles={"analyst"},
+            tool_name="run_report",
+            tool_owner="reporting",
+            call_id="differential-mandatory-deny",
+            arguments={"quarter": "Q4"},
+            labels={
+                ("db", "reports.q4"): {"owner": "blocked"},
+                ("secret", "reporting_api_key"): {"owner": "platform"},
+            },
+        )
+
+    with pytest.raises(ObjectPolicyDenied, match="dac:envelope:run_report:0"):
+        CedarObjectAuthorizer(
+            manifest,
+            CedarPolicySet(
+                {"run_report": owner},
+                'permit(principal, action == slangGraph::Action::"db::select", '
+                'resource == slangGraph::DbTable::"wrong");',
+            ),
+            executable=cedar,
+        ).authorize(
+            principal_id="alice",
+            roles={"analyst"},
+            tool_name="run_report",
+            tool_owner="reporting",
+            call_id="differential-resource-mismatch",
+            arguments={"quarter": "Q4"},
+        )
+
+
+def test_cedar_policy_evaluation_error_is_not_transport_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cedar = shutil.which("cedar")
+    if cedar is None:
+        pytest.skip("Cedar CLI is not installed")
+    monkeypatch.setattr(
+        mac,
+        "runtime_mac_forbids",
+        lambda: (
+            "forbid(principal, action, resource) when { "
+            'resource.attribute_that_does_not_exist == "x" };'
+        ),
+    )
+    manifest = parse_security_manifest(
+        MANIFEST,
+        enforcers={EnforcementKind.BROKER: _Broker()},
+    )
+    permit = "permit(principal, action, resource);"
+
+    with pytest.raises(ObjectPolicyDenied, match="cedar:evaluation:mac-call"):
+        CedarObjectAuthorizer(
+            manifest,
+            CedarPolicySet({"run_report": permit}, permit),
+            executable=cedar,
+        ).authorize(
+            principal_id="alice",
+            roles={"analyst"},
+            tool_name="run_report",
+            tool_owner="reporting",
+            call_id="evaluation-error",
+            arguments={"quarter": "Q4"},
+        )
+
+    # Official `isAuthorized` records the unrelated forbid as erroring while
+    # the generated permit determines ALLOW. The CLI does not emit a bare
+    # ALLOW/DENY response for that result, so Argus treats the evaluator
+    # presentation as an operational failure and refuses the whole grant.
 
 
 def test_resource_access_derives_call_but_resource_free_tool_requires_call() -> None:

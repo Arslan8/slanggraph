@@ -127,20 +127,24 @@ def grantRecord (metadata : GrantMetadata) (translate : SlpCedar.Line → GrantC
 
 def PolicyFacts (policies : SlpCedar.Policies) (principal tool : Nat)
     (line : SlpCedar.Line) : Prop :=
-  policies.owner (SlpCedar.query principal tool line) = true ∧
-    (policies.principal (SlpCedar.query principal tool line) = true ∨
-      policies.share (SlpCedar.query principal tool line) = true) ∧
-    policies.forbid (SlpCedar.query principal tool line) = false
+  SlpCedar.cedarAllows policies.entities policies.owner
+      (SlpCedar.query principal tool line) = true ∧
+    SlpCedar.cedarAllows policies.entities (policies.principal ++ policies.share)
+      (SlpCedar.query principal tool line) = true ∧
+    SlpCedar.noSatisfiedForbid policies.entities policies.forbid
+      (SlpCedar.query principal tool line) = true
 
 theorem sourceAllows_policy_facts (policies : SlpCedar.Policies) (principal tool : Nat)
     (line : SlpCedar.Line) (allowed : SlpCedar.sourceAllows policies principal tool line = true) :
     PolicyFacts policies principal tool line := by
   have facts :
-      (policies.owner (SlpCedar.query principal tool line) = true ∧
-        (policies.principal (SlpCedar.query principal tool line) = true ∨
-          policies.share (SlpCedar.query principal tool line) = true)) ∧
-        policies.forbid (SlpCedar.query principal tool line) = false := by
-    simpa [SlpCedar.sourceAllows, Bool.or_eq_true] using allowed
+      (SlpCedar.cedarAllows policies.entities policies.owner
+          (SlpCedar.query principal tool line) = true ∧
+        SlpCedar.cedarAllows policies.entities (policies.principal ++ policies.share)
+          (SlpCedar.query principal tool line) = true) ∧
+        SlpCedar.noSatisfiedForbid policies.entities policies.forbid
+          (SlpCedar.query principal tool line) = true := by
+    simpa [SlpCedar.sourceAllows] using allowed
   exact ⟨facts.1.1, facts.1.2, facts.2⟩
 
 theorem authorized_grant_subset_request
@@ -148,15 +152,15 @@ theorem authorized_grant_subset_request
     (supported : SlpCedar.Line → Bool) (metadata : GrantMetadata)
     (translate : SlpCedar.Line → GrantCoverage.Rule) (request : RequestedAuthority)
     (granted : List SlpCedar.Line)
-    (authorized : SlpCedar.authorize gates (SlpCedar.sourceAllows policies principal tool)
+    (authorized : SlpCedar.authorize gates (SlpCedar.targetAllows policies principal tool)
       supported request.lines = some granted) :
     G metadata translate granted ⊑ R metadata translate request := by
   intro effect inGrant
   rcases inGrant with ⟨line, lineGranted, semantic⟩
-  have origin := SlpCedar.no_amplification gates
-    (SlpCedar.sourceAllows policies principal tool) supported request.lines granted
-    authorized line lineGranted
-  exact ⟨line, origin.1, semantic⟩
+  have modeled := (SlpCedar.slp_to_cedar_sound_complete gates policies principal tool
+    supported request.lines granted).mp authorized
+  rw [modeled.2.2.1] at lineGranted
+  exact ⟨line, (List.mem_filter.mp lineGranted).1, semantic⟩
 
 theorem authorized_call_gate
     (gates : SlpCedar.Gates) (allow supported : SlpCedar.Line → Bool)
@@ -171,7 +175,7 @@ theorem authorized_grant_policy_compliant
     (supported : SlpCedar.Line → Bool) (metadata : GrantMetadata)
     (translate : SlpCedar.Line → GrantCoverage.Rule) (request : RequestedAuthority)
     (granted : List SlpCedar.Line)
-    (authorized : SlpCedar.authorize gates (SlpCedar.sourceAllows policies principal tool)
+    (authorized : SlpCedar.authorize gates (SlpCedar.targetAllows policies principal tool)
       supported request.lines = some granted) :
     ∀ effect, G metadata translate granted effect →
       ∃ line ∈ granted,
@@ -179,9 +183,11 @@ theorem authorized_grant_policy_compliant
         PolicyFacts policies principal tool line := by
   intro effect inGrant
   rcases inGrant with ⟨line, lineGranted, semantic⟩
-  have origin := SlpCedar.no_amplification gates
-    (SlpCedar.sourceAllows policies principal tool) supported request.lines granted
-    authorized line lineGranted
+  have modeled := (SlpCedar.slp_to_cedar_sound_complete gates policies principal tool
+    supported request.lines granted).mp authorized
+  have filtered := lineGranted
+  rw [modeled.2.2.1] at filtered
+  have origin := List.mem_filter.mp filtered
   exact ⟨line, lineGranted, semantic,
     sourceAllows_policy_facts policies principal tool line origin.2⟩
 
@@ -456,7 +462,7 @@ theorem complete_authority_preservation
     (granted : List SlpCedar.Line) (plan : SemanticPlan)
     (candidate : LayeredComposition.Candidate) (evidence : LayeredComposition.Evidence)
     (trace : ExecutionTrace)
-    (authorized : SlpCedar.authorize gates (SlpCedar.sourceAllows policies principal tool)
+    (authorized : SlpCedar.authorize gates (SlpCedar.targetAllows policies principal tool)
       supported request.lines = some granted)
     (validPlan : ValidSemanticPlan metadata
       (grantRecord metadata translate granted) plan)
@@ -482,7 +488,7 @@ theorem complete_chain_effect
     (granted : List SlpCedar.Line) (plan : SemanticPlan)
     (candidate : LayeredComposition.Candidate) (evidence : LayeredComposition.Evidence)
     (trace : ExecutionTrace)
-    (authorized : SlpCedar.authorize gates (SlpCedar.sourceAllows policies principal tool)
+    (authorized : SlpCedar.authorize gates (SlpCedar.targetAllows policies principal tool)
       supported request.lines = some granted)
     (validPlan : ValidSemanticPlan metadata
       (grantRecord metadata translate granted) plan)

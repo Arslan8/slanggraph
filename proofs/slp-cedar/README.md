@@ -1,145 +1,110 @@
-# SLP-to-Cedar authorization model
+# Argus SLP-to-Cedar authorization proof
 
-## Unicode encoding regression
+This project connects Argus's modeled object-policy construction to Cedar's
+official Lean semantics. It pins `cedar-policy/cedar-spec` commit
+`8aa1a2a67f62d824abead35a9aef757ad3a35595` (tag `v4.13.0`), Cedar CLI
+`4.13.0`, and `leanprover/lean4:v4.33.1`.
 
-The production authorizers share `security/_cedar_strings.py`, which emits
-Cedar string syntax rather than JSON Unicode escapes. It preserves Unicode
-scalar values without normalization, escapes quotes, backslashes and controls,
-and rejects surrogate code points. JSON transport remains separately encoded.
-Both the object authorizer and `CedarPolicyBackend` use this encoder.
-
-Run the production authorizer and replay its requests with the real Cedar CLI:
+Run the complete drift gate from the repository root:
 
 ```sh
-libs/prebuilt/.venv/bin/python proofs/slp-cedar/check_translation.py --output /tmp/slp-cedar-regression
+cd libs/prebuilt
+make security-verify
 ```
 
-The script requires all five identities (ASCII, accented, decomposed accent,
-non-Latin and non-BMP) to receive the required grant and replay as `ALLOW`.
-It saves actual policies, entity data, requests, engine version and source
-hash. `tests/security/test_cedar_strings.py` additionally covers quoted and
-backslash-containing identities and selectors, controls, distinct identities,
-and denied requests, including all three `CedarPolicyBackend` modes.
-
-## Retained counterexample and proof boundary
-
-The fixed bug used `json.dumps(value, ensure_ascii=True)[1:-1]` as a Cedar
-string body. For `josé` this emitted `jos\u00e9`, which Cedar CLI 4.13.0
-rejected. This was an implementation bug that denied a valid user.
-`counterexample-evidence.json` and `ProductionCapture.lean` retain the original
-source hash and captured bad output. They are historical evidence, not a
-claim about the repaired encoder. To reproduce the original failure, use
-`reproduce_translation_failure.py` at commit
-`e53773a4f58b532750649e073a29062635158226`.
-
-`TranslationFailure.lean` proves the captured invalid escape is rejected by
-an overapproximation of Cedar's string grammar; it also admits raw Unicode.
-The Python capture, correspondence to Cedar and execution of the authorizer
-are empirical evidence. Neither these lexical facts nor regression tests
-prove universal correctness of the Python-to-Cedar translator.
-
-## Conditional authorization model
-
-This project proves soundness and completeness of a **formal model of the v2
-authorization boundary**, after successful SLP expansion. It does **not** yet
-prove soundness and completeness of the executable Python-to-Cedar translation.
-The older `CedarPolicyBackend` in `security/cedar.py` is outside this project.
-
-Run with the pinned Lean 4 toolchain (no third-party Lean dependencies):
+Or run only this boundary:
 
 ```sh
-cd proofs/slp-cedar
-lake build
+libs/prebuilt/.venv/bin/python proofs/slp-cedar/check.py
 ```
 
-`SlpCedar.lean` prints the axioms of its main theorems. Successful verification
-must contain no `sorryAx`; standard Lean logical axioms are expected.
+The latter builds this proof and `proofs/composition-route`, runs the repaired
+Unicode encoder regression through the real production authorizer,
+and runs the real-Cedar differential cases. A Cedar CLI other than `4.13.0`, a
+changed dependency pin, a failed encoder case, or a failed Lean theorem stops
+the check.
 
-## Statement
+## Proof boundary
 
-`slp_to_cedar_sound_complete` proves, for every finite list of expanded lines,
-every policy predicate, every call gate, and every support predicate:
+`SlpCedar.lean` imports `Cedar.Thm.Authorization`; it does not copy a Cedar
+interpreter. The following values use official Cedar definitions directly:
 
-```text
-authorize(gates, translatedQueries, support, candidates) = some(output)
-  if and only if
-ValidGrant(gates, sourceAuthorization, support, candidates, output)
-```
+- `query` constructs a `Cedar.Spec.Request` with principal, action, resource,
+  tool-context, and NEED/WANT identity.
+- `Policies` contains official `Cedar.Spec.Policies` and an official
+  `Cedar.Spec.Entities` store. Policy expressions may therefore inspect entity
+  attributes and ancestor relationships using Cedar's evaluator.
+- `candidatePermit` is the official policy AST corresponding to production
+  `_candidate_permit`.
+- `cedarAllows`, `noSatisfiedForbid`, and `cedarEvaluationErrors` project the
+  official authorizer result, satisfied-forbid set, and erroring-policy set.
 
-`ValidGrant` requires all of the following:
+The production `CedarPolicySet` constructor is the supported-fragment gate:
+owner, principal, and share partitions are permit-only; MAC is forbid-only.
+The Lean semantic connection itself is robust to additional non-determining
+policies, but no broader production syntax claim is made. Owner, envelope
+(`principal ++ share`), and candidate-plus-MAC are separate authorization
+queries, exactly as in `CedarObjectAuthorizer.authorize`.
 
-- Successful call gates and operational prerequisites.
-- Every `need` line is authorized.
-- Output is exactly the authorized subsequence of input, preserving order and
-  duplicates. Denied `want` lines are omitted.
-- A nonempty candidate list has a nonempty output.
-- Every retained line has enforcement support or an accepted waiver.
+The candidate policy intentionally leaves `resource` unconstrained. The theorem
+`candidate_query_authorized_iff_no_forbid` applies only to the corresponding
+generated request. The negative example at the end of `SlpCedar.lean` prevents
+this from being misreported as equivalence on arbitrary unrelated requests.
 
-The forward implication is soundness; the reverse implication is completeness
-**relative to these prerequisites**. An unavailable Cedar executable cannot be
-complete relative to a specification that only asks whether a policy permits.
-`no_amplification` separately proves every returned line was requested and allowed.
+## Main theorems
 
-The source line decision is owner permission AND (principal OR share permission)
-AND no matching mandatory forbid. The target model evaluates the owner,
-envelope, and ephemeral candidate-plus-MAC queries separately. It uses Cedar's
-[default-deny and forbid-overrides rules](https://docs.cedarpolicy.com/auth/authorization.html).
-It abstracts successful individual policy evaluation as Boolean predicates;
-it does not implement Cedar expressions or import Cedar's formal semantics.
+- `candidate_permits_generated_query`: the official evaluator satisfies the
+  generated candidate policy for its generated request.
+- `candidate_query_authorized_iff_no_forbid`: under official `isAuthorized`,
+  candidate-plus-MAC allows exactly when no MAC forbid is satisfied. This uses
+  Cedar's default denial, permit existence, and forbid-overrides behavior.
+- `query_sound_complete`: Argus's three concrete Cedar decisions equal its
+  intended owner AND envelope AND no-MAC-forbid line rule.
+- `slp_to_cedar_sound_complete`: a successful modeled authorization returns
+  exactly the requested authorized subsequence, rejects a denied mandatory
+  line, filters denied optional lines, rejects empty retained access, and
+  preserves the support gate.
+- `argus_authorization_official_sound_complete`: instantiates owner-call,
+  empty-manifest principal-call, and candidate-plus-MAC call gates with official
+  Cedar decisions; only the separate operational prerequisite remains abstract.
+- `no_amplification`: every returned line was both requested and authorized.
 
-## Correspondence to the implementation
+`AuthorityPreservation.complete_authority_preservation` now takes
+`targetAllows`, not the declarative source predicate. Its `G ⊆ R` step calls
+`slp_to_cedar_sound_complete`; the complete `E ⊆ L ⊆ G ⊆ R` chain
+therefore depends on the official-semantics connection.
 
-All Python references below are in
-[`object_policy.py`](../../libs/prebuilt/langgraph/prebuilt/security/object_policy.py).
+## Error boundary
 
-| Lean definition | Python boundary |
-| --- | --- |
-| Input `List Line` | Result of `SecurityManifest.expand` |
-| `query` | `_request`, before string/JSON encoding |
-| `candidatePermit` | `_candidate_permit` |
-| `targetAllows` | Owner, envelope, and MAC checks in `CedarObjectAuthorizer.authorize` |
-| `collect` | The per-line loop's retain/skip/raise behavior |
-| `callGate` | Owner call, MAC call, and empty-manifest principal call checks |
-| `authorize` | Collection, nonempty-access check, and support/waiver checks |
+Cedar evaluation errors are not silently equated with transport failures. In
+the official semantics an erroring policy is recorded in `erroringPolicies` and
+does not satisfy either effect; other policies can still determine ALLOW or
+DENY. Argus separately fails closed on executable lookup, validation, timeout,
+subprocess, request parsing, and malformed CLI output. Those conditions remain
+in `Gates.operational`; successful CLI `DENY` is a semantic denial.
 
-Resource-free calls use the principal call gate alone, not a principal/share
-union, matching the implementation. `operational` abstracts successful policy
-validation, executable availability, and error-free subprocess evaluation for
-the queries actually executed. Diagnostics and failure reasons are not modeled.
+## Production translation and differential evidence
 
-## Remaining proof obligations
+`check_translation.py` runs the former Unicode counterexample as a positive
+regression. The shared `_cedar_strings.cedar_string_body` encoder emits Unicode
+scalars literally, preserves identity without normalization, escapes quotes,
+backslashes, and Cedar-supported controls, and rejects surrogate code points.
+It is used by both production Cedar authorizers. The original failing capture
+remains in `counterexample-evidence.json` as historical evidence.
 
-The table is a manual correspondence, not a verified refinement relation.
-Before calling this an end-to-end proof, establish:
+The differential tests use `CedarObjectAuthorizer`'s actual manifest expansion,
+schema, entity, request, policy, serialization, subprocess, and grant/refusal
+paths. They cover ALLOW/DENY, conflicting permit/forbid, mandatory refusal,
+optional filtering, resource mismatch, tool context, role attributes, Unicode
+and combining identities, quotes, backslashes, and supported escapes. This is
+implementation evidence, not a proof of Python refinement.
 
-1. **SLP expansion:** parsing, operation selection, bindings, normalization,
-   labels, and `need`/`want` classification faithfully implement the intended
-   source language. User-defined normalizers and label providers are trusted
-   today; this proof starts after they finish successfully.
-2. **Request/entity encoding:** abstract natural-number identities preserve the
-   equality of actual principal, tool, class, action, and resource identities.
-   Prove string escaping, schema construction, attributes, entity lookup, and
-   JSON decoding preserve those values. Python hashes resource identities with
-   SHA-256; unconditional injectivity over arbitrary resources cannot be assumed
-   as a mathematical theorem. An end-to-end statement needs an explicit
-   collision-free condition on the concrete candidate set or a different encoding.
-3. **Cedar evaluation:** connect the Boolean predicates to actual policy semantics,
-   including errors, entity attributes, missing entities, and policy partition
-   restrictions. The principal/share disjunction assumes permit-only partitions;
-   the MAC predicate assumes a forbid-only partition.
-4. **Python refinement:** prove that Python control flow implements `authorize`,
-   including errors and short-circuit behavior. Differential tests could catch
-   drift but would not discharge this universal obligation.
-5. **Runtime enforcement:** separately verify that execution respects the issued
-   grant. This authorization theorem says nothing about trusted tool behavior,
-   OS enforcement, resource races, or dispatch.
+## Remaining assumptions
 
-## Why query scope matters
-
-`_candidate_permit` constrains principal and action but leaves resource
-unconstrained. The final Lean example proves that such a permit also matches a
-different resource with the same principal and action. Consequently, equivalence
-of the generated policy to the SLP manifest for **all arbitrary requests** is
-false. The proved statement is restricted to generated per-line queries and the
-grant collector, as used by the authorizer. Do not reuse those ephemeral permits
-as a standalone resource ceiling.
+Lean does not verify Python parsing/serialization or the Rust CLI. The drift
+gate and differential cases cover those executable boundaries. SLP expansion,
+normalizers, SHA-256 resource IDs (including collision freedom on the concrete
+candidate set), production schema validation, subprocess integrity, grant
+activation, mediator correctness, and runtime enforcement retain their existing
+contracts. The proof begins after successful expansion and operational setup.
+No Lean checker executes on the authorization invocation path.
