@@ -1,71 +1,44 @@
 # SLP-to-Cedar authorization model
 
-## Current implementation: completeness is false
+## Unicode encoding regression
 
-The production translator has a reproducible counterexample. Given this valid
-SLP manifest and `permit(principal, action, resource);` in both owner and caller
-partitions, with no MAC forbids, the `alice` principal gets the required grant
-while the valid `josé` principal fails with `cedar:evaluation:owner-call`:
+The production authorizers share `security/_cedar_strings.py`, which emits
+Cedar string syntax rather than JSON Unicode escapes. It preserves Unicode
+scalar values without normalization, escapes quotes, backslashes and controls,
+and rejects surrogate code points. JSON transport remains separately encoded.
+Both the object authorizer and `CedarPolicyBackend` use this encoder.
 
-```slp
-class record {
-  operations read
-  object item
-  normalizer identity
-  attrs owner
-  enforced_by broker
-}
-tool lookup {
-  runs broker
-  record read public need
-  returns normal
-}
-```
-
-The failure is caused by `_cedar`, which uses
-`json.dumps(value, ensure_ascii=True)[1:-1]`. It translates `josé` into
-`jos\u00e9`. Cedar requires Unicode escapes with braces, such as `\u{e9}`, or
-literal Unicode. `_call_request`, `_request`, and generated permits all reuse
-this escaping function. The installed real Cedar CLI (4.13.0) rejects the emitted
-request. Replaying it with only the principal literal changed to raw Unicode
-returns `ALLOW`, using the identical policy and entity data.
-
-This refutes completeness of the current implementation over accepted principal
-identities. It does not refute soundness: this example fails closed. The Python
-implementation has deliberately been left unchanged so the counterexample
-remains reproducible.
-
-From the repository root, with `lean` and `lake` on PATH:
+Run the production authorizer and replay its requests with the real Cedar CLI:
 
 ```sh
-(cd proofs/slp-cedar && lake build)
-libs/prebuilt/.venv/bin/python proofs/slp-cedar/reproduce_translation_failure.py \
-  --output /tmp/slp-cedar-counterexample
+libs/prebuilt/.venv/bin/python proofs/slp-cedar/check_translation.py --output /tmp/slp-cedar-regression
 ```
 
-The script imports the repository's actual implementation, parses the SLP,
-checks that `Principal` accepts the identity, invokes the actual authorizer and
-Cedar executable, saves/replays the generated bundle, and captures the emitted
-escape into a Lean theorem. An explicit `--lean /path/to/lean` is also supported.
+The script requires all five identities (ASCII, accented, decomposed accent,
+non-Latin and non-BMP) to receive the required grant and replay as `ALLOW`.
+It saves actual policies, entity data, requests, engine version and source
+hash. `tests/security/test_cedar_strings.py` additionally covers quoted and
+backslash-containing identities and selectors, controls, distinct identities,
+and denied requests, including all three `CedarPolicyBackend` modes.
 
-`TranslationFailure.lean` proves that the offending string is not a Cedar string
-body, even under a grammar that relaxes digit/control-character restrictions.
-`ProductionCapture.lean` is a checked capture of the production output; the
-reproducer regenerates and checks it from the live implementation. The saved
-`counterexample-evidence.json` records the implementation's SHA-256, Cedar
-version, outputs, and Lean result.
+## Retained counterexample and proof boundary
 
-**Evidence boundary:** Lean proves the lexical rejection of the captured value.
-The capture from Python, correspondence of the grammar to Cedar, and execution
-of the real authorizer are reproducible external evidence, not a formalization
-of Python or the Cedar executable. This is a concrete implementation
-counterexample, not a claimed universal implementation proof.
+The fixed bug used `json.dumps(value, ensure_ascii=True)[1:-1]` as a Cedar
+string body. For `josé` this emitted `jos\u00e9`, which Cedar CLI 4.13.0
+rejected. This was an implementation bug that denied a valid user.
+`counterexample-evidence.json` and `ProductionCapture.lean` retain the original
+source hash and captured bad output. They are historical evidence, not a
+claim about the repaired encoder. To reproduce the original failure, use
+`reproduce_translation_failure.py` at commit
+`e53773a4f58b532750649e073a29062635158226`.
 
-The earlier model below makes operational success a prerequisite. That
-prerequisite excludes this bug; its theorem therefore cannot establish
-translation correctness.
+`TranslationFailure.lean` proves the captured invalid escape is rejected by
+an overapproximation of Cedar's string grammar; it also admits raw Unicode.
+The Python capture, correspondence to Cedar and execution of the authorizer
+are empirical evidence. Neither these lexical facts nor regression tests
+prove universal correctness of the Python-to-Cedar translator.
 
-## Earlier conditional authorization model
+## Conditional authorization model
 
 This project proves soundness and completeness of a **formal model of the v2
 authorization boundary**, after successful SLP expansion. It does **not** yet

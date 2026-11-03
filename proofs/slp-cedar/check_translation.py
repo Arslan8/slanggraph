@@ -1,7 +1,7 @@
-"""Capture a production translation counterexample and check it with Lean.
+"""Verify the repaired production translator against the real Cedar CLI.
 
 Run with libs/prebuilt/.venv/bin/python from the repository root.
-No production functions are replaced or mocked. Cedar and Lean must be installed.
+No production functions are replaced or mocked. Cedar must be installed.
 """
 
 from __future__ import annotations
@@ -9,7 +9,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -56,7 +55,6 @@ def run(command):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--lean", default="lean")
     args = parser.parse_args()
     cedar = shutil.which("cedar")
     if cedar is None:
@@ -80,7 +78,7 @@ def main():
         "manifest": MANIFEST,
         "cases": [],
     }
-    for principal in ("alice", "josé"):
+    for principal in ("alice", "josé", "jose\u0301", "使用者", "😀"):
         # Check that the authenticated identity type accepts this principal.
         Principal(principal, frozenset(), frozenset(), "proof-session")
         authorizer = op.CedarObjectAuthorizer(
@@ -140,53 +138,20 @@ def main():
         )
         evidence["cases"].append(case)
 
-    ascii_case, unicode_case = evidence["cases"]
-    assert ascii_case["outcome"] == "ALLOW", ascii_case
-    assert unicode_case["outcome"] == "ERROR", unicode_case
-    assert unicode_case["production_request_replay"]["returncode"] != 0
-    assert unicode_case["unicode_control_replay"]["stdout"].strip() == "ALLOW"
-    emitted = unicode_case["emitted_escape"]
-    # The kernel checks the concrete production output, not a manually copied
-    # example. The Python capture and Cedar execution remain empirical evidence.
-    chars = ", ".join(f"Char.ofNat {ord(c)}" for c in emitted)
-    lean = (
-        "import TranslationFailure\n"
-        "namespace ProductionCapture\n"
-        f"def emitted : List Char := [{chars}]\n"
-        'theorem emitted_is_counterexample : emitted = "jos\\\\u00e9".toList := by rfl\n'
-        "theorem production_output_not_cedar_body : ¬ TranslationFailure.Body emitted := by\n"
-        "  rw [emitted_is_counterexample]\n"
-        "  exact TranslationFailure.json_escape_not_cedar\n"
-        "#print axioms production_output_not_cedar_body\n"
-        "end ProductionCapture\n"
+    for case in evidence["cases"]:
+        assert case["outcome"] == "ALLOW", case
+        assert case["production_request_replay"]["returncode"] == 0, case
+        assert case["production_request_replay"]["stdout"].strip() == "ALLOW", case
+        assert case["unicode_control_replay"]["stdout"].strip() == "ALLOW", case
+        assert case["emitted_escape"] == case["principal"], case
+    evidence["scope"] = (
+        "Real-Cedar regression of production authorization and emitted requests; "
+        "not a formal translation-refinement proof."
     )
-    capture_path = output / "ProductionCapture.lean"
-    capture_path.write_text(lean)
-    # Import the already-built proof library from this project.
-    project = Path(__file__).resolve().parent
-    env = dict(os.environ, LEAN_PATH=str(project / ".lake/build/lib/lean"))
-    checked = subprocess.run(
-        [args.lean, str(capture_path)],
-        capture_output=True,
-        text=True,
-        timeout=60,
-        env=env,
-        check=False,
-    )
-    evidence["lean_check"] = {
-        "returncode": checked.returncode,
-        "stdout": checked.stdout,
-        "stderr": checked.stderr,
-    }
     (output / "evidence.json").write_text(
         json.dumps(evidence, indent=2, ensure_ascii=False) + "\n"
     )
-    if checked.returncode != 0 or "sorryAx" in checked.stdout:
-        raise SystemExit(checked.stdout + checked.stderr)
-    print(
-        "Confirmed: ASCII allows; Unicode translation errors; corrected Unicode query allows."
-    )
-    print(checked.stdout.strip())
+    print("PASS: all five identities authorize and replay with the real Cedar CLI.")
     print(f"Evidence: {output / 'evidence.json'}")
 
 

@@ -15,6 +15,7 @@ from pathlib import Path
 from threading import RLock
 from typing import Literal
 
+from langgraph.prebuilt.security._cedar_strings import cedar_string_body
 from langgraph.prebuilt.security.enforcement import Grant, GrantRule, RequirementLedger
 from langgraph.prebuilt.security.policy import (
     PolicyFilterResult,
@@ -520,7 +521,7 @@ def _constraint_identity(constraint: PolicyConstraint) -> str:
 
 
 def _cedar_string(value: str) -> str:
-    return json.dumps(value, ensure_ascii=True)[1:-1]
+    return cedar_string_body(value)
 
 
 def _entity_literal(entity_type: str, entity_id: str) -> str:

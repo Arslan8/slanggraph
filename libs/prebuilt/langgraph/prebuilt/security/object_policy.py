@@ -32,6 +32,7 @@ from langchain_core.tools import BaseTool
 if TYPE_CHECKING:
     from langgraph.prebuilt.analysis.static_flow import StaticFlowPolicy
 
+from langgraph.prebuilt.security._cedar_strings import cedar_string_body
 from langgraph.prebuilt.security.config import SecurityConfig
 from langgraph.prebuilt.security.descriptor import (
     DacOverrides,
@@ -1937,7 +1938,7 @@ def _atom(value: str, label: str) -> None:
 
 
 def _cedar(value: str) -> str:
-    return json.dumps(value, ensure_ascii=True)[1:-1]
+    return cedar_string_body(value)
 
 
 def _entity_literal(entity_type: str, entity_id: str) -> str:
