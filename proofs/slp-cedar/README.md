@@ -24,6 +24,13 @@ and runs the real-Cedar differential cases. A Cedar CLI other than `4.13.0`, a
 changed dependency pin, a failed encoder case, or a failed Lean theorem stops
 the check.
 
+For a from-clean-project validation report suitable for committing:
+
+```sh
+libs/prebuilt/.venv/bin/python proofs/slp-cedar/check.py \
+  --clean-build --output proofs/slp-cedar/validation-report.json
+```
+
 ## Proof boundary
 
 `SlpCedar.lean` imports `Cedar.Thm.Authorization`; it does not copy a Cedar
@@ -98,6 +105,15 @@ paths. They cover ALLOW/DENY, conflicting permit/forbid, mandatory refusal,
 optional filtering, resource mismatch, tool context, role attributes, Unicode
 and combining identities, quotes, backslashes, and supported escapes. This is
 implementation evidence, not a proof of Python refinement.
+
+`Differential.lean` is an executable oracle over the official
+`Cedar.Spec.isAuthorized` evaluator. `differential.py` runs the same seven named
+policy/query/entity scenarios through that oracle and through the production
+`CedarObjectAuthorizer`, comparing every actually executed owner, envelope, and
+MAC query plus the resulting grant or refusal. Six cases require exact
+agreement. The evaluation-error case requires the documented boundary: Lean
+reports ALLOW with an erroring policy, while Cedar CLI does not return a bare
+decision and Argus refuses operationally.
 
 ## Remaining assumptions
 

@@ -43,6 +43,7 @@ def run(command: list[str], *, cwd: Path) -> dict[str, object]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--clean-build", action="store_true")
     args = parser.parse_args()
     lake = Path(os.environ.get("LAKE", Path.home() / ".elan/bin/lake"))
     if not lake.is_file():
@@ -63,6 +64,9 @@ def main() -> None:
     if CEDAR_VERSION not in str(version["stdout"]):
         raise SystemExit(f"Expected Cedar {CEDAR_VERSION}: {version['stdout']}")
 
+    if args.clean_build:
+        run([str(lake), "clean"], cwd=PROOF)
+        run([str(lake), "clean"], cwd=COMPOSITION)
     proof_build = run([str(lake), "build"], cwd=PROOF)
     composition_build = run(
         [str(lake), "build", "AuthorityPreservation"], cwd=COMPOSITION
@@ -76,6 +80,7 @@ def main() -> None:
         raise SystemExit("Lean build introduced sorryAx")
 
     with tempfile.TemporaryDirectory(prefix="slp-cedar-regression-") as temp:
+        temp_path = Path(temp)
         encoder = run(
             [
                 sys.executable,
@@ -84,6 +89,20 @@ def main() -> None:
                 temp,
             ],
             cwd=ROOT,
+        )
+        differential_result = run(
+            [
+                sys.executable,
+                str(PROOF / "differential.py"),
+                "--output",
+                str(temp_path / "differential.json"),
+                "--lake",
+                str(lake),
+            ],
+            cwd=ROOT,
+        )
+        differential_report = json.loads(
+            (temp_path / "differential.json").read_text(encoding="utf-8")
         )
     differential = run(
         [
@@ -96,15 +115,53 @@ def main() -> None:
         ],
         cwd=PREBUILT,
     )
+    test_summary = next(
+        (
+            line.strip()
+            for line in reversed(str(differential["stdout"]).splitlines())
+            if " passed" in line and "=" in line
+        ),
+        "summary unavailable",
+    )
+    theorem_axioms = list(
+        dict.fromkeys(
+            line.strip()
+            for line in proof_output.splitlines()
+            if any(
+                theorem in line
+                for theorem in (
+                    "candidate_query_authorized_iff_no_forbid",
+                    "argus_authorization_official_sound_complete",
+                    "slp_to_cedar_sound_complete",
+                    "complete_authority_preservation",
+                )
+            )
+            and "depends on axioms" in line
+        )
+    )
+    revision = run(["git", "rev-parse", "HEAD"], cwd=ROOT)["stdout"].strip()
     report = {
+        "schema_version": 2,
         "passed": True,
+        "tested_revision": revision,
+        "clean_build": args.clean_build,
         "cedar_spec_commit": CEDAR_SPEC_COMMIT,
         "lean_toolchain": LEAN_TOOLCHAIN,
         "cedar_version": CEDAR_VERSION,
         "proof_build": proof_build["command"],
         "composition_build": composition_build["command"],
+        "theorem_axioms": theorem_axioms,
         "encoder_regression": encoder["command"],
-        "differential": differential["command"],
+        "lean_production_differential": {
+            "command": differential_result["command"],
+            "passed": differential_report["passed"],
+            "case_count": len(differential_report["cases"]),
+            "cases": differential_report["cases"],
+        },
+        "production_regressions": {
+            "command": differential["command"],
+            "summary": test_summary,
+        },
     }
     if args.output:
         args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

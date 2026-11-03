@@ -1,6 +1,6 @@
 name = "slp-cedar"
 version = "0.1.0"
-defaultTargets = ["SlpCedar", "TranslationFailure", "ProductionCapture"]
+defaultTargets = ["SlpCedar", "TranslationFailure", "ProductionCapture", "argusCedarDifferential"]
 
 [[require]]
 name = "Cedar"
@@ -15,3 +15,7 @@ name = "TranslationFailure"
 
 [[lean_lib]]
 name = "ProductionCapture"
+
+[[lean_exe]]
+name = "argusCedarDifferential"
+root = "Differential"
