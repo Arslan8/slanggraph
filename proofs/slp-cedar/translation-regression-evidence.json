@@ -1,0 +1,199 @@
+{
+  "base_commit": "e53773a4f58b532750649e073a29062635158226",
+  "cedar_version": "cedar-policy-cli 4.13.0",
+  "python_version": "3.12.14",
+  "source_sha256": {
+    "libs/prebuilt/langgraph/prebuilt/security/_cedar_strings.py": "a90fc8e2d3ea3dc5a2f387bf905a07d81601a8bf544d31a3d0972e912f12d349",
+    "libs/prebuilt/langgraph/prebuilt/security/cedar.py": "1cfee9d6ca49110aff60b4580567b8038a8576fe40a41738c8be511c34fbf3e0",
+    "libs/prebuilt/langgraph/prebuilt/security/object_policy.py": "87e907984ccef5354d48a8dd7aa35e4d828109ed843fe498388b65c6a3788f9c",
+    "libs/prebuilt/tests/security/test_cedar_strings.py": "79e35876fb9ac5919282ed6e7e5f567bd3f979733c1fc0f57736c2394ea76025",
+    "proofs/slp-cedar/check_translation.py": "37bd9c24e8bd60cbc1aa159738e17175ccde880ed0e364ce635d1665dc079971"
+  },
+  "targeted_suite": {
+    "files": [
+      "tests/security/test_cedar_strings.py",
+      "tests/security/test_cedar.py",
+      "tests/security/test_object_policy.py"
+    ],
+    "command": "LANGGRAPH_TEST_FAST=1 pytest tests/security/test_cedar_strings.py tests/security/test_cedar.py tests/security/test_object_policy.py",
+    "tests": 75,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "production_replay": {
+    "source_sha256": "87e907984ccef5354d48a8dd7aa35e4d828109ed843fe498388b65c6a3788f9c",
+    "cedar_version": {
+      "returncode": 0,
+      "stdout": "cedar-policy-cli 4.13.0\n",
+      "stderr": ""
+    },
+    "manifest": "class record {\n  operations read\n  object item\n  normalizer identity\n  attrs owner\n  enforced_by broker\n}\ntool lookup {\n  runs broker\n  record read public need\n  returns normal\n}\n",
+    "cases": [
+      {
+        "principal": "alice",
+        "outcome": "ALLOW",
+        "lines": [
+          {
+            "attributes": {},
+            "class": "record",
+            "enforcer": "broker",
+            "line_id": "lookup:0",
+            "lowering": null,
+            "operation": "read",
+            "provenance": [
+              "<string>:10"
+            ],
+            "requirement": "need",
+            "selector": "public"
+          }
+        ],
+        "production_request_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "unicode_control_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "emitted_escape": "alice",
+        "generated_candidate_permit": "@id(\"constructive:lookup:0\")\npermit (\n  principal == slangGraph::User::\"alice\",\n  action == slangGraph::Action::\"record::read\",\n  resource\n);\n"
+      },
+      {
+        "principal": "josé",
+        "outcome": "ALLOW",
+        "lines": [
+          {
+            "attributes": {},
+            "class": "record",
+            "enforcer": "broker",
+            "line_id": "lookup:0",
+            "lowering": null,
+            "operation": "read",
+            "provenance": [
+              "<string>:10"
+            ],
+            "requirement": "need",
+            "selector": "public"
+          }
+        ],
+        "production_request_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "unicode_control_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "emitted_escape": "josé",
+        "generated_candidate_permit": "@id(\"constructive:lookup:0\")\npermit (\n  principal == slangGraph::User::\"josé\",\n  action == slangGraph::Action::\"record::read\",\n  resource\n);\n"
+      },
+      {
+        "principal": "josé",
+        "outcome": "ALLOW",
+        "lines": [
+          {
+            "attributes": {},
+            "class": "record",
+            "enforcer": "broker",
+            "line_id": "lookup:0",
+            "lowering": null,
+            "operation": "read",
+            "provenance": [
+              "<string>:10"
+            ],
+            "requirement": "need",
+            "selector": "public"
+          }
+        ],
+        "production_request_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "unicode_control_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "emitted_escape": "josé",
+        "generated_candidate_permit": "@id(\"constructive:lookup:0\")\npermit (\n  principal == slangGraph::User::\"josé\",\n  action == slangGraph::Action::\"record::read\",\n  resource\n);\n"
+      },
+      {
+        "principal": "使用者",
+        "outcome": "ALLOW",
+        "lines": [
+          {
+            "attributes": {},
+            "class": "record",
+            "enforcer": "broker",
+            "line_id": "lookup:0",
+            "lowering": null,
+            "operation": "read",
+            "provenance": [
+              "<string>:10"
+            ],
+            "requirement": "need",
+            "selector": "public"
+          }
+        ],
+        "production_request_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "unicode_control_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "emitted_escape": "使用者",
+        "generated_candidate_permit": "@id(\"constructive:lookup:0\")\npermit (\n  principal == slangGraph::User::\"使用者\",\n  action == slangGraph::Action::\"record::read\",\n  resource\n);\n"
+      },
+      {
+        "principal": "😀",
+        "outcome": "ALLOW",
+        "lines": [
+          {
+            "attributes": {},
+            "class": "record",
+            "enforcer": "broker",
+            "line_id": "lookup:0",
+            "lowering": null,
+            "operation": "read",
+            "provenance": [
+              "<string>:10"
+            ],
+            "requirement": "need",
+            "selector": "public"
+          }
+        ],
+        "production_request_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "unicode_control_replay": {
+          "returncode": 0,
+          "stdout": "\nALLOW\n",
+          "stderr": ""
+        },
+        "emitted_escape": "😀",
+        "generated_candidate_permit": "@id(\"constructive:lookup:0\")\npermit (\n  principal == slangGraph::User::\"😀\",\n  action == slangGraph::Action::\"record::read\",\n  resource\n);\n"
+      }
+    ],
+    "scope": "Real-Cedar regression of production authorization and emitted requests; not a formal translation-refinement proof."
+  },
+  "validation_limits": [
+    "make format and all Ruff checks pass.",
+    "make lint reaches ty, which reports three diagnostics in unchanged tool_node.py with the locally installed dependency versions.",
+    "make test cannot launch Docker services in this environment; the targeted tests were run directly without those services.",
+    "No host isolation or performance campaign was rerun; this is translator regression evidence.",
+    "The same 75 tests also passed against the macOS branch shared authorization code on Linux; native macOS isolation was not rerun."
+  ],
+  "backport_base_commit": "d1702eb035b82635d504e5c43eb6e676b76f6c1f"
+}
