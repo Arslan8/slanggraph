@@ -1,0 +1,257 @@
+{
+  "schema_version": 2,
+  "passed": true,
+  "tested_revision": "1e32f1f35887e790207ae9c2da0a24ff2607a739",
+  "clean_build": true,
+  "cedar_spec_commit": "8aa1a2a67f62d824abead35a9aef757ad3a35595",
+  "lean_toolchain": "leanprover/lean4:v4.33.1",
+  "cedar_version": "4.13.0",
+  "proof_build": {
+    "command": [
+      "/home/faculty/abk6349/.elan/bin/lake",
+      "build"
+    ],
+    "passed": true,
+    "sorry_ax_present": false
+  },
+  "composition_build": {
+    "command": [
+      "/home/faculty/abk6349/.elan/bin/lake",
+      "build",
+      "AuthorityPreservation"
+    ],
+    "passed": true,
+    "sorry_ax_present": false
+  },
+  "theorem_axioms": [
+    "info: SlpCedar.lean:306:0: 'SlpCedar.candidate_query_authorized_iff_no_forbid' depends on axioms: [propext, Classical.choice, Quot.sound]",
+    "info: SlpCedar.lean:307:0: 'SlpCedar.argus_authorization_official_sound_complete' depends on axioms: [propext, Classical.choice, Quot.sound]",
+    "info: SlpCedar.lean:309:0: 'SlpCedar.slp_to_cedar_sound_complete' depends on axioms: [propext, Classical.choice, Quot.sound]",
+    "info: AuthorityPreservation.lean:614:0: 'AuthorityPreservation.complete_authority_preservation' depends on axioms: [propext, Classical.choice, Quot.sound]"
+  ],
+  "encoder_regression": {
+    "command": [
+      "/data/langgraph/libs/prebuilt/.venv/bin/python",
+      "/data/langgraph/proofs/slp-cedar/check_translation.py",
+      "--output",
+      "/tmp/slp-cedar-regression-rwupeswx"
+    ],
+    "passed": true
+  },
+  "lean_production_differential": {
+    "command": [
+      "/data/langgraph/libs/prebuilt/.venv/bin/python",
+      "/data/langgraph/proofs/slp-cedar/differential.py",
+      "--output",
+      "/tmp/slp-cedar-regression-rwupeswx/differential.json",
+      "--lake",
+      "/home/faculty/abk6349/.elan/bin/lake"
+    ],
+    "passed": true,
+    "case_count": 7,
+    "cases": [
+      {
+        "name": "allowed",
+        "comparison": "exact",
+        "matched": true,
+        "lean": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=ALLOW:0"
+          ],
+          "outcome": "GRANT:0,1"
+        },
+        "production": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=ALLOW:0"
+          ],
+          "outcome": "GRANT:0,1",
+          "refusal": null
+        }
+      },
+      {
+        "name": "optional_forbid",
+        "comparison": "exact",
+        "matched": true,
+        "lean": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=DENY:0"
+          ],
+          "outcome": "GRANT:0"
+        },
+        "production": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=DENY:0"
+          ],
+          "outcome": "GRANT:0",
+          "refusal": null
+        }
+      },
+      {
+        "name": "mandatory_forbid",
+        "comparison": "exact",
+        "matched": true,
+        "lean": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=DENY:0"
+          ],
+          "outcome": "REFUSE"
+        },
+        "production": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=DENY:0"
+          ],
+          "outcome": "REFUSE",
+          "refusal": "mac:forbid:run:0"
+        }
+      },
+      {
+        "name": "role_denied",
+        "comparison": "exact",
+        "matched": true,
+        "lean": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=DENY:0"
+          ],
+          "outcome": "REFUSE"
+        },
+        "production": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=DENY:0"
+          ],
+          "outcome": "REFUSE",
+          "refusal": "dac:envelope:run:0"
+        }
+      },
+      {
+        "name": "resource_mismatch",
+        "comparison": "exact",
+        "matched": true,
+        "lean": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=DENY:0"
+          ],
+          "outcome": "REFUSE"
+        },
+        "production": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=DENY:0"
+          ],
+          "outcome": "REFUSE",
+          "refusal": "dac:envelope:run:0"
+        }
+      },
+      {
+        "name": "context_mismatch",
+        "comparison": "exact",
+        "matched": true,
+        "lean": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=DENY:0"
+          ],
+          "outcome": "REFUSE"
+        },
+        "production": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=DENY:0"
+          ],
+          "outcome": "REFUSE",
+          "refusal": "dac:owner:run:0"
+        }
+      },
+      {
+        "name": "evaluation_error",
+        "comparison": "documented_error_boundary",
+        "matched": true,
+        "lean": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=ALLOW:1",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=ALLOW:1"
+          ],
+          "outcome": "GRANT:0,1"
+        },
+        "production": {
+          "trace": [
+            "owner-call=ALLOW:0",
+            "mac-call=ALLOW:0",
+            "owner=ALLOW:0",
+            "envelope=ALLOW:0",
+            "mac-eval=ERROR:cli"
+          ],
+          "outcome": "REFUSE",
+          "refusal": "cedar:evaluation:mac-eval"
+        }
+      }
+    ]
+  },
+  "production_regressions": {
+    "command": [
+      "/data/langgraph/libs/prebuilt/.venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/security/test_cedar_strings.py",
+      "tests/security/test_object_policy.py"
+    ],
+    "passed": true,
+    "test_count": 66,
+    "summary": "======================== 66 passed, 1 warning in 3.49s ========================="
+  }
+}
