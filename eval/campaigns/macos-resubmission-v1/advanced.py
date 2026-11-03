@@ -183,6 +183,7 @@ def one(folder, case, condition, seed):
             "worker_pid": process.pid,
             "worker_start": identity,
             "guardian_pid": process.guardian.pid,
+            "guardian_start": host.identity(process.guardian.pid),
             "ports": process.startup_ports,
         }
         starts.append(item)
@@ -388,11 +389,49 @@ def one(folder, case, condition, seed):
                     release.set()
                     try:
                         await operation
-                        return {"returned": True}
+                        return {"returned": True, "graph_result_released": True}
                     except asyncio.CancelledError:
                         completed = await asyncio.to_thread(invocation_done.wait, 15)
-                        return {"cancelled": True, "resource_invocation_finished": completed,
-                                "graph_worker_completion_unverified": True}
+                        native = next(
+                            (item for item in reversed(starts) if not item.get("preflight")),
+                            None,
+                        )
+
+                        def wait_for_absence(pid, identity):
+                            deadline = time.monotonic() + 10
+                            while time.monotonic() < deadline:
+                                if host.identity(pid) != identity:
+                                    return True
+                                time.sleep(0.05)
+                            return host.identity(pid) != identity
+
+                        worker_terminated = (
+                            await asyncio.to_thread(
+                                wait_for_absence, native["worker_pid"], native["worker_start"]
+                            )
+                            if native
+                            else None
+                        )
+                        guardian_terminated = (
+                            await asyncio.to_thread(
+                                wait_for_absence, native["guardian_pid"], native["guardian_start"]
+                            )
+                            if native
+                            else None
+                        )
+                        internal_result_accepted = any(
+                            event.get("kind") == "result" and event.get("accepted") is True
+                            for record in dispatcher.lifecycle_records()
+                            for event in record.get("events", [])
+                        )
+                        return {
+                            "cancelled": True,
+                            "resource_invocation_finished": completed,
+                            "graph_result_released": False,
+                            "internal_result_accepted": internal_result_accepted,
+                            "worker_terminated": worker_terminated,
+                            "guardian_terminated": guardian_terminated,
+                        }
 
                 outcome = asyncio.run(pending())
             else:

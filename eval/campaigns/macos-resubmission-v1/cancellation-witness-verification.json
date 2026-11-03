@@ -1,0 +1,78 @@
+{
+  "classification": "qualified: authorized operation completed during cancellation",
+  "distinct_cases": 1,
+  "evidence_valid": true,
+  "issues": [],
+  "paired_repetitions": 3,
+  "rows": [
+    {
+      "checks": {
+        "authorized_operation_completed": true,
+        "bob_unchanged": true,
+        "cancellation_observed": true,
+        "control_read_alice": true,
+        "graph_result_not_released": true,
+        "guardian_terminated": true,
+        "internal_result_accepted": true,
+        "native_identity_recorded": true,
+        "resource_read_logged": true,
+        "worker_terminated": true
+      },
+      "outcome": {
+        "cancelled": true,
+        "graph_result_released": false,
+        "guardian_terminated": true,
+        "internal_result_accepted": true,
+        "resource_invocation_finished": true,
+        "worker_terminated": true
+      },
+      "seed": 0
+    },
+    {
+      "checks": {
+        "authorized_operation_completed": true,
+        "bob_unchanged": true,
+        "cancellation_observed": true,
+        "control_read_alice": true,
+        "graph_result_not_released": true,
+        "guardian_terminated": true,
+        "internal_result_accepted": true,
+        "native_identity_recorded": true,
+        "resource_read_logged": true,
+        "worker_terminated": true
+      },
+      "outcome": {
+        "cancelled": true,
+        "graph_result_released": false,
+        "guardian_terminated": true,
+        "internal_result_accepted": true,
+        "resource_invocation_finished": true,
+        "worker_terminated": true
+      },
+      "seed": 1
+    },
+    {
+      "checks": {
+        "authorized_operation_completed": true,
+        "bob_unchanged": true,
+        "cancellation_observed": true,
+        "control_read_alice": true,
+        "graph_result_not_released": true,
+        "guardian_terminated": true,
+        "internal_result_accepted": true,
+        "native_identity_recorded": true,
+        "resource_read_logged": true,
+        "worker_terminated": true
+      },
+      "outcome": {
+        "cancelled": true,
+        "graph_result_released": false,
+        "guardian_terminated": true,
+        "internal_result_accepted": true,
+        "resource_invocation_finished": true,
+        "worker_terminated": true
+      },
+      "seed": 2
+    }
+  ]
+}

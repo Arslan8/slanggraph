@@ -236,7 +236,10 @@ def main():
         (blobs / digest).write_bytes((host.ROOT / name).read_bytes())
     revisions = {
         name: subprocess.check_output([host.GIT, "rev-parse", ref], text=True).strip()
-        for name, ref in (("macOS_checkout", "HEAD"), ("wip_evidence_tree", "origin/wip"))
+        for name, ref in (
+            ("macOS_checkout", "HEAD"),
+            ("wip_evidence_tree", "caded83cf4e8ef83d3df1065f6acf3d808a4abb3"),
+        )
     }
     dump(
         output / "configuration.json",
@@ -257,7 +260,7 @@ def main():
             "no_llm": True,
             "not_a_timing_experiment": True,
             "comparison": (
-                "same 44 cases at one implementation revision; additional CPU case separate"
+                "same 44 semantic cases as pinned Linux inventory; CPU supplement separate"
             ),
         },
     )

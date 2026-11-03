@@ -1,0 +1,52 @@
+{
+  "launcher": {
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "-std=gnu11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-deprecated-declarations",
+      "-isysroot",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-I",
+      "/Users/abk6349/.local/share/uv/python/cpython-3.11.18-macos-aarch64-none/include/python3.11",
+      "/Users/abk6349/Documents/ChatGPT/slanggraph/libs/prebuilt/langgraph/prebuilt/security/native/macos_launcher.c",
+      "-o",
+      "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/vendor/macos-argus-launcher-py311/macos-launcher"
+    ],
+    "dynload": "/Users/abk6349/.local/share/uv/python/cpython-3.11.18-macos-aarch64-none/lib/python3.11/lib-dynload",
+    "format": 1,
+    "launcher": "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/vendor/macos-argus-launcher-py311/macos-launcher",
+    "launcher_digest": "a2c266e9f18a1ead38ed87e58f8f172b7ff83522000e16d8fc55c99637d20452",
+    "library": "/Users/abk6349/.local/share/uv/python/cpython-3.11.18-macos-aarch64-none/lib/libpython3.11.dylib",
+    "library_digest": "08414956e56ffe0c593b2b67fa6b002c282e49ce67ca191d83b0748e29937d5b",
+    "python": "3.11.18 (main, Oct 26 2026, 13:58:42) [Clang 23.1.3 ]",
+    "source_digest": "7c72dee589ee62f3e7e1f143b9a4c16b822040c12e3290e2159b828bba47f169",
+    "stdlib": "/Users/abk6349/.local/share/uv/python/cpython-3.11.18-macos-aarch64-none/lib/python3.11"
+  },
+  "lean": {
+    "lean_toolchain": "leanprover/lean4:v4.34.1",
+    "library": "/Users/abk6349/Documents/ChatGPT/slanggraph/proofs/worker-route/.lake/build/lib/libargus_worker_route.dylib",
+    "native_runtime": "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/vendor/macos-toolchains/lean-4.34.1-darwin_aarch64/lib/lean/libleanshared.dylib",
+    "native_runtime_sha256": "6588b7e38450ea749006dcd90bbaea9393a5ca1b64727a2e7138f3c9427c2b50",
+    "sha256": "ff8055f21a70f4af780ee19ca4403bbae935857cc09dbca6b6c5685a77cfec90",
+    "source_sha256": {
+      "GrantCoverage.lean": "655f9c73e5c02950f974089cabbc56736b54c1c260177879d675ffc8d8209975",
+      "Main.lean": "30de9da19a94afea7c07828e3a2e4539eadda8263fe17270722d5d3d70f9072f",
+      "ReceiptCoverage.lean": "0b1d9221c3a0e24e169eb6d68237569c28a4afe96a5006741eb828b42c7cb096",
+      "ResourceGrantCoverage.lean": "9720ba2cdbe838447700455ac707663b7b127721a969a7ab0c6bb79a8c690a23",
+      "WorkerRoute.lean": "e06703d430c6144f99ca85eab7ae22ca915ac8a9659e7ff9666096fb418caf8a",
+      "worker_route_shim.c": "4748ca879d6d26096708d0cfe1751c97726ad67e59310f85609d44cf4e286fa1"
+    }
+  },
+  "python_roots": [
+    "/Users/abk6349/Documents/ChatGPT/slanggraph/libs/prebuilt",
+    "/Users/abk6349/Documents/ChatGPT/slanggraph/libs/langgraph",
+    "/Users/abk6349/Documents/ChatGPT/slanggraph/libs/checkpoint",
+    "/Users/abk6349/Documents/ChatGPT/slanggraph/libs/sdk-py",
+    "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/.venv/lib/python3.11/site-packages"
+  ],
+  "recovery_directory": "/Users/abk6349/Documents/ChatGPT/slanggraph/eval/vendor/macos-argus-recovery"
+}

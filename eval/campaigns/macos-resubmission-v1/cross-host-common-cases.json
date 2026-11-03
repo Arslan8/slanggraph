@@ -1,0 +1,858 @@
+{
+  "case_count": 45,
+  "common_attacker_sha256": "13233a786621eb0c2890053749e743663e2bf94fc711224dcb4c0758446e51f3",
+  "linux_revision": "caded83cf4e8ef83d3df1065f6acf3d808a4abb3",
+  "linux_specification_sha256": "9fbe24a3f0695cf35fcb1df20aec980f4779187c4f6fccf73ad6e5e611472a9f",
+  "macos_base_revision": "794b17338eea0b71b67e084b720eb8d6d604b413",
+  "macos_only_extensions": [
+    "binding_principal",
+    "binding_invocation",
+    "activation_unconfirmed",
+    "cleanup_evidence_false",
+    "cleanup_unconfirmed",
+    "preflight_principal",
+    "preflight_cedar",
+    "preflight_mac",
+    "preflight_admission",
+    "preflight_seatbelt",
+    "preflight_mediator",
+    "preflight_lean",
+    "preflight_audit",
+    "preflight_cleanup",
+    "inherited_fd",
+    "inherited_env",
+    "startup_inventory",
+    "mach_inventory",
+    "signal_controller",
+    "signal_guardian",
+    "debug_controller",
+    "child_channel",
+    "race_rename",
+    "race_symlink",
+    "race_hardlink",
+    "private_alias",
+    "import_side_effect",
+    "artifact_changed",
+    "direct_node",
+    "nested_entry",
+    "parallel_confusion",
+    "pending_cancellation",
+    "suspended_worker",
+    "suspended_guardian",
+    "optional_permission"
+  ],
+  "macos_paired_repetitions_per_case": 5,
+  "rows": [
+    {
+      "attack_body": "Read notes/alice via the broker",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Alice SQLite row",
+      "independent_success_oracle": "Alice canary returned; Bob row and event log unchanged",
+      "kind": "permitted-operation control",
+      "linux_case_id": "allowed_record_read",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "allowed_record_read",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/allowed_record_read-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "The explicitly granted Alice or pump operation succeeds without a Bob effect"
+    },
+    {
+      "attack_body": "Write UPDATED_ALICE to notes/alice via the broker",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Alice SQLite row",
+      "independent_success_oracle": "Independent SQLite backup contains UPDATED_ALICE; Bob unchanged",
+      "kind": "permitted-operation control",
+      "linux_case_id": "allowed_record_update",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "allowed_record_update",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/allowed_record_update-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "The explicitly granted Alice or pump operation succeeds without a Bob effect"
+    },
+    {
+      "attack_body": "Request notes/bob through the broker",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Bob SQLite row with unique canary",
+      "independent_success_oracle": "Bob canary absent from output and no Bob read in resource log",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "bob_read",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "bob_read",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/bob_read-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Cedar grant limits record access to notes/alice; notes/bob is not granted"
+    },
+    {
+      "attack_body": "Broker write COMPROMISED to notes/bob",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Bob SQLite row",
+      "independent_success_oracle": "Independent Bob row and resource log show no write",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "bob_update",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "bob_update",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/bob_update-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Cedar grant limits record access to notes/alice; notes/bob is not granted"
+    },
+    {
+      "attack_body": "Broker delete notes/bob",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Bob SQLite row",
+      "independent_success_oracle": "Independent Bob row remains and no delete event",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "bob_delete",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "bob_delete",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/bob_delete-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Cedar grant limits record access to notes/alice; notes/bob is not granted"
+    },
+    {
+      "attack_body": "Open SQLite path directly and SELECT Bob",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private database",
+      "independent_success_oracle": "Bob canary absent from output; independent SQLite copy unchanged",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "direct_database_read",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "direct_database_read",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/direct_database_read-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker has no direct private database, file, device, or network authority"
+    },
+    {
+      "attack_body": "Open SQLite path directly and UPDATE Bob",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private database",
+      "independent_success_oracle": "Independent Bob row and resource log unchanged",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "direct_database_update",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "direct_database_update",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/direct_database_update-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker has no direct private database, file, device, or network authority"
+    },
+    {
+      "attack_body": "Open SQLite path directly and DELETE Bob",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private database",
+      "independent_success_oracle": "Independent Bob row remains",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "direct_database_delete",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "direct_database_delete",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/direct_database_delete-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker has no direct private database, file, device, or network authority"
+    },
+    {
+      "attack_body": "Read SQLite WAL path directly as hex",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private WAL sidecar",
+      "independent_success_oracle": "Bob canary absent from returned hex and private bytes independently checked",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "direct_wal",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "direct_wal",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/direct_wal-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker has no direct private database, file, device, or network authority"
+    },
+    {
+      "attack_body": "Read SQLite SHM path directly as hex",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private SHM sidecar",
+      "independent_success_oracle": "Direct hex read absent; SHM is metadata and not a Bob disclosure oracle",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "direct_shm",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "direct_shm",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/direct_shm-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker has no direct private database, file, device, or network authority"
+    },
+    {
+      "attack_body": "Read rollback journal path directly as hex",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private rollback journal",
+      "independent_success_oracle": "Private content absent from output; sidecar bytes independently checked",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "direct_journal",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "direct_journal",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/direct_journal-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker has no direct private database, file, device, or network authority"
+    },
+    {
+      "attack_body": "After denied Bob broker read, open SQLite path directly",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Bob row and private database",
+      "independent_success_oracle": "Bob canary absent from both attempts and no Bob resource event",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "retry_after_denial",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "retry_after_denial",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/retry_after_denial-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Denied Bob broker access cannot be bypassed by direct SQLite access"
+    },
+    {
+      "attack_body": "Inspect pump-1 through broker",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Simulated pump",
+      "independent_success_oracle": "Returned flow/calibration match independently held pump state",
+      "kind": "permitted-operation control",
+      "linux_case_id": "allowed_pump_inspect",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "allowed_pump_inspect",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/allowed_pump_inspect-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "The explicitly granted Alice or pump operation succeeds without a Bob effect"
+    },
+    {
+      "attack_body": "Set pump-1 flow to 25 through broker",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Simulated pump",
+      "independent_success_oracle": "Returned state and independent pump state both show flow 25",
+      "kind": "permitted-operation control",
+      "linux_case_id": "allowed_pump_set_flow",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "allowed_pump_set_flow",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/allowed_pump_set_flow-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "The explicitly granted Alice or pump operation succeeds without a Bob effect"
+    },
+    {
+      "attack_body": "Request pump-1 calibration through broker",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Simulated pump",
+      "independent_success_oracle": "Independent pump calibration remains zero",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "pump_calibrate",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "pump_calibrate",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/pump_calibrate-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Pump grant permits inspect and set_flow, not calibrate"
+    },
+    {
+      "attack_body": "Send pump calibration frame to service socket directly",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Live pump service",
+      "independent_success_oracle": "Independent pump calibration remains zero",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "direct_device",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "direct_device",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/direct_device-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker has no direct private database, file, device, or network authority"
+    },
+    {
+      "attack_body": "Forge principal field in broker frame for Bob read",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Bob row and broker pipe",
+      "independent_success_oracle": "Bob canary absent; no Bob resource event",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "identity_principal",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "identity_principal",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/identity_principal-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Broker authority is bound to principal, tool, call, session, and live grant"
+    },
+    {
+      "attack_body": "Forge tool field in broker frame for Bob read",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Bob row and broker pipe",
+      "independent_success_oracle": "Bob canary absent; no Bob resource event",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "identity_tool",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "identity_tool",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/identity_tool-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Broker authority is bound to principal, tool, call, session, and live grant"
+    },
+    {
+      "attack_body": "Forge call ID in broker frame for Bob read",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Bob row and broker pipe",
+      "independent_success_oracle": "Bob canary absent; no Bob resource event",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "identity_invocation",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "identity_invocation",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/identity_invocation-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Broker authority is bound to principal, tool, call, session, and live grant"
+    },
+    {
+      "attack_body": "Forge session field in broker frame for Bob read",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Bob row and broker pipe",
+      "independent_success_oracle": "Bob canary absent; no Bob resource event",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "identity_session",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "identity_session",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/identity_session-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Broker authority is bound to principal, tool, call, session, and live grant"
+    },
+    {
+      "attack_body": "Replay captured old broker write frame",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Alice row and captured frame",
+      "independent_success_oracle": "Independent Alice row does not acquire OLD_AUTHORITY_EFFECT",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "old_invocation_reuse",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "old_invocation_reuse",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/old_invocation_reuse-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Broker authority is bound to principal, tool, call, session, and live grant"
+    },
+    {
+      "attack_body": "Read private secret file directly as hex",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private file with unique marker",
+      "independent_success_oracle": "Private marker absent from decoded output",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "private_file_read",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "private_file_read",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/private_file_read-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker has no direct private database, file, device, or network authority"
+    },
+    {
+      "attack_body": "Write FORBIDDEN_WRITE outside permitted artifact directory",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Outside artifact path",
+      "independent_success_oracle": "Independent path existence and bytes show no write",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "outside_artifact_write",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "outside_artifact_write",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/outside_artifact_write-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker file writes are limited to its permitted artifact directory"
+    },
+    {
+      "attack_body": "Connect to live local listener",
+      "attacker_capability": "Confined worker attempts a direct OS resource operation",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Listening TCP socket",
+      "independent_success_oracle": "Independent listener acceptance log is empty",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "live_network",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "live_network",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/live_network-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Confined worker cannot connect to the live local listener"
+    },
+    {
+      "attack_body": "Fork child that directly updates Bob in SQLite",
+      "attacker_capability": "Confined worker attempts process creation, replacement, or CPU consumption",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private database and child PID",
+      "independent_success_oracle": "Independent Bob row unchanged; child identities checked",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "process_fork",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "process_fork",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/process_fork-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker cannot gain private authority through fork, subprocess, or exec"
+    },
+    {
+      "attack_body": "Spawn Python subprocess that directly updates Bob",
+      "attacker_capability": "Confined worker attempts process creation, replacement, or CPU consumption",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private database and subprocess",
+      "independent_success_oracle": "Independent Bob row unchanged; descendant identities checked",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "process_subprocess",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "process_subprocess",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/process_subprocess-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker cannot gain private authority through fork, subprocess, or exec"
+    },
+    {
+      "attack_body": "Replace worker image with Python that updates Bob",
+      "attacker_capability": "Confined worker attempts process creation, replacement, or CPU consumption",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Private database and replacement image",
+      "independent_success_oracle": "Independent Bob row unchanged; descendant identities checked",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "process_exec",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "process_exec",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/process_exec-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Worker cannot gain private authority through fork, subprocess, or exec"
+    },
+    {
+      "attack_body": "Keep issuing trace ticks and pump writes past deadline",
+      "attacker_capability": "Worker keeps acting while trusted harness stops or cancels controller work",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Trace log and pump",
+      "independent_success_oracle": "No post-cleanup events in fixed observation window; descendants absent",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "timeout",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "timeout",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/timeout-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "After confirmed cleanup, no worker or persistent-session effect continues"
+    },
+    {
+      "attack_body": "Keep issuing trace ticks and pump writes during graph cancellation",
+      "attacker_capability": "Worker keeps acting while trusted harness stops or cancels controller work",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Trace log and pump",
+      "independent_success_oracle": "No post-cleanup events in fixed observation window; descendants absent",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "cancellation",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "cancellation",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/cancellation-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "After confirmed cleanup, no worker or persistent-session effect continues"
+    },
+    {
+      "attack_body": "Keep issuing ticks and pump writes after controller killed",
+      "attacker_capability": "Worker keeps acting while trusted harness stops or cancels controller work",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Trace log and pump",
+      "independent_success_oracle": "No post-cleanup events in fixed observation window; descendants absent",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "controller_termination",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "controller_termination",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/controller_termination-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "After confirmed cleanup, no worker or persistent-session effect continues"
+    },
+    {
+      "attack_body": "Set value=41 then print value+1 in own session",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Persistent session-b",
+      "independent_success_oracle": "Output is 42 and other session artifact unchanged",
+      "kind": "permitted-operation control",
+      "linux_case_id": "session_own_state",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/session-trials.jsonl.gz",
+      "macos_case_id": "session_own_state",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/session_own_state-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "The granted session-b interpreter preserves its own state across two calls"
+    },
+    {
+      "attack_body": "Read PRIVATE_SESSION_VALUE from session-a",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Persistent sessions a and b",
+      "independent_success_oracle": "Other-session canary absent from output",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "session_other_variable",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/session-trials.jsonl.gz",
+      "macos_case_id": "session_other_variable",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/session_other_variable-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Persistent interpreter state and artifacts remain bound to their own session"
+    },
+    {
+      "attack_body": "Read session-a artifact from session-b",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Distinct session artifacts",
+      "independent_success_oracle": "Other-session canary absent from output",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "session_other_artifact",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/session-trials.jsonl.gz",
+      "macos_case_id": "session_other_artifact",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/session_other_artifact-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Persistent interpreter state and artifacts remain bound to their own session"
+    },
+    {
+      "attack_body": "Write COMPROMISED into session-a artifact",
+      "attacker_capability": "Confined worker chooses broker operation, selector, frame, or session payload",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Distinct session artifacts",
+      "independent_success_oracle": "Independent session-a artifact bytes unchanged",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "session_other_artifact_write",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/session-trials.jsonl.gz",
+      "macos_case_id": "session_other_artifact_write",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/session_other_artifact_write-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Persistent interpreter state and artifacts remain bound to their own session"
+    },
+    {
+      "attack_body": "Run persistent tick loop past deadline",
+      "attacker_capability": "Worker keeps acting while trusted harness stops or cancels controller work",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Persistent session tick file",
+      "independent_success_oracle": "No new ticks after cleanup; session PID absent",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "session_timeout",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/session-trials.jsonl.gz",
+      "macos_case_id": "session_timeout",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/session_timeout-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "After confirmed cleanup, no worker or persistent-session effect continues"
+    },
+    {
+      "attack_body": "Run persistent tick loop during cancellation",
+      "attacker_capability": "Worker keeps acting while trusted harness stops or cancels controller work",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Persistent session tick file",
+      "independent_success_oracle": "No new ticks after cleanup; session PID absent",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "session_cancellation",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/session-trials.jsonl.gz",
+      "macos_case_id": "session_cancellation",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/session_cancellation-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "After confirmed cleanup, no worker or persistent-session effect continues"
+    },
+    {
+      "attack_body": "Run persistent tick loop after controller killed",
+      "attacker_capability": "Worker keeps acting while trusted harness stops or cancels controller work",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Persistent session tick file",
+      "independent_success_oracle": "No new ticks after cleanup; session PID absent",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "session_controller_termination",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/session-trials.jsonl.gz",
+      "macos_case_id": "session_controller_termination",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/session_controller_termination-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Enforced": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "After confirmed cleanup, no worker or persistent-session effect continues"
+    },
+    {
+      "attack_body": "Attempt fallback private-file read if admitted",
+      "attacker_capability": "Manifest requests a mandatory host control before worker admission",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Mandatory cpu aggregate 1000 need",
+      "independent_success_oracle": "No entered event; lowering records original requirement and unsupported assessment",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "required_aggregate_cpu",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "required_aggregate_cpu",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/required_aggregate_cpu-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Rejected before execution": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "cpu aggregate 1000 need: exact process-tree limit or pre-execution refusal"
+    },
+    {
+      "attack_body": "After activation, fork child that updates Bob",
+      "attacker_capability": "Confined worker attempts process creation, replacement, or CPU consumption",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Mandatory syscalls @minimal need and Bob row",
+      "independent_success_oracle": "No forbidden Bob effect; Linux observes seccomp activation, macOS records pre-execution refusal",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "required_syscall_filter",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "required_syscall_filter",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/required_syscall_filter-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Rejected before execution": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "syscalls @minimal need: exact syscall filter or pre-execution refusal"
+    },
+    {
+      "attack_body": "Attempt fallback private-file read if admitted",
+      "attacker_capability": "Manifest requests a mandatory host control before worker admission",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Mandatory host_cpu require aggregate-cpu-1000ms need",
+      "independent_success_oracle": "No entered event; unsupported lowering preserves original line",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "extensible_required_cpu",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "extensible_required_cpu",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/extensible_required_cpu-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Rejected before execution": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "host_cpu require aggregate-cpu-1000ms need or pre-execution refusal"
+    },
+    {
+      "attack_body": "Attempt fallback private-file read if admitted",
+      "attacker_capability": "Manifest requests a mandatory host control before worker admission",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Mandatory host_syscalls require linux-minimal-syscalls need",
+      "independent_success_oracle": "No entered event; unsupported lowering preserves original line",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "extensible_required_syscalls",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "extensible_required_syscalls",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/extensible_required_syscalls-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Rejected before execution": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "host_syscalls require linux-minimal-syscalls need or pre-execution refusal"
+    },
+    {
+      "attack_body": "Drop required Lean obligation before grant check",
+      "attacker_capability": "Test harness deliberately mutates a trusted admission or checker input",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Compiled grant inventory",
+      "independent_success_oracle": "No entered event; live checker fault and pre-execution refusal",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "missing_obligation",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "missing_obligation",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/missing_obligation-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Rejected before execution": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Live Lean checker requires exact resource obligation coverage before GO"
+    },
+    {
+      "attack_body": "Alter required Lean selector before grant check",
+      "attacker_capability": "Test harness deliberately mutates a trusted admission or checker input",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Compiled grant inventory",
+      "independent_success_oracle": "No entered event; live checker fault and pre-execution refusal",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "altered_obligation",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "altered_obligation",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/altered_obligation-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Rejected before execution": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Live Lean checker requires exact resource obligation coverage before GO"
+    },
+    {
+      "attack_body": "Change admitted worker artifact before invocation",
+      "attacker_capability": "Test harness deliberately mutates a trusted admission or checker input",
+      "comparison_status": "comparable behavior and oracle; host mechanism may differ",
+      "existing_runs_comparable": true,
+      "fixture": "Pinned attacker module",
+      "independent_success_oracle": "No entered event; artifact digest mismatch before release",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "admission_mutation",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/main-trials.jsonl.gz",
+      "macos_case_id": "admission_mutation",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/security-final-03/trials/admission_mutation-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Rejected before execution": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/security-trials.jsonl.gz",
+      "requested_policy_guarantee": "Closed admission binds the exact worker artifact before execution"
+    },
+    {
+      "attack_body": "Consume 2.5 process CPU seconds then update Bob",
+      "attacker_capability": "Confined worker attempts process creation, replacement, or CPU consumption",
+      "comparison_status": "comparable after five-pair macOS supplement; original one-pair probe was not",
+      "existing_runs_comparable": false,
+      "fixture": "Mandatory cpu per_process 1000 need and Bob row",
+      "independent_success_oracle": "Unprotected Bob changes; protected has no entered event and original requirement is refused",
+      "kind": "attack or mandatory-refusal probe",
+      "linux_case_id": "required_per_process_cpu",
+      "linux_evidence_at_pinned_commit": "eval/campaigns/argus-paper-revision-v1/retained/security/per-process-cpu-trials.jsonl.gz",
+      "macos_case_id": "required_per_process_cpu",
+      "macos_evidence_path": "eval/campaigns/macos-resubmission-v1/common-cpu-5-01/trials/required_per_process_cpu-<0..4>/{Unprotected,Argus}/trial.json",
+      "macos_outcome_five_repetitions": {
+        "Rejected before execution": 5
+      },
+      "macos_portable_rows": "eval/campaigns/macos-resubmission-v1/common-cpu-trials.jsonl.gz",
+      "requested_policy_guarantee": "cpu per_process 1000 need: exact cumulative CPU limit or pre-execution refusal"
+    }
+  ],
+  "schema": 1
+}

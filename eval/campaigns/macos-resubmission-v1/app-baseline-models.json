@@ -1,0 +1,29 @@
+{
+  "models": [
+    {
+      "capabilities": [
+        "completion",
+        "tools",
+        "thinking"
+      ],
+      "details": {
+        "context_length": 40960,
+        "embedding_length": 4096,
+        "families": [
+          "qwen3"
+        ],
+        "family": "qwen3",
+        "format": "gguf",
+        "parameter_size": "8.2B",
+        "parent_model": "",
+        "quantization_level": "Q4_K_M",
+        "runner": "ggml"
+      },
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+      "model": "qwen3:8b",
+      "modified_at": "2026-10-30T21:46:27.569676592-04:00",
+      "name": "qwen3:8b",
+      "size": 5225388164
+    }
+  ]
+}

@@ -54,19 +54,22 @@ def main():
     value = b.compile().invoke({"data_wrangled": {}})
     assert value["data_wrangled"]["mean"]["1"] is None
     validate_output_data(value)
+    infinity_refusals = []
     for infinity in (float("inf"), float("-inf")):
         normalized = module.missing_value_transport({"value": infinity})
         try:
             validate_output_data(normalized)
-        except OutputDataError:
-            pass
+        except OutputDataError as error:
+            infinity_refusals.append(
+                {"value": "+Infinity" if infinity > 0 else "-Infinity", "error": str(error)}
+            )
         else:
             raise AssertionError("Infinity accepted")
     events.append(
         dict(
             stage="after_fix",
             missing_cell=None,
-            infinity_still_rejected=True,
+            infinity_refusals=infinity_refusals,
             validator_unchanged=True,
         )
     )

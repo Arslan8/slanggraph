@@ -1,0 +1,76 @@
+{
+  "after_fix_pre_execution_refusals": 6,
+  "before_fix_protected_disclosures": 2,
+  "evidence_valid": true,
+  "finding": "before-fix object-identity violation disclosed private content",
+  "issues": [],
+  "legitimate_mediated_reads": 5,
+  "observations": [
+    {
+      "after_fix_pre_execution_refusal": true,
+      "authorized_path_original_inode": 116530271,
+      "authorized_path_substituted_inode": 116530257,
+      "before_fix_device": 16777234,
+      "before_fix_disclosed_private_content": true,
+      "before_fix_inode": 116530257,
+      "before_fix_private_marker": "FILE_e5390139ca67156f16fc1f36b5ffe392a640ea534e91b5ca",
+      "case": "race_rename",
+      "seed": 0
+    },
+    {
+      "after_fix_pre_execution_refusal": true,
+      "authorized_path_original_inode": 116530271,
+      "authorized_path_substituted_inode": 116530257,
+      "before_fix_device": 16777234,
+      "before_fix_disclosed_private_content": null,
+      "before_fix_inode": 116530257,
+      "before_fix_private_marker": "FILE_e5390139ca67156f16fc1f36b5ffe392a640ea534e91b5ca",
+      "case": "race_rename",
+      "seed": 1
+    },
+    {
+      "after_fix_pre_execution_refusal": true,
+      "authorized_path_original_inode": 116530271,
+      "authorized_path_substituted_inode": 116530257,
+      "before_fix_device": 16777234,
+      "before_fix_disclosed_private_content": null,
+      "before_fix_inode": 116530257,
+      "before_fix_private_marker": "FILE_e5390139ca67156f16fc1f36b5ffe392a640ea534e91b5ca",
+      "case": "race_rename",
+      "seed": 2
+    },
+    {
+      "after_fix_pre_execution_refusal": true,
+      "authorized_path_original_inode": 116530754,
+      "authorized_path_substituted_inode": 116530741,
+      "before_fix_device": 16777234,
+      "before_fix_disclosed_private_content": true,
+      "before_fix_inode": 116530741,
+      "before_fix_private_marker": "FILE_e4b6645f293c57bf2ba0e8b17aca253d89ef5f8d4f9b5274",
+      "case": "race_hardlink",
+      "seed": 0
+    },
+    {
+      "after_fix_pre_execution_refusal": true,
+      "authorized_path_original_inode": 116530754,
+      "authorized_path_substituted_inode": 116530741,
+      "before_fix_device": 16777234,
+      "before_fix_disclosed_private_content": null,
+      "before_fix_inode": 116530741,
+      "before_fix_private_marker": "FILE_e4b6645f293c57bf2ba0e8b17aca253d89ef5f8d4f9b5274",
+      "case": "race_hardlink",
+      "seed": 1
+    },
+    {
+      "after_fix_pre_execution_refusal": true,
+      "authorized_path_original_inode": 116530754,
+      "authorized_path_substituted_inode": 116530741,
+      "before_fix_device": 16777234,
+      "before_fix_disclosed_private_content": null,
+      "before_fix_inode": 116530741,
+      "before_fix_private_marker": "FILE_e4b6645f293c57bf2ba0e8b17aca253d89ef5f8d4f9b5274",
+      "case": "race_hardlink",
+      "seed": 2
+    }
+  ]
+}

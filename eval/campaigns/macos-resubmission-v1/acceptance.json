@@ -1,102 +1,410 @@
 {
-  "applications": {
-    "final_pandas": {
-      "activated_receipts": 65,
-      "complete": true,
-      "correct": 50,
-      "correct_by_case": {
-        "date_filtered_total": 5,
-        "duplicate_count": 5,
-        "grouped_mean": 5,
-        "missing_count": 5,
-        "monthly_chart": 5,
-        "monthly_mean": 5,
-        "monthly_total": 5,
-        "product_totals": 5,
-        "regional_totals": 5,
-        "top_products": 5
+  "application_correctness": {
+    "argus_attempted": 175,
+    "argus_by_application": {
+      "D1-sql": {
+        "attempted": 25,
+        "correct": 10,
+        "mean_wall_ms": 19300.765883398708,
+        "statuses": {
+          "completed": 25
+        },
+        "successful_protected_calls": 60,
+        "trials_with_successful_protected_calls": 25
       },
-      "evidence_valid": true,
-      "trials": 50
+      "D2-rag": {
+        "attempted": 25,
+        "correct": 20,
+        "mean_wall_ms": 10383.505976760061,
+        "statuses": {
+          "completed": 25
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "D3-plan-execute": {
+        "attempted": 25,
+        "correct": 0,
+        "mean_wall_ms": 28009.24511991907,
+        "statuses": {
+          "execution_error": 25
+        },
+        "successful_protected_calls": 70,
+        "trials_with_successful_protected_calls": 15
+      },
+      "D4-multi-agent": {
+        "attempted": 25,
+        "correct": 15,
+        "mean_wall_ms": 145840.68060163874,
+        "statuses": {
+          "completed": 15,
+          "timeout": 10
+        },
+        "successful_protected_calls": 30,
+        "trials_with_successful_protected_calls": 15
+      },
+      "D5-support": {
+        "attempted": 25,
+        "correct": 20,
+        "mean_wall_ms": 19468.748623240972,
+        "statuses": {
+          "completed": 25
+        },
+        "successful_protected_calls": 60,
+        "trials_with_successful_protected_calls": 25
+      },
+      "T1-add-tools": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 6102.220900001703,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 5,
+        "trials_with_successful_protected_calls": 5
+      },
+      "T10-time-travel": {
+        "attempted": 5,
+        "correct": 0,
+        "mean_wall_ms": 6644.828341796529,
+        "statuses": {
+          "compatibility_failed": 5
+        },
+        "successful_protected_calls": 5,
+        "trials_with_successful_protected_calls": 5
+      },
+      "T2-custom-weather": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 5516.8030995933805,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 5,
+        "trials_with_successful_protected_calls": 5
+      },
+      "T3-fixed-weather": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 3337.853891798295,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 5,
+        "trials_with_successful_protected_calls": 5
+      },
+      "T4-parallel-weather": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 4109.809658199083,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 10,
+        "trials_with_successful_protected_calls": 5
+      },
+      "T5-prebuilt-multiply": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 4994.728566589765,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 5,
+        "trials_with_successful_protected_calls": 5
+      },
+      "T6-return-direct": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 4418.423916597385,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 5,
+        "trials_with_successful_protected_calls": 5
+      },
+      "T7-forced-tool": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 5422.053116594907,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 5,
+        "trials_with_successful_protected_calls": 5
+      },
+      "T8-serial-tools": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 6751.822583196918,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 10,
+        "trials_with_successful_protected_calls": 5
+      },
+      "T9-add-memory": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 10477.593891596189,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 10,
+        "trials_with_successful_protected_calls": 5
+      }
     },
-    "historical_15_demo_correct": "107/175",
-    "historical_pandas_correct": "45/50",
-    "targeted_regressions_passed": true
+    "argus_correct": 110,
+    "baseline_attempted": 175,
+    "baseline_by_application": {
+      "D1-sql": {
+        "attempted": 25,
+        "correct": 10,
+        "mean_wall_ms": 13760.938668367453,
+        "statuses": {
+          "completed": 25
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "D2-rag": {
+        "attempted": 25,
+        "correct": 20,
+        "mean_wall_ms": 8943.800154840574,
+        "statuses": {
+          "completed": 25
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "D3-plan-execute": {
+        "attempted": 25,
+        "correct": 0,
+        "mean_wall_ms": 24559.93739995989,
+        "statuses": {
+          "execution_error": 25
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "D4-multi-agent": {
+        "attempted": 25,
+        "correct": 15,
+        "mean_wall_ms": 144335.7823299209,
+        "statuses": {
+          "completed": 15,
+          "timeout": 10
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "D5-support": {
+        "attempted": 25,
+        "correct": 20,
+        "mean_wall_ms": 14839.71567851957,
+        "statuses": {
+          "completed": 25
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T1-add-tools": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 4025.570516800508,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T10-time-travel": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 3581.879399996251,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T2-custom-weather": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 2718.502866802737,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T3-fixed-weather": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 2970.6204251910094,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T4-parallel-weather": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 1291.493274999084,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T5-prebuilt-multiply": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 3283.189716405468,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T6-return-direct": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 2340.4841249925084,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T7-forced-tool": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 2138.0496334051713,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T8-serial-tools": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 4250.106683402555,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      },
+      "T9-add-memory": {
+        "attempted": 5,
+        "correct": 5,
+        "mean_wall_ms": 8632.704899797682,
+        "statuses": {
+          "completed": 5
+        },
+        "successful_protected_calls": 0,
+        "trials_with_successful_protected_calls": 0
+      }
+    },
+    "baseline_correct": 115,
+    "missing_value_and_infinity_regression": {
+      "events": [
+        {
+          "conversion": "JSON null -> pandas.DataFrame -> to_dict -> NaN",
+          "error": "output_data:nonfinite_float",
+          "stage": "before_fix"
+        },
+        {
+          "infinity_refusals": [
+            {
+              "error": "output_data:nonfinite_float",
+              "value": "+Infinity"
+            },
+            {
+              "error": "output_data:nonfinite_float",
+              "value": "-Infinity"
+            }
+          ],
+          "missing_cell": null,
+          "stage": "after_fix",
+          "validator_unchanged": true
+        },
+        {
+          "policy": "authenticated linear ancestry; historical rollback is not authorized",
+          "refusal": "checkpoint:invalid_sequence",
+          "stage": "historical_checkpoint"
+        }
+      ],
+      "passed": true
+    },
+    "pandas_attempted": 50,
+    "pandas_correct": 50
   },
-  "artifact_sha256": {
-    "advanced-trials.jsonl.gz": "7981113cb2703af69bd59532fa7bf30f88fa6b2e83f03aa91997f5ab83f40699",
-    "advanced-verification.json": "6fdf431facf6ae19a75c482937829210c7ef774bdaf77331715053c6968d655e",
-    "application-regressions.json": "80c0e8c990f21ad48ebf146b240e581fca4a1491ca8d62d315c2ae341db44f0a",
-    "before-fix-aliases.jsonl.gz": "e1684a876dc0bc6e23a11a918bc8af60c0c7d35b156afc49f73fcba3011bc214",
-    "concurrency-stress.json": "576d510d6763486c2c6526fd2379802cccf831812d9f76a684d11b0a4daea3a9",
-    "macos-pandas-runtime-manifest.json": "f913655863faee49fe13a84db49085ad736b1c0fbabe67036ebe7a31cb1a5446",
-    "mutation-controls.json": "d40b8e528af84f6692b12a9aa8c6df7f69c86cb886cc4ce0e1df98b10f6397c8",
-    "pandas-framework-sources.json": "fcc3cd0ab12a6e53506a5b602232b8af49efa35626cc875c252982378f35704c",
-    "pandas-trials.jsonl.gz": "f5a70974dcf39d17fffa0ed0a9d185b9bf2808adb1ec5fa048cc2e99818c74aa",
-    "pandas-verification.json": "0b380e243d945c15f4ab7dca8f87281a34166ff47a0b40c573e7c546bcbbdbfe",
-    "per-process-trials.jsonl.gz": "573d97cf54ee5e7d0b8ffc5efbab1ec3d1b28ad42b1cd20e5cde8f33b4928677",
-    "per-process-verification.json": "a95d19ab5f5df54f0f6b6b904088af69afa509c5c6455546cfb12eaacb2f44c7",
-    "persistent-rotation.json": "6b821deca534260c03ea6cfbeaf155b15b4785eef4a34379b97089a89a9ff07e",
-    "security-sources.json": "298d23b371dcb7fd5b3aefa36b218107bb2b515e38b0778e6a576662e859ac86",
-    "security-trials.jsonl.gz": "b18f6733795bcfbb975b5890ed3528599064eb97015f093283e5e2dafd62dd56",
-    "security-verification.json": "bc04183cba8f26f0be2bc6a03f67b27fc2d43887438d1bd3a7f86a7ad9bfaccf"
+  "common_security": {
+    "all_controls_effective": true,
+    "comparison": "behavior and oracle matched; host support decisions differ",
+    "distinct_cases": 45,
+    "enforced_attack_observations": 160,
+    "enforced_permitted_observations": 25,
+    "paired_repetitions_per_case": 5,
+    "permitted_control_cases": 5,
+    "pre_execution_refusals": 40,
+    "selected_macos_trials": 450
   },
   "local_raw_runs": {
-    "before_fix_aliases": "advanced-run-01",
-    "concurrency": "concurrency-stress-02",
-    "main": "security-final-03",
-    "pandas": "pandas-argus-rerun-11",
-    "per_process_cpu": "required-per-process-01",
-    "persistent_rotation": "persistent-rotation-03",
-    "supplemental": "advanced-run-02"
+    "after_fix": "advanced-run-02",
+    "argus_demos": "app-argus-final-02",
+    "baseline_demos": "app-baseline-final-03",
+    "before_fix": "advanced-run-01",
+    "cancellation": "cancellation-witness-01",
+    "common_cpu": "common-cpu-5-01",
+    "main_security": "security-final-03",
+    "pandas": "pandas-argus-rerun-11"
+  },
+  "macos_security_extensions": {
+    "after_fix_direct_file_refusals": 6,
+    "before_fix_private_disclosures": 2,
+    "cancellation_witness_pairs": 3,
+    "legitimate_mediated_reads": 5,
+    "main_distinct_cases": 58,
+    "main_total_trials": 580,
+    "supplemental_categories": {
+      "Enforced": 45,
+      "Inconclusive": 9,
+      "Qualified": 9
+    },
+    "supplemental_distinct_cases": 21,
+    "supplemental_paired_repetitions": 63
+  },
+  "pins": {
+    "dependency_inventory": "app-baseline-configuration.json and app-argus-configuration.json",
+    "model": "qwen3:8b",
+    "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "native_configuration": "security-native-configuration.json and app-argus-host-configuration.json",
+    "ollama": {
+      "version": "0.40.13"
+    },
+    "python": "3.11.18 (main, Oct 26 2026, 13:58:42) [Clang 23.1.3 ]"
   },
   "remaining_qualifications": [
-    "Nine supplemental observations remain inconclusive and nine qualified; see advanced-verification.json.",
-    "Debugger denial also occurs in the unprotected control, so a Seatbelt-specific debug claim is not established.",
-    "Historical startup/channel errors overlapped sleep/wake, but causality was not established by actual host sleep/wake reproduction.",
-    "Historical time-travel checkpoint failures are intentional linear-integrity restrictions; branch restore would require explicit authority.",
-    "Declared trusted graph-node Python remains in the controller.",
-    "Linux owner has not agreed to this source and test revision, so no new matched-host claim is made."
+    "Nine original supplemental observations are inconclusive and nine qualified; see SUPPLEMENTAL_DISPOSITIONS.md.",
+    "Debugging failed in both conditions; trusted-controller compromise is outside the worker threat model.",
+    "Controlled process suspension does not prove historical sleep/wake causality.",
+    "Historical checkpoint time travel requires an authenticated branch/restore transition not implemented by the linear-integrity policy.",
+    "Full raw SQLite backups, model outputs, and frozen execution copies remain in ignored local run directories; compact committed rows do not provide full offline replay.",
+    "No new cross-host equivalence claim is made without Linux owner agreement on this revision."
   ],
-  "scope": "macOS-only implementation and validation; no Linux execution or new performance benchmark",
-  "security": {
-    "concurrency_stress_passed": true,
-    "main": {
-      "categories": {
-        "Enforced": 185,
-        "Rejected before execution": 95,
-        "Result refused": 10
-      },
-      "distinct_cases": 58,
-      "evidence_valid": true,
-      "native_success_certificates_replayed": 170,
-      "repetitions": 5,
-      "total_trials": 580
-    },
-    "mutation_controls_passed": true,
-    "per_process_cpu": {
-      "categories": {
-        "Rejected before execution": 1
-      },
-      "distinct_cases": 1,
-      "evidence_valid": true
-    },
-    "persistent_rotation_passed": true,
-    "supplemental": {
-      "categories": {
-        "Enforced": 45,
-        "Inconclusive": 9,
-        "Qualified": 9
-      },
-      "distinct_cases": 21,
-      "evidence_valid": true,
-      "paired_trials": 63
-    },
-    "unsupported_mandatory": [
-      "cpu per_process 1000 need",
-      "cpu aggregate 1000 need",
-      "syscalls @minimal need",
-      "direct filesystem object read need"
-    ]
+  "schema": 2,
+  "scope": "macOS security and application correctness; no Linux execution or overhead benchmark",
+  "source_revisions": {
+    "application_framework": "794b17338eea0b71b67e084b720eb8d6d604b413",
+    "application_upstream": "4ffeb7f38178aa250917f29b01355f8b89ba809e",
+    "cpu_source_inventory": "324bd872c3326f5f5a1739cf74b079f6b50a814732c3281209c021dac890ac0a",
+    "linux_inventory": "caded83cf4e8ef83d3df1065f6acf3d808a4abb3",
+    "macos_committed_base": "794b17338eea0b71b67e084b720eb8d6d604b413",
+    "main_security_source_inventory": "298d23b371dcb7fd5b3aefa36b218107bb2b515e38b0778e6a576662e859ac86"
   }
 }

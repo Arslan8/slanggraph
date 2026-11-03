@@ -1,0 +1,16 @@
+{
+  "distinct_common_cases": 45,
+  "evidence_valid": true,
+  "issues": [],
+  "linux_revision": "caded83cf4e8ef83d3df1065f6acf3d808a4abb3",
+  "macos_paired_repetitions": 5,
+  "protected_outcomes": {
+    "Enforced": 185,
+    "Rejected before execution": 40
+  },
+  "selected_macos_conditions": {
+    "Argus": 225,
+    "Unprotected": 225
+  },
+  "selected_trials_per_host": 450
+}

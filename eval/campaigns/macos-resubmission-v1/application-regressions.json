@@ -9,7 +9,16 @@
     {
       "stage": "after_fix",
       "missing_cell": null,
-      "infinity_still_rejected": true,
+      "infinity_refusals": [
+        {
+          "value": "+Infinity",
+          "error": "output_data:nonfinite_float"
+        },
+        {
+          "value": "-Infinity",
+          "error": "output_data:nonfinite_float"
+        }
+      ],
       "validator_unchanged": true
     },
     {

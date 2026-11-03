@@ -1,0 +1,13 @@
+{
+  "fixture_digests": {
+    "eval/campaigns/langgraph-demos-v1/fixtures/customer-support/travel2.sqlite": "7646259e80230dc9bd92914466e13874bba82f461473d6a66552e819898eb66b",
+    "eval/campaigns/langgraph-demos-v1/fixtures/rag/2023-03-15-prompt-engineering.html": "8f9fa3bda887450231845d9fd5367ee66d5d1b6dd9ad9420ef94c953ecf4edd4",
+    "eval/campaigns/langgraph-demos-v1/fixtures/rag/2023-06-23-agent.html": "03b6ed75b1dc0dedd200a077367d1f7737f0a18e08c104e7f653115e1f52b0ef",
+    "eval/campaigns/langgraph-demos-v1/fixtures/rag/2023-10-25-adv-attack-llm.html": "86612bf758100148105aea452ac1e0ea068f8d2dba7bd3caf9632d42fd2cd55c",
+    "eval/campaigns/langgraph-demos-v1/fixtures/search/olympics.json": "b632fff8595de75c304c1fc6136c3acc78e3022862de762d06ef89e15ad24cdb",
+    "eval/campaigns/langgraph-demos-v1/fixtures/search/world-bank-gdp-2019-2023.json": "d67c7c415b35004aaa809a822d544495ce46649b2c422a11d78ca88f29726f39",
+    "eval/campaigns/langgraph-demos-v1/fixtures/sql/Chinook.db": "84f5d9143ac4deebdb81650ab650e226d909e660106846b119a5c47c33f94c13"
+  },
+  "task_digest": "5518b7cbf4e22276cda21c8425543dd32ca508f56841f75d473df49818a6d725",
+  "upstream_revision": "4ffeb7f38178aa250917f29b01355f8b89ba809e"
+}
