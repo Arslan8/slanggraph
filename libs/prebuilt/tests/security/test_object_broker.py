@@ -237,6 +237,33 @@ def test_prepared_context_refuses_changed_policy_without_claim(setup, native_che
     assert dispatcher.worker_pool_stats()["idle"] == 1
     assert seen == []
 
+    bob = replace(principal, user_id="bob")
+    with pytest.raises(HostExecutionDenied, match="grant_binding"):
+        dispatcher.invoke(bob, call, grant)
+    with pytest.raises(HostExecutionDenied, match="grant_binding"):
+        dispatcher.invoke(principal, replace(call, call_id="wrong"), grant)
+    assert dispatcher.worker_pool_stats()["idle"] == 1
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+def test_prepared_context_refuses_changed_tool_artifact(setup, native_checker):
+    dispatcher, principal, call, grant, seen = setup
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        mediators=dispatcher.mediators,
+        runtime_roots=dispatcher.runtime_roots,
+        lifecycle_checker=native_checker,
+        worker_pool_capacity=1,
+    )
+    dispatcher.prewarm(principal, call, grant)
+    dispatcher.tools[call.tool.name].artifact_path.write_text(
+        "raise AssertionError('changed tool executed')\n"
+    )
+    with pytest.raises(HostExecutionDenied, match="artifact_changed"):
+        dispatcher.invoke(principal, call, grant)
+    assert seen == []
+    assert dispatcher.worker_pool_stats()["idle"] == 0
+
 
 @pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
 def test_prepared_context_rebinds_fresh_principal_and_is_single_use(

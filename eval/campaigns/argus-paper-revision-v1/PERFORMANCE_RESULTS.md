@@ -1,5 +1,10 @@
 # Complete Linux configuration performance
 
+> This document preserves the original fresh-worker/subprocess-checker result.
+> It must not be presented as the optimized broker result. See
+> `OPTIMIZED_LINUX_REPORT.md` for the measured inline-checker/prepared-worker
+> path; no cost was subtracted from the 373.781 ms result below.
+
 ## Host and protocol
 
 The final campaign ran at commit `e29c882ff3a2fefbd3218a5476844f26f675a8af`

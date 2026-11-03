@@ -1,17 +1,19 @@
 # Argus Linux paper-revision handoff
 
 This directory is the revision entry point. macOS is explicitly out of scope.
-The authoritative implementation freeze is
-`e29c882ffc892cd1847c3190f21a0aa8cc4f0904`; later evidence/documentation
-commits do not change the measured implementation paths.
+The original complete-configuration implementation freeze is
+`e29c882ffc892cd1847c3190f21a0aa8cc4f0904`. The optimized Linux object-broker
+implementation is `32a85f4cd`; its separately labeled measurements and security
+evidence are described in `OPTIMIZED_LINUX_REPORT.md`.
 
 ## Reproduction order
 
 1. Build the checked worker route:
 
    ```sh
-   cd proofs/worker-route
-   PATH="$HOME/.elan/bin:$PATH" lake build workerRoute
+   python3 proofs/worker-route/build_native.py \
+     --lake "$HOME/.elan/bin/lake" \
+     --output proofs/worker-route/.lake/build/lib/libargus_worker_route.so
    ```
 
 2. Run the fail-closed complete-route preflight:
@@ -19,7 +21,8 @@ commits do not change the measured implementation paths.
    ```sh
    PATH="$HOME/.cargo/bin:$PATH" uv run --project libs/prebuilt python \
      eval/campaigns/argus-paper-revision-v1/preflight.py \
-     --checker proofs/worker-route/.lake/build/bin/workerRoute \
+     --checker-library proofs/worker-route/.lake/build/lib/libargus_worker_route.so \
+     --checker-runtime "$HOME/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so" \
      --output /tmp/argus-preflight --run-example
    ```
 
@@ -44,7 +47,8 @@ commits do not change the measured implementation paths.
 
    uv run --project libs/prebuilt python \
      eval/campaigns/argus-paper-revision-v1/run_performance.py \
-     --checker proofs/worker-route/.lake/build/bin/workerRoute \
+     --checker-library proofs/worker-route/.lake/build/lib/libargus_worker_route.so \
+     --checker-runtime "$HOME/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so" \
      --qualification /tmp/argus-host.json \
      --output /tmp/argus-performance \
      --acknowledge-controlled-host
@@ -60,7 +64,9 @@ must accompany timing results.
 - `SECURITY_RESULTS.md`: 45 cases, controls, classifications, fixes, trust
   assumptions, and retained inconclusive attempts.
 - `PERFORMANCE_RESULTS.md`: preparation/cold/steady boundaries and reconciled
-  timing results.
+  timing results for the original fresh-worker/subprocess configuration.
+- `OPTIMIZED_LINUX_REPORT.md`: inline-checker/prepared-worker implementation,
+  optimized measurements, enforcement results, and application applicability.
 - `APPLICATIONS.md`: 15 applications, Pandas, effort, compatibility, and failure
   analysis.
 - `PROOF_MAP.md`: exact theorem/checker/assumption map.
