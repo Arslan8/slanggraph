@@ -1,10 +1,9 @@
 # Argus Linux paper-revision handoff
 
 This directory is the revision entry point. macOS is explicitly out of scope.
-The original complete-configuration implementation freeze is
-`e29c882ffc892cd1847c3190f21a0aa8cc4f0904`. The optimized Linux object-broker
-implementation is `32a85f4cd`; its separately labeled measurements and security
-evidence are described in `OPTIMIZED_LINUX_REPORT.md`.
+The final evaluated Linux object-broker implementation is
+`f76cbebf85c28cfef520cc779a2c180914808d44`. Its measurement, security evidence,
+application route, and reproduction commands are in `OPTIMIZED_LINUX_REPORT.md`.
 
 ## Reproduction order
 
@@ -65,8 +64,8 @@ must accompany timing results.
   assumptions, and retained inconclusive attempts.
 - `PERFORMANCE_RESULTS.md`: preparation/cold/steady boundaries and reconciled
   timing results for the original fresh-worker/subprocess configuration.
-- `OPTIMIZED_LINUX_REPORT.md`: inline-checker/prepared-worker implementation,
-  optimized measurements, enforcement results, and application applicability.
+- `OPTIMIZED_LINUX_REPORT.md`: the final evaluated configuration, measurements,
+  enforcement results, and application applicability.
 - `APPLICATIONS.md`: 15 applications, Pandas, effort, compatibility, and failure
   analysis.
 - `PROOF_MAP.md`: exact theorem/checker/assumption map.

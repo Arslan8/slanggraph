@@ -1,0 +1,31 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.1.1, pluggy-1.6.0 -- /data/langgraph/libs/prebuilt/.venv/bin/python
+cachedir: .pytest_cache
+benchmark: 5.3.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'default'
+rootdir: /data/langgraph/libs/prebuilt
+configfile: pyproject.toml
+plugins: syrupy-6.0.0, cov-7.1.0, anyio-4.14.2, benchmark-5.3.0, asyncio-1.4.0, hypothesis-6.168.4, langsmith-0.8.18, mock-3.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 63 items / 57 deselected / 6 selected
+
+tests/security/test_object_broker.py::test_no_direct_socket PASSED       [ 16%]
+tests/security/test_object_broker.py::test_import_time_effect_is_confined_before_legitimate_broker_call PASSED [ 33%]
+tests/security/test_object_broker.py::test_no_grant_means_no_broker_authority PASSED [ 50%]
+tests/security/test_landlock.py::test_landlock_worker_uses_preconfined_broker_without_receiving_token PASSED [ 66%]
+tests/security/test_linux_setup_cleanup.py::test_success_transfers_each_used_descriptor_once[False] PASSED [ 83%]
+tests/security/test_linux_setup_cleanup.py::test_success_transfers_each_used_descriptor_once[True] PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/conftest.py:31
+  /data/langgraph/libs/prebuilt/tests/conftest.py:31: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.memory_assert
+    pytest.register_assert_rewrite("tests.memory_assert")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 5 durations ==============================
+0.50s call     tests/security/test_landlock.py::test_landlock_worker_uses_preconfined_broker_without_receiving_token
+0.50s call     tests/security/test_object_broker.py::test_no_grant_means_no_broker_authority
+0.50s call     tests/security/test_object_broker.py::test_no_direct_socket
+0.49s call     tests/security/test_object_broker.py::test_import_time_effect_is_confined_before_legitimate_broker_call
+0.01s call     tests/security/test_linux_setup_cleanup.py::test_success_transfers_each_used_descriptor_once[False]
+================= 6 passed, 57 deselected, 1 warning in 2.25s ==================

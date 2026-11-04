@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.1.1, pluggy-1.6.0 -- /data/langgraph/libs/prebuilt/.venv/bin/python
+cachedir: .pytest_cache
+benchmark: 5.3.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'default'
+rootdir: /data/langgraph/libs/prebuilt
+configfile: pyproject.toml
+plugins: syrupy-6.0.0, cov-7.1.0, anyio-4.14.2, benchmark-5.3.0, asyncio-1.4.0, hypothesis-6.168.4, langsmith-0.8.18, mock-3.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 51 items / 50 deselected / 1 selected
+
+tests/security/test_verification_contextvars.py::test_restored_value_does_not_inherit_replacement_grant PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/conftest.py:31
+  /data/langgraph/libs/prebuilt/tests/conftest.py:31: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.memory_assert
+    pytest.register_assert_rewrite("tests.memory_assert")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 5 durations ==============================
+
+(3 durations < 0.005s hidden.  Use -vv to show these durations.)
+================= 1 passed, 50 deselected, 1 warning in 0.22s ==================

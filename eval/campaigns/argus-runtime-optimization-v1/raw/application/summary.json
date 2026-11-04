@@ -1,0 +1,179 @@
+{
+  "implementation_commit": "f76cbebf85c28cfef520cc779a2c180914808d44",
+  "modes": {
+    "call_authorization_native": {
+      "completed": 4,
+      "forbidden_effects": 6,
+      "legitimate_results": 3,
+      "mean_ms": 23.690101066936872,
+      "median_ms": 22.961316513828933,
+      "refused": 3,
+      "trials": 14
+    },
+    "filesystem_accessible": {
+      "completed": 0,
+      "forbidden_effects": 0,
+      "legitimate_results": 0,
+      "mean_ms": 22.839511154286033,
+      "median_ms": 23.23060651542619,
+      "refused": 13,
+      "trials": 14
+    },
+    "incomplete_broker_reference": {
+      "completed": 7,
+      "forbidden_effects": 3,
+      "legitimate_results": 3,
+      "mean_ms": 22.955190340456152,
+      "median_ms": 23.743388010188937,
+      "refused": 3,
+      "trials": 14
+    },
+    "production_composition": {
+      "completed": 11,
+      "forbidden_effects": 0,
+      "legitimate_results": 3,
+      "mean_ms": 467.9750190033311,
+      "median_ms": 583.489341486711,
+      "refused": 3,
+      "trials": 14
+    }
+  },
+  "production_cases": [
+    {
+      "case_id": "allowed_read",
+      "classification": "completed",
+      "elapsed_ms": 619.3979040253907,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": true
+    },
+    {
+      "case_id": "allowed_write",
+      "classification": "completed",
+      "elapsed_ms": 594.8903049575165,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": true
+    },
+    {
+      "case_id": "allowed_delete",
+      "classification": "completed",
+      "elapsed_ms": 590.7550159608945,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": true
+    },
+    {
+      "case_id": "denied_read",
+      "classification": "refused",
+      "elapsed_ms": 22.09082606714219,
+      "error": {
+        "message": "object_policy:dac:envelope:record_task:0",
+        "type": "HostExecutionDenied"
+      },
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "denied_write",
+      "classification": "refused",
+      "elapsed_ms": 20.20497201010585,
+      "error": {
+        "message": "object_policy:dac:envelope:record_task:1",
+        "type": "HostExecutionDenied"
+      },
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "denied_delete",
+      "classification": "refused",
+      "elapsed_ms": 21.317888982594013,
+      "error": {
+        "message": "object_policy:dac:envelope:record_task:2",
+        "type": "HostExecutionDenied"
+      },
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "selector_substitution",
+      "classification": "completed",
+      "elapsed_ms": 596.9583370024338,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "omitted_write",
+      "classification": "completed",
+      "elapsed_ms": 580.3462259937078,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "omitted_delete",
+      "classification": "completed",
+      "elapsed_ms": 586.6324569797143,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "direct_database",
+      "classification": "completed",
+      "elapsed_ms": 586.8730950169265,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "direct_wal",
+      "classification": "completed",
+      "elapsed_ms": 577.8121879557148,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "direct_shm",
+      "classification": "completed",
+      "elapsed_ms": 577.4301659548655,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "retry_broker_then_direct",
+      "classification": "completed",
+      "elapsed_ms": 573.3448601095006,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    },
+    {
+      "case_id": "rpc_spoof",
+      "classification": "completed",
+      "elapsed_ms": 603.5960250301287,
+      "error": null,
+      "forbidden_effect": false,
+      "isolation_route": "host isolation: prepared Landlock worker with a spawn-bound SQLite broker and inline Lean lifecycle checks",
+      "legitimate_result": false
+    }
+  ],
+  "schema": 1
+}

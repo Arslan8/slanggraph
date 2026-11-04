@@ -6,7 +6,7 @@ mean Lean proves Python, Cedar, the compiler, the decoder, or the kernel.
 
 | Property | Proved conclusion | Assumptions | Connected implementation/checker | Negative example rejected |
 | --- | --- | --- | --- | --- |
-| Exact route lifecycle | Success iff matching authorization, confirmed supported activation, `GO`, accepted result and confirmed cleanup occur in order | Event observations and bindings are truthful; controller/checker transport trusted | `WorkerRoute.lean`; `LeanLifecycleSession`; Linux pre-`GO` and result gates | invocation/principal/grant binding mismatch, result before `GO`, cancellation without cleanup |
+| Exact route lifecycle | Success iff matching authorization, confirmed supported activation, `GO`, accepted result and confirmed cleanup occur in order | Event observations and bindings are truthful; controller/checker transport and retained native value are trusted | `WorkerRoute.lean`; native `PreparedRoute`; `LeanLifecycleSession`; Linux pre-`GO` and result gates | invocation/principal/grant binding mismatch, result before `GO`, cancellation without cleanup |
 | Grant generation coverage | Accepted obligation inventory equals deterministic rules plus deny-complement obligations | Python capture corresponds to modeled grant and obligation constructors | `GrantCoverage.lean`; `require_grant` | omitted/altered operation, selector, condition, dependency, complement or extra row |
 | Receipt coverage | Enforced plan/receipt cover the same obligations with no waiver and matching native plan/evidence | Signatures, freshness and native observation provenance trusted | `ReceiptCoverage.lean`; coordinator receipt validation; certificate capture | missing assignment/evidence, altered nonce/context/plan |
 | Resource broker coverage | Every service rule has bypass, authenticated-channel and credential-custody guards; exact generated inventory selected | Mediator protected paths/capabilities and OS enforcement truthful | `ResourceGrantCoverage.lean`; object-route checker protocol; Linux object workers | omitted bypass guard; altered selector, dependency, binding, or custody operation |
@@ -16,6 +16,8 @@ mean Lean proves Python, Cedar, the compiler, the decoder, or the kernel.
 
 - Runtime checker: grant/obligation inventory, certificate coverage, lifecycle
   transition order and result release.
+- Prepared checker interface: binding and certificate parsing is retained once;
+  every fresh event trace still calls the same certified Lean definitions.
 - Model only: abstract composition theorems unless a separate correspondence
   argument connects every runtime layer.
 - Trusted implementation: Cedar CLI semantics/invocation, Python capture code,

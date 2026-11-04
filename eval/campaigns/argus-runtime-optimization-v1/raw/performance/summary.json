@@ -1,0 +1,105 @@
+{
+  "schema": 2,
+  "sessions": 5,
+  "warmups_per_session": 10,
+  "measured_pairs": 100,
+  "preparation": {
+    "checker_load_mean_ms": 531.6916686,
+    "dispatcher_mean_ms": 0.4579014,
+    "admission_policy_mean_ms": 341.91805880000004,
+    "first_worker_mean_ms": 170.79625579999998,
+    "recurring_replenishment": {
+      "mean_ms": 90.43360820666666,
+      "median_ms": 90.39802750000001,
+      "p95_ms": 93.661498,
+      "stdev_ms": 1.8980841626829414,
+      "coefficient_of_variation": 0.02098870320805155
+    },
+    "contents": [
+      "sealed inline checker and pinned runtime",
+      "closed graph admission and parsed Cedar policy",
+      "exact host plan template and mediator decisions",
+      "confined single-use worker waiting at the authorization barrier"
+    ],
+    "replenishment_can_delay_next_request": true
+  },
+  "first_invocation_after_preparation": {
+    "baseline": {
+      "mean_ms": 0.1017196,
+      "median_ms": 0.101614,
+      "p95_ms": 0.110555,
+      "stdev_ms": 0.005909394410597416,
+      "coefficient_of_variation": 0.05809494345826583
+    },
+    "argus": {
+      "mean_ms": 73.1874656,
+      "median_ms": 73.768817,
+      "p95_ms": 74.776508,
+      "stdev_ms": 1.5925212330516372,
+      "coefficient_of_variation": 0.021759480533940462
+    }
+  },
+  "prepared_steady_state": {
+    "baseline": {
+      "mean_ms": 0.11257288000000001,
+      "median_ms": 0.1091445,
+      "p95_ms": 0.151365,
+      "stdev_ms": 0.013768453071621901,
+      "coefficient_of_variation": 0.12230701632242064
+    },
+    "argus": {
+      "mean_ms": 85.47631315000001,
+      "median_ms": 82.797226,
+      "p95_ms": 140.807647,
+      "stdev_ms": 15.599833912441818,
+      "coefficient_of_variation": 0.18250475877528904
+    },
+    "absolute_difference_mean_ms": 85.36374027000001,
+    "relative_overhead_ratio": 759.2975603893229
+  },
+  "online_breakdown_mean_ms": {
+    "authorization": 0.97508809,
+    "invocation_and_activation": 44.34091125721436,
+    "lean_grant": 3.6256214499999997,
+    "lean_pre_execution": 1.4600037399999999,
+    "worker_transport": 24.022139082785642,
+    "resource_execution": 0.18983305,
+    "lean_result_cleanup": 0.63495609,
+    "required_cleanup": 0.16227868,
+    "audit": 6.36183957,
+    "framework_residual": 3.703642139999999
+  },
+  "invocation_activation_detail_mean_ms": {
+    "prepared_worker_selection": 0.042795440000000004,
+    "grant_construction": 0.44315699000000003,
+    "mediator_setup_inclusive": 4.4661156,
+    "prepared_policy_binding": 3.79759568,
+    "channel_thread_setup": 0.04598593,
+    "certificate_construction": 4.82939677,
+    "receipt_activation_validation": 0.69540627,
+    "lean_certificate_preparation": 0.87384115,
+    "request_encoding": 0.01316046,
+    "worker_ready_wait": 0.07428130000000001
+  },
+  "release_detail_mean_ms": {
+    "worker_result_wait": 0.03207261,
+    "worker_release": 0.16227868
+  },
+  "online_breakdown_reconciled_ms": 85.47631315,
+  "instrumentation": {
+    "inline_checking_active": true,
+    "checker_subprocess_calls": 0,
+    "checker_loaded_during_preparation": true,
+    "prepared_lowering_repeated_online": false,
+    "pool_misses": 0,
+    "fallbacks": 0,
+    "policy_lowerings_per_session": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "required_check_spans_positive": true
+  }
+}

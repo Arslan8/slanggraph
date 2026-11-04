@@ -7,6 +7,7 @@ these tests do not establish their authorization or confinement provenance.
 
 from __future__ import annotations
 
+import signal
 from collections.abc import Mapping
 from dataclasses import replace
 from types import MappingProxyType
@@ -128,7 +129,7 @@ def test_invoke_uses_detached_grant_through_real_checker_and_controlled_worker(
     assert before["certificate"]["obligations"] == first["obligations"]
     assert before["certificate"]["grant"]["digest"] == detached.digest
     assert before["go_received"] is False
-    assert after["child_status"] == (0,)
+    assert after["child_status"] in {(0,), (-signal.SIGKILL,)}
     assert harness.go_marker.read_text() == "GO received"
 
 

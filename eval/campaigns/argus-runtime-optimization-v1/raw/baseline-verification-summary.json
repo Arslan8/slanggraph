@@ -1,0 +1,85 @@
+{
+  "schema": 2,
+  "sessions": 1,
+  "warmups_per_session": 3,
+  "measured_pairs": 10,
+  "preparation": {
+    "checker_load_mean_ms": 1555.397767,
+    "dispatcher_mean_ms": 0.426943,
+    "admission_policy_mean_ms": 343.508107,
+    "first_worker_mean_ms": 187.587297,
+    "recurring_replenishment": {
+      "mean_ms": 93.98338292307692,
+      "median_ms": 94.004686,
+      "p95_ms": 96.406499,
+      "stdev_ms": 1.5415208658111759,
+      "coefficient_of_variation": 0.0164020576602661
+    },
+    "contents": [
+      "sealed inline checker and pinned runtime",
+      "closed graph admission and parsed Cedar policy",
+      "exact host plan template and mediator decisions",
+      "confined single-use worker waiting at the authorization barrier"
+    ],
+    "replenishment_can_delay_next_request": true
+  },
+  "first_invocation_after_preparation": {
+    "baseline": {
+      "mean_ms": 0.104109,
+      "median_ms": 0.104109,
+      "p95_ms": 0.104109,
+      "stdev_ms": 0.0,
+      "coefficient_of_variation": 0.0
+    },
+    "argus": {
+      "mean_ms": 79.69935,
+      "median_ms": 79.69935,
+      "p95_ms": 79.69935,
+      "stdev_ms": 0.0,
+      "coefficient_of_variation": 0.0
+    }
+  },
+  "prepared_steady_state": {
+    "baseline": {
+      "mean_ms": 0.11186670000000001,
+      "median_ms": 0.1111635,
+      "p95_ms": 0.122678,
+      "stdev_ms": 0.0061283986498196314,
+      "coefficient_of_variation": 0.05478304669593034
+    },
+    "argus": {
+      "mean_ms": 87.93622760000001,
+      "median_ms": 87.244449,
+      "p95_ms": 93.142523,
+      "stdev_ms": 3.2759940315505993,
+      "coefficient_of_variation": 0.03725420251653596
+    },
+    "absolute_difference_mean_ms": 87.82436090000002,
+    "relative_overhead_ratio": 786.0804654110651
+  },
+  "online_breakdown_mean_ms": {
+    "authorization": 0.9089781,
+    "invocation_and_activation": 41.913569515173336,
+    "lean_grant": 3.6262625999999996,
+    "lean_pre_execution": 5.5585789,
+    "worker_transport": 18.59278648482666,
+    "resource_execution": 0.1899705,
+    "lean_result_cleanup": 6.2045983,
+    "required_cleanup": 0.1668503,
+    "audit": 7.7951752,
+    "framework_residual": 2.9794577000000033
+  },
+  "online_breakdown_reconciled_ms": 87.9362276,
+  "instrumentation": {
+    "inline_checking_active": true,
+    "checker_subprocess_calls": 0,
+    "checker_loaded_during_preparation": true,
+    "prepared_lowering_repeated_online": false,
+    "pool_misses": 0,
+    "fallbacks": 0,
+    "policy_lowerings_per_session": [
+      1
+    ],
+    "required_check_spans_positive": true
+  }
+}

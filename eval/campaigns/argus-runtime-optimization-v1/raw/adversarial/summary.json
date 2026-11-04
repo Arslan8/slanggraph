@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "distinct_investigations": 51,
+  "scheduling_trials": 2000,
+  "all_passed": true,
+  "groups": [
+    {
+      "boundary": "authorization_to_resource",
+      "control_and_oracle": "mutated/delayed requests and changed support require a fresh current decision",
+      "command": [
+        "/data/langgraph/libs/prebuilt/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/security/test_mediation.py",
+        "tests/security/test_object_broker.py",
+        "-k",
+        "rebinding_after_authorization or each_physical_dispatch or new_policy_decision or resource_support_rechecked"
+      ],
+      "started_ns": 1793813213117232506,
+      "ended_ns": 1793813214830295199,
+      "returncode": 0,
+      "passed": 5,
+      "log": "authorization_to_resource.log",
+      "log_sha256": "b5c5bb905f3e33fca1704d30c6f300d92fa2847161539ed12324cc892873be03"
+    },
+    {
+      "boundary": "filesystem_identity",
+      "control_and_oracle": "legacy positive witness reads the replacement; descriptor route refuses or retains the pinned object",
+      "command": [
+        "/data/langgraph/libs/prebuilt/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/security/test_linux_resource_resolution.py",
+        "tests/security/test_language_file_binding.py",
+        "-k",
+        "ancestor_replaced or hard_link_alias or symlink_swap or postpin or initial_alias"
+      ],
+      "started_ns": 1793813214830351100,
+      "ended_ns": 1793813215807459452,
+      "returncode": 0,
+      "passed": 7,
+      "log": "filesystem_identity.log",
+      "log_sha256": "2dcdd390cb1e388e35082b6d48e7a133c455cb1e205a453d9362e17863a26507"
+    },
+    {
+      "boundary": "worker_startup",
+      "control_and_oracle": "live listener/import effect, broker credential custody and inherited descriptor set are independently observed",
+      "command": [
+        "/data/langgraph/libs/prebuilt/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/security/test_object_broker.py",
+        "tests/security/test_landlock.py",
+        "tests/security/test_linux_setup_cleanup.py",
+        "-k",
+        "no_direct_socket or import_time_effect or no_grant_means_no_broker_authority or preconfined_broker_without_receiving_token or success_transfers_each_used_descriptor_once"
+      ],
+      "started_ns": 1793813215807556892,
+      "ended_ns": 1793813218810718315,
+      "returncode": 0,
+      "passed": 6,
+      "log": "worker_startup.log",
+      "log_sha256": "90b587994164a64ba3539482446b3c24bbcad273d9ac99c05809ced14b4c47e5"
+    },
+    {
+      "boundary": "child_processes",
+      "control_and_oracle": "fork/thread controls reach creation without the filter; protected workers cannot create descendants",
+      "command": [
+        "/data/langgraph/libs/prebuilt/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/security/test_native_async_lifetime.py",
+        "-k",
+        "direct_landlock_without_cgroup_forbids_descendant_creation"
+      ],
+      "started_ns": 1793813218810758322,
+      "ended_ns": 1793813220008200522,
+      "returncode": 0,
+      "passed": 2,
+      "log": "child_processes.log",
+      "log_sha256": "280bbc15753ca07f4d7f0bd486cbdd8d1ba3222352c0eddd4c77fdecff2981b2"
+    },
+    {
+      "boundary": "controller_guardian",
+      "control_and_oracle": "cancellation, PID identity changes and signal/poll failures are checked independently",
+      "command": [
+        "/data/langgraph/libs/prebuilt/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/security/test_native_async_lifetime.py",
+        "tests/security/test_linux_pidfd_lifetime.py",
+        "-k",
+        "(repeated_cancellation_waits_for_child_exit and Landlock) or changed_identity_is_not_signaled or unavailable_handles_or_signals or poll_error_does_not_certify_exit"
+      ],
+      "started_ns": 1793813220008230120,
+      "ended_ns": 1793813221009287230,
+      "returncode": 0,
+      "passed": 9,
+      "log": "controller_guardian.log",
+      "log_sha256": "fea63016603526252f630f20608d837bcb30fd517a300067db227d951648d741"
+    },
+    {
+      "boundary": "reused_contexts",
+      "control_and_oracle": "restored context is a positive carrier but cannot retain replacement authority",
+      "command": [
+        "/data/langgraph/libs/prebuilt/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/security/test_verification_contextvars.py",
+        "-k",
+        "restored_value_does_not_inherit_replacement_grant"
+      ],
+      "started_ns": 1793813221009316414,
+      "ended_ns": 1793813221994843499,
+      "returncode": 0,
+      "passed": 1,
+      "log": "reused_contexts.log",
+      "log_sha256": "09e2273767e75fffb12f5584755be1b57e506a1f9cf071d853e187aaf4caa202"
+    },
+    {
+      "boundary": "parallel_execution",
+      "control_and_oracle": "two ToolNode modes, 1,000 sync/async calls, identity substitution and frame confusion checks",
+      "command": [
+        "/data/langgraph/libs/prebuilt/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/security/test_tool_node_security.py",
+        "tests/security/test_concurrency.py",
+        "tests/security/test_broker.py",
+        "tests/security/test_flow.py",
+        "-k",
+        "parallel_tool_dispatch_records_one_identity_transfer or thousand_parallel or worker_supplied_identity or oversized_frame or parallel_read_and_egress or concurrent_source_cannot_start"
+      ],
+      "started_ns": 1793813221994893953,
+      "ended_ns": 1793813226487823919,
+      "returncode": 0,
+      "passed": 8,
+      "log": "parallel_execution.log",
+      "log_sha256": "0a539f36682770ed8a0957b439b007dd89355ad098abe58e71f347b189d2285f"
+    },
+    {
+      "boundary": "admission_framework",
+      "control_and_oracle": "allowed framework shapes execute; modified bodies/artifacts and invalid history refuse before use",
+      "command": [
+        "/data/langgraph/libs/prebuilt/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/security/test_admission.py",
+        "tests/security/test_checkpoint_placement.py",
+        "tests/security/test_placement.py",
+        "tests/security/test_tool_node_security.py",
+        "-k",
+        "unsupported_node_bodies_refuse or recheck_refuses_replaced or tampered_checkpoint or replayed_checkpoint or subgraph_dispatch_denial or injected_store_allows_only_exact_declared_keys"
+      ],
+      "started_ns": 1793813226487854628,
+      "ended_ns": 1793813228136571217,
+      "returncode": 0,
+      "passed": 13,
+      "log": "admission_framework.log",
+      "log_sha256": "c56dc06a9f74173f460f562aec4c42dab01361f351b105908aeee5c230cadd38"
+    }
+  ]
+}
