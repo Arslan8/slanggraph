@@ -171,13 +171,17 @@ certificate arrays to 256 entries, and event traces to 32. Required strings are
 nonempty and bounded; deployment/runtime may be empty optional metadata.
 
 The bridge captures the executable by digest and executes sealed `memfd` bytes.
-It projects actual native plan/receipt records, then retains binding, certificate
-and event history as immutable JSON bytes. Fresh decoded arguments are used at
-each call. Input-alias and observing-callback mutation regressions exercise this
-reuse across GO and cleanup; they do not prove controller immutability, safe
-module rebinding or all concurrent Python behaviors. Existing receipt validation,
-cleanup and failure handling remain necessary. The selected route refuses async
-invocation; cancellation theorems alone do not establish native async behavior.
+The replay/executable route projects actual plan/receipt records into the full
+JSON certificate. The optimized inline route instead checks the typed grant and
+validates the activation receipt in the trusted controller, then creates Lean
+lifecycle typestate from the 17 exact binding fields through a typed C ABI. It
+does not rebuild, serialize, or parse the certificate or synthetic event records
+at either gate. The constructor is not an authorizer: correct placement after
+the grant and receipt checks is a trusted bridge premise. Lean still decides
+binding equality, GO ordering, result acceptance, and cleanup ordering. Existing
+receipt validation, cleanup and failure handling remain necessary. The selected
+route refuses async invocation; cancellation theorems alone do not establish
+native async behavior.
 
 The retained [cross-adapter probe](../../eval/campaigns/remediation-v2/raw/checks/receipt-cross-adapter-scope-v2/result.json)
 used a separately identified development v2 binary. Crossed evidence ownership

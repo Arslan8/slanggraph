@@ -478,7 +478,11 @@ def test_inline_session_prepares_certificate_once_and_checks_both_gates(
     def unexpected_json(*args, **kwargs):
         raise AssertionError("prepared lifecycle transition encoded JSON")
 
+    def unexpected_copy(*args, **kwargs):
+        raise AssertionError("prepared lifecycle transition copied event records")
+
     monkeypatch.setattr(lean_lifecycle, "_encoded", unexpected_json)
+    monkeypatch.setattr(lean_lifecycle, "_data", unexpected_copy)
     session.permit_go(bound, supported=True)
     session.permit_success(bound)
 
@@ -486,6 +490,13 @@ def test_inline_session_prepares_certificate_once_and_checks_both_gates(
     assert after["prepared_routes"] == before["prepared_routes"] + 1
     assert after["prepared_calls"] == before["prepared_calls"] + 2
     assert after["subprocess_calls"] == before["subprocess_calls"]
+
+
+def test_inline_session_rejects_release_before_go(native_checker):
+    bound = binding()
+    session = LeanLifecycleSession(native_checker, bound, certificate(bound))
+    with pytest.raises(HostExecutionDenied, match="lean_lifecycle_refused"):
+        session.permit_success(bound)
 
 
 def test_prepared_route_is_checker_bound_and_closed_after_release(native_checker):

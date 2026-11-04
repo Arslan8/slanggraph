@@ -962,19 +962,24 @@ class LandlockSandboxExecutor:
                     "host": receipt.host_digest,
                     "context": receipt.context_digest,
                 }
-                certificate = _capture_controller_receipt_certificate(
-                    plan,
-                    receipt,
-                    plan_digest=plan.digest,
-                    grant=self._lean_grant,
-                    obligations=self._lean_obligations,
-                )
-                lifecycle = LeanLifecycleSession._from_captured(
-                    self.lifecycle_checker,
-                    expected,
-                    certificate,
-                    object_route=getattr(self, "_lean_object_route", False),
-                )
+                if self.lifecycle_checker.inline:
+                    lifecycle = LeanLifecycleSession._from_validated_binding(
+                        self.lifecycle_checker, expected
+                    )
+                else:
+                    certificate = _capture_controller_receipt_certificate(
+                        plan,
+                        receipt,
+                        plan_digest=plan.digest,
+                        grant=self._lean_grant,
+                        obligations=self._lean_obligations,
+                    )
+                    lifecycle = LeanLifecycleSession._from_captured(
+                        self.lifecycle_checker,
+                        expected,
+                        certificate,
+                        object_route=getattr(self, "_lean_object_route", False),
+                    )
                 lifecycle.permit_go(
                     lifecycle_observed,
                     supported=not plan.waived_obligations,

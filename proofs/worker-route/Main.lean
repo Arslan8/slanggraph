@@ -439,13 +439,11 @@ private def check (input : String) : Except String Json := do
   return Json.mkObj [("protocol", toJson "worker-route-grant-v3"),
     ("schema", toJson (3 : Nat)), ("phase", toJson phase)]
 
-/-- The invocation-stable portion of a lifecycle request. The native bridge
-    retains this Lean value between gates, so bindings and certificates are
-    parsed once while every event trace is still decided by the proved core. -/
+/-- Lifecycle typestate retained between gates. The JSON constructor checks the
+    complete certificate; the typed constructor is used only after the trusted
+    grant and activation validators establish the corresponding premises. -/
 structure PreparedRoute where
   original : Binding
-  certificate : GrantCoverage.Certificate
-  objectRoute : Bool
 
 /-- A fully checked grant inventory retained across invocation bindings. -/
 structure PreparedGrant where
@@ -461,22 +459,22 @@ private def prepareRoute (input : String) : Except String PreparedRoute := do
   let kind ← textField value "kind"
   unless kind == "route" || kind == "object-route" do
     throw "unsupported request kind"
-  return {
-    original := ← binding (← value.getObjVal? "binding")
-    certificate := ← certificate (← value.getObjVal? "certificate")
-    objectRoute := kind == "object-route"
-  }
+  let original ← binding (← value.getObjVal? "binding")
+  let certificate ← certificate (← value.getObjVal? "certificate")
+  let objectRoute := kind == "object-route"
+  let accepted := if objectRoute then
+    ResourceGrantCoverage.certificateValid original certificate
+  else
+    GrantCoverage.certificateValid original certificate
+  unless accepted do throw "invalid route certificate"
+  return { original }
 
 private def checkPrepared (prepared : PreparedRoute) (input : String) : Except String String := do
   let value ← ProtocolParser.parse input
   let events ← value.getArr?
   unless events.size ≤ 32 do throw "event budget"
   let events ← events.toList.mapM event
-  return phaseName
-    (if prepared.objectRoute then
-      ResourceGrantCoverage.runCertified prepared.original prepared.certificate events
-    else
-      GrantCoverage.runCertified prepared.original prepared.certificate events).phase
+  return phaseName (WorkerRoute.run prepared.original events).phase
 
 private def prepareGrant (input : String) : Except String PreparedGrant := do
   let value ← ProtocolParser.parse input
@@ -524,11 +522,18 @@ private def observedBinding
   worker := { pid := workerPid, startTime := workerStartTime, bootId := workerBootId }
 }
 
+/-- Bind facts already established by the trusted grant and activation
+    validators. This constructor does not authorize them; it creates the
+    typestate consumed by the proved GO/result transition checks. -/
+@[export argus_worker_route_prepare_validated_binding]
+def prepareValidatedBindingNative
+    (principal session call intent policy tool artifact deployment runtime grant plan nonce host context
+      workerPid workerStartTime workerBootId : String) : PreparedRoute :=
+  { original := observedBinding principal session call intent policy tool artifact deployment runtime grant
+      plan nonce host context workerPid workerStartTime workerBootId }
+
 private def preparedPhase (prepared : PreparedRoute) (events : List Event) : Phase :=
-  (if prepared.objectRoute then
-    ResourceGrantCoverage.runCertified prepared.original prepared.certificate events
-  else
-    GrantCoverage.runCertified prepared.original prepared.certificate events).phase
+  (WorkerRoute.run prepared.original events).phase
 
 private def checkPreparedGo (prepared : PreparedRoute) (observed : Binding)
     (supported : Bool) : Bool :=
@@ -540,7 +545,7 @@ private def checkPreparedSuccess (prepared : PreparedRoute) (observed : Binding)
     [.authorize prepared.original true, .activate prepared.original true true, .go prepared.original,
       .result observed true, .cleanup true] == .ready
 
-/-- Parse and type-check the stable certificate once. -/
+/-- Parse and validate the complete certificate once. -/
 @[export argus_worker_route_prepare]
 def prepareNative (input : String) : Option PreparedRoute :=
   match prepareRoute input with

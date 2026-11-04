@@ -94,6 +94,32 @@ class _NativeRouteBinding(ctypes.Structure):
     _fields_ = tuple((name, _NativeSlice) for name in _ROUTE_BINDING_NAMES)
 
 
+def _native_route_binding(
+    observed: dict,
+) -> tuple[_NativeRouteBinding, tuple[ctypes.Array, ...]]:
+    """Project controller-owned identity into the narrow native ABI."""
+    if type(observed) is not dict:
+        raise HostExecutionDenied("host:lean_protocol_shape")
+    worker = observed.get("worker")
+    if type(worker) is not dict:
+        raise HostExecutionDenied("host:lean_protocol_shape")
+    values = tuple(observed.get(name) for name in _ROUTE_BINDING_NAMES[:-3]) + (
+        worker.get("pid"),
+        worker.get("startTime"),
+        worker.get("bootId"),
+    )
+    encoded = tuple(
+        _string(value, nonempty=name not in {"deployment", "runtime"}).encode()
+        for name, value in zip(_ROUTE_BINDING_NAMES, values, strict=True)
+    )
+    buffers = tuple(ctypes.create_string_buffer(value) for value in encoded)
+    slices = tuple(
+        _NativeSlice(ctypes.addressof(buffer), len(value))
+        for buffer, value in zip(buffers, encoded, strict=True)
+    )
+    return _NativeRouteBinding(*slices), buffers
+
+
 @contextmanager
 def _macos_snapshot(image: bytes):
     """Private immutable inode for dyld/exec; remove it after native loading."""
@@ -559,6 +585,9 @@ class LeanLifecycleChecker:
     )
     _native_check: Any = field(init=False, repr=False, compare=False, default=None)
     _native_prepare: Any = field(init=False, repr=False, compare=False, default=None)
+    _native_prepare_binding: Any = field(
+        init=False, repr=False, compare=False, default=None
+    )
     _native_check_prepared: Any = field(
         init=False, repr=False, compare=False, default=None
     )
@@ -642,6 +671,9 @@ class LeanLifecycleChecker:
                 prepare = library.argus_worker_route_prepare_json
                 prepare.argtypes = (ctypes.c_char_p, ctypes.c_size_t)
                 prepare.restype = ctypes.c_void_p
+                prepare_binding = library.argus_worker_route_prepare_binding_typed
+                prepare_binding.argtypes = (ctypes.POINTER(_NativeRouteBinding),)
+                prepare_binding.restype = ctypes.c_void_p
                 check_prepared = library.argus_worker_route_check_prepared_json
                 check_prepared.argtypes = (
                     ctypes.c_void_p,
@@ -695,6 +727,7 @@ class LeanLifecycleChecker:
             object.__setattr__(self, "_native_libraries", (runtime, library))
             object.__setattr__(self, "_native_check", function)
             object.__setattr__(self, "_native_prepare", prepare)
+            object.__setattr__(self, "_native_prepare_binding", prepare_binding)
             object.__setattr__(self, "_native_check_prepared", check_prepared)
             object.__setattr__(self, "_native_check_prepared_go", check_prepared_go)
             object.__setattr__(
@@ -869,6 +902,22 @@ class LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_lifecycle_refused")
         return _PreparedLifecycleRoute(self, handle)
 
+    def _prepare_validated_binding(self, observed: dict) -> _PreparedLifecycleRoute:
+        """Create typestate after the controller validates grant and receipt."""
+        if (
+            type(self) is not LeanLifecycleChecker
+            or self._native_prepare_binding is None
+        ):
+            raise HostExecutionDenied("host:lean_inline_required")
+        binding, _buffers = _native_route_binding(observed)
+        with self._stats_lock:
+            handle = self._native_prepare_binding(ctypes.byref(binding))
+            if handle:
+                self._stats["prepared_routes"] += 1
+        if not handle:
+            raise HostExecutionDenied("host:lean_lifecycle_refused")
+        return _PreparedLifecycleRoute(self, handle)
+
     def require_prepared(
         self, prepared: _PreparedLifecycleRoute, events: list, phase: str
     ) -> None:
@@ -922,27 +971,7 @@ class LeanLifecycleChecker:
             or phase not in {"running", "ready"}
         ):
             raise HostExecutionDenied("host:lean_binary_configuration")
-        worker = observed.get("worker")
-        if type(worker) is not dict:
-            raise HostExecutionDenied("host:lean_protocol_shape")
-        values = tuple(observed.get(name) for name in _ROUTE_BINDING_NAMES[:-3]) + (
-            worker.get("pid"),
-            worker.get("startTime"),
-            worker.get("bootId"),
-        )
-        encoded = tuple(
-            _string(
-                value,
-                nonempty=name not in {"deployment", "runtime"},
-            ).encode()
-            for name, value in zip(_ROUTE_BINDING_NAMES, values, strict=True)
-        )
-        buffers = tuple(ctypes.create_string_buffer(value) for value in encoded)
-        slices = tuple(
-            _NativeSlice(ctypes.addressof(buffer), len(value))
-            for buffer, value in zip(buffers, encoded, strict=True)
-        )
-        binding = _NativeRouteBinding(*slices)
+        binding, _buffers = _native_route_binding(observed)
         function = (
             self._native_check_prepared_go
             if phase == "running"
@@ -1112,6 +1141,7 @@ class LeanLifecycleSession:
         "_failed",
         "_object_route",
         "_prepared",
+        "_running",
     )
 
     def __init__(
@@ -1132,6 +1162,7 @@ class LeanLifecycleSession:
         self._events = []
         self._failed = False
         self._object_route = object_route
+        self._running = False
         self._prepared = (
             checker._prepare_captured_route(
                 binding, certificate, object_route=object_route
@@ -1164,6 +1195,7 @@ class LeanLifecycleSession:
         session._events = []
         session._failed = False
         session._object_route = object_route
+        session._running = False
         session._prepared = (
             checker._prepare_captured_route(
                 binding, certificate, object_route=object_route
@@ -1173,8 +1205,44 @@ class LeanLifecycleSession:
         )
         return session
 
+    @classmethod
+    def _from_validated_binding(
+        cls, checker: LeanLifecycleChecker, binding: dict
+    ) -> LeanLifecycleSession:
+        """Bind facts after typed grant and activation-receipt validation."""
+        if (
+            cls is not LeanLifecycleSession
+            or type(checker) is not LeanLifecycleChecker
+            or type(binding) is not dict
+            or not checker.inline
+        ):
+            raise HostExecutionDenied("host:lean_binary_configuration")
+        session = object.__new__(cls)
+        session._checker = checker
+        session._binding = binding
+        session._certificate = None
+        session._events = []
+        session._failed = False
+        session._object_route = False
+        session._running = False
+        session._prepared = checker._prepare_validated_binding(binding)
+        return session
+
     def permit_go(self, observed: dict, *, supported: bool) -> None:
         """Called only after grant negotiation and receipt validation succeed."""
+        if self._failed or self._running:
+            raise HostExecutionDenied("host:lean_lifecycle_refused")
+        if self._prepared is not None:
+            try:
+                self._checker._require_prepared_transition(
+                    self._prepared, observed, "running", supported=supported
+                )
+                self._running = True
+                return
+            except BaseException:
+                self._failed = True
+                self._prepared.close()
+                raise
         self._advance(
             [
                 {"kind": "authorize", "binding": observed, "authorized": True},
@@ -1188,9 +1256,24 @@ class LeanLifecycleSession:
             ],
             "running",
         )
+        self._running = True
 
     def permit_success(self, observed: dict) -> None:
         """Called only after a valid result and confirmed cleanup return."""
+        if self._failed or not self._running:
+            raise HostExecutionDenied("host:lean_lifecycle_refused")
+        if self._prepared is not None:
+            try:
+                self._checker._require_prepared_transition(
+                    self._prepared, observed, "ready"
+                )
+                self._running = False
+                self._prepared.close()
+                return
+            except BaseException:
+                self._failed = True
+                self._prepared.close()
+                raise
         self._advance(
             [
                 {"kind": "result", "binding": observed, "accepted": True},
@@ -1198,6 +1281,7 @@ class LeanLifecycleSession:
             ],
             "ready",
         )
+        self._running = False
 
     def _advance(self, events: list[dict], phase: str) -> None:
         if self._failed:

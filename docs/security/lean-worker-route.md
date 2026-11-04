@@ -144,15 +144,19 @@ depth 12, 256 entries per certificate array, and 32 events; identities are at
 most 4096 Unicode scalar values. Exceeding a bound refuses the operation rather
 than truncating its certificate.
 
-The current executor calls the core after its existing startup, kernel-context,
-and activation-receipt checks, and before writing `GO`. It projects the actual
-plan and receipt through admitted native record slots, including deployment and
-runtime metadata. The session stores detached binding, certificate and event
-history as immutable JSON bytes and reconstructs fresh arguments for each check.
-Both gates reuse that captured certificate. The alias regression exercises
-caller mutation and an observing checker callback that mutates its received
-arguments; neither changes the next check. This is bounded runtime evidence,
-not a proof against controller/module rebinding or arbitrary same-process code.
+The current executor calls the core after its existing startup, typed grant,
+kernel-context, and activation-receipt checks, and before writing `GO`. On the
+optimized inline route it sends only the 17 exact identity fields through a
+typed C ABI to create invocation-local Lean typestate. The full certificate is
+not rebuilt, serialized, or parsed, and synthetic event dictionaries are not
+allocated at either gate. The typed constructor does not independently
+authorize those facts: its placement after `EnforcementCoordinator.validate_receipt`
+and the prepared grant check is a trusted Python/C bridge premise. Lean still
+checks whole-binding equality and the GO/result/cleanup transition order, and
+the Python session additionally refuses result release before its GO transition.
+The executable replay route retains the complete JSON certificate protocol for
+model and compatibility testing. This is bounded runtime evidence, not a proof
+against controller/module rebinding or arbitrary same-process code.
 After a valid worker response,
 cleanup must return normally before the core permits result release. Unknown
 termination raises and retains recovery evidence. A checker refusal after the

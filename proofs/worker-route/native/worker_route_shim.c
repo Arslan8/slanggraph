@@ -39,6 +39,12 @@ extern uint8_t argus_worker_route_check_prepared_success(
     lean_object *, lean_object *, lean_object *, lean_object *, lean_object *,
     lean_object *, lean_object *, lean_object *
 );
+extern lean_object *argus_worker_route_prepare_validated_binding(
+    lean_object *, lean_object *, lean_object *, lean_object *, lean_object *,
+    lean_object *, lean_object *, lean_object *, lean_object *, lean_object *,
+    lean_object *, lean_object *, lean_object *, lean_object *, lean_object *,
+    lean_object *, lean_object *
+);
 
 struct argus_prepared_route {
     lean_object *value;
@@ -287,8 +293,52 @@ static int argus_valid_route_binding(const struct argus_route_binding *binding) 
         argus_valid_slice(&binding->worker_boot_id);
 }
 
-/* Apply one of the two useful lifecycle transitions to the retained Lean
- * certificate. The bridge transports facts; Lean still decides the phase. */
+/* Create lifecycle typestate from controller-validated activation facts. The
+ * caller must have completed the grant and activation-receipt checks first. */
+__attribute__((visibility("default"))) void *argus_worker_route_prepare_binding_typed(
+    const struct argus_route_binding *binding
+) {
+    if (!argus_valid_route_binding(binding)) {
+        return NULL;
+    }
+    pthread_once(&argus_once, argus_initialize);
+    if (!argus_initialized) {
+        return NULL;
+    }
+    struct argus_prepared_route *handle = malloc(sizeof(*handle));
+    if (handle == NULL) {
+        return NULL;
+    }
+    pthread_mutex_lock(&argus_lock);
+    handle->value = argus_worker_route_prepare_validated_binding(
+        argus_slice_string(&binding->principal),
+        argus_slice_string(&binding->session),
+        argus_slice_string(&binding->call),
+        argus_slice_string(&binding->intent),
+        argus_slice_string(&binding->policy),
+        argus_slice_string(&binding->tool),
+        argus_slice_string(&binding->artifact),
+        argus_slice_string(&binding->deployment),
+        argus_slice_string(&binding->runtime),
+        argus_slice_string(&binding->grant),
+        argus_slice_string(&binding->plan),
+        argus_slice_string(&binding->nonce),
+        argus_slice_string(&binding->host),
+        argus_slice_string(&binding->context),
+        argus_slice_string(&binding->worker_pid),
+        argus_slice_string(&binding->worker_start_time),
+        argus_slice_string(&binding->worker_boot_id)
+    );
+    pthread_mutex_unlock(&argus_lock);
+    if (handle->value == NULL) {
+        free(handle);
+        return NULL;
+    }
+    return handle;
+}
+
+/* Apply one of the two useful lifecycle transitions to retained Lean
+ * typestate. The bridge transports facts; Lean still decides the phase. */
 __attribute__((visibility("default"))) int argus_worker_route_check_prepared_go_typed(
     void *opaque,
     const struct argus_route_binding *binding,

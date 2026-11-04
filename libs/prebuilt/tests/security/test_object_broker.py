@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+import langgraph.prebuilt.security.landlock as landlock
 import langgraph.prebuilt.security.lean_grant as lean_grant
 import langgraph.prebuilt.security.linux as linux
 import langgraph.prebuilt.security.object_broker as object_broker
@@ -211,11 +212,19 @@ def test_optimized_invocation_launches_no_checker_subprocess(
     def unexpected_grant_capture(*args, **kwargs):
         raise AssertionError("prepared invocation recaptured the semantic grant")
 
+    def unexpected_lifecycle_certificate(*args, **kwargs):
+        raise AssertionError("optimized invocation constructed a lifecycle certificate")
+
     monkeypatch.setattr(subprocess, "run", unexpected)
     monkeypatch.setattr(linux, "_file_digest", unexpected_digest)
     monkeypatch.setattr(lean_grant, "_encoded", unexpected_grant_json)
     monkeypatch.setattr(lean_grant, "_capture_filtered_grant", unexpected_grant_capture)
     monkeypatch.setattr(lean_grant, "_capture_obligations", unexpected_grant_capture)
+    monkeypatch.setattr(
+        landlock,
+        "_capture_controller_receipt_certificate",
+        unexpected_lifecycle_certificate,
+    )
     before = native_checker.statistics()
     assert dispatcher.invoke(principal, call, grant).value == "inspected"
     after = native_checker.statistics()

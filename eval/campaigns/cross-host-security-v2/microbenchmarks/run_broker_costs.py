@@ -175,6 +175,7 @@ def run_session(
             "lean": LeanLifecycleChecker._require,
             "lean_typed_grant": LeanLifecycleChecker.require_prepared_grant,
             "lean_prepare": LeanLifecycleChecker._prepare_captured_route,
+            "lean_prepare_binding": LeanLifecycleChecker._prepare_validated_binding,
             "lean_prepared": LeanLifecycleChecker._require_prepared_captured,
             "lean_transition": LeanLifecycleChecker._require_prepared_transition,
             "grant_capture_check": LandlockSandboxExecutor._check_lean_grant,
@@ -225,13 +226,16 @@ def run_session(
             "lean_grant_ms", originals["lean_typed_grant"]
         )
 
-        def timed_lean_prepare(*args, **kwargs):
-            start = time.perf_counter_ns()
-            try:
-                return originals["lean_prepare"](*args, **kwargs)
-            finally:
-                elapsed = (time.perf_counter_ns() - start) / 1e6
-                spans["lean_prepare_ms"] += elapsed
+        def timed_lean_prepare(function):
+            def wrapper(*args, **kwargs):
+                start = time.perf_counter_ns()
+                try:
+                    return function(*args, **kwargs)
+                finally:
+                    elapsed = (time.perf_counter_ns() - start) / 1e6
+                    spans["lean_prepare_ms"] += elapsed
+
+            return wrapper
 
         def timed_lean_prepared(instance, prepared, events, phase):
             name = {"running": "lean_go_ms", "ready": "lean_result_ms"}[phase]
@@ -241,7 +245,10 @@ def run_session(
             finally:
                 spans[name] += (time.perf_counter_ns() - start) / 1e6
 
-        LeanLifecycleChecker._prepare_captured_route = timed_lean_prepare
+        LeanLifecycleChecker._prepare_captured_route = timed_lean_prepare(originals["lean_prepare"])
+        LeanLifecycleChecker._prepare_validated_binding = timed_lean_prepare(
+            originals["lean_prepare_binding"]
+        )
         LeanLifecycleChecker._require_prepared_captured = timed_lean_prepared
 
         def timed_lean_transition(instance, prepared, observed, phase, **kwargs):
@@ -511,6 +518,7 @@ def run_session(
             LeanLifecycleChecker._require = originals["lean"]
             LeanLifecycleChecker.require_prepared_grant = originals["lean_typed_grant"]
             LeanLifecycleChecker._prepare_captured_route = originals["lean_prepare"]
+            LeanLifecycleChecker._prepare_validated_binding = originals["lean_prepare_binding"]
             LeanLifecycleChecker._require_prepared_captured = originals["lean_prepared"]
             LeanLifecycleChecker._require_prepared_transition = originals["lean_transition"]
             LandlockSandboxExecutor._check_lean_grant = originals["grant_capture_check"]
