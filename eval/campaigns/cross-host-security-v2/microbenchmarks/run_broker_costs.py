@@ -32,6 +32,9 @@ from langgraph.prebuilt.security import (
 )
 from langgraph.prebuilt.security import landlock as landlock_module
 from langgraph.prebuilt.security import linux as linux_module
+from langgraph.prebuilt.security._object_landlock import _LandlockObjectAdapter
+from langgraph.prebuilt.security.broker import BrokerSession
+from langgraph.prebuilt.security.enforcement import EnforcementCoordinator
 from langgraph.prebuilt.security.landlock import LandlockSandboxExecutor
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.mediators.records import RECORDS
@@ -165,6 +168,13 @@ def run_session(
             "request_encoding_ms": 0.0,
             "worker_ready_wait_ms": 0.0,
             "worker_result_wait_ms": 0.0,
+            "host_attestation_ms": 0.0,
+            "prepared_mediator_binding_ms": 0.0,
+            "worker_context_binding_ms": 0.0,
+            "coordinator_activation_ms": 0.0,
+            "coordinator_receipt_check_ms": 0.0,
+            "broker_frame_ms": 0.0,
+            "broker_close_ms": 0.0,
         }
         dispatch = {"start_wall": 0.0, "elapsed_ms": 0.0, "activated_at": 0.0}
         originals = {
@@ -192,6 +202,13 @@ def run_session(
             "receipt": _ObjectWorker._receipt,
             "encode_worker_request": linux_module._encode_worker_request,
             "readline_json": linux_module._readline_json,
+            "host_attest": _LandlockObjectAdapter.attest,
+            "bind_mediators": _ObjectWorker._bind_prepared_mediators,
+            "bind_worker": _LandlockObjectAdapter.bind_worker,
+            "coordinator_activate": EnforcementCoordinator.activate,
+            "coordinator_validate": EnforcementCoordinator.validate_receipt,
+            "broker_frame": _ObjectBroker._handle_frame,
+            "broker_close": BrokerSession.close_parent,
         }
 
         def timed(name, function):
@@ -297,6 +314,21 @@ def run_session(
             return result
 
         linux_module._readline_json = timed_readline
+        _LandlockObjectAdapter.attest = timed("host_attestation_ms", originals["host_attest"])
+        _ObjectWorker._bind_prepared_mediators = timed(
+            "prepared_mediator_binding_ms", originals["bind_mediators"]
+        )
+        _LandlockObjectAdapter.bind_worker = timed(
+            "worker_context_binding_ms", originals["bind_worker"]
+        )
+        EnforcementCoordinator.activate = timed(
+            "coordinator_activation_ms", originals["coordinator_activate"]
+        )
+        EnforcementCoordinator.validate_receipt = timed(
+            "coordinator_receipt_check_ms", originals["coordinator_validate"]
+        )
+        _ObjectBroker._handle_frame = timed("broker_frame_ms", originals["broker_frame"])
+        BrokerSession.close_parent = timed("broker_close_ms", originals["broker_close"])
 
         def timed_dispatch(*args, **kwargs):
             dispatch["start_wall"] = time.time()
@@ -358,6 +390,13 @@ def run_session(
                         request_encoding_ms=0.0,
                         worker_ready_wait_ms=0.0,
                         worker_result_wait_ms=0.0,
+                        host_attestation_ms=0.0,
+                        prepared_mediator_binding_ms=0.0,
+                        worker_context_binding_ms=0.0,
+                        coordinator_activation_ms=0.0,
+                        coordinator_receipt_check_ms=0.0,
+                        broker_frame_ms=0.0,
+                        broker_close_ms=0.0,
                     )
                     mediator_spans["operation_ms"] = 0.0
                     dispatch.update(start_wall=0.0, elapsed_ms=0.0, activated_at=0.0)
@@ -395,6 +434,13 @@ def run_session(
                         request_encoding_ms=0.0,
                         worker_ready_wait_ms=0.0,
                         worker_result_wait_ms=0.0,
+                        host_attestation_ms=0.0,
+                        prepared_mediator_binding_ms=0.0,
+                        worker_context_binding_ms=0.0,
+                        coordinator_activation_ms=0.0,
+                        coordinator_receipt_check_ms=0.0,
+                        broker_frame_ms=0.0,
+                        broker_close_ms=0.0,
                     )
                     pool_before = dict(dispatcher.worker_pool_stats())
                     checker_before = checker.statistics()
@@ -480,6 +526,14 @@ def run_session(
                             "request_encoding_ms": spans["request_encoding_ms"],
                             "worker_ready_wait_ms": spans["worker_ready_wait_ms"],
                             "worker_result_wait_ms": spans["worker_result_wait_ms"],
+                            "host_attestation_ms": spans["host_attestation_ms"],
+                            "prepared_mediator_binding_ms": spans["prepared_mediator_binding_ms"],
+                            "worker_context_binding_ms": spans["worker_context_binding_ms"],
+                            "coordinator_activation_ms": spans["coordinator_activation_ms"],
+                            "coordinator_receipt_check_ms": spans["coordinator_receipt_check_ms"],
+                            "broker_frame_ms": spans["broker_frame_ms"],
+                            "broker_close_ms": spans["broker_close_ms"],
+                            "dispatcher_ms": dispatch["elapsed_ms"],
                             "execution_ms": mediator_spans["operation_ms"],
                             "mediator_transport_ms": mediator_transport_ms,
                             "audit_ms": spans["audit_ms"],
@@ -537,6 +591,13 @@ def run_session(
             _ObjectWorker._receipt = originals["receipt"]
             linux_module._encode_worker_request = originals["encode_worker_request"]
             linux_module._readline_json = originals["readline_json"]
+            _LandlockObjectAdapter.attest = originals["host_attest"]
+            _ObjectWorker._bind_prepared_mediators = originals["bind_mediators"]
+            _LandlockObjectAdapter.bind_worker = originals["bind_worker"]
+            EnforcementCoordinator.activate = originals["coordinator_activate"]
+            EnforcementCoordinator.validate_receipt = originals["coordinator_validate"]
+            _ObjectBroker._handle_frame = originals["broker_frame"]
+            BrokerSession.close_parent = originals["broker_close"]
             dispatcher.close()
             if sink is not None:
                 sink.close()
