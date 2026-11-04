@@ -234,6 +234,13 @@ class _ObjectWorker(LandlockSandboxExecutor):
         self._prepared_mediator_assessments: Mapping[str, Mapping[str, Any]] | None = (
             None
         )
+        self._prepared_input_rule_shape: Any = None
+        self._prepared_rule_templates: tuple[GrantRule, ...] | None = None
+        self._prepared_obligation_templates: (
+            tuple[EnforcementObligation, ...] | None
+        ) = None
+        self._prepared_route_adapters: Mapping[str, str] | None = None
+        self._current_input_rule_shape: Any = None
         self._used_prepared_policy = False
         super().__init__(*args, **kwargs)
 
@@ -309,6 +316,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
         return {"broker_client_imports": imports} if imports else {}
 
     def _prepare_grant(self, grant, ledger):
+        self._current_input_rule_shape = self._prepared_rule_key(grant.rules)
         self.host_adapter = self._host_adapter_type(self, grant)
         host = self.host_adapter.attest(secrets.token_hex(16))
         broker_lines = tuple(
@@ -327,6 +335,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
                 raise HostExecutionDenied("object_lowering:prepared_adapter_changed")
             for adapter in self.bound_mediators:
                 adapter.assessments.update(prepared_assessments[adapter.adapter_id])
+            return self._bind_prepared_mediators(grant, host)
         routes: dict[str, _BoundMediator] = {}
         resource_conditions: dict[str, Mapping[str, Any]] = {}
         additional = []
@@ -472,6 +481,65 @@ class _ObjectWorker(LandlockSandboxExecutor):
             raise
         except Exception as exc:
             raise HostExecutionDenied(f"object_lowering:{type(exc).__name__}") from exc
+
+    def _bind_prepared_mediators(self, grant: Grant, host: Any) -> Grant:
+        """Bind fresh invocation identity to an immutable mediator template."""
+        if (
+            self._prepared_record is None
+            or self._prepared_input_rule_shape != self._current_input_rule_shape
+            or self._prepared_rule_templates is None
+            or self._prepared_obligation_templates is None
+            or self._prepared_route_adapters is None
+        ):
+            raise HostExecutionDenied("object_lowering:prepared_policy_missing")
+        object_digest = self.object_grant.digest
+
+        def fresh_conditions(value: Mapping[str, Any]) -> Mapping[str, Any]:
+            if "object_grant" not in value:
+                return value
+            return {**value, "object_grant": object_digest}
+
+        input_rules = {rule.rule_id: rule for rule in grant.rules}
+        rules = tuple(
+            input_rules[rule.rule_id]
+            if rule.rule_id.startswith(("runtime:artifact", "runtime:tmp"))
+            else replace(rule, conditions=fresh_conditions(rule.conditions))
+            if "object_grant" in rule.conditions
+            else rule
+            for rule in self._prepared_rule_templates
+        )
+        grant = replace(grant, rules=rules)
+        obligations = tuple(
+            replace(
+                item,
+                selector=input_rules[item.rule_id].selector,
+                conditions=input_rules[item.rule_id].conditions,
+            )
+            if item.rule_id.startswith(("runtime:artifact", "runtime:tmp"))
+            else replace(item, conditions=fresh_conditions(item.conditions))
+            if "object_grant" in item.conditions
+            else item
+            for item in self._prepared_obligation_templates
+        )
+        self._execution_obligations = obligations
+        adapters = (self.host_adapter, *self.bound_mediators)
+        self.record, self.coordinator = self._bind_prepared_policy(
+            grant, obligations, adapters, host
+        )
+        self._used_prepared_policy = True
+        self._execution_obligations = self.record.obligations
+        by_adapter = {adapter.adapter_id: adapter for adapter in self.bound_mediators}
+        routes = {}
+        for line_id, adapter_id in self._prepared_route_adapters.items():
+            adapter = by_adapter.get(adapter_id)
+            if adapter is None:
+                raise HostExecutionDenied("object_lowering:prepared_adapter_changed")
+            routes[line_id] = adapter
+        retained = {rule.rule_id for rule in self.record.grant.rules}
+        self.credential_broker.routes = {
+            key: value for key, value in routes.items() if key in retained
+        }
+        return self.record.grant
 
     @staticmethod
     def _prepared_value(value: Any) -> Any:
@@ -644,6 +712,15 @@ class _ObjectWorker(LandlockSandboxExecutor):
             {
                 adapter.adapter_id: MappingProxyType(dict(adapter.assessments))
                 for adapter in self.bound_mediators
+            }
+        )
+        self._prepared_input_rule_shape = self._current_input_rule_shape
+        self._prepared_rule_templates = prepared.grant.rules
+        self._prepared_obligation_templates = prepared.obligations
+        self._prepared_route_adapters = MappingProxyType(
+            {
+                line_id: adapter.adapter_id
+                for line_id, adapter in self.credential_broker.routes.items()
             }
         )
 

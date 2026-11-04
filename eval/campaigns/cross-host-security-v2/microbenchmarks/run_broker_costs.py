@@ -64,7 +64,14 @@ def _write(stream, row: dict) -> None:
     stream.flush()
 
 
-def run_session(output: Path, session: int, warmups: int, measured: int) -> None:
+def run_session(
+    output: Path,
+    session: int,
+    warmups: int,
+    measured: int,
+    *,
+    audit: bool,
+) -> None:
     """Run one independent process session."""
     output.parent.mkdir(parents=True, exist_ok=True)
     os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
@@ -120,7 +127,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             worker_pool_capacity=1,
         )
         dispatcher_setup_ms = (time.perf_counter_ns() - setup_start) / 1e6
-        sink = SqliteAuditSink(root / "audit.sqlite")
+        sink = SqliteAuditSink(root / "audit.sqlite") if audit else None
         admission_start = time.perf_counter_ns()
         security = cedar_security(
             broker_read,
@@ -148,7 +155,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             "lean_prepare_ms": 0.0,
             "prepared_worker_selection_ms": 0.0,
             "grant_construction_ms": 0.0,
-            "mediator_setup_ms": 0.0,
+            "invocation_policy_binding_ms": 0.0,
             "prepared_policy_binding_ms": 0.0,
             "channel_thread_setup_ms": 0.0,
             "certificate_construction_ms": 0.0,
@@ -162,7 +169,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             "authorize": ObjectPolicyHostExecutor._authorize,
             "dispatch": dispatcher.invoke,
             "cleanup": LandlockSandboxExecutor._cleanup_worker,
-            "audit": sink.write,
+            "audit": sink.write if sink is not None else None,
             "lean": LeanLifecycleChecker._require,
             "lean_typed_grant": LeanLifecycleChecker.require_prepared_grant,
             "lean_prepare": LeanLifecycleChecker._prepare_captured_route,
@@ -191,7 +198,8 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
 
         ObjectPolicyHostExecutor._authorize = timed("authorization_ms", originals["authorize"])
         LandlockSandboxExecutor._cleanup_worker = timed("cleanup_ms", originals["cleanup"])
-        sink.write = timed("audit_ms", originals["audit"])
+        if sink is not None:
+            sink.write = timed("audit_ms", originals["audit"])
 
         def timed_lean(instance, payload, phase):
             name = {
@@ -233,16 +241,16 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             name = {"running": "lean_go_ms", "ready": "lean_result_ms"}[phase]
             start = time.perf_counter_ns()
             try:
-                return originals["lean_transition"](
-                    instance, prepared, observed, phase, **kwargs
-                )
+                return originals["lean_transition"](instance, prepared, observed, phase, **kwargs)
             finally:
                 spans[name] += (time.perf_counter_ns() - start) / 1e6
 
         LeanLifecycleChecker._require_prepared_transition = timed_lean_transition
         dispatcher._new_worker = timed("prepared_worker_selection_ms", originals["new_worker"])
         _ObjectWorker._compile_grant = timed("grant_construction_ms", originals["compile_grant"])
-        _ObjectWorker._prepare_grant = timed("mediator_setup_ms", originals["prepare_grant"])
+        _ObjectWorker._prepare_grant = timed(
+            "invocation_policy_binding_ms", originals["prepare_grant"]
+        )
         _ObjectWorker._bind_prepared_policy = timed(
             "prepared_policy_binding_ms", originals["bind_policy"]
         )
@@ -299,6 +307,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                         "lifecycle_runtime_sha256": checker.runtime_sha256,
                         "checker_inline": checker.inline,
                         "checker_loaded_during_preparation": checker.statistics()["loads"] == 1,
+                        "audit_enabled": audit,
                     },
                 )
                 for index in range(1 + warmups + measured):
@@ -315,7 +324,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                         lean_prepare_ms=0.0,
                         prepared_worker_selection_ms=0.0,
                         grant_construction_ms=0.0,
-                        mediator_setup_ms=0.0,
+                        invocation_policy_binding_ms=0.0,
                         prepared_policy_binding_ms=0.0,
                         channel_thread_setup_ms=0.0,
                         certificate_construction_ms=0.0,
@@ -347,7 +356,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                         lean_prepare_ms=0.0,
                         prepared_worker_selection_ms=0.0,
                         grant_construction_ms=0.0,
-                        mediator_setup_ms=0.0,
+                        invocation_policy_binding_ms=0.0,
                         prepared_policy_binding_ms=0.0,
                         channel_thread_setup_ms=0.0,
                         certificate_construction_ms=0.0,
@@ -427,7 +436,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                             "lean_prepare_ms": spans["lean_prepare_ms"],
                             "prepared_worker_selection_ms": spans["prepared_worker_selection_ms"],
                             "grant_construction_ms": spans["grant_construction_ms"],
-                            "mediator_setup_ms": spans["mediator_setup_ms"],
+                            "invocation_policy_binding_ms": spans["invocation_policy_binding_ms"],
                             "prepared_policy_binding_ms": spans["prepared_policy_binding_ms"],
                             "channel_thread_setup_ms": spans["channel_thread_setup_ms"],
                             "certificate_construction_ms": spans["certificate_construction_ms"],
@@ -441,7 +450,8 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                             "cleanup_ms": spans["cleanup_ms"],
                             "framework_residual_ms": elapsed_ms - accounted,
                             "valid": "AUTHORIZED_RECORD" in content,
-                            "audit_records": len(sink.records()),
+                            "audit_enabled": audit,
+                            "audit_records": len(sink.records()) if sink is not None else 0,
                             "broker_records": len(dispatcher.audit_records()),
                             "checker": checker_after,
                             "pool": pool_after,
@@ -473,9 +483,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             LeanLifecycleChecker.require_prepared_grant = originals["lean_typed_grant"]
             LeanLifecycleChecker._prepare_captured_route = originals["lean_prepare"]
             LeanLifecycleChecker._require_prepared_captured = originals["lean_prepared"]
-            LeanLifecycleChecker._require_prepared_transition = originals[
-                "lean_transition"
-            ]
+            LeanLifecycleChecker._require_prepared_transition = originals["lean_transition"]
             dispatcher._new_worker = originals["new_worker"]
             _ObjectWorker._compile_grant = originals["compile_grant"]
             _ObjectWorker._prepare_grant = originals["prepare_grant"]
@@ -488,6 +496,8 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             linux_module._encode_worker_request = originals["encode_worker_request"]
             linux_module._readline_json = originals["readline_json"]
             dispatcher.close()
+            if sink is not None:
+                sink.close()
 
 
 def main() -> None:
@@ -499,6 +509,11 @@ def main() -> None:
     parser.add_argument("--session", type=int)
     parser.add_argument("--checker-library", type=Path)
     parser.add_argument("--checker-runtime", type=Path)
+    parser.add_argument(
+        "--audit",
+        action="store_true",
+        help="enable durable SQLite audit logging (disabled by default)",
+    )
     args = parser.parse_args()
     if args.checker_library is not None:
         os.environ["ARGUS_LIFECYCLE_CHECKER_LIBRARY"] = str(
@@ -514,7 +529,13 @@ def main() -> None:
     }.issubset(os.environ):
         parser.error("--checker-library and --checker-runtime are required")
     if args.session is not None:
-        run_session(args.output, args.session, args.warmups, args.measured)
+        run_session(
+            args.output,
+            args.session,
+            args.warmups,
+            args.measured,
+            audit=args.audit,
+        )
         return
     args.output.mkdir(parents=True, exist_ok=False)
     for session in range(args.sessions):
@@ -530,6 +551,8 @@ def main() -> None:
             "--session",
             str(session),
         ]
+        if args.audit:
+            command.append("--audit")
         log = args.output / f"session-{session}.log"
         with log.open("x") as stream:
             subprocess.run(command, check=True, stdout=stream, stderr=subprocess.STDOUT)

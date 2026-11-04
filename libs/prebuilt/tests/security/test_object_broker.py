@@ -12,6 +12,7 @@ import pytest
 
 import langgraph.prebuilt.security.lean_grant as lean_grant
 import langgraph.prebuilt.security.linux as linux
+import langgraph.prebuilt.security.object_broker as object_broker
 from langgraph.prebuilt.security import ResourceSupport, SupportLevel
 from langgraph.prebuilt.security.capabilities import probe_landlock_abi
 from langgraph.prebuilt.security.execution import (
@@ -315,7 +316,7 @@ def test_prepared_context_rebinds_fresh_principal_and_is_single_use(
 
 @pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
 def test_prepared_mediator_reuses_lowering_but_rechecks_live_support(
-    setup, native_checker
+    setup, native_checker, monkeypatch
 ):
     dispatcher, principal, call, grant, seen = setup
     original = dispatcher.mediators[0]
@@ -339,10 +340,18 @@ def test_prepared_mediator_reuses_lowering_but_rechecks_live_support(
     dispatcher.prewarm(principal, call, grant)
     assessments = 0
 
+    original_compile = object_broker.compile_obligations
+
+    def unexpected_compile(*args, **kwargs):
+        raise AssertionError("prepared invocation recompiled mediator obligations")
+
+    monkeypatch.setattr(object_broker, "compile_obligations", unexpected_compile)
+
     assert dispatcher.invoke(principal, call, grant).value == "inspected"
     assert assessments == 2  # activation and operation, never online lowering
     assert seen == [("inspect", "pump-1")]
 
+    monkeypatch.setattr(object_broker, "compile_obligations", original_compile)
     runtime_call = replace(call, call_id="call-2")
     runtime_grant = replace(grant, call_id="call-2")
     dispatcher.prewarm(principal, runtime_call, runtime_grant)
