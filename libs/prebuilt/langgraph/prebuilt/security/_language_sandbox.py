@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import ast
 from collections.abc import Callable, Mapping
+from contextvars import ContextVar
 from dataclasses import dataclass
+from threading import Event
 from inspect import Parameter, Signature
 from typing import Any
 
+from langgraph.prebuilt.security._language_pure import PURE_BUILTINS, pure_eval
 from langgraph.prebuilt.security.errors import SecurityConfigurationError
 from langgraph.prebuilt.security.execution import HostExecutionDenied
 from langgraph.prebuilt.security.language_verification import (
@@ -23,6 +26,8 @@ from langgraph.prebuilt.security.language_verification import (
 )
 from langgraph.prebuilt.security.types import _decision_arguments, _DecisionArguments
 
+
+_language_cancel: ContextVar[Event | None] = ContextVar("language_cancel", default=None)
 
 def inert_copy(value: Any, depth: int = 0) -> Any:
     """Accept exact data types without invoking conversion or object protocols."""
@@ -57,6 +62,8 @@ class LanguageProgram:
         cls, entry, terminals, positional_defaults, keyword_defaults, *, contracts
     ):
         """Lower only the admitted syntax; an unknown node always rejects."""
+        if any(isinstance(n, ast.Name) and n.id.startswith("argus_internal_loop_") for n in ast.walk(entry)):
+            raise SecurityConfigurationError("language_sandbox:reserved_local")
         parameters = []
         positional = [*entry.args.posonlyargs, *entry.args.args]
         first_default = len(positional) - len(positional_defaults)
@@ -88,6 +95,8 @@ class LanguageProgram:
                 type(node.value) is kind for kind in (str, int, float, bool, type(None))
             ):
                 return ("constant", node.value)
+            if isinstance(node, ast.Subscript) and not isinstance(node.slice, ast.Slice):
+                return ("pure", "getitem", (expression(node.value), expression(node.slice)))
             if isinstance(node, ast.Name):
                 return ("local", node.id)
             if isinstance(node, ast.JoinedStr):
@@ -102,8 +111,19 @@ class LanguageProgram:
                         for part in node.values
                     ),
                 )
+            binary = {ast.Add: "add", ast.Sub: "sub", ast.Mult: "mul", ast.Div: "div", ast.FloorDiv: "floordiv", ast.Mod: "mod"}
+            unary = {ast.USub: "neg", ast.UAdd: "pos", ast.Not: "not"}
+            order = {ast.Lt: "lt", ast.LtE: "le", ast.Gt: "gt", ast.GtE: "ge"}
+            if isinstance(node, ast.BinOp) and type(node.op) in binary:
+                return ("pure", binary[type(node.op)], (expression(node.left), expression(node.right)))
+            if isinstance(node, ast.UnaryOp) and type(node.op) in unary:
+                return ("pure", unary[type(node.op)], (expression(node.operand),))
+            if isinstance(node, ast.Compare) and len(node.ops) == 1 and type(node.ops[0]) in order:
+                return ("pure", order[type(node.ops[0])], (expression(node.left), expression(node.comparators[0])))
             if isinstance(node, ast.Call):
                 target = ast.unparse(node.func)
+                if isinstance(node.func, ast.Name) and target in PURE_BUILTINS and not node.keywords:
+                    return ("pure", target, tuple(expression(arg) for arg in node.args))
                 if target in terminals and all(
                     kw.arg is not None for kw in node.keywords
                 ):
@@ -128,7 +148,10 @@ class LanguageProgram:
                 f"language_sandbox:unsupported_expression:{type(node).__name__}"
             )
 
+        loop_serial = 0
+
         def statements(nodes):
+            nonlocal loop_serial
             output = []
             for node in nodes:
                 if isinstance(node, ast.Return):
@@ -152,6 +175,31 @@ class LanguageProgram:
                             expression(node.value),
                         )
                     )
+                elif isinstance(node, ast.AugAssign) and isinstance(node.target, ast.Name):
+                    output.append(("assign", (node.target.id,), expression(ast.BinOp(left=node.target, op=node.op, right=node.value))))
+                elif isinstance(node, ast.For) and isinstance(node.target, ast.Name):
+                    loop_serial += 1
+                    prefix = f"argus_internal_loop_{loop_serial}_"
+                    index, end, step, data = (prefix + name for name in ("index", "end", "step", "data"))
+                    local = lambda name: ("local", name)
+                    constant = lambda value: ("constant", value)
+                    pure = lambda op, *args: ("pure", op, tuple(args))
+                    assign = lambda name, value: ("assign", (name,), value)
+                    if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name) and node.iter.func.id == "range" and not node.iter.keywords and 1 <= len(node.iter.args) <= 3:
+                        args = [expression(a) for a in node.iter.args]
+                        start, stop, stride = (constant(0), args[0], constant(1)) if len(args) == 1 else (args[0], args[1], args[2] if len(args) == 3 else constant(1))
+                        output.extend((assign(index, start), assign(end, stop), assign(step, pure("range_step", stride))))
+                        condition = pure("range_more", local(index), local(end), local(step))
+                        item = local(index)
+                    else:
+                        output.extend((assign(data, expression(node.iter)), assign(index, constant(0)), assign(step, constant(1))))
+                        condition = pure("lt", local(index), pure("len", local(data)))
+                        item = pure("getitem", local(data), local(index))
+                    # The iterator state is separate from the user's loop target.
+                    body = (assign(node.target.id, item), assign(index, pure("add", local(index), local(step)))) + statements(node.body)
+                    output.append(("while", condition, body, statements(node.orelse)))
+                elif isinstance(node, ast.While):
+                    output.append(("while", expression(node.test), statements(node.body), statements(node.orelse)))
                 elif isinstance(node, ast.If):
                     output.append(
                         (
@@ -212,7 +260,14 @@ class LanguageProgram:
         bound.apply_defaults()
         environment = dict(bound.arguments)
 
+        cancelled = _language_cancel.get()
+
+        def check_cancelled():
+            if cancelled is not None and cancelled.is_set():
+                raise HostExecutionDenied("language_sandbox:cancelled")
+
         def expression(node):
+            check_cancelled()
             kind = node[0]
             if kind == "constant":
                 return node[1]
@@ -234,6 +289,8 @@ class LanguageProgram:
                         "language_sandbox:comparison_requires_strings"
                     )
                 return (left == right) if node[1] else (left != right)
+            if kind == "pure":
+                return pure_eval(node[1], [expression(part) for part in node[2]])
             if kind == "call":
                 args = tuple(expression(part) for part in node[2])
                 kwargs = {key: expression(part) for key, part in node[3]}
@@ -245,6 +302,7 @@ class LanguageProgram:
 
         def statements(body):
             for node in body:
+                check_cancelled()
                 if node[0] == "return":
                     return True, expression(node[1])
                 if node[0] == "expression":
@@ -253,6 +311,15 @@ class LanguageProgram:
                     value = expression(node[2])
                     for name in node[1]:
                         environment[name] = value
+                elif node[0] == "while":
+                    while expression(node[1]):
+                        check_cancelled()
+                        returned, value = statements(node[2])
+                        if returned:
+                            return True, value
+                    returned, value = statements(node[3])
+                    if returned:
+                        return True, value
                 elif node[0] == "if":
                     branch = node[2] if expression(node[1]) else node[3]
                     returned, value = statements(branch)

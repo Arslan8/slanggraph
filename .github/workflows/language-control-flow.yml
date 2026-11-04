@@ -1,0 +1,45 @@
+name: Language control flow verification
+on:
+  push:
+    branches: [fix/language-control-flow]
+  pull_request:
+    paths:
+      - "libs/prebuilt/langgraph/prebuilt/security/**"
+      - "libs/prebuilt/tests/security/test_language*"
+      - "proofs/language-route/**"
+      - ".github/workflows/language-control-flow.yml"
+permissions:
+  contents: read
+jobs:
+  language-route:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: libs/prebuilt
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: ./.github/actions/uv_setup
+        with:
+          python-version: "3.13"
+          cache-suffix: language-control-flow
+          working-directory: libs/prebuilt
+      - run: uv sync --frozen
+      - name: Install pinned Lean
+        run: |
+          curl --fail --location --retry 3 https://github.com/leanprover/lean4/releases/download/v4.34.1/lean-4.34.1-linux.tar.zst --output "$RUNNER_TEMP/lean.tar.zst"
+          echo "47bf4bbd78f70c2e9670598ab7124d92b6efb7330ff33e5fbb4030f6fd72e4e4  $RUNNER_TEMP/lean.tar.zst" | sha256sum --check --strict
+          tar --zstd --extract --file "$RUNNER_TEMP/lean.tar.zst" --directory "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/lean-4.34.1-linux/bin" >> "$GITHUB_PATH"
+      - name: Build, replay, and audit both language models
+        run: uv run python ../../proofs/language-route/check.py --lake "$(command -v lake)" --output "$RUNNER_TEMP/language-proof"
+      - name: Language and admission regressions
+        env:
+          LANGGRAPH_TEST_FAST: "1"
+        run: uv run pytest tests/security/test_language_loops.py tests/security/test_language_sandbox.py tests/security/test_language_verification.py tests/security/test_language_route_verification.py tests/security/test_manifest_admission.py tests/security/test_manifest_consistency.py
+      - name: Show proof diagnostics
+        if: always()
+        run: |
+          if [ -d "$RUNNER_TEMP/language-proof" ]; then
+            cat "$RUNNER_TEMP/language-proof/report.json"
+            cat "$RUNNER_TEMP/language-proof/build.log"
+          fi
