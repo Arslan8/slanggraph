@@ -171,7 +171,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             "prepare_grant": _ObjectWorker._prepare_grant,
             "bind_policy": _ObjectWorker._bind_prepared_policy,
             "bind_session": _ObjectBroker.bind_prepared_session,
-            "capture_certificate": landlock_module._capture_receipt_certificate,
+            "capture_certificate": landlock_module._capture_controller_receipt_certificate,
             "receipt": _ObjectWorker._receipt,
             "encode_worker_request": linux_module._encode_worker_request,
             "readline_json": linux_module._readline_json,
@@ -233,7 +233,7 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
         _ObjectBroker.bind_prepared_session = timed(
             "channel_thread_setup_ms", originals["bind_session"]
         )
-        landlock_module._capture_receipt_certificate = timed(
+        landlock_module._capture_controller_receipt_certificate = timed(
             "certificate_construction_ms", originals["capture_certificate"]
         )
         _ObjectWorker._receipt = timed("receipt_validation_ms", originals["receipt"])
@@ -461,7 +461,9 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             _ObjectWorker._prepare_grant = originals["prepare_grant"]
             _ObjectWorker._bind_prepared_policy = originals["bind_policy"]
             _ObjectBroker.bind_prepared_session = originals["bind_session"]
-            landlock_module._capture_receipt_certificate = originals["capture_certificate"]
+            landlock_module._capture_controller_receipt_certificate = originals[
+                "capture_certificate"
+            ]
             _ObjectWorker._receipt = originals["receipt"]
             linux_module._encode_worker_request = originals["encode_worker_request"]
             linux_module._readline_json = originals["readline_json"]

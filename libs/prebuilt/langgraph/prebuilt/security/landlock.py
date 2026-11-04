@@ -59,7 +59,7 @@ from langgraph.prebuilt.security.execution import (
 from langgraph.prebuilt.security.lean_lifecycle import (
     LeanLifecycleChecker,
     LeanLifecycleSession,
-    _capture_receipt_certificate,
+    _capture_controller_receipt_certificate,
 )
 from langgraph.prebuilt.security.policy import MandatoryPolicyBackend
 from langgraph.prebuilt.security.profile import ProfileDocument
@@ -961,14 +961,14 @@ class LandlockSandboxExecutor:
                     "host": receipt.host_digest,
                     "context": receipt.context_digest,
                 }
-                certificate = _capture_receipt_certificate(
+                certificate = _capture_controller_receipt_certificate(
                     plan,
                     receipt,
                     plan_digest=plan.digest,
                     grant=self._lean_grant,
                     obligations=self._lean_obligations,
                 )
-                lifecycle = LeanLifecycleSession(
+                lifecycle = LeanLifecycleSession._from_captured(
                     self.lifecycle_checker,
                     expected,
                     certificate,

@@ -779,6 +779,33 @@ def test_capture_uses_native_slots_and_detaches_actual_records(monkeypatch):
     assert captured == before
 
 
+def test_controller_capture_reuses_checked_data_without_recursive_detachment(
+    checker, monkeypatch
+):
+    _, _, plan, _, _, receipt = _composition()
+    grant = {"digest": "checked-grant"}
+    obligations = [{"id": "checked-obligation"}]
+
+    def unexpected(*_args, **_kwargs):
+        raise AssertionError("controller-owned checked data was detached again")
+
+    monkeypatch.setattr(lean_lifecycle, "_data", unexpected)
+    captured = lean_lifecycle._capture_controller_receipt_certificate(
+        plan,
+        receipt,
+        plan_digest=plan.digest,
+        grant=grant,
+        obligations=obligations,
+    )
+    session = LeanLifecycleSession._from_captured(
+        checker, {"principal": "alice"}, captured
+    )
+
+    assert captured["grant"] is grant
+    assert captured["obligations"] is obligations
+    assert session._certificate is captured
+
+
 @pytest.mark.parametrize(
     "row",
     [

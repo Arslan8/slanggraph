@@ -359,10 +359,42 @@ def _capture_receipt_certificate(
     return result
 
 
+def _capture_controller_receipt_certificate(
+    plan: EnforcementPlan,
+    receipt: ActivationReceipt,
+    *,
+    plan_digest: str,
+    grant: dict,
+    obligations: list,
+) -> dict:
+    """Capture fresh native records around controller-owned checked data.
+
+    The selected host route owns `grant` and `obligations`, and has already
+    passed them through the grant checker. The returned plan and receipt rows
+    are newly projected from exact native slots. Avoid detaching this complete
+    controller-owned envelope again before immediately encoding it for Lean.
+    """
+    if type(grant) is not dict or type(obligations) is not list:
+        raise HostExecutionDenied("host:lean_certificate_shape")
+    result = None
+    try:
+        result = {
+            "grant": grant,
+            "obligations": obligations,
+            **_capture_certificate(plan, receipt, plan_digest),
+        }
+    except (AttributeError, RecursionError):
+        pass
+    if result is None:
+        raise HostExecutionDenied("host:lean_certificate_shape")
+    return result
+
+
 def _capture_certificate(plan: Any, receipt: Any, plan_digest: Any) -> dict:
     # Charge projected strings/arrays as they are inspected so an oversized
-    # early row stops capture before later rows. _data below also accounts for
-    # all fixed keys and punctuation in the complete detached certificate.
+    # early row stops capture before later rows. The general capture's `_data`
+    # walk or the controller route's final prepared encoding enforces the full
+    # envelope limit, including fixed keys and punctuation.
     budget = [_MAX_REQUEST - 1]
     grant, host, mode, assignments, native_plans, waived, removed = _record(
         plan, EnforcementPlan, _PLAN_SLOTS
@@ -852,6 +884,39 @@ class LeanLifecycleSession:
             if checker.inline
             else None
         )
+
+    @classmethod
+    def _from_captured(
+        cls,
+        checker: LeanLifecycleChecker,
+        binding: dict,
+        certificate: dict,
+        *,
+        object_route: bool = False,
+    ) -> LeanLifecycleSession:
+        """Bind controller-captured data without another recursive copy."""
+        if (
+            cls is not LeanLifecycleSession
+            or type(checker) is not LeanLifecycleChecker
+            or type(binding) is not dict
+            or type(certificate) is not dict
+        ):
+            raise HostExecutionDenied("host:lean_binary_configuration")
+        session = object.__new__(cls)
+        session._checker = checker
+        session._binding = binding
+        session._certificate = certificate
+        session._events = []
+        session._failed = False
+        session._object_route = object_route
+        session._prepared = (
+            checker._prepare_captured_route(
+                binding, certificate, object_route=object_route
+            )
+            if checker.inline
+            else None
+        )
+        return session
 
     def permit_go(self, observed: dict, *, supported: bool) -> None:
         """Called only after grant negotiation and receipt validation succeed."""
