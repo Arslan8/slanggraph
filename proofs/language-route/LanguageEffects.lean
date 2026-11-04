@@ -47,21 +47,21 @@ theorem checked_trace_registered (registered : List String)
       simpa [check] using accepted
   | seqLeft execution ih =>
       intro accepted name member
-      have parts := Bool.and_eq_true.mp accepted
+      have parts := Bool.and_eq_true_iff.mp accepted
       exact ih parts.1 name member
   | seqBoth left right ihLeft ihRight =>
       intro accepted name member
-      have parts := Bool.and_eq_true.mp accepted
+      have parts := Bool.and_eq_true_iff.mp accepted
       rcases List.mem_append.mp member with member | member
       · exact ihLeft parts.1 name member
       · exact ihRight parts.2 name member
   | choiceLeft execution ih =>
       intro accepted name member
-      have parts := Bool.and_eq_true.mp accepted
+      have parts := Bool.and_eq_true_iff.mp accepted
       exact ih parts.1 name member
   | choiceRight execution ih =>
       intro accepted name member
-      have parts := Bool.and_eq_true.mp accepted
+      have parts := Bool.and_eq_true_iff.mp accepted
       exact ih parts.2 name member
   | repeatStep first rest ihFirst ihRest =>
       intro accepted name member

@@ -15,14 +15,29 @@ PURE_BUILTINS = frozenset({"int", "float", "str", "bool", "len"})
 _NUMERIC = frozenset({"int", "float"})
 _SCALARS = frozenset({"str", "int", "float", "bool", "NoneType"})
 _OPS = {
-    "add": operator.add, "sub": operator.sub, "mul": operator.mul,
-    "div": operator.truediv, "floordiv": operator.floordiv, "mod": operator.mod,
-    "lt": operator.lt, "le": operator.le, "gt": operator.gt, "ge": operator.ge,
-    "neg": operator.neg, "pos": operator.pos, "not": operator.not_,
+    "add": operator.add,
+    "sub": operator.sub,
+    "mul": operator.mul,
+    "div": operator.truediv,
+    "floordiv": operator.floordiv,
+    "mod": operator.mod,
+    "lt": operator.lt,
+    "le": operator.le,
+    "gt": operator.gt,
+    "ge": operator.ge,
+    "neg": operator.neg,
+    "pos": operator.pos,
+    "not": operator.not_,
     "getitem": operator.getitem,
     "range_more": lambda i, end, step: i < end if step > 0 else i > end,
-    "range_step": lambda step: step if step != 0 else (_ for _ in ()).throw(ValueError("zero step")),
-    "int": int, "float": float, "str": str, "bool": bool, "len": len,
+    "range_step": lambda step: (
+        step if step != 0 else (_ for _ in ()).throw(ValueError("zero step"))
+    ),
+    "int": int,
+    "float": float,
+    "str": str,
+    "bool": bool,
+    "len": len,
 }
 
 
@@ -62,12 +77,15 @@ def pure_type(op: str, arguments: list[frozenset[str]]) -> frozenset[str]:
             left == right == {"str"} or (left <= _NUMERIC and right <= _NUMERIC)
         ):
             return frozenset({"bool"})
-        if op in {"add", "sub", "mul", "div", "floordiv", "mod"} and left <= _NUMERIC and right <= _NUMERIC:
+        if (
+            op in {"add", "sub", "mul", "div", "floordiv", "mod"}
+            and left <= _NUMERIC
+            and right <= _NUMERIC
+        ):
             if op == "div":
                 return frozenset({"float"})
             return frozenset(
-                "float" if "float" in (a, b) else "int"
-                for a in left for b in right
+                "float" if "float" in (a, b) else "int" for a in left for b in right
             )
     raise SecurityConfigurationError("language_proof:pure_operand_type")
 
@@ -82,5 +100,11 @@ def pure_eval(op: str, arguments: list[object]) -> object:
     try:
         pure_type(op, kinds)
         return _OPS[op](*arguments)
-    except (SecurityConfigurationError, ValueError, TypeError, ArithmeticError, IndexError):
+    except (
+        SecurityConfigurationError,
+        ValueError,
+        TypeError,
+        ArithmeticError,
+        IndexError,
+    ):
         raise HostExecutionDenied("language_sandbox:invalid_pure_operation") from None

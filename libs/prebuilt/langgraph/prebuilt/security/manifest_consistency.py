@@ -230,14 +230,20 @@ def check_manifest_consistency(
         def value_type(
             node: ast.expr | None, seen: frozenset[str] = frozenset()
         ) -> str | None:
-            if isinstance(node, ast.Compare) or (isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not)):
+            if isinstance(node, ast.Compare) or (
+                isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not)
+            ):
                 return "bool"
             if isinstance(node, ast.Constant):
                 return type(node.value).__name__
             if isinstance(node, ast.JoinedStr):
                 return "str"
             if isinstance(node, ast.Call):
-                if isinstance(node.func, ast.Name) and node.func.id in PURE_BUILTINS and node.func.id not in locals_:
+                if (
+                    isinstance(node.func, ast.Name)
+                    and node.func.id in PURE_BUILTINS
+                    and node.func.id not in locals_
+                ):
                     return "int" if node.func.id == "len" else node.func.id
                 _, called = call_model(node)
                 return called.result_type if called is not None else None
@@ -263,7 +269,12 @@ def check_manifest_consistency(
         for node in nodes:
             if isinstance(node, ast.Call):
                 target, model = call_model(node)
-                if model is None and target in (PURE_BUILTINS | {"range"}) and isinstance(node.func, ast.Name) and target not in locals_:
+                if (
+                    model is None
+                    and target in (PURE_BUILTINS | {"range"})
+                    and isinstance(node.func, ast.Name)
+                    and target not in locals_
+                ):
                     terminal_nodes.add(id(node.func))
                 elif model is None:
                     issue(node, "unknown", f"unmodeled call: {target}")
@@ -322,7 +333,19 @@ def check_manifest_consistency(
                                 )
         for node in nodes:
             if isinstance(node, ast.stmt) and not isinstance(
-                node, (ast.Return, ast.Expr, ast.Assign, ast.AugAssign, ast.If, ast.While, ast.For, ast.Pass)
+                node,
+                (
+                    ast.Return,
+                    ast.Expr,
+                    ast.Assign,
+                    ast.AugAssign,
+                    ast.If,
+                    ast.While,
+                    ast.For,
+                    ast.Break,
+                    ast.Continue,
+                    ast.Pass,
+                ),
             ):
                 issue(node, "unknown", f"unsupported statement: {type(node).__name__}")
             if isinstance(node, ast.expr) and not isinstance(
@@ -358,7 +381,10 @@ def check_manifest_consistency(
                 isinstance(target, ast.Name) for target in node.targets
             ):
                 issue(node, "unknown", "assignment must target local names")
-            if isinstance(node, (ast.If, ast.While)) and value_type(node.test) != "bool":
+            if (
+                isinstance(node, (ast.If, ast.While))
+                and value_type(node.test) != "bool"
+            ):
                 issue(node, "unknown", "condition must produce an inert boolean")
         for rule in tool.rules:
             names = set(_TEMPLATE.findall(rule.pattern))
@@ -414,7 +440,9 @@ def check_manifest_consistency(
                             return None
                         values.append(resolved)
                     return _join(values)
-                if isinstance(node, (ast.BinOp, ast.UnaryOp, ast.Compare, ast.Subscript)):
+                if isinstance(
+                    node, (ast.BinOp, ast.UnaryOp, ast.Compare, ast.Subscript)
+                ):
                     for child in ast.iter_child_nodes(node):
                         if isinstance(child, ast.expr):
                             expression(child)
@@ -423,7 +451,12 @@ def check_manifest_consistency(
                     target, model = call_model(node)
                     values = [expression(arg) for arg in node.args]
                     keywords = {kw.arg: expression(kw.value) for kw in node.keywords}
-                    if model is None and target in (PURE_BUILTINS | {"range"}) and isinstance(node.func, ast.Name) and target not in locals_:
+                    if (
+                        model is None
+                        and target in (PURE_BUILTINS | {"range"})
+                        and isinstance(node.func, ast.Name)
+                        and target not in locals_
+                    ):
                         return None
                     if model is None:
                         issue(node, "unknown", f"unmodeled call: {target}")
@@ -484,19 +517,27 @@ def check_manifest_consistency(
                         for target in node.targets:
                             assert isinstance(target, ast.Name)
                             env[target.id] = value
-                    elif isinstance(node, ast.AugAssign) and isinstance(node.target, ast.Name):
+                    elif isinstance(node, ast.AugAssign) and isinstance(
+                        node.target, ast.Name
+                    ):
                         expression(node.value)
                         env[node.target.id] = None
                     elif isinstance(node, (ast.While, ast.For)):
                         # A loop-carried selector cannot be treated as its entry
                         # value. Forget every assigned local before inspecting
                         # the condition/body, then retain only invariant values.
-                        changed = {part.id for part in ast.walk(node)
-                                   if isinstance(part, ast.Name) and isinstance(part.ctx, ast.Store)}
+                        changed = {
+                            part.id
+                            for part in ast.walk(node)
+                            if isinstance(part, ast.Name)
+                            and isinstance(part.ctx, ast.Store)
+                        }
                         for name in changed:
                             env[name] = None
                         invariant = dict(env)
-                        expression(node.test if isinstance(node, ast.While) else node.iter)
+                        expression(
+                            node.test if isinstance(node, ast.While) else node.iter
+                        )
                         statements(node.body)
                         env.clear()
                         env.update(invariant)
@@ -567,8 +608,16 @@ def check_manifest_consistency(
                             elif right_returns:
                                 env.update(left)
                             else:
-                                env.update({name: left.get(name) if left.get(name) == right.get(name) else None
-                                            for name in left.keys() | right.keys()})
+                                env.update(
+                                    {
+                                        name: left.get(name)
+                                        if left.get(name) == right.get(name)
+                                        else None
+                                        for name in left.keys() | right.keys()
+                                    }
+                                )
+                    elif isinstance(node, (ast.Break, ast.Continue)):
+                        return True
                     elif isinstance(node, ast.Pass):
                         continue
                     else:

@@ -231,7 +231,9 @@ def derive_program(
             result = frozenset({"bool"})
         elif rule == "pure":
             node(value, 3)
-            result = pure_type(value[1], [expression(part, environment) for part in sequence(value[2])])
+            result = pure_type(
+                value[1], [expression(part, environment) for part in sequence(value[2])]
+            )
         elif rule == "call":
             node(value, 4)
             target = value[1]
@@ -295,6 +297,10 @@ def derive_program(
                         if name in invariant and not kind <= invariant[name]:
                             reject("loop_local_type_changed")
                     environment[name] = kind
+            elif rule in {"break", "continue"}:
+                node(value, 1)
+                if not invariants:
+                    reject("loop_control_outside_loop")
             elif rule == "while":
                 node(value, 4)
                 if expression(value[1], environment) != frozenset({"bool"}):
@@ -310,11 +316,9 @@ def derive_program(
                 finally:
                     invariants[:] = before_invariants
                 # The loop may execute zero times; body-created locals are not
-                # definitely bound afterward. The else branch always runs on a
-                # normally terminating loop (this IR has no break).
-                environment, else_return, else_results = statements(value[3], environment)
+                # definitely bound afterward. A break can also skip loop else.
+                _, _, else_results = statements(value[3], environment)
                 results.update(body_results | else_results)
-                returned = returned or else_return
             elif rule == "if":
                 node(value, 4)
                 if expression(value[1], environment) != frozenset({"bool"}):

@@ -215,7 +215,9 @@ def effect_stmts(body):
     parts = []
     for node in body:
         kind = node[0]
-        if kind in {"return", "expression"}:
+        if kind in {"break", "continue"}:
+            parts.append(".pure")
+        elif kind in {"return", "expression"}:
             parts.append(effect_expr(node[1]))
         elif kind == "assign":
             parts.append(effect_expr(node[2]))
@@ -234,6 +236,7 @@ EFFECT_USEFUL = {
     "while_reads": "def reads(path, count):\n    i = 0\n    while i < int(count):\n        read_text(path)\n        i += 1\n    return path\n",
     "for_reads": "def reads(path, count):\n    for i in range(int(count)):\n        read_text(path)\n    return path\n",
     "string_loop": "def count(path):\n    text = read_text(path)\n    n = 0\n    for c in text:\n        if c == 'x':\n            n += 1\n    return str(n)\n",
+    "continue_break": "def limited(path):\n    for i in range(5):\n        if i < 2:\n            continue\n        read_text(path)\n        break\n    return path\n",
     "infinite": "def infinite(path):\n    while True:\n        read_text(path)\n",
 }
 

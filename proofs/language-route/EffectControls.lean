@@ -16,6 +16,8 @@ def for_reads : Code := (.seq .pure (.seq (.seq .pure .pure) (.seq (.seq .pure .
 example : check ["read_text"] for_reads = true := by decide
 def string_loop : Code := (.seq (.seq .pure (.seq (.effect "read_text") .pure)) (.seq .pure (.seq .pure (.seq .pure (.seq .pure (.seq (.seq (.repeat (.seq (.seq .pure (.seq (.seq .pure .pure) .pure)) (.seq (.seq .pure (.seq .pure .pure)) (.seq (.seq .pure (.seq .pure .pure)) (.seq (.seq (.seq .pure (.seq .pure .pure)) (.choice (.seq (.seq .pure (.seq .pure .pure)) .pure) .pure)) .pure))))) (.seq (.seq .pure (.seq (.seq .pure .pure) .pure)) .pure)) (.seq (.seq .pure .pure) .pure)))))))
 example : check ["read_text"] string_loop = true := by decide
+def continue_break : Code := (.seq .pure (.seq .pure (.seq (.seq .pure .pure) (.seq (.seq (.repeat (.seq (.seq .pure (.seq .pure (.seq .pure .pure))) (.seq .pure (.seq (.seq .pure (.seq .pure .pure)) (.seq (.seq (.seq .pure (.seq .pure .pure)) (.choice (.seq .pure .pure) .pure)) (.seq (.seq .pure (.seq (.effect "read_text") .pure)) (.seq .pure .pure))))))) (.seq (.seq .pure (.seq .pure (.seq .pure .pure))) .pure)) (.seq .pure .pure)))))
+example : check ["read_text"] continue_break = true := by decide
 def infinite : Code := (.seq (.seq (.repeat (.seq .pure (.seq (.seq .pure (.seq (.effect "read_text") .pure)) .pure))) (.seq .pure .pure)) .pure)
 example : check ["read_text"] infinite = true := by decide
 def loop_escape : Code := (.seq (.seq (.repeat (.seq .pure (.seq (.seq (.effect "open") .pure) .pure))) (.seq .pure .pure)) .pure)

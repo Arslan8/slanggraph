@@ -19,15 +19,18 @@ import textwrap
 from collections.abc import Mapping
 from contextvars import ContextVar
 from functools import partial
-from threading import Event
 from pathlib import Path
+from threading import Event
 from types import CellType, CodeType, FunctionType
 from typing import TYPE_CHECKING
 
 from langchain_core.tools import BaseTool, StructuredTool
 
 from langgraph.prebuilt.security._language_pure import PURE_BUILTINS
-from langgraph.prebuilt.security._language_sandbox import LanguageProgram, _language_cancel
+from langgraph.prebuilt.security._language_sandbox import (
+    LanguageProgram,
+    _language_cancel,
+)
 from langgraph.prebuilt.security._pinned_file import open_path_descriptor
 from langgraph.prebuilt.security.errors import SecurityConfigurationError
 from langgraph.prebuilt.security.execution import HostExecutionDenied
@@ -366,8 +369,12 @@ class ManifestAdmission:
                         }
                     )
             for name in (PURE_BUILTINS | {"range"}) & set(function.__code__.co_names):
-                if name in function.__globals__ and function.__globals__[name] is not getattr(builtins, name):
-                    raise SecurityConfigurationError("language_sandbox:shadowed_pure_builtin")
+                if name in function.__globals__ and function.__globals__[
+                    name
+                ] is not getattr(builtins, name):
+                    raise SecurityConfigurationError(
+                        "language_sandbox:shadowed_pure_builtin"
+                    )
             report = check_manifest_consistency(
                 source,
                 manifest,
@@ -477,7 +484,9 @@ class ManifestAdmission:
         cancellation = Event()
         token = _language_cancel.set(cancellation)
         try:
-            pending = asyncio.create_task(asyncio.to_thread(program.invoke, dict(arguments)))
+            pending = asyncio.create_task(
+                asyncio.to_thread(program.invoke, dict(arguments))
+            )
         finally:
             _language_cancel.reset(token)
         cancelled = False
