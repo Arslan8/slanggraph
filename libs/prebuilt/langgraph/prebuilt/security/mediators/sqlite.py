@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from langgraph.prebuilt.security.enforcement import HostAttestation, SupportLevel
+from langgraph.prebuilt.security.mediators.contracts import ResourceContract
 from langgraph.prebuilt.security.mediators.records import (
     RECORDS,
     RecordMutation,
@@ -34,12 +35,12 @@ _CAPABILITIES = frozenset({"broker:spawn-bound", "seccomp:minimal"})
 _MAX_VALUE_BYTES = 8192
 
 
-def sqlite_record_mediator(
+def sqlite_records_resource(
     path: str | Path,
     *,
     database_id: str,
     timeout_s: float = 1.0,
-) -> ResourceMediatorAdapter:
+) -> ResourceContract[RecordsAPI]:
     """Mediate db_record read/write/delete on database_id/key selectors.
 
     Requires Python 3.11+, lowering sqlite.record.v1, empty attributes, and the exact
@@ -74,7 +75,8 @@ def sqlite_record_mediator(
     def key_for(line: ObjectGrantLine) -> str:
         if (
             line.class_name != RECORDS.class_name
-            or line.enforcer is not EnforcementKind.BROKER
+            or line.enforcer
+            not in {EnforcementKind.BROKER, EnforcementKind.LANGUAGE_SANDBOX}
             or line.lowering != RECORDS.lowering
             or line.attributes
             or line.operation not in RECORDS.methods
@@ -91,9 +93,17 @@ def sqlite_record_mediator(
             return ResourceSupport(
                 SupportLevel.UNSUPPORTED, "unsupported SQLite record semantics"
             )
-        if not _CAPABILITIES.issubset(host.capabilities):
+        if line.enforcer is EnforcementKind.BROKER and not _CAPABILITIES.issubset(
+            host.capabilities
+        ):
             return ResourceSupport(
                 SupportLevel.UNSUPPORTED, "SQLite isolation capabilities unavailable"
+            )
+        if line.enforcer is EnforcementKind.LANGUAGE_SANDBOX:
+            return ResourceSupport(
+                SupportLevel.EXACT,
+                "fixed single-record operations; the interpreted language has no filesystem or SQLite objects",
+                witness="sqlite.record.v1:tests/security/test_sqlite_mediator.py",
             )
         return ResourceSupport(
             SupportLevel.EXACT,
@@ -224,9 +234,20 @@ def sqlite_record_mediator(
         def delete(self, record: str) -> RecordMutation:
             return cast(RecordMutation, execute("delete", record, {}))
 
-    return ResourceMediatorAdapter(
-        f"{RECORDS.lowering}:{database_id}",
-        assess,
-        RECORDS.bind_backend(SQLiteRecords()),
+    return RECORDS.bind(
+        implementation=SQLiteRecords(),
+        assess=assess,
         activate=activate,
     )
+
+
+def sqlite_record_mediator(
+    path: str | Path,
+    *,
+    database_id: str,
+    timeout_s: float = 1.0,
+) -> ResourceMediatorAdapter:
+    """Compatibility adapter for `ObjectBrokerDispatcher(mediators=...)`."""
+    return sqlite_records_resource(
+        path, database_id=database_id, timeout_s=timeout_s
+    ).adapter

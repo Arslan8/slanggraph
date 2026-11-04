@@ -10,11 +10,32 @@ does not discover plugins or open resources.
 | `objects.py` | Object references and grant-scoped in-process dispatch |
 | `records.py` | Shared record API and client |
 | `sqlite.py` | Built-in SQLite record implementation |
+| `randomness.py` | Bounded booking values backed by Python `secrets` |
+| `retrieval.py` | Bounded scikit-learn and LangChain text retrieval |
 | `template.py` | Empty object-bound tutorial; denies all authority until implemented |
 
 The complete application example is [demo 08](../../../../../../workspace/08_custom_mediator/README.md).
 Demo 06 uses the existing SQLite mediator; demo 08 extends the framework with a
 new counter mediator.
+
+## Supported library contracts
+
+| Integration | Typed operations | Cedar resource/action | Resource identity and validation | Routes and host requirements |
+| --- | --- | --- | --- | --- |
+| SQLite records | `read(record: str) -> RecordRead`, `write(record: str, value: str) -> RecordMutation`, `delete(record: str) -> RecordMutation` | `db_record` with `read`, `write`, or `delete`; `record` is the selector | `<database_id>/<key>`; both components are bounded ASCII names, values are at most 8192 UTF-8 bytes, and the schema is exactly `records(key TEXT PRIMARY KEY, value TEXT NOT NULL)` | Language: exact because the admitted interpreter has no filesystem, module, or connection values. Broker: Python 3.11+, `broker:spawn-bound`, `seccomp:minimal`, and custody of the database directory. |
+| Random booking values | `appointment_time() -> str`, `booking_reference() -> str` | one opaque `random_source` resource with the matching action | The setup-bound generator is the resource. Results are fixed-shape strings; no generator object or state is returned. | Language and broker; Python 3.11+ `secrets`; no extra host capability. |
+| Text retrieval | `search(query: str) -> str` | one opaque `text_index` resource with action `search` | The setup-bound index/retriever is the resource. Queries are at most 4096 UTF-8 bytes and results at most 65536 bytes. | Language and broker. The scikit-learn factory assumes the compatible `TfidfVectorizer` API (tested with 1.x). The LangChain factory assumes synchronous `invoke(str)` returning documents with string `page_content`. Network and credential availability remain coordinator deployment requirements. |
+
+All three return only validated inert data. SQLite connections, random-library
+state, vectorizers, LangChain retrievers, credentials, and backend instances
+remain in trusted setup or mediator code. The framework checks the effective
+invocation grant immediately before every call; an import alias locates an
+interface and never adds an operation or resource to that grant.
+
+Library and mediator implementations are trusted to meet these contracts. The
+Lean language-route theorem proves that accepted effect traces name registered
+terminals; it does **not** inspect or verify the Python, SQLite, scikit-learn, or
+LangChain implementation source.
 
 ## One resource object, one binding
 
@@ -125,6 +146,35 @@ Unused manifest permissions remain valid. Methods with no arguments are checked
 too. Runtime dispatch still checks the effective DAC/MAC grant for every call;
 removing an optional permission does not leave a usable client capability.
 
+Registered imports are resolved while preparing admission. For example, this
+tool never receives a Python module object; `db` is lowered directly to the
+registered `RecordsAPI.read` terminal:
+
+```python
+def read_note(record: str) -> dict:
+    from langgraph.prebuilt.security.mediators.records import records as db
+
+    return db.read(record)
+```
+
+Minimal SQLite setup:
+
+```python
+resource = sqlite_records_resource("/srv/private/records.sqlite", database_id="notes")
+security = cedar_security(
+    tool,
+    resources=(resource,),
+    manifest="runs inprocess\ndb_record read @{record} need",
+    policy=caller_policy,
+)
+```
+
+Only imports that resolve to a registered export are accepted. Method aliases
+and module aliases preserve the same fixed interface. Arbitrary imports,
+unregistered members, dynamic attribute selection, callbacks, and traversal to
+the client or backend object remain unavailable. Candidate imports are not
+executed during preparation.
+
 In-process bindings require `EXACT` support with no OS capability or protected-path
 requirements. Unsupported retained permissions fail closed, including `want`
 permissions; this path does not perform the OS negotiator's optional-authority
@@ -209,6 +259,10 @@ use `resource_parameter="record"`. The supplied selector is checked against the
 grant and injected into the backend by typed dispatch. It cannot be replaced in
 the payload. Selector-specific support remains the service mediator's responsibility.
 
+Use `sqlite_records_resource(...)` for either language or broker registration.
+The language route relies on interpreter confinement and keeps every connection
+in trusted mediator code. It must not be described as OS confinement.
+
 Existing `bind_backend` and `ResourceMediatorAdapter` APIs, plus
 `ObjectBrokerDispatcher(mediators=...)`, remain supported for these services.
 They require explicit class declarations and manifest selectors. The compatibility
@@ -238,3 +292,10 @@ in-process grants, and raw OS broker requests. `test_sqlite_mediator.py` covers
 the selector-based database service. A witness string or source availability is
 not proof of arbitrary mediator code: implementations and their custody claims
 remain part of the trusted computing base.
+
+When adding or upgrading an integration, review the upstream library version and
+behavior, update the typed interface and lowering identifier for semantic
+changes, validate every returned field before it crosses the boundary, and rerun
+the allowed/denied resource, import-alias, lifecycle, proof-drift, and direct
+backend-access regressions. Never retain an old lowering name when an upstream
+change widens effects or result semantics.

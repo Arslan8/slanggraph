@@ -13,6 +13,7 @@ import uuid
 from dataclasses import replace
 from pathlib import Path
 
+from ace_language_adapters import health_companion, travel_mate
 from langchain_core.messages import AIMessage
 from langchain_core.tools import StructuredTool
 from langgraph.graph import START, MessagesState, StateGraph
@@ -28,6 +29,7 @@ from langgraph.prebuilt.security import (
 from langgraph.prebuilt.security.manifest_consistency import (
     check_manifest_consistency,
 )
+from langgraph.prebuilt.security.mediators.randomness import random_values_resource
 
 POLICY = (
     'permit(principal == slangGraph::User::"alice", '
@@ -58,6 +60,10 @@ ARGUMENTS = {
         "class_of_service": "economy",
         "special_requirements": "none",
     },
+}
+ADAPTATIONS = {
+    "health_companion": health_companion,
+    "travel_mate": travel_mate,
 }
 
 
@@ -104,11 +110,19 @@ def _load(path: Path, name: str):
     return module.main
 
 
-def _execute(path: Path, name: str, *, host_isolated: bool) -> dict:
+def _execute(
+    path: Path,
+    name: str,
+    *,
+    host_isolated: bool,
+    function=None,
+    resources=(),
+    permissions: str = "",
+) -> dict:
     before = hashlib.sha256(path.read_bytes()).hexdigest()
     stage = "load"
     try:
-        function = _load(path, name)
+        function = function or _load(path, name)
         tool = StructuredTool.from_function(
             function,
             name=name,
@@ -129,9 +143,14 @@ def _execute(path: Path, name: str, *, host_isolated: bool) -> dict:
         security = replace(
             cedar_security(
                 tool,
-                manifest="runs linux\nreturns normal" if host_isolated else MANIFEST,
+                manifest=(
+                    "runs linux\nreturns normal"
+                    if host_isolated
+                    else MANIFEST + ("\n" + permissions if permissions else "")
+                ),
                 policy=POLICY,
                 dispatcher=dispatcher,
+                resources=resources,
             ),
             closed_admission=True,
         )
@@ -202,6 +221,7 @@ def run(output: Path, ace_root: Path) -> None:
         ["git", "rev-parse", "HEAD"], cwd=ace_root, text=True
     ).strip()
     rows = []
+    random_resource = random_values_resource()
     for path in sorted(source_root.glob("*.py")):
         name = path.stem
         if name not in selected_names:
@@ -231,11 +251,30 @@ def run(output: Path, ace_root: Path) -> None:
         }
         language = dict(skipped) if placeholder else _execute(path, name, host_isolated=False)
         host = dict(skipped) if placeholder else _execute(path, name, host_isolated=True)
+        adapted = None
+        integration = None
+        if not placeholder and not language["execution_succeeded"] and name in ADAPTATIONS:
+            integration = "python.secrets.booking.v1"
+            operations = [random_resource.permission("appointment_time")]
+            if name == "travel_mate":
+                operations.append(random_resource.permission("booking_reference"))
+            adapted = _execute(
+                path,
+                name,
+                host_isolated=False,
+                function=ADAPTATIONS[name],
+                resources=(random_resource,),
+                permissions="\n".join(operations),
+            )
+        elif name == "google_drive_retrieve":
+            integration = "library.text_retrieval.v1 (trusted Google Drive setup required)"
         classification = (
             "placeholder_excluded"
             if placeholder
             else "works_unchanged"
             if language["execution_succeeded"] and language["source_unchanged"]
+            else "works_with_api_adaptation"
+            if adapted is not None and adapted["execution_succeeded"]
             else "requires_host_isolation"
             if host["execution_succeeded"] and host["source_unchanged"]
             else "requires_adaptation"
@@ -249,7 +288,9 @@ def run(output: Path, ace_root: Path) -> None:
                 "classification": classification,
                 "static_report": static_report,
                 "language_route": language,
+                "adapted_language_route": adapted,
                 "host_route": host,
+                "integration": integration,
             }
         )
     (output / "trials.jsonl").write_text(
@@ -261,6 +302,7 @@ def run(output: Path, ace_root: Path) -> None:
         for label in (
             "placeholder_excluded",
             "works_unchanged",
+            "works_with_api_adaptation",
             "requires_host_isolation",
             "requires_adaptation",
         )
@@ -279,17 +321,27 @@ def run(output: Path, ace_root: Path) -> None:
                 "real_tools": len(real),
                 "counts": counts,
                 "real_language_admission_successes": sum(
-                    row["language_route"]["admission_succeeded"] for row in real
+                    row["language_route"]["admission_succeeded"]
+                    or bool(
+                        row["adapted_language_route"]
+                        and row["adapted_language_route"]["admission_succeeded"]
+                    )
+                    for row in real
                 ),
                 "real_language_execution_successes": sum(
-                    row["language_route"]["execution_succeeded"] for row in real
+                    row["language_route"]["execution_succeeded"]
+                    or bool(
+                        row["adapted_language_route"]
+                        and row["adapted_language_route"]["execution_succeeded"]
+                    )
+                    for row in real
                 ),
                 "host_isolated_execution_successes": sum(
                     row["host_route"]["execution_succeeded"] for row in real
                 ),
                 "claim": (
-                    "Only non-placeholder tools that passed closed admission and "
-                    "executed through ToolNode count as works_unchanged."
+                    "Unchanged and API-adapted successes are separate; both require "
+                    "closed admission and execution through ToolNode."
                 ),
             },
             indent=2,

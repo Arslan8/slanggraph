@@ -51,6 +51,16 @@ def request_object(identity, export, operation, payload):
     return broker_request("resource:" + export, operation, payload)
 
 
+def request_resource(class_name, selector, operation, payload):
+    """Dispatch a selector-bound request locally or over the object broker."""
+    local = _local.get()
+    if local is not None:
+        return local((class_name, selector), operation, payload)
+    from langgraph.prebuilt.security.object_broker import object_request
+
+    return object_request(class_name, operation, selector, payload)
+
+
 @contextmanager
 def local_resources(resources, principal, call, grant):
     """Install exact-object dispatch for an admitted in-process invocation.
@@ -96,6 +106,7 @@ def local_resources(resources, principal, call, grant):
         worker,
     )
     routes = {}
+    bound_lines = set()
     activated = []
     pending = []
     active = True
@@ -126,15 +137,21 @@ def local_resources(resources, principal, call, grant):
             lines = tuple(line for line in grant.lines if resource._matches(line))
             for line in lines:
                 check(adapter, line)
-                key = (resource._object_id, line.operation)
+                identity = (
+                    resource._object_id
+                    if resource._object_id is not None
+                    else (resource.class_name, line.selector)
+                )
+                key = (identity, line.operation)
                 if key in routes:
                     raise HostExecutionDenied("resource:ambiguous_grant")
                 routes[key] = (adapter, line)
+                bound_lines.add(line.line_id)
             if lines:
                 pending.append((adapter, lines))
         # Reject declared custom authority that has no registered implementation.
         if any(
-            line.class_name != "fs" and (line.selector, line.operation) not in routes
+            line.class_name != "fs" and line.line_id not in bound_lines
             for line in grant.lines
         ):
             raise HostExecutionDenied("resource:unbound_grant")

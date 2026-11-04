@@ -200,6 +200,8 @@ def effect_expr(node):
         return ".pure"
     if kind == "join":
         return effect_sequence(effect_expr(p) for p in node[1])
+    if kind == "dictionary":
+        return effect_sequence(effect_expr(p) for _, p in node[1])
     if kind == "compare":
         return effect_sequence(effect_expr(p) for p in node[2:])
     if kind == "pure":
@@ -233,6 +235,7 @@ def effect_stmts(body):
 
 EFFECT_USEFUL = {
     **USEFUL,
+    "dictionary": "def dictionary(path):\n    return {'result': read_text(path)}\n",
     "while_reads": "def reads(path, count):\n    i = 0\n    while i < int(count):\n        read_text(path)\n        i += 1\n    return path\n",
     "for_reads": "def reads(path, count):\n    for i in range(int(count)):\n        read_text(path)\n    return path\n",
     "string_loop": "def count(path):\n    text = read_text(path)\n    n = 0\n    for c in text:\n        if c == 'x':\n            n += 1\n    return str(n)\n",

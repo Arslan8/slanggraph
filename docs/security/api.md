@@ -71,6 +71,10 @@ confine the implementation.
 | `ResourceMediatorAdapter` | Operator-supplied exact resource assessment and invocation, with optional preflight/activation/release hooks. Semantic implementation is trusted. |
 | `ResourceSupport` | Exact/stricter/unsupported assessment, reviewed contract reference, protected paths, and required host capabilities. |
 | `sqlite_record_mediator` | Concrete parent-owned SQLite adapter for exact `db_record` read/write/delete grants with `lowering sqlite.record.v1`; fixed parameterized SQL and protected database directory. Requires Python 3.11+. |
+| `sqlite_records_resource` | Bind the SQLite records contract for language or broker registration while keeping connections in trusted mediator code. |
+| `random_values_resource` | Bind fixed-shape appointment-time and booking-reference operations backed by trusted Python `secrets`. |
+| `langchain_text_retrieval_resource` | Bind a trusted synchronous LangChain retriever and reduce its documents to bounded inert text. |
+| `sklearn_text_retrieval_resource` | Build and bind a trusted setup-owned scikit-learn TF-IDF index with bounded query-only access. |
 | `ResourceContract` (`security.mediators.contracts`) | Typed resource definition. Bind `implementation` and `mediator` (with `assess` and `validate` methods) during construction or with `.bind(...)`; omit `resource_parameter` for an object-bound API. Register `resources=(resource,)` on the broker dispatcher or on `cedar_security` for admitted language-sandbox tools. `.permission(operation)` declares the exact object without application-managed IDs. Generates client methods, checker effects, declarations, and validated dispatch. |
 | `ResourceReference` (`security.mediators`) | Opaque `.service` address for OS broker clients. Available as `resource.reference`; possession never substitutes for an invocation grant. |
 | `ResourceMediator` (`security.mediators.contracts`) | Owns `assess(line, host)` for lowering support and synchronous `validate(operation, arguments, context)` for request checks. Binding wires both methods; authorization and typed checks remain mandatory. |

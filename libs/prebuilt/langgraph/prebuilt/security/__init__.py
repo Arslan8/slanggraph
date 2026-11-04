@@ -404,6 +404,10 @@ __all__ = (
     "negotiate_object_grant",
     "SQLITE_RECORD_SCHEMA",
     "sqlite_record_mediator",
+    "sqlite_records_resource",
+    "random_values_resource",
+    "langchain_text_retrieval_resource",
+    "sklearn_text_retrieval_resource",
     "OstreeDeploymentManager",
     "ObjectManagerHost",
     "ObjectManagerPolicy",
@@ -511,9 +515,15 @@ __all__ = (
     "with_principal",
 )
 
+from langgraph.prebuilt.security.mediators.randomness import random_values_resource
+from langgraph.prebuilt.security.mediators.retrieval import (
+    langchain_text_retrieval_resource,
+    sklearn_text_retrieval_resource,
+)
 from langgraph.prebuilt.security.mediators.sqlite import (
     SQLITE_RECORD_SCHEMA,
     sqlite_record_mediator,
+    sqlite_records_resource,
 )
 from langgraph.prebuilt.security.resource_mediator import (
     ObjectLoweringRecord,

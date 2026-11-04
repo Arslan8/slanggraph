@@ -128,8 +128,10 @@ def check_manifest_consistency(
     """
     tool = manifest.tools[tool_name]
     from langgraph.prebuilt.security.mediators.contracts import (
+        canonical_import_target,
         client_binding,
         exported_client_models,
+        registered_import_aliases,
     )
 
     models = {item.target: item for item in operations}
@@ -171,16 +173,22 @@ def check_manifest_consistency(
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
         and node.name == (function or tool_name)
     ]
-    aliases: dict[str, str] = {}
-    for node in tree.body:
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                aliases[alias.asname or alias.name.split(".")[0]] = (
-                    alias.name if alias.asname else alias.name.split(".")[0]
-                )
-        elif isinstance(node, ast.ImportFrom) and not node.level and node.module:
-            for alias in node.names:
-                aliases[alias.asname or alias.name] = f"{node.module}.{alias.name}"
+    top_level_imports = tuple(
+        node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))
+    )
+    local_imports = ()
+    if len(entries) == 1:
+        local_imports = tuple(
+            node
+            for node in ast.walk(entries[0])
+            if isinstance(node, (ast.Import, ast.ImportFrom))
+        )
+    aliases, invalid_imports = registered_import_aliases(
+        top_level_imports + local_imports, targets=tuple(models)
+    )
+    for node in invalid_imports:
+        if node in local_imports:
+            issue(node, "unknown", "import does not expose a registered client")
     if len(entries) != 1:
         issue(tree, "unknown", "expected exactly one top-level entry function")
     else:
@@ -204,8 +212,8 @@ def check_manifest_consistency(
 
         def call_model(node: ast.Call) -> tuple[str, ManifestOperation | None]:
             target = ast.unparse(node.func)
-            root, dot, rest = target.partition(".")
-            target = aliases.get(root, root) + (dot + rest if dot else "")
+            root = target.partition(".")[0]
+            target = canonical_import_target(target, aliases)
             return target, models.get(target) if root not in locals_ else None
 
         # Validate the entire body, independently of reachability and the
@@ -238,6 +246,8 @@ def check_manifest_consistency(
                 return type(node.value).__name__
             if isinstance(node, ast.JoinedStr):
                 return "str"
+            if isinstance(node, ast.Dict):
+                return "dict"
             if isinstance(node, ast.Call):
                 if (
                     isinstance(node.func, ast.Name)
@@ -288,11 +298,7 @@ def check_manifest_consistency(
                             and (
                                 declared_class.lowering != model.lowering
                                 or declared_class.enforced_by.value
-                                not in (
-                                    {"broker", "language_sandbox"}
-                                    if model.fixed_resource is not None
-                                    else {"broker"}
-                                )
+                                not in {"broker", "language_sandbox"}
                             )
                         ):
                             issue(
@@ -345,6 +351,8 @@ def check_manifest_consistency(
                     ast.Break,
                     ast.Continue,
                     ast.Pass,
+                    ast.Import,
+                    ast.ImportFrom,
                 ),
             ):
                 issue(node, "unknown", f"unsupported statement: {type(node).__name__}")
@@ -361,6 +369,7 @@ def check_manifest_consistency(
                     ast.UnaryOp,
                     ast.Subscript,
                     ast.Attribute,
+                    ast.Dict,
                 ),
             ):
                 issue(node, "unknown", f"unsupported expression: {type(node).__name__}")
@@ -377,6 +386,11 @@ def check_manifest_consistency(
                 node.conversion != -1 or node.format_spec is not None
             ):
                 issue(node, "unknown", "formatted conversions are unsupported")
+            if isinstance(node, ast.Dict) and any(
+                not isinstance(key, ast.Constant) or type(key.value) is not str
+                for key in node.keys
+            ):
+                issue(node, "unknown", "dictionary keys must be literal strings")
             if isinstance(node, ast.Assign) and not all(
                 isinstance(target, ast.Name) for target in node.targets
             ):
@@ -440,6 +454,20 @@ def check_manifest_consistency(
                             return None
                         values.append(resolved)
                     return _join(values)
+                if isinstance(node, ast.Dict):
+                    for key, value in zip(node.keys, node.values):
+                        if (
+                            not isinstance(key, ast.Constant)
+                            or type(key.value) is not str
+                        ):
+                            issue(
+                                node,
+                                "unknown",
+                                "dictionary keys must be literal strings",
+                            )
+                            return None
+                        expression(value)
+                    return None
                 if isinstance(
                     node, (ast.BinOp, ast.UnaryOp, ast.Compare, ast.Subscript)
                 ):
@@ -619,6 +647,8 @@ def check_manifest_consistency(
                     elif isinstance(node, (ast.Break, ast.Continue)):
                         return True
                     elif isinstance(node, ast.Pass):
+                        continue
+                    elif isinstance(node, (ast.Import, ast.ImportFrom)):
                         continue
                     else:
                         issue(

@@ -40,11 +40,13 @@ bound afterward. The manifest analysis forgets loop-written resource selectors
 before inspecting effects; a first-iteration value cannot justify later access.
 Unknown selectors remain refused, and terminals independently enforce the grant.
 
-Invocation arguments still use the existing string contract. This change does
-not add arbitrary imports, reflection, attributes, callbacks, recursive helper
-functions, general container operations, or native Python libraries. Those
-remain separate language extensions or use the host route. Supporting a useful
-loop is not evidence that a particular ACE tool or application has been ported.
+Invocation arguments still use the existing string contract. Fixed dictionaries
+with literal string keys are inert data. Imports are accepted only when trusted
+preparation resolves them to a registered generated-client export; the candidate
+never receives or initializes a module object. Arbitrary imports, reflection,
+unregistered attributes, callbacks, recursive helper functions, and general
+container operations remain unavailable. Native libraries require a registered
+mediator or the host route.
 
 ## Proof and executable evidence
 

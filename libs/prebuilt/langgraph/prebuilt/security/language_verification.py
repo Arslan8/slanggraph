@@ -219,6 +219,20 @@ def derive_program(
                 if expression(part, environment) != frozenset({"str"}):
                     reject("format_requires_strings")
             result = frozenset({"str"})
+        elif rule == "dictionary":
+            node(value, 2)
+            keys = set()
+            for item in sequence(value[1]):
+                if (
+                    type(item) is not tuple
+                    or len(item) != 2
+                    or type(item[0]) is not str
+                    or item[0] in keys
+                ):
+                    reject("invalid_dictionary")
+                keys.add(item[0])
+                expression(item[1], environment)
+            result = frozenset({"dict"})
         elif rule == "compare":
             node(value, 4)
             if type(value[1]) is not bool:

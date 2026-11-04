@@ -40,7 +40,12 @@ from langgraph.prebuilt.security.manifest_consistency import (
     check_manifest_consistency,
     format_manifest_diagnostics,
 )
-from langgraph.prebuilt.security.mediators.contracts import client_binding
+from langgraph.prebuilt.security.mediators.contracts import (
+    canonical_import_target,
+    client_binding,
+    exported_client_bindings,
+    registered_import_aliases,
+)
 from langgraph.prebuilt.security.object_policy import ObjectGrant, SecurityManifest
 
 if TYPE_CHECKING:
@@ -238,6 +243,7 @@ class ManifestAdmission:
         self.flow_reports = []
         self.defaults = []
         self.clients = []
+        self.import_clients = []
         self.programs = {}
         self.program_sources = {}
         self.terminal_codes = []
@@ -368,6 +374,49 @@ class ManifestAdmission:
                             for model in binding.models(name)
                         }
                     )
+            import_nodes = tuple(
+                node
+                for node in ast.walk(tree.body[0])
+                if isinstance(node, (ast.Import, ast.ImportFrom))
+            )
+            aliases, invalid_imports = registered_import_aliases(import_nodes)
+            if invalid_imports:
+                raise SecurityConfigurationError(
+                    "manifest_consistency:unregistered_import"
+                )
+            exports = exported_client_bindings()
+            imported_targets = {
+                canonical_import_target(ast.unparse(node.func), aliases)
+                for node in ast.walk(tree.body[0])
+                if isinstance(node, ast.Call)
+            }
+            for export, binding in exports.items():
+                selected = {
+                    target
+                    for target in imported_targets
+                    if target.startswith(export + ".")
+                    and target.removeprefix(export + ".") in binding.methods
+                }
+                if not selected:
+                    continue
+                binding.validate()
+                self.import_clients.append((export, binding))
+                for model in binding.models(export):
+                    if model.target not in selected:
+                        continue
+                    method = model.target.removeprefix(export + ".")
+                    execution_terminals[model.target] = partial(
+                        _freeze_terminal(binding.methods[method]), binding.client
+                    )
+                    terminal_contracts[model.target] = TerminalContract(
+                        tuple(zip(model.parameters, model.parameter_types)),
+                        frozenset({model.result_type})
+                        if model.result_type
+                        in {"str", "int", "float", "bool", "NoneType", "dict"}
+                        else frozenset(
+                            {"str", "int", "float", "bool", "NoneType", "dict"}
+                        ),
+                    )
             for name in (PURE_BUILTINS | {"range"}) & set(function.__code__.co_names):
                 if name in function.__globals__ and function.__globals__[
                     name
@@ -413,6 +462,7 @@ class ManifestAdmission:
                 function.__defaults__ or (),
                 function.__kwdefaults__ or {},
                 contracts=terminal_contracts,
+                aliases=aliases,
             )
             self.program_sources[attribute] = report["source_sha256"]
         if not self.bindings:
@@ -445,6 +495,16 @@ class ManifestAdmission:
         for function, name, binding in self.clients:
             if function.__globals__.get(name) is not binding.client:
                 raise HostExecutionDenied("manifest_consistency:client_changed")
+            try:
+                binding.validate()
+            except PermissionError as exc:
+                raise HostExecutionDenied(
+                    "manifest_consistency:client_method_changed"
+                ) from exc
+        exports = exported_client_bindings()
+        for export, binding in self.import_clients:
+            if exports.get(export) is not binding:
+                raise HostExecutionDenied("manifest_consistency:import_client_changed")
             try:
                 binding.validate()
             except PermissionError as exc:

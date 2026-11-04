@@ -7,6 +7,7 @@ tools or through an authenticated object broker. Binding an implementation is tr
 
 from __future__ import annotations
 
+import ast
 import inspect
 import secrets
 import types
@@ -226,12 +227,79 @@ def exported_client_models():
     """Known imports for source-only analysis; never import candidate source."""
     # Loading the framework catalog is distinct from executing candidate imports.
     from langgraph.prebuilt.security.mediators import (
+        randomness as _randomness_module,  # noqa: F401
+    )
+    from langgraph.prebuilt.security.mediators import (
         records as _records_module,  # noqa: F401
+    )
+    from langgraph.prebuilt.security.mediators import (
+        retrieval as _retrieval_module,  # noqa: F401
     )
 
     return tuple(
         model for name, binding in _exports.items() for model in binding.models(name)
     )
+
+
+def exported_client_bindings() -> Mapping[str, ClientBinding]:
+    """Snapshot registered export aliases for trusted admission preparation."""
+    exported_client_models()
+    return MappingProxyType(dict(_exports))
+
+
+def registered_import_aliases(
+    nodes: tuple[ast.AST, ...], *, targets: tuple[str, ...] = ()
+) -> tuple[dict[str, str], tuple[ast.AST, ...]]:
+    """Resolve imports to registered client prefixes without importing modules."""
+    exports = (*exported_client_bindings(), *targets)
+    aliases: dict[str, str] = {}
+    invalid: list[ast.AST] = []
+
+    def registered(prefix: str) -> bool:
+        return any(
+            export == prefix or export.startswith(prefix + ".") for export in exports
+        )
+
+    def bind(node: ast.AST, local: str, target: str) -> None:
+        previous = aliases.get(local)
+        if previous is not None and previous != target:
+            invalid.append(node)
+        else:
+            aliases[local] = target
+
+    for node in nodes:
+        if isinstance(node, ast.Import):
+            for item in node.names:
+                if not registered(item.name):
+                    invalid.append(node)
+                    continue
+                bind(
+                    node,
+                    item.asname or item.name.split(".")[0],
+                    item.name if item.asname else item.name.split(".")[0],
+                )
+        elif isinstance(node, ast.ImportFrom):
+            if node.level or node.module is None:
+                invalid.append(node)
+                continue
+            if node.module == "__future__" and all(
+                item.name == "annotations" and item.asname is None
+                for item in node.names
+            ):
+                continue
+            for item in node.names:
+                target = f"{node.module}.{item.name}"
+                if item.name == "*" or not registered(target):
+                    invalid.append(node)
+                    continue
+                bind(node, item.asname or item.name, target)
+    return aliases, tuple(dict.fromkeys(invalid))
+
+
+def canonical_import_target(target: str, aliases: Mapping[str, str]) -> str:
+    """Map source spelling to a registered export path using inert strings."""
+    root, dot, rest = target.partition(".")
+    return aliases.get(root, root) + (dot + rest if dot else "")
 
 
 @dataclass(frozen=True, init=False)
@@ -407,11 +475,7 @@ class ResourceContract(Generic[T]):
             line.class_name == self.class_name
             and line.lowering == self.lowering
             and line.enforcer
-            in (
-                {EnforcementKind.BROKER, EnforcementKind.LANGUAGE_SANDBOX}
-                if self._object_id
-                else {EnforcementKind.BROKER}
-            )
+            in {EnforcementKind.BROKER, EnforcementKind.LANGUAGE_SANDBOX}
             and (self._object_id is None or line.selector == self._object_id)
             and not line.attributes
             and line.operation in self.methods
@@ -513,8 +577,6 @@ class ResourceContract(Generic[T]):
         def make_method(method: MethodContract):
             @wraps(getattr(self.interface, method.name))
             def invoke(instance, *args, **kwargs):
-                from langgraph.prebuilt.security.object_broker import object_request
-
                 binding = client_binding(instance)
                 if binding is None:
                     raise PermissionError("unregistered resource client")
@@ -529,9 +591,13 @@ class ResourceContract(Generic[T]):
                         self._object_id, export, method.name, values
                     )
                 else:
+                    from langgraph.prebuilt.security.mediators.objects import (
+                        request_resource,
+                    )
+
                     selector = values.pop(self.resource_parameter)
-                    result = object_request(
-                        self.class_name, method.name, selector, values
+                    result = request_resource(
+                        self.class_name, selector, method.name, values
                     )
                 if not method.accepts_result(result):
                     raise TypeError(f"invalid {self.class_name}.{method.name} result")
@@ -641,8 +707,10 @@ def object_bindings(resources):
     """Resolve worker import aliases to parent-owned identities during trusted setup."""
     from langgraph.prebuilt.security.object_broker import _service
 
-    identities = [resource._object_id for resource in resources]
-    if None in identities or len(set(identities)) != len(identities):
+    identities = [
+        resource._object_id for resource in resources if resource._object_id is not None
+    ]
+    if len(set(identities)) != len(identities):
         raise ValueError("resources must have distinct object identities")
     implementations = [
         id(resource._implementation)
@@ -658,5 +726,6 @@ def object_bindings(resources):
             binding.contract.class_name, binding.contract._object_id
         )
         for export, binding in _exports.items()
-        if binding.contract._object_id in identities
+        if binding.contract._object_id is not None
+        and binding.contract._object_id in identities
     }

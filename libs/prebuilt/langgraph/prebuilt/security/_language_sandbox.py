@@ -24,6 +24,7 @@ from langgraph.prebuilt.security.language_verification import (
     _terminal_contract_snapshot,
     derive_program,
 )
+from langgraph.prebuilt.security.mediators.contracts import canonical_import_target
 from langgraph.prebuilt.security.types import _decision_arguments, _DecisionArguments
 
 _language_cancel: ContextVar[Event | None] = ContextVar("language_cancel", default=None)
@@ -59,7 +60,14 @@ class LanguageProgram:
 
     @classmethod
     def lower(
-        cls, entry, terminals, positional_defaults, keyword_defaults, *, contracts
+        cls,
+        entry,
+        terminals,
+        positional_defaults,
+        keyword_defaults,
+        *,
+        contracts,
+        aliases=None,
     ):
         """Lower only the admitted syntax; an unknown node always rejects."""
         if any(
@@ -120,6 +128,21 @@ class LanguageProgram:
                         for part in node.values
                     ),
                 )
+            if isinstance(node, ast.Dict):
+                if any(
+                    not isinstance(key, ast.Constant) or type(key.value) is not str
+                    for key in node.keys
+                ):
+                    raise SecurityConfigurationError("language_sandbox:dictionary_keys")
+                keys = tuple(key.value for key in node.keys)
+                if len(set(keys)) != len(keys):
+                    raise SecurityConfigurationError(
+                        "language_sandbox:duplicate_dictionary_key"
+                    )
+                return (
+                    "dictionary",
+                    tuple(zip(keys, (expression(value) for value in node.values))),
+                )
             binary = {
                 ast.Add: "add",
                 ast.Sub: "sub",
@@ -149,7 +172,7 @@ class LanguageProgram:
                     (expression(node.left), expression(node.comparators[0])),
                 )
             if isinstance(node, ast.Call):
-                target = ast.unparse(node.func)
+                target = canonical_import_target(ast.unparse(node.func), aliases or {})
                 if (
                     isinstance(node.func, ast.Name)
                     and target in PURE_BUILTINS
@@ -307,6 +330,12 @@ class LanguageProgram:
                         ("break" if isinstance(node, ast.Break) else "continue",)
                     )
                 elif not isinstance(node, ast.Pass):
+                    if isinstance(node, (ast.Import, ast.ImportFrom)):
+                        if aliases:
+                            continue
+                        raise SecurityConfigurationError(
+                            "language_sandbox:unregistered_import"
+                        )
                     raise SecurityConfigurationError(
                         f"language_sandbox:unsupported_statement:{type(node).__name__}"
                     )
@@ -379,6 +408,8 @@ class LanguageProgram:
                         "language_sandbox:format_requires_strings"
                     )
                 return "".join(parts)
+            if kind == "dictionary":
+                return {key: expression(part) for key, part in node[1]}
             if kind == "compare":
                 left, right = expression(node[2]), expression(node[3])
                 if type(left) is not str or type(right) is not str:
