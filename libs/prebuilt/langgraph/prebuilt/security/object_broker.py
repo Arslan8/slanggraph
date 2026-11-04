@@ -76,23 +76,31 @@ from langgraph.prebuilt.security.types import ExecutionOutcome, Principal, ToolC
 Handler = Callable[[ObjectGrantLine, Mapping[str, Any]], Any]
 
 
-def _object_authority_key(grant: ObjectGrant) -> str:
-    """Identify static authority without carrying invocation identity."""
-    return hashlib.sha256(
-        json.dumps(
-            {
-                "lines": [
-                    line.canonical()
-                    for line in sorted(grant.lines, key=lambda item: item.line_id)
-                ],
-                "policy": grant.policy_digest,
-                "tool": grant.tool_name,
-                "waivers": dict(grant.enforcement_waivers),
-            },
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode()
-    ).hexdigest()
+def _object_authority_key(grant: ObjectGrant) -> tuple[Any, ...]:
+    """Compare prepared authority structurally, without serialization or SHA-256.
+
+    Invocation identity is bound separately when the worker is claimed. This
+    process-local dictionary key is not a credential or an integrity receipt.
+    """
+    return (
+        grant.policy_digest,
+        grant.tool_name,
+        tuple(sorted(grant.enforcement_waivers.items())),
+        tuple(
+            (
+                line.line_id,
+                line.class_name,
+                line.operation,
+                line.selector,
+                tuple(sorted(line.attributes.items())),
+                line.requirement.value,
+                line.enforcer.value,
+                line.lowering,
+                line.provenance,
+            )
+            for line in sorted(grant.lines, key=lambda item: item.line_id)
+        ),
+    )
 
 
 def _service(class_name: str, selector: str) -> str:
@@ -641,7 +649,7 @@ class ObjectBrokerDispatcher:
             lifecycle_checker.require_inline()
         self.worker_pool_idle_s = float(worker_pool_idle_s)
         self._worker_pool_state = _LandlockWorkerPoolState.create()
-        self._prepared_workers: dict[str, _ObjectWorker] = {}
+        self._prepared_workers: dict[tuple[Any, ...], _ObjectWorker] = {}
         self._preparation_stats = {
             "preparations": 0,
             "prepared_path_hits": 0,
