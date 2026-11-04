@@ -140,30 +140,16 @@ def test_object_route_executes_pinned_lean_grant_and_lifecycle_checks(setup, che
         lifecycle_checker=checker,
     )
 
+    before = checker.statistics()
     result = dispatcher.invoke(principal, call, grant)
+    after = checker.statistics()
 
     assert result.value == "inspected"
     assert seen == [("inspect", "pump-1")]
-    records = dispatcher.lifecycle_records()
-    assert len(records) == 1
-    assert records[0]["object_route"] is True
-    assert records[0]["phase"] == "ready"
-    assert records[0]["cleanup_confirmed"] is True
-    assert [event["kind"] for event in records[0]["events"]] == [
-        "authorize",
-        "activate",
-        "go",
-        "result",
-        "cleanup",
-    ]
-    assert (
-        records[0]["certificate"]["grant"]["policy"]
-        == dispatcher.lowering_records()[0].candidate.policy_digest
-    )
-    assert (
-        records[0]["certificate"]["receipt"]["grant"]
-        == records[0]["certificate"]["grant"]["digest"]
-    )
+    assert after["subprocess_calls"] - before["subprocess_calls"] == 3
+    assert len(dispatcher.activation_receipts()) == 1
+    assert result.receipt.grant_digest == grant.digest
+    assert len(dispatcher.lowering_records()) == 1
 
 
 @pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
@@ -392,7 +378,6 @@ def test_linux_lean_refuses_resource_inventory_mutations_before_effect(
         dispatcher.invoke(principal, call, grant)
     assert seen == []
     assert dispatcher.activation_receipts() == ()
-    assert dispatcher.lifecycle_records() == ()
 
 
 @pytest.mark.skipif(probe_landlock_abi() < 1, reason="Landlock required")

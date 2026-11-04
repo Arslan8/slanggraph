@@ -793,19 +793,11 @@ class ObjectBrokerDispatcher:
         self._lowering_records: deque[ObjectLoweringRecord] = deque(maxlen=1024)
         self._lowering_refusals: deque[Mapping[str, Any]] = deque(maxlen=1024)
         self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
-        self._lifecycle_records: deque[Mapping[str, Any]] = deque(maxlen=1024)
 
     def activation_receipts(self) -> tuple[ActivationReceipt, ...]:
         """Retain verified activation evidence, including failed worker outcomes."""
         with self._lock:
             return tuple(self._receipts)
-
-    def lifecycle_records(self) -> tuple[Mapping[str, Any], ...]:
-        """Return successful checker-backed grant and lifecycle traces."""
-        with self._lock:
-            return tuple(
-                json.loads(json.dumps(item)) for item in self._lifecycle_records
-            )
 
     def lowering_refusals(self) -> tuple[Mapping[str, Any], ...]:
         """Return attributable unsupported decisions without successful plans."""
@@ -903,7 +895,6 @@ class ObjectBrokerDispatcher:
     ) -> HostExecutionResult:
         worker = self._new_worker(principal, call, grant)
         broker = worker.credential_broker
-        lifecycle_before = len(worker.lifecycle_records())
         result = None
         try:
             result = worker._invoke(principal, call, (), asynchronous=asynchronous)
@@ -921,9 +912,6 @@ class ObjectBrokerDispatcher:
                     self._lowering_refusals.append(worker.lowering_refusal)
                 if worker.record is not None:
                     self._lowering_records.append(worker.record)
-                self._lifecycle_records.extend(
-                    worker.lifecycle_records()[lifecycle_before:]
-                )
             active_error = sys.exc_info()[1]
             try:
                 worker.close_mediators()

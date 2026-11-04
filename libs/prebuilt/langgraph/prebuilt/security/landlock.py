@@ -60,7 +60,6 @@ from langgraph.prebuilt.security.lean_lifecycle import (
     LeanLifecycleChecker,
     LeanLifecycleSession,
     _capture_receipt_certificate,
-    _data,
 )
 from langgraph.prebuilt.security.policy import MandatoryPolicyBackend
 from langgraph.prebuilt.security.profile import ProfileDocument
@@ -302,8 +301,6 @@ class LandlockSandboxExecutor:
         )
         self._prepared_pool_key: str | None = None
         self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
-        self._lifecycle_records: deque[dict[str, Any]] = deque(maxlen=1024)
-        self._lifecycle_lock = RLock()
 
     def validate_tools(self, tool_names: Sequence[str]) -> None:
         """Require one pinned manifest for every reachable tool."""
@@ -316,13 +313,6 @@ class LandlockSandboxExecutor:
     def activation_receipts(self) -> tuple[ActivationReceipt, ...]:
         """Return the bounded activation receipt history."""
         return tuple(self._receipts)
-
-    def lifecycle_records(self) -> tuple[dict[str, Any], ...]:
-        """Return detached successful Lean route traces."""
-        with self._lifecycle_lock:
-            return tuple(
-                json.loads(json.dumps(item)) for item in self._lifecycle_records
-            )
 
     def worker_pool_stats(self) -> Mapping[str, int]:
         """Return prepared-worker occupancy and exact claim counters."""
@@ -1043,18 +1033,6 @@ class LandlockSandboxExecutor:
                     ExecutionOutcome.INDETERMINATE,
                     termination_confirmed=True,
                 ) from exc
-            with self._lifecycle_lock:
-                self._lifecycle_records.append(
-                    {
-                        "binding": _data(lifecycle._binding),
-                        "certificate": _data(lifecycle._certificate),
-                        "events": _data(lifecycle._events),
-                        "object_route": getattr(self, "_lean_object_route", False),
-                        "phase": "ready",
-                        "cleanup_confirmed": True,
-                        "checker_sha256": self.lifecycle_checker.binary_sha256,
-                    }
-                )
         return result
 
     def _check_lean_grant(self, grant, ledger, obligations) -> None:

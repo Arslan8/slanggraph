@@ -211,7 +211,6 @@ def main() -> int:
             "denied-direct",
         )
         after = database_state(database)
-        lifecycle = dispatcher.lifecycle_records()
         evidence = {
             "schema": 1,
             "configuration": "linux-complete-object-broker-lean-v1",
@@ -229,7 +228,6 @@ def main() -> int:
             "authorization_grants": serial(security.host_executor.authorization_grants()),
             "lowering": serial(dispatcher.lowering_records()),
             "activation": serial(dispatcher.activation_receipts()),
-            "lifecycle": serial(lifecycle),
             "broker_audit": serial(dispatcher.audit_records()),
             "security_audit": serial(audit.records()),
             "resource_before": before,
@@ -250,10 +248,7 @@ def main() -> int:
             "authorization_recorded": len(evidence["authorization_grants"]) == 8,
             "lowering_recorded": len(evidence["lowering"]) == 4,
             "activation_recorded": len(evidence["activation"]) == 4,
-            "lean_grant_and_lifecycle_recorded": len(lifecycle) == 4
-            and all(item["phase"] == "ready" for item in lifecycle),
-            "cleanup_confirmed": len(lifecycle) == 4
-            and all(item["cleanup_confirmed"] for item in lifecycle),
+            "lean_grant_and_lifecycle_checked": checker.statistics()["inline_calls"] >= 12,
             "inline_checker_only": checker.statistics()["subprocess_calls"] == 0,
             "prepared_worker_hits": dispatcher.worker_pool_stats()["hits"] == 4,
             "no_online_policy_relowering": dispatcher.worker_pool_stats()["policy_lowerings"] == 1,

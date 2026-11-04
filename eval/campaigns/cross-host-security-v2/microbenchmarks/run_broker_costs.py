@@ -427,7 +427,6 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                             "valid": "AUTHORIZED_RECORD" in content,
                             "audit_records": len(sink.records()),
                             "broker_records": len(dispatcher.audit_records()),
-                            "lifecycle_records": len(dispatcher.lifecycle_records()),
                             "checker": checker_after,
                             "pool": pool_after,
                             "prepared_lowering_repeated_online": False,
