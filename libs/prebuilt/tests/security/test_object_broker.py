@@ -353,6 +353,11 @@ def test_prepared_mediator_reuses_lowering_but_rechecks_live_support(
     )
     dispatcher.prewarm(principal, call, grant)
     assessments = 0
+    prepared_worker = next(iter(dispatcher._prepared_workers.values()))
+    prepared_obligation_digest = prepared_worker._prepared_record.plan.obligation_digest
+    runtime_call = replace(call, call_id="call-2")
+    runtime_grant = replace(grant, call_id="call-2")
+    assert runtime_grant.digest != grant.digest
 
     original_compile = object_broker.compile_obligations
 
@@ -361,17 +366,23 @@ def test_prepared_mediator_reuses_lowering_but_rechecks_live_support(
 
     monkeypatch.setattr(object_broker, "compile_obligations", unexpected_compile)
 
-    assert dispatcher.invoke(principal, call, grant).value == "inspected"
+    assert (
+        dispatcher.invoke(principal, runtime_call, runtime_grant).value == "inspected"
+    )
+    assert (
+        dispatcher.lowering_records()[-1].plan.obligation_digest
+        == prepared_obligation_digest
+    )
     assert assessments == 2  # activation and operation, never online lowering
     assert seen == [("inspect", "pump-1")]
 
     monkeypatch.setattr(object_broker, "compile_obligations", original_compile)
-    runtime_call = replace(call, call_id="call-2")
-    runtime_grant = replace(grant, call_id="call-2")
-    dispatcher.prewarm(principal, runtime_call, runtime_grant)
+    next_call = replace(call, call_id="call-3")
+    next_grant = replace(grant, call_id="call-3")
+    dispatcher.prewarm(principal, next_call, next_grant)
     available = False
     with pytest.raises(HostExecutionDenied, match="activation_failed"):
-        dispatcher.invoke(principal, runtime_call, runtime_grant)
+        dispatcher.invoke(principal, next_call, next_grant)
 
 
 @pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")

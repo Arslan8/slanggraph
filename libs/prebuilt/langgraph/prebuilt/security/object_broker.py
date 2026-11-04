@@ -42,7 +42,6 @@ from langgraph.prebuilt.security.enforcement import (
     RequirementEntry,
     RequirementLedger,
     SupportLevel,
-    _obligation_digest,
     compile_obligations,
 )
 from langgraph.prebuilt.security.execution import (
@@ -615,7 +614,13 @@ class _ObjectWorker(LandlockSandboxExecutor):
         plan = EnforcementPlan(
             grant.digest,
             host.digest,
-            _obligation_digest(obligations),
+            # Preparation already verified and sealed the complete obligation
+            # inventory and its adapter assignments.  Invocation-varying
+            # selectors and conditions are copied only from the current grant,
+            # whose digest is the first plan field above.  Reuse the sealed
+            # inventory identity instead of serializing and hashing the same
+            # obligation structure at every claim.
+            prepared.plan.obligation_digest,
             prepared.plan.mode,
             prepared.plan.assignments,
             tuple(plans),
