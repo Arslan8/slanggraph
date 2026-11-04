@@ -31,6 +31,7 @@ from langgraph.prebuilt.security.broker import (
 )
 from langgraph.prebuilt.security.enforcement import (
     ActivationReceipt,
+    AdapterPlan,
     AuthorityDomain,
     EnforcementCoordinator,
     EnforcementObligation,
@@ -70,6 +71,7 @@ from langgraph.prebuilt.security.resource_mediator import (
     ObjectLoweringRefused,
     ResourceMediatorAdapter,
     _BoundMediator,
+    _digest,
     negotiate_object_grant,
 )
 from langgraph.prebuilt.security.types import ExecutionOutcome, Principal, ToolCall
@@ -226,6 +228,12 @@ class _ObjectWorker(LandlockSandboxExecutor):
         self.bound_mediators: tuple[_BoundMediator, ...] = ()
         self.record: ObjectLoweringRecord | None = None
         self._prepared_record: ObjectLoweringRecord | None = None
+        self._prepared_host_configuration: str | None = None
+        self._prepared_rule_shape: Any = None
+        self._prepared_obligation_shape: Any = None
+        self._prepared_mediator_assessments: Mapping[str, Mapping[str, Any]] | None = (
+            None
+        )
         self._used_prepared_policy = False
         super().__init__(*args, **kwargs)
 
@@ -311,6 +319,14 @@ class _ObjectWorker(LandlockSandboxExecutor):
         self.bound_mediators = tuple(
             _BoundMediator(item, broker_lines, host) for item in self.mediators
         )
+        prepared_assessments = self._prepared_mediator_assessments
+        if prepared_assessments is not None:
+            if set(prepared_assessments) != {
+                adapter.adapter_id for adapter in self.bound_mediators
+            }:
+                raise HostExecutionDenied("object_lowering:prepared_adapter_changed")
+            for adapter in self.bound_mediators:
+                adapter.assessments.update(prepared_assessments[adapter.adapter_id])
         routes: dict[str, _BoundMediator] = {}
         resource_conditions: dict[str, Mapping[str, Any]] = {}
         additional = []
@@ -319,8 +335,15 @@ class _ObjectWorker(LandlockSandboxExecutor):
             for line in broker_lines:
                 candidates = []
                 for adapter in self.bound_mediators:
-                    support = adapter.assess_line(line)
-                    adapter.assessments[line.line_id] = support
+                    if prepared_assessments is None:
+                        support = adapter.assess_line(line)
+                        adapter.assessments[line.line_id] = support
+                    else:
+                        support = adapter.assessments.get(line.line_id)
+                        if support is None:
+                            raise HostExecutionDenied(
+                                "object_lowering:prepared_assessment_changed"
+                            )
                     if support.support is not SupportLevel.UNSUPPORTED:
                         candidates.append((adapter, support))
                 if len(candidates) > 1:
@@ -451,23 +474,67 @@ class _ObjectWorker(LandlockSandboxExecutor):
             raise HostExecutionDenied(f"object_lowering:{type(exc).__name__}") from exc
 
     @staticmethod
-    def _prepared_value(value: Any, *, _top: bool = True) -> Any:
-        """Remove only invocation digests from reusable-policy comparisons."""
+    def _prepared_value(value: Any) -> Any:
+        """Return a structural key without invocation-specific grant digests."""
         if isinstance(value, Mapping):
-            prepared = {
-                str(key): _ObjectWorker._prepared_value(item, _top=False)
-                for key, item in value.items()
-                if key != "object_grant" and not (_top and key in {"grant", "host"})
-            }
-            rule_id = prepared.get("rule_id", prepared.get("rule"))
-            if isinstance(rule_id, str) and rule_id.startswith(
-                ("runtime:artifact", "runtime:tmp")
-            ):
-                prepared["selector"] = "<prepared-runtime-path>"
-            return prepared
+            return tuple(
+                sorted(
+                    (
+                        str(key),
+                        _ObjectWorker._prepared_value(item),
+                    )
+                    for key, item in value.items()
+                    if key != "object_grant"
+                )
+            )
         if isinstance(value, tuple | list):
-            return [_ObjectWorker._prepared_value(item, _top=False) for item in value]
+            return tuple(_ObjectWorker._prepared_value(item) for item in value)
+        if isinstance(value, set | frozenset):
+            return tuple(
+                sorted(
+                    (_ObjectWorker._prepared_value(item) for item in value), key=repr
+                )
+            )
         return value
+
+    @classmethod
+    def _prepared_rule_key(cls, rules: Sequence[GrantRule]) -> tuple[Any, ...]:
+        return tuple(
+            (
+                rule.rule_id,
+                rule.domain,
+                rule.operation,
+                "<prepared-runtime-path>"
+                if rule.rule_id.startswith(("runtime:artifact", "runtime:tmp"))
+                else rule.selector,
+                cls._prepared_value(rule.conditions),
+                rule.requirement,
+                rule.provenance,
+                rule.baseline,
+            )
+            for rule in rules
+        )
+
+    @classmethod
+    def _prepared_obligation_key(
+        cls, obligations: Sequence[EnforcementObligation]
+    ) -> tuple[Any, ...]:
+        return tuple(
+            (
+                item.obligation_id,
+                item.rule_id,
+                item.kind,
+                item.domain,
+                item.operation,
+                "<prepared-runtime-path>"
+                if item.rule_id.startswith(("runtime:artifact", "runtime:tmp"))
+                else item.selector,
+                cls._prepared_value(item.conditions),
+                tuple(sorted(item.dependencies)),
+                item.waivable,
+            )
+            for item in obligations
+        )
 
     def _bind_prepared_policy(
         self,
@@ -480,20 +547,27 @@ class _ObjectWorker(LandlockSandboxExecutor):
         prepared = self._prepared_record
         if prepared is None:
             raise HostExecutionDenied("object_lowering:prepared_policy_missing")
-        if _host_configuration_digest(prepared.host) != _host_configuration_digest(
-            host
-        ):
+        prepared_host = self._prepared_host_configuration
+        if prepared_host is None:
+            prepared_host = _host_configuration_digest(prepared.host)
+        if prepared_host != _host_configuration_digest(host):
             raise HostExecutionDenied("object_lowering:prepared_host_changed")
-        if prepared.candidate.rules != prepared.grant.rules:
-            raise HostExecutionDenied("object_lowering:prepared_attenuation_changed")
-        if self._prepared_value(
-            [rule.canonical() for rule in prepared.candidate.rules]
-        ) != self._prepared_value([rule.canonical() for rule in grant.rules]):
+        prepared_rules = self._prepared_rule_shape
+        if prepared_rules is None:
+            if prepared.candidate.rules != prepared.grant.rules:
+                raise HostExecutionDenied(
+                    "object_lowering:prepared_attenuation_changed"
+                )
+            prepared_rules = self._prepared_rule_key(prepared.candidate.rules)
+        if prepared_rules != self._prepared_rule_key(grant.rules):
             raise HostExecutionDenied("object_lowering:prepared_authority_changed")
         by_id = {item.obligation_id: item for item in obligations}
-        if len(by_id) != len(obligations) or self._prepared_value(
-            [item.canonical() for item in prepared.obligations]
-        ) != self._prepared_value([item.canonical() for item in obligations]):
+        prepared_obligations = self._prepared_obligation_shape
+        if prepared_obligations is None:
+            prepared_obligations = self._prepared_obligation_key(prepared.obligations)
+        if len(by_id) != len(
+            obligations
+        ) or prepared_obligations != self._prepared_obligation_key(obligations):
             raise HostExecutionDenied("object_lowering:prepared_obligations_changed")
         grouped: dict[str, list[EnforcementObligation]] = {}
         for assignment in prepared.plan.assignments:
@@ -507,15 +581,39 @@ class _ObjectWorker(LandlockSandboxExecutor):
         prior_plans = {item.adapter_id: item for item in prepared.plan.adapter_plans}
         plans = []
         for adapter_id, assigned in sorted(grouped.items()):
-            plan = adapter_by_id[adapter_id].lower(grant, tuple(assigned), host)
+            adapter = adapter_by_id[adapter_id]
             prior = prior_plans.get(adapter_id)
-            if (
-                prior is None
-                or plan.obligation_ids != prior.obligation_ids
-                or self._prepared_value(plan.payload)
-                != self._prepared_value(prior.payload)
-            ):
+            obligation_ids = frozenset(item.obligation_id for item in assigned)
+            if prior is None or obligation_ids != prior.obligation_ids:
                 raise HostExecutionDenied("object_lowering:prepared_plan_changed")
+            # The exact adapter assignments and lowering payload were negotiated
+            # before the worker was launched. Bind only the fresh invocation and
+            # attestation fields here; activation still rechecks live resource
+            # support before the worker crosses its authorization barrier.
+            payload = {
+                "prepared_plan": prior.native_plan_digest,
+                "grant": grant.digest,
+            }
+            if adapter is self.host_adapter:
+                operated = {
+                    item.rule_id
+                    for item in assigned
+                    if item.kind
+                    in {ObligationKind.OPERATE, ObligationKind.RESOURCE_LIMIT}
+                }
+                adapter.rules = tuple(
+                    rule for rule in grant.rules if rule.rule_id in operated
+                )
+                payload["host"] = host.digest
+            else:
+                adapter.grant = grant
+            plan = AdapterPlan(
+                adapter_id,
+                obligation_ids,
+                _digest(payload),
+                payload,
+            )
+            adapter.plan = plan
             plans.append(plan)
         plan = EnforcementPlan(
             grant.digest,
@@ -529,6 +627,25 @@ class _ObjectWorker(LandlockSandboxExecutor):
         )
         coordinator = EnforcementCoordinator(adapters, self.host_adapter)
         return ObjectLoweringRecord(grant, grant, host, obligations, plan), coordinator
+
+    def _seal_prepared_policy(self) -> None:
+        """Cache immutable comparison state after preparation is finalized."""
+        prepared = self._prepared_record
+        if prepared is None:
+            raise HostExecutionDenied("object_lowering:prepared_policy_missing")
+        if prepared.candidate.rules != prepared.grant.rules:
+            raise HostExecutionDenied("object_lowering:prepared_attenuation_changed")
+        self._prepared_host_configuration = _host_configuration_digest(prepared.host)
+        self._prepared_rule_shape = self._prepared_rule_key(prepared.candidate.rules)
+        self._prepared_obligation_shape = self._prepared_obligation_key(
+            prepared.obligations
+        )
+        self._prepared_mediator_assessments = MappingProxyType(
+            {
+                adapter.adapter_id: MappingProxyType(dict(adapter.assessments))
+                for adapter in self.bound_mediators
+            }
+        )
 
     def _lower(self, grant):
         # Only the host-owned subset becomes kernel rules. Semantic operations
@@ -734,6 +851,7 @@ class ObjectBrokerDispatcher:
             principal, call, (), count=count, asynchronous=asynchronous
         )
         worker._prepared_record = worker.record
+        worker._seal_prepared_policy()
         key = _object_authority_key(grant)
         with self._lock:
             if key in self._prepared_workers:

@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+import langgraph.prebuilt.security.linux as linux
 from langgraph.prebuilt.security import ResourceSupport, SupportLevel
 from langgraph.prebuilt.security.capabilities import probe_landlock_abi
 from langgraph.prebuilt.security.execution import (
@@ -213,12 +214,42 @@ def test_optimized_invocation_launches_no_checker_subprocess(
     def unexpected(*args, **kwargs):
         raise AssertionError("optimized checker invocation launched a subprocess")
 
+    def unexpected_digest(*args, **kwargs):
+        raise AssertionError("prepared invocation rehashed its loaded runtime")
+
     monkeypatch.setattr(subprocess, "run", unexpected)
+    monkeypatch.setattr(linux, "_file_digest", unexpected_digest)
     before = native_checker.statistics()
     assert dispatcher.invoke(principal, call, grant).value == "inspected"
     after = native_checker.statistics()
     assert after["inline_calls"] - before["inline_calls"] == 3
     assert after["subprocess_calls"] - before["subprocess_calls"] == 0
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+def test_worker_preparation_still_verifies_runtime(setup, native_checker, monkeypatch):
+    dispatcher, principal, call, grant, _seen = setup
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        mediators=dispatcher.mediators,
+        runtime_roots=dispatcher.runtime_roots,
+        lifecycle_checker=native_checker,
+        worker_pool_capacity=1,
+    )
+
+    original_digest = linux._file_digest
+    calls = 0
+
+    def changed_after_worker_construction(path):
+        nonlocal calls
+        calls += 1
+        if calls <= 2:
+            return original_digest(path)
+        return "changed"
+
+    monkeypatch.setattr(linux, "_file_digest", changed_after_worker_construction)
+    with pytest.raises(HostExecutionDenied, match="host:runtime_changed"):
+        dispatcher.prewarm(principal, call, grant)
 
 
 @pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
@@ -287,6 +318,44 @@ def test_prepared_context_rebinds_fresh_principal_and_is_single_use(
     with pytest.raises(HostExecutionDenied, match="prepared_worker_unavailable"):
         dispatcher.invoke(bob, call, bob_grant)
     assert dispatcher.worker_pool_stats()["misses"] == 1
+
+
+@pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
+def test_prepared_mediator_reuses_lowering_but_rechecks_live_support(
+    setup, native_checker
+):
+    dispatcher, principal, call, grant, seen = setup
+    original = dispatcher.mediators[0]
+    assessments = 0
+    available = True
+
+    def assess(line, host):
+        nonlocal assessments
+        assessments += 1
+        if not available:
+            return ResourceSupport(SupportLevel.UNSUPPORTED, "resource lease lost")
+        return original.assess(line, host)
+
+    dispatcher = ObjectBrokerDispatcher(
+        dispatcher.tools,
+        mediators=(replace(original, assess=assess),),
+        runtime_roots=dispatcher.runtime_roots,
+        lifecycle_checker=native_checker,
+        worker_pool_capacity=1,
+    )
+    dispatcher.prewarm(principal, call, grant)
+    assessments = 0
+
+    assert dispatcher.invoke(principal, call, grant).value == "inspected"
+    assert assessments == 2  # activation and operation, never online lowering
+    assert seen == [("inspect", "pump-1")]
+
+    runtime_call = replace(call, call_id="call-2")
+    runtime_grant = replace(grant, call_id="call-2")
+    dispatcher.prewarm(principal, runtime_call, runtime_grant)
+    available = False
+    with pytest.raises(HostExecutionDenied, match="activation_failed"):
+        dispatcher.invoke(principal, runtime_call, runtime_grant)
 
 
 @pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")

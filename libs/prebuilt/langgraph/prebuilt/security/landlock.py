@@ -745,11 +745,16 @@ class LandlockSandboxExecutor:
                     != configured.artifact_digest
                 ):
                     raise HostExecutionDenied("host:prepared_artifact_changed")
-            if (
-                _file_digest(self.python_executable) != self.python_digest
-                or _file_digest(self.worker_script) != self.worker_digest
-            ):
-                raise HostExecutionDenied("host:runtime_changed")
+            # A prepared worker already loaded this interpreter and bootstrap after
+            # `_prewarm_one` verified both digests. Re-reading their backing files
+            # cannot change the running process, so only verify them when this
+            # invocation still needs to launch a worker.
+            if pooled is None:
+                if (
+                    _file_digest(self.python_executable) != self.python_digest
+                    or _file_digest(self.worker_script) != self.worker_digest
+                ):
+                    raise HostExecutionDenied("host:runtime_changed")
             grant, ledger = self._compile_grant(principal, call, spec, private_tmp_path)
             filtered = self.policy_backend.filter(grant, ledger, constraints)
             if not filtered.allowed or filtered.grant is None:
