@@ -26,6 +26,7 @@ THEOREMS = (
     "LanguageRoute.checkStmts_calls_registered",
     "LanguageRoute.evalStmts_trace",
     "LanguageRoute.unregistered_call_refused",
+    "LanguageEffects.checked_trace_registered",
 )
 ALLOWED_AXIOMS = {"propext", "Classical.choice", "Quot.sound"}
 FORBIDDEN_TOKENS = ("sorry", "admit", "native_decide", "implemented_by", "extern")
@@ -183,6 +184,79 @@ def generate_controls() -> tuple[str, dict]:
     return "\n".join(lines) + "\n", verdicts
 
 
+# The value/type model above retains its original straight-line scope. This
+# independent effect projection covers the extended control-flow IR, including
+# every finite prefix of arbitrary iteration. Unknown instructions fail export.
+def effect_sequence(parts):
+    result = ".pure"
+    for part in reversed(list(parts)):
+        result = f"(.seq {part} {result})"
+    return result
+
+
+def effect_expr(node):
+    kind = node[0]
+    if kind in {"constant", "local"}:
+        return ".pure"
+    if kind == "join":
+        return effect_sequence(effect_expr(p) for p in node[1])
+    if kind == "compare":
+        return effect_sequence(effect_expr(p) for p in node[2:])
+    if kind == "pure":
+        return effect_sequence(effect_expr(p) for p in node[2])
+    if kind == "call":
+        return effect_sequence([*(effect_expr(p) for p in node[2]),
+                                *(effect_expr(p) for _, p in node[3]),
+                                f"(.effect {lean_string(node[1])})"])
+    raise ValueError(f"unprojectable expression {kind}")
+
+
+def effect_stmts(body):
+    parts = []
+    for node in body:
+        kind = node[0]
+        if kind in {"break", "continue"}:
+            parts.append(".pure")
+        elif kind in {"return", "expression"}:
+            parts.append(effect_expr(node[1]))
+        elif kind == "assign":
+            parts.append(effect_expr(node[2]))
+        elif kind == "if":
+            parts.append(f"(.seq {effect_expr(node[1])} (.choice {effect_stmts(node[2])} {effect_stmts(node[3])}))")
+        elif kind == "while":
+            test, loop, otherwise = effect_expr(node[1]), effect_stmts(node[2]), effect_stmts(node[3])
+            parts.append(f"(.seq (.repeat (.seq {test} {loop})) (.seq {test} {otherwise}))")
+        else:
+            raise ValueError(f"unprojectable statement {kind}")
+    return effect_sequence(parts)
+
+
+EFFECT_USEFUL = {
+    **USEFUL,
+    "while_reads": "def reads(path, count):\n    i = 0\n    while i < int(count):\n        read_text(path)\n        i += 1\n    return path\n",
+    "for_reads": "def reads(path, count):\n    for i in range(int(count)):\n        read_text(path)\n    return path\n",
+    "string_loop": "def count(path):\n    text = read_text(path)\n    n = 0\n    for c in text:\n        if c == 'x':\n            n += 1\n    return str(n)\n",
+    "continue_break": "def limited(path):\n    for i in range(5):\n        if i < 2:\n            continue\n        read_text(path)\n        break\n    return path\n",
+    "infinite": "def infinite(path):\n    while True:\n        read_text(path)\n",
+}
+
+
+def generate_effect_controls():
+    from langgraph.prebuilt.security._language_sandbox import LanguageProgram
+    from langgraph.prebuilt.security.language_verification import TerminalContract
+    contracts = {"read_text": TerminalContract((("path", "str"),), frozenset({"str"}))}
+    lines = ["import LanguageEffects", "namespace LanguageEffects.Controls", "open LanguageEffects", ""]
+    for name, source in EFFECT_USEFUL.items():
+        program = LanguageProgram.lower(ast.parse(source).body[0], {"read_text": lambda path: path}, (), {}, contracts=contracts)
+        lines.append(f"def {name} : Code := {effect_stmts(program.body)}")
+        lines.append(f'example : check ["read_text"] {name} = true := by decide')
+    bad = (("while", ("constant", True), (("expression", ("call", "open", (), ())),), ()),)
+    lines.append(f"def loop_escape : Code := {effect_stmts(bad)}")
+    lines.append('example : check ["read_text"] loop_escape = false := by decide')
+    lines.append("end LanguageEffects.Controls")
+    return "\n".join(lines) + "\n"
+
+
 def run(command, log: Path, timeout: int) -> int:
     done = subprocess.run(command, cwd=HERE, capture_output=True, text=True, timeout=timeout)
     log.write_text(f"$ {' '.join(map(str, command))}\nexit={done.returncode}\n{done.stdout}\n{done.stderr}")
@@ -203,7 +277,7 @@ def main() -> int:
         "model_proved": False,
         "kernel_typecheck_passed": False,
         "kernel_replay_checked": False,
-        "scope": "Finite model of the admitted language and of derive_program, plus agreement with the Python checker on fixed controls. The interpreter, terminals, admission code and Lean toolchain are trusted (docs/security/threat-model.md).",
+        "scope": "Straight-line value/type model plus an effect-projection theorem for all finite prefixes of unrestricted loops; generated controls check correspondence with Python lowering. The effect projection overapproximates branches, returns and loop iteration counts. The interpreter, terminals, admission code and Lean toolchain are trusted (docs/security/threat-model.md).",
         "theorems": list(THEOREMS),
         "issues": [],
     }
@@ -223,7 +297,13 @@ def main() -> int:
         if v["python"] == "accepted":
             issues.append(f"Python accepted forged control {name}")
 
-    for path in (HERE / "LanguageRoute.lean", HERE / "Controls.lean"):
+    effects = generate_effect_controls()
+    if (HERE / "EffectControls.lean").read_text() != effects:
+        (out / "EffectControls.expected.lean").write_text(effects)
+        issues.append("EffectControls.lean drifted from the extended Python lowering")
+    report["effect_controls"] = list(EFFECT_USEFUL)
+
+    for path in sorted(HERE.glob("*.lean")):
         text = re.sub(r"/-.*?-/|--[^\n]*", "", path.read_text(), flags=re.S)
         for token in FORBIDDEN_TOKENS:
             if re.search(rf"\b{token}\b", text):
@@ -240,13 +320,13 @@ def main() -> int:
         checker = Path(lake).parent / "leanchecker"
         replay = all(
             run([lake, "env", str(checker), "--fresh", module], out / f"replay-{module}.log", args.timeout) == 0
-            for module in ("LanguageRoute", "Controls")
+            for module in ("LanguageRoute", "Controls", "LanguageEffects", "EffectControls")
         )
         report["kernel_replay_checked"] = replay
         if not replay:
             issues.append("leanchecker replay failed")
         audit = out / "Axioms.lean"
-        audit.write_text("import LanguageRoute\n" + "".join(f"#print axioms {t}\n" for t in THEOREMS))
+        audit.write_text("import LanguageRoute\nimport LanguageEffects\n" + "".join(f"#print axioms {t}\n" for t in THEOREMS))
         code = run([lake, "env", "lean", str(audit)], out / "axioms.log", args.timeout)
         text = (out / "axioms.log").read_text()
         used = set(re.findall(r"depends on axioms: \[([^\]]*)\]", text))

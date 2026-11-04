@@ -28,6 +28,7 @@ PREMISES = (
 
 # Fixed controls. Useful programs must derive; forbidden ones must be refused.
 _USEFUL = {
+    "loop": "def repeated(path):\n    i = 0\n    while i < 3:\n        read_text(path)\n        i += 1\n    return path\n",
     "reader": "def reader(path: str) -> str:\n    return read_text(path)\n",
     "two_reads": (
         "def two_reads(first: str, second: str) -> str:\n"
@@ -46,8 +47,8 @@ _FORBIDDEN = {
     "unregistered_call": "def bad(path: str) -> str:\n    return open(path)\n",
     "builtin_eval": "def bad(path: str) -> str:\n    return eval(path)\n",
     "lambda": "def bad(path: str) -> str:\n    f = lambda: path\n    return path\n",
-    "subscript": "def bad(path: str) -> str:\n    return path[0]\n",
-    "loop": "def bad(path: str) -> str:\n    while True:\n        pass\n",
+    "subscript": "def bad(path: str) -> str:\n    return path[open(path)]\n",
+    "loop": "def bad(path: str) -> str:\n    while True:\n        open(path)\n",
     "global": "def bad(path: str) -> str:\n    global x\n    return path\n",
 }
 

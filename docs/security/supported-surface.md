@@ -70,3 +70,7 @@ the application-level negative network probe remains absent. Dataset input
 and output publication have their own routes. Trusted state, checkpoints and
 approval machinery are premises, and the backend cohort does not establish
 UI authentication, upload, rendering or session-storage guarantees.
+
+Language computation and unrestricted-loop semantics are documented in
+[Language computation](language-computation.md), including the distinction
+between the straight-line type model and the control-flow effect proof.

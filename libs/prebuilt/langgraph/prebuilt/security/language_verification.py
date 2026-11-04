@@ -21,6 +21,7 @@ try:
 except ImportError:  # Unsupported interpreter layouts cannot establish backing shape.
     get_referents = None
 
+from langgraph.prebuilt.security._language_pure import pure_type
 from langgraph.prebuilt.security.errors import SecurityConfigurationError
 from langgraph.prebuilt.security.types import _decision_arguments
 
@@ -228,6 +229,11 @@ def derive_program(
             ):
                 reject("comparison_requires_strings")
             result = frozenset({"bool"})
+        elif rule == "pure":
+            node(value, 3)
+            result = pure_type(
+                value[1], [expression(part, environment) for part in sequence(value[2])]
+            )
         elif rule == "call":
             node(value, 4)
             target = value[1]
@@ -266,6 +272,8 @@ def derive_program(
         trace.append({"rule": rule, "types": sorted(result)})
         return result
 
+    invariants = []
+
     def statements(statements_, initial):
         environment = dict(initial)
         returned = False
@@ -285,7 +293,40 @@ def derive_program(
                 for name in sequence(value[1]):
                     if type(name) is not str or not name.isidentifier():
                         reject("invalid_local")
+                    for invariant in invariants:
+                        if name in invariant and not kind <= invariant[name]:
+                            reject("loop_local_type_changed")
                     environment[name] = kind
+            elif rule in {"break", "continue"}:
+                node(value, 1)
+                if not invariants:
+                    reject("loop_control_outside_loop")
+            elif rule == "while":
+                node(value, 4)
+                if expression(value[1], environment) != frozenset({"bool"}):
+                    reject("branch_requires_bool")
+                # Every assignment to a pre-existing local preserves its loop-head
+                # type. Check each assignment, not just the final environment:
+                # returns and future continue paths must not hide a changed type.
+                loop_environment = dict(environment)
+                before_invariants = list(invariants)
+                invariants.append(loop_environment)
+                try:
+                    _, _, body_results = statements(value[2], loop_environment)
+                finally:
+                    invariants[:] = before_invariants
+                # The loop may execute zero times; body-created locals are not
+                # definitely bound afterward. A break can also skip loop else.
+                else_environment, else_returns, else_results = statements(
+                    value[3], environment
+                )
+                if not else_returns:
+                    environment = {
+                        name: kind | else_environment[name]
+                        for name, kind in environment.items()
+                        if name in else_environment
+                    }
+                results.update(body_results | else_results)
             elif rule == "if":
                 node(value, 4)
                 if expression(value[1], environment) != frozenset({"bool"}):

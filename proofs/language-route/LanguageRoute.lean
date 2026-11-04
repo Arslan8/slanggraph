@@ -1,10 +1,11 @@
 /-!
 # Language-sandbox route model
 
-A finite model of the admitted execution language and of the Python checker
+A finite model of the original straight-line execution language and of the Python checker
 `language_verification.derive_program`. The checker here mirrors that function
 rule for rule; `Controls.lean` checks agreement on programs exported from the
-real Python lowering.
+real Python lowering. The extended control-flow effect projection is in
+`LanguageEffects.lean`; this value/type model does not cover loops.
 
 Threat model (docs/security/threat-model.md): the interpreter, registered
 terminals and admission code are trusted. The theorems therefore concern the

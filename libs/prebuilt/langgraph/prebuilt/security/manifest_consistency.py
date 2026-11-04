@@ -16,6 +16,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from langgraph.prebuilt.security._language_pure import PURE_BUILTINS
 from langgraph.prebuilt.security.object_policy import SecurityManifest
 
 _TEMPLATE = re.compile(r"@\{([A-Za-z_][A-Za-z0-9_]*)\}")
@@ -229,11 +230,21 @@ def check_manifest_consistency(
         def value_type(
             node: ast.expr | None, seen: frozenset[str] = frozenset()
         ) -> str | None:
+            if isinstance(node, ast.Compare) or (
+                isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not)
+            ):
+                return "bool"
             if isinstance(node, ast.Constant):
                 return type(node.value).__name__
             if isinstance(node, ast.JoinedStr):
                 return "str"
             if isinstance(node, ast.Call):
+                if (
+                    isinstance(node.func, ast.Name)
+                    and node.func.id in PURE_BUILTINS
+                    and node.func.id not in locals_
+                ):
+                    return "int" if node.func.id == "len" else node.func.id
                 _, called = call_model(node)
                 return called.result_type if called is not None else None
             if isinstance(node, ast.Name) and node.id not in seen:
@@ -258,7 +269,14 @@ def check_manifest_consistency(
         for node in nodes:
             if isinstance(node, ast.Call):
                 target, model = call_model(node)
-                if model is None:
+                if (
+                    model is None
+                    and target in (PURE_BUILTINS | {"range"})
+                    and isinstance(node.func, ast.Name)
+                    and target not in locals_
+                ):
+                    terminal_nodes.add(id(node.func))
+                elif model is None:
                     issue(node, "unknown", f"unmodeled call: {target}")
                 else:
                     terminal_nodes.update(id(part) for part in ast.walk(node.func))
@@ -315,7 +333,19 @@ def check_manifest_consistency(
                                 )
         for node in nodes:
             if isinstance(node, ast.stmt) and not isinstance(
-                node, (ast.Return, ast.Expr, ast.Assign, ast.If, ast.Pass)
+                node,
+                (
+                    ast.Return,
+                    ast.Expr,
+                    ast.Assign,
+                    ast.AugAssign,
+                    ast.If,
+                    ast.While,
+                    ast.For,
+                    ast.Break,
+                    ast.Continue,
+                    ast.Pass,
+                ),
             ):
                 issue(node, "unknown", f"unsupported statement: {type(node).__name__}")
             if isinstance(node, ast.expr) and not isinstance(
@@ -327,6 +357,9 @@ def check_manifest_consistency(
                     ast.FormattedValue,
                     ast.Call,
                     ast.Compare,
+                    ast.BinOp,
+                    ast.UnaryOp,
+                    ast.Subscript,
                     ast.Attribute,
                 ),
             ):
@@ -348,22 +381,11 @@ def check_manifest_consistency(
                 isinstance(target, ast.Name) for target in node.targets
             ):
                 issue(node, "unknown", "assignment must target local names")
-            if isinstance(node, ast.If):
-                test = node.test
-                if not (
-                    isinstance(test, ast.Compare)
-                    and len(test.ops) == 1
-                    and isinstance(test.ops[0], (ast.Eq, ast.NotEq))
-                    and isinstance(test.left, ast.Name)
-                    and test.left.id in locals_
-                    and isinstance(test.comparators[0], ast.Constant)
-                    and isinstance(test.comparators[0].value, str)
-                ):
-                    issue(
-                        node,
-                        "unknown",
-                        "branch must compare an inert string to a literal",
-                    )
+            if (
+                isinstance(node, (ast.If, ast.While))
+                and value_type(node.test) != "bool"
+            ):
+                issue(node, "unknown", "condition must produce an inert boolean")
         for rule in tool.rules:
             names = set(_TEMPLATE.findall(rule.pattern))
             if rule.selector_arg:
@@ -418,10 +440,24 @@ def check_manifest_consistency(
                             return None
                         values.append(resolved)
                     return _join(values)
+                if isinstance(
+                    node, (ast.BinOp, ast.UnaryOp, ast.Compare, ast.Subscript)
+                ):
+                    for child in ast.iter_child_nodes(node):
+                        if isinstance(child, ast.expr):
+                            expression(child)
+                    return None
                 if isinstance(node, ast.Call):
                     target, model = call_model(node)
                     values = [expression(arg) for arg in node.args]
                     keywords = {kw.arg: expression(kw.value) for kw in node.keywords}
+                    if (
+                        model is None
+                        and target in (PURE_BUILTINS | {"range"})
+                        and isinstance(node.func, ast.Name)
+                        and target not in locals_
+                    ):
+                        return None
                     if model is None:
                         issue(node, "unknown", f"unmodeled call: {target}")
                         return None
@@ -481,7 +517,35 @@ def check_manifest_consistency(
                         for target in node.targets:
                             assert isinstance(target, ast.Name)
                             env[target.id] = value
+                    elif isinstance(node, ast.AugAssign) and isinstance(
+                        node.target, ast.Name
+                    ):
+                        expression(node.value)
+                        env[node.target.id] = None
+                    elif isinstance(node, (ast.While, ast.For)):
+                        # A loop-carried selector cannot be treated as its entry
+                        # value. Forget every assigned local before inspecting
+                        # the condition/body, then retain only invariant values.
+                        changed = {
+                            part.id
+                            for part in ast.walk(node)
+                            if isinstance(part, ast.Name)
+                            and isinstance(part.ctx, ast.Store)
+                        }
+                        for name in changed:
+                            env[name] = None
+                        invariant = dict(env)
+                        expression(
+                            node.test if isinstance(node, ast.While) else node.iter
+                        )
+                        statements(node.body)
+                        env.clear()
+                        env.update(invariant)
+                        statements(node.orelse)
+                        for name in changed:
+                            env[name] = None
                     elif isinstance(node, ast.If):
+                        expression(node.test)
                         test = node.test
                         if (
                             isinstance(test, ast.Compare)
@@ -529,11 +593,31 @@ def check_manifest_consistency(
                                         }
                                     )
                         else:
-                            issue(
-                                node,
-                                "unknown",
-                                "branch is not a closed manifest selector comparison",
-                            )
+                            before = dict(env)
+                            left_returns = statements(node.body)
+                            left = dict(env)
+                            env.clear()
+                            env.update(before)
+                            right_returns = statements(node.orelse)
+                            right = dict(env)
+                            env.clear()
+                            if left_returns and right_returns:
+                                return True
+                            if left_returns:
+                                env.update(right)
+                            elif right_returns:
+                                env.update(left)
+                            else:
+                                env.update(
+                                    {
+                                        name: left.get(name)
+                                        if left.get(name) == right.get(name)
+                                        else None
+                                        for name in left.keys() | right.keys()
+                                    }
+                                )
+                    elif isinstance(node, (ast.Break, ast.Continue)):
+                        return True
                     elif isinstance(node, ast.Pass):
                         continue
                     else:

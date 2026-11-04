@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import ast
 import asyncio
+import builtins
 import inspect
 import os
 import stat
@@ -19,12 +20,17 @@ from collections.abc import Mapping
 from contextvars import ContextVar
 from functools import partial
 from pathlib import Path
+from threading import Event
 from types import CellType, CodeType, FunctionType
 from typing import TYPE_CHECKING
 
 from langchain_core.tools import BaseTool, StructuredTool
 
-from langgraph.prebuilt.security._language_sandbox import LanguageProgram
+from langgraph.prebuilt.security._language_pure import PURE_BUILTINS
+from langgraph.prebuilt.security._language_sandbox import (
+    LanguageProgram,
+    _language_cancel,
+)
 from langgraph.prebuilt.security._pinned_file import open_path_descriptor
 from langgraph.prebuilt.security.errors import SecurityConfigurationError
 from langgraph.prebuilt.security.execution import HostExecutionDenied
@@ -362,6 +368,13 @@ class ManifestAdmission:
                             for model in binding.models(name)
                         }
                     )
+            for name in (PURE_BUILTINS | {"range"}) & set(function.__code__.co_names):
+                if name in function.__globals__ and function.__globals__[
+                    name
+                ] is not getattr(builtins, name):
+                    raise SecurityConfigurationError(
+                        "language_sandbox:shadowed_pure_builtin"
+                    )
             report = check_manifest_consistency(
                 source,
                 manifest,
@@ -468,9 +481,14 @@ class ManifestAdmission:
         self.validate()
         self._validate_arguments(arguments)
         program = self.programs.get("coroutine") or self.programs.get("func")
-        pending = asyncio.create_task(
-            asyncio.to_thread(program.invoke, dict(arguments))
-        )
+        cancellation = Event()
+        token = _language_cancel.set(cancellation)
+        try:
+            pending = asyncio.create_task(
+                asyncio.to_thread(program.invoke, dict(arguments))
+            )
+        finally:
+            _language_cancel.reset(token)
         cancelled = False
         # Cancellation must not release the resource scope while a synchronous
         # mediated terminal is still running in the worker thread.
@@ -480,6 +498,7 @@ class ManifestAdmission:
                 break
             except asyncio.CancelledError:
                 cancelled = True
+                cancellation.set()
                 if pending.done():
                     # Retrieve terminal exceptions without publishing a result.
                     await asyncio.gather(pending, return_exceptions=True)

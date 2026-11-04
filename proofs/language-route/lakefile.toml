@@ -1,9 +1,15 @@
 name = "language-route"
 version = "0.1.0"
-defaultTargets = ["LanguageRoute", "Controls"]
+defaultTargets = ["LanguageRoute", "Controls", "LanguageEffects", "EffectControls"]
 
 [[lean_lib]]
 name = "LanguageRoute"
 
 [[lean_lib]]
 name = "Controls"
+
+[[lean_lib]]
+name = "LanguageEffects"
+
+[[lean_lib]]
+name = "EffectControls"
