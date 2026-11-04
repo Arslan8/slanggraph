@@ -35,14 +35,15 @@ def grant():
 
 
 def test_key_needs_no_json_or_sha256(grant, monkeypatch):
+    reordered = replace(grant.lines[0], attributes={"b": "2", "a": "1"})
+    fresh = replace(grant, principal_id="bob", call_id="fresh", lines=(reordered,))
+
     def forbidden(*args, **kwargs):
         raise AssertionError("prepared lookup must not serialize or digest authority")
 
     monkeypatch.setattr(object_broker.json, "dumps", forbidden)
     monkeypatch.setattr(object_broker.hashlib, "sha256", forbidden)
     key = object_broker._object_authority_key(grant)
-    reordered = replace(grant.lines[0], attributes={"b": "2", "a": "1"})
-    fresh = replace(grant, principal_id="bob", call_id="fresh", lines=(reordered,))
     assert {key: "prepared"}[object_broker._object_authority_key(fresh)] == "prepared"
 
 

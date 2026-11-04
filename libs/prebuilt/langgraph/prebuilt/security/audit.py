@@ -163,6 +163,9 @@ class SqliteAuditSink:
         self._pending: queue.Queue[AuditRecord | object] | None = None
         self._stop = object()
         self._writer: Thread | None = None
+        self._sync_transaction_open = False
+        self._authorization_batches: set[tuple[str, str, str, int]] = set()
+        self._completion_batches: set[tuple[str, str, str, int]] = set()
         if durability == "trusted-async":
             self._pending = queue.Queue(maxsize=max_pending)
             self._writer = Thread(
@@ -180,8 +183,7 @@ class SqliteAuditSink:
             previous = self._head
             finalized = _finalize(record, previous)
             if self._pending is None:
-                with self._connection:
-                    self._insert(finalized)
+                self._write_synchronous(finalized)
             else:
                 try:
                     self._pending.put_nowait(finalized)
@@ -189,6 +191,84 @@ class SqliteAuditSink:
                     raise RuntimeError("trusted audit writer queue is full") from exc
             self._head = finalized.hash
             return finalized
+
+    @staticmethod
+    def _invocation_key(record: AuditRecord) -> tuple[str, str, str, int]:
+        return (
+            record.user_id,
+            record.session_id,
+            record.tool_name,
+            record.call_index,
+        )
+
+    def _begin_synchronous(self) -> None:
+        if not self._sync_transaction_open:
+            self._connection.execute("BEGIN IMMEDIATE")
+            self._sync_transaction_open = True
+
+    def _commit_synchronous(self) -> None:
+        if self._sync_transaction_open:
+            try:
+                self._connection.commit()
+            except BaseException as exc:
+                self._connection.rollback()
+                self._failure = exc
+                self._sync_transaction_open = False
+                raise
+            self._sync_transaction_open = False
+
+    def _insert_synchronous(self, record: AuditRecord, *, commit: bool) -> None:
+        try:
+            self._begin_synchronous()
+            self._insert(record)
+            if commit:
+                self._commit_synchronous()
+        except BaseException as exc:
+            if self._sync_transaction_open:
+                self._connection.rollback()
+                self._sync_transaction_open = False
+            self._failure = exc
+            raise
+
+    def _write_synchronous(self, record: AuditRecord) -> None:
+        """Persist at the three invocation durability barriers.
+
+        Authorization/prepare records commit with the dispatch reservation,
+        activation evidence commits immediately after host completion, and
+        post/outcome records commit before a successful result is published.
+        Interleaved calls may share a transaction, but never cross a barrier
+        without being committed.
+        """
+        key = self._invocation_key(record)
+        pre_dispatch = record.stage in {"prepare", "permission", "flow", "dispatch"}
+        if pre_dispatch:
+            if record.stage == "prepare" and record.verdict is Verdict.ALLOW:
+                self._authorization_batches.add(key)
+            if key not in self._authorization_batches:
+                self._commit_synchronous()
+                self._insert_synchronous(record, commit=True)
+                return
+            flush = record.stage == "dispatch" or record.verdict is not Verdict.ALLOW
+            self._insert_synchronous(record, commit=flush)
+            if flush:
+                self._authorization_batches.discard(key)
+                if record.stage == "dispatch" and record.verdict is Verdict.ALLOW:
+                    self._completion_batches.add(key)
+            return
+        if record.stage == "activation":
+            # Activation evidence is its own durability boundary. Commit any
+            # interleaved authorization records before it as well.
+            self._commit_synchronous()
+            self._insert_synchronous(record, commit=True)
+            return
+        if key in self._completion_batches:
+            flush = record.stage == "outcome"
+            self._insert_synchronous(record, commit=flush)
+            if flush:
+                self._completion_batches.discard(key)
+            return
+        self._commit_synchronous()
+        self._insert_synchronous(record, commit=True)
 
     def _insert(self, record: AuditRecord) -> None:
         self._connection.execute(
@@ -256,6 +336,8 @@ class SqliteAuditSink:
         """Wait until every accepted record has reached SQLite."""
         pending = self._pending
         if pending is None:
+            with self._lock:
+                self._commit_synchronous()
             return
         pending.join()
         with self._lock:

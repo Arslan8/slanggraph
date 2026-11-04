@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from pathlib import Path
 from threading import Event
 
@@ -192,6 +193,63 @@ def test_sqlite_tamper_names_first_bad_record(tmp_path: Path) -> None:
             connection.close()
 
         assert sink.verify() == (False, 0)
+    finally:
+        sink.close()
+
+
+def test_synchronous_invocation_uses_three_durability_barriers(
+    tmp_path: Path,
+) -> None:
+    """Authorization, activation, and completion each remain durable barriers."""
+    sink = SqliteAuditSink(tmp_path / "barriers.db")
+    commits: list[str] = []
+    sink._connection.set_trace_callback(
+        lambda statement: commits.append(statement) if statement == "COMMIT" else None
+    )
+    try:
+        for stage in ("prepare", "permission", "flow", "dispatch"):
+            sink.write(replace(_record(0), stage=stage))
+        assert commits == ["COMMIT"]
+
+        sink.write(replace(_record(0), stage="activation"))
+        assert commits == ["COMMIT", "COMMIT"]
+
+        sink.write(replace(_record(0), stage="post"))
+        assert commits == ["COMMIT", "COMMIT"]
+        sink.write(replace(_record(0), stage="outcome"))
+        assert commits == ["COMMIT", "COMMIT", "COMMIT"]
+
+        observer = sqlite3.connect(sink.path)
+        try:
+            assert observer.execute(
+                "SELECT stage FROM audit_records ORDER BY sequence"
+            ).fetchall() == [
+                ("prepare",),
+                ("permission",),
+                ("flow",),
+                ("dispatch",),
+                ("activation",),
+                ("post",),
+                ("outcome",),
+            ]
+        finally:
+            observer.close()
+    finally:
+        sink.close()
+
+
+def test_standalone_synchronous_record_is_immediately_durable(tmp_path: Path) -> None:
+    """Batching is entered only by a complete invocation preparation sequence."""
+    sink = SqliteAuditSink(tmp_path / "standalone.db")
+    try:
+        sink.write(_record(0))
+        observer = sqlite3.connect(sink.path)
+        try:
+            assert observer.execute(
+                "SELECT COUNT(*) FROM audit_records"
+            ).fetchone() == (1,)
+        finally:
+            observer.close()
     finally:
         sink.close()
 

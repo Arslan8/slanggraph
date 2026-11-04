@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 
+from langgraph.prebuilt.security import enforcement as enforcement_module
 from langgraph.prebuilt.security.enforcement import (
     ActivationEvidence,
     ActivationReceipt,
@@ -358,6 +359,38 @@ def test_grant_digest_is_canonical_and_conditions_are_frozen() -> None:
     )
     assert first.digest == second.digest
     assert rule.conditions["method"] == "POST"
+
+
+def test_immutable_authority_digests_are_computed_once(monkeypatch) -> None:
+    """Repeated gates reuse identities after their immutable inputs are final."""
+    original = enforcement_module._digest
+    calls = 0
+
+    def counted(value):
+        nonlocal calls
+        calls += 1
+        return original(value)
+
+    monkeypatch.setattr(enforcement_module, "_digest", counted)
+    grant = _grant()
+    host = _host()
+    context = _context()
+    eager_calls = calls
+    assert grant.digest == grant.digest
+    assert host.digest == host.digest
+    assert context.digest == context.digest
+    assert calls == eager_calls
+
+    plan = EnforcementPlan(
+        grant.digest,
+        host.digest,
+        "obligations",
+        EnforcementMode.ENFORCED,
+        (),
+        (),
+    )
+    assert plan.digest == plan.digest
+    assert calls == eager_calls + 1
 
 
 def test_capability_class_does_not_substitute_for_exact_rule_support() -> None:

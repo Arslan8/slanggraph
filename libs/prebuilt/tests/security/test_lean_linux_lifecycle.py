@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import signal
 from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
@@ -225,7 +226,10 @@ def test_useful_result_requires_real_lean_decisions_around_worker(lean_worker):
     assert before_go["child_status"] == (None,)
     assert after_cleanup["go_received"] is True
     assert after_cleanup["cleanup_errors"] == (None,)
-    assert after_cleanup["child_status"] == (0,)
+    # The single-use cleanup may observe natural exit or win the race and
+    # terminate the worker after its accepted response. Either way, the result
+    # is released only after confirmed cleanup and no worker remains live.
+    assert after_cleanup["child_status"] in {(0,), (-signal.SIGKILL,)}
     assert before_go["certificate"] == after_cleanup["certificate"]
     certificate = before_go["certificate"]
     assert certificate["plan"]["assignments"] == [

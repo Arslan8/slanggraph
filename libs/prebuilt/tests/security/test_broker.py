@@ -4,6 +4,9 @@ import json
 import os
 import socket
 from collections.abc import Mapping
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
+from threading import get_ident
 
 import pytest
 
@@ -86,6 +89,41 @@ def test_broker_retains_token_and_uses_exact_rule_scope(monkeypatch) -> None:
     assert record.reason == "exact_scope"
     assert "secret-installation-token" not in repr(record)
     assert "secret-installation-token" not in os.environ.values()
+
+
+def test_broker_reuses_server_thread_without_reusing_invocation_binding(
+    monkeypatch,
+) -> None:
+    """Serving infrastructure is reusable while each socket keeps a fresh grant."""
+    grant = _grant()
+    serving_threads: list[int] = []
+
+    def handle(token, operation, payload, spawn):
+        serving_threads.append(get_ident())
+        return spawn.nonce
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        broker = CredentialBroker(
+            {"github_app": GitHubAppIssuer(lambda spawn, scope: "secret")},
+            {"github": handle},
+            server_executor=executor,
+        )
+        results = []
+        for nonce in ("spawn-1", "spawn-2"):
+            spawn = replace(_spawn(grant), nonce=nonce)
+            session = broker.open_session(spawn, grant)
+            monkeypatch.setenv("SLANGGRAPH_BROKER_FD", str(session.worker_fd))
+            try:
+                results.append(broker_request("github", "invoke"))
+            finally:
+                session.close()
+
+    assert results == ["spawn-1", "spawn-2"]
+    assert len(set(serving_threads)) == 1
+    assert [record.spawn_nonce for record in broker.audit_records()] == [
+        "spawn-1",
+        "spawn-2",
+    ]
 
 
 class WrongScopeIssuer:

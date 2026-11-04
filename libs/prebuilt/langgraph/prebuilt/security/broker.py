@@ -7,6 +7,8 @@ import os
 import socket
 from collections import deque
 from collections.abc import Callable, Mapping
+from concurrent.futures import Executor, Future
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from dataclasses import dataclass, field
 from threading import Event, RLock, Thread
 from types import MappingProxyType
@@ -103,6 +105,28 @@ class BrokerAuditRecord:
     reason: str
 
 
+class _BrokerTask:
+    """Thread-compatible view of work running on reusable serving threads."""
+
+    __slots__ = ("_future",)
+
+    def __init__(self, future: Future[None]) -> None:
+        self._future = future
+
+    def is_alive(self) -> bool:
+        return not self._future.done()
+
+    def join(self, timeout: float | None = None) -> None:
+        try:
+            self._future.result(timeout=timeout)
+        except FutureTimeoutError:
+            pass
+        except BaseException:
+            # Match `Thread.join`: the serving task has already terminated,
+            # and its request path fails closed rather than re-raising here.
+            pass
+
+
 class BrokerSession:
     """One parent endpoint and one worker descriptor bound to a spawn record."""
 
@@ -110,7 +134,7 @@ class BrokerSession:
         self,
         parent: socket.socket,
         worker: socket.socket | None,
-        thread: Thread,
+        thread: Thread | _BrokerTask,
         stopped: Event | None = None,
     ) -> None:
         self._parent = parent
@@ -169,6 +193,8 @@ class CredentialBroker:
             str,
             Callable[[str, str, Mapping[str, Any], SpawnRecord], Any],
         ],
+        *,
+        server_executor: Executor | None = None,
     ) -> None:
         if not issuers or not services:
             raise ValueError("broker requires issuers and service handlers")
@@ -176,6 +202,7 @@ class CredentialBroker:
         self.services = MappingProxyType(dict(services))
         self._audit: deque[BrokerAuditRecord] = deque(maxlen=4096)
         self._lock = RLock()
+        self._server_executor = server_executor
 
     def open_session(self, spawn: SpawnRecord, grant: Grant) -> BrokerSession:
         """Create the channel before confinement and bind it to trusted state."""
@@ -215,14 +242,19 @@ class CredentialBroker:
         if worker is not None:
             worker.set_inheritable(False)
         stopped = Event()
-        thread = Thread(
-            target=self._serve,
-            args=(parent, spawn, grant, stopped),
-            name=f"slanggraph-broker-{spawn.nonce[:8]}",
-            daemon=True,
-        )
-        thread.start()
-        return BrokerSession(parent, worker, thread, stopped)
+        if self._server_executor is None:
+            task: Thread | _BrokerTask = Thread(
+                target=self._serve,
+                args=(parent, spawn, grant, stopped),
+                name=f"slanggraph-broker-{spawn.nonce[:8]}",
+                daemon=True,
+            )
+            task.start()
+        else:
+            task = _BrokerTask(
+                self._server_executor.submit(self._serve, parent, spawn, grant, stopped)
+            )
+        return BrokerSession(parent, worker, task, stopped)
 
     def audit_records(self) -> tuple[BrokerAuditRecord, ...]:
         """Return bounded token-free broker evidence."""

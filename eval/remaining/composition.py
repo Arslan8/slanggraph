@@ -12,14 +12,17 @@ import sys
 import tempfile
 import time
 import uuid
+from dataclasses import replace
 from pathlib import Path
 
 from langchain_core.tools import tool
 from langgraph.prebuilt.security import (
     SQLITE_RECORD_SCHEMA,
+    LeanLifecycleChecker,
     LinuxToolSpec,
     ObjectBrokerDispatcher,
     Principal,
+    SqliteAuditSink,
     Tool,
     ToolCall,
     ToolDac,
@@ -76,7 +79,7 @@ def state(database):
         return dict(conn.execute("SELECT key,value FROM records ORDER BY key"))
 
 
-def run(output, repetitions):
+def run(output, repetitions, checker):
     output.mkdir(parents=True, exist_ok=False)
     source = Path(__file__).with_name("record_worker.py")
     code = source.read_text()
@@ -90,6 +93,12 @@ def run(output, repetitions):
                 modes=MODES,
                 repetitions=repetitions,
                 worker_sha256=source_hash,
+                route=(
+                    "ObjectPolicyHostExecutor/ObjectBrokerDispatcher/"
+                    "prepared Landlock worker/inline Lean lifecycle/SQLite records"
+                    if checker is not None
+                    else "legacy mixed-route composition"
+                ),
                 safety="Incomplete modes are explicit reference harnesses outside secure mode",
             ),
             indent=2,
@@ -121,6 +130,8 @@ def run(output, repetitions):
                                 Path(p).resolve() for p in sys.path if p and Path(p).is_dir()
                             ),
                             mediators=(mediator,),
+                            lifecycle_checker=checker,
+                            worker_pool_capacity=1 if checker is not None else 0,
                         )
                         security = cedar_security(
                             record_task,
@@ -129,6 +140,10 @@ def run(output, repetitions):
                             policy=POLICY,
                             dispatcher=dispatcher,
                         )
+                        audit_sink = None
+                        if checker is not None:
+                            audit_sink = SqliteAuditSink(Path(folder) / "security.sqlite")
+                            security = replace(security, audit_sink=audit_sink)
                         executor = security.host_executor
                         args = dict(
                             record=record,
@@ -155,6 +170,9 @@ def run(output, repetitions):
                         phase = "authorization"
                         try:
                             if mode == "production_composition":
+                                if checker is not None:
+                                    prepared_grant = executor._authorize(principal, call, ())
+                                    dispatcher.prewarm(principal, call, prepared_grant)
                                 value = executor.invoke(principal, call, ())
                                 result = value.value
                                 receipt = serial(value.receipt)
@@ -288,6 +306,12 @@ else:
                             concrete_executor="ObjectPolicyHostExecutor/ObjectBrokerDispatcher"
                             if mode == "production_composition"
                             else mode,
+                            isolation_route=(
+                                "host isolation: prepared Landlock worker with a "
+                                "spawn-bound SQLite broker and inline Lean lifecycle checks"
+                                if mode == "production_composition" and checker is not None
+                                else "reference route"
+                            ),
                             source_revision=source_hash,
                             host=platform.node(),
                             principal=serial(principal),
@@ -318,6 +342,9 @@ else:
                         )
                         stream.write(json.dumps(row, sort_keys=True) + "\n")
                         stream.flush()
+                        dispatcher.close()
+                        if audit_sink is not None:
+                            audit_sink.close()
                         keeper.close()
             print(f"SQLite repetition {repetition} complete", flush=True)
 
@@ -326,5 +353,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--repetitions", type=int, default=20)
+    parser.add_argument("--checker-library", type=Path)
+    parser.add_argument("--checker-runtime", type=Path)
     args = parser.parse_args()
-    run(args.output, args.repetitions)
+    if (args.checker_library is None) != (args.checker_runtime is None):
+        parser.error("select both --checker-library and --checker-runtime")
+    checker = None
+    if args.checker_library is not None:
+        library = args.checker_library.resolve(strict=True)
+        runtime = args.checker_runtime.resolve(strict=True)
+        checker = LeanLifecycleChecker(
+            str(library),
+            hashlib.sha256(library.read_bytes()).hexdigest(),
+            str(runtime),
+            hashlib.sha256(runtime.read_bytes()).hexdigest(),
+        )
+    run(args.output, args.repetitions, checker)

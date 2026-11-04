@@ -30,9 +30,12 @@ from langgraph.prebuilt.security import (
     sqlite_record_mediator,
     with_principal,
 )
+from langgraph.prebuilt.security import landlock as landlock_module
+from langgraph.prebuilt.security import linux as linux_module
 from langgraph.prebuilt.security.landlock import LandlockSandboxExecutor
 from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.mediators.records import RECORDS
+from langgraph.prebuilt.security.object_broker import _ObjectBroker, _ObjectWorker
 from langgraph.prebuilt.security.object_policy import ObjectPolicyHostExecutor
 from langgraph.prebuilt.security.types import Tool, ToolCall, ToolDac
 
@@ -142,6 +145,17 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             "lean_grant_ms": 0.0,
             "lean_go_ms": 0.0,
             "lean_result_ms": 0.0,
+            "lean_prepare_ms": 0.0,
+            "prepared_worker_selection_ms": 0.0,
+            "grant_construction_ms": 0.0,
+            "mediator_setup_ms": 0.0,
+            "prepared_policy_binding_ms": 0.0,
+            "channel_thread_setup_ms": 0.0,
+            "certificate_construction_ms": 0.0,
+            "receipt_validation_ms": 0.0,
+            "request_encoding_ms": 0.0,
+            "worker_ready_wait_ms": 0.0,
+            "worker_result_wait_ms": 0.0,
         }
         dispatch = {"start_wall": 0.0, "elapsed_ms": 0.0, "activated_at": 0.0}
         originals = {
@@ -150,6 +164,17 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             "cleanup": LandlockSandboxExecutor._cleanup_worker,
             "audit": sink.write,
             "lean": LeanLifecycleChecker._require,
+            "lean_prepare": LeanLifecycleChecker._prepare_captured_route,
+            "lean_prepared": LeanLifecycleChecker._require_prepared_captured,
+            "new_worker": dispatcher._new_worker,
+            "compile_grant": _ObjectWorker._compile_grant,
+            "prepare_grant": _ObjectWorker._prepare_grant,
+            "bind_policy": _ObjectWorker._bind_prepared_policy,
+            "bind_session": _ObjectBroker.bind_prepared_session,
+            "capture_certificate": landlock_module._capture_receipt_certificate,
+            "receipt": _ObjectWorker._receipt,
+            "encode_worker_request": linux_module._encode_worker_request,
+            "readline_json": linux_module._readline_json,
         }
 
         def timed(name, function):
@@ -179,6 +204,54 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                 spans[name] += (time.perf_counter_ns() - start) / 1e6
 
         LeanLifecycleChecker._require = timed_lean
+
+        def timed_lean_prepare(*args, **kwargs):
+            start = time.perf_counter_ns()
+            try:
+                return originals["lean_prepare"](*args, **kwargs)
+            finally:
+                elapsed = (time.perf_counter_ns() - start) / 1e6
+                spans["lean_prepare_ms"] += elapsed
+                spans["lean_go_ms"] += elapsed
+
+        def timed_lean_prepared(instance, prepared, events, phase):
+            name = {"running": "lean_go_ms", "ready": "lean_result_ms"}[phase]
+            start = time.perf_counter_ns()
+            try:
+                return originals["lean_prepared"](instance, prepared, events, phase)
+            finally:
+                spans[name] += (time.perf_counter_ns() - start) / 1e6
+
+        LeanLifecycleChecker._prepare_captured_route = timed_lean_prepare
+        LeanLifecycleChecker._require_prepared_captured = timed_lean_prepared
+        dispatcher._new_worker = timed("prepared_worker_selection_ms", originals["new_worker"])
+        _ObjectWorker._compile_grant = timed("grant_construction_ms", originals["compile_grant"])
+        _ObjectWorker._prepare_grant = timed("mediator_setup_ms", originals["prepare_grant"])
+        _ObjectWorker._bind_prepared_policy = timed(
+            "prepared_policy_binding_ms", originals["bind_policy"]
+        )
+        _ObjectBroker.bind_prepared_session = timed(
+            "channel_thread_setup_ms", originals["bind_session"]
+        )
+        landlock_module._capture_receipt_certificate = timed(
+            "certificate_construction_ms", originals["capture_certificate"]
+        )
+        _ObjectWorker._receipt = timed("receipt_validation_ms", originals["receipt"])
+        linux_module._encode_worker_request = timed(
+            "request_encoding_ms", originals["encode_worker_request"]
+        )
+
+        def timed_readline(*args, **kwargs):
+            start = time.perf_counter_ns()
+            result = originals["readline_json"](*args, **kwargs)
+            elapsed = (time.perf_counter_ns() - start) / 1e6
+            if result.get("status") == "ready":
+                spans["worker_ready_wait_ms"] += elapsed
+            else:
+                spans["worker_result_wait_ms"] += elapsed
+            return result
+
+        linux_module._readline_json = timed_readline
 
         def timed_dispatch(*args, **kwargs):
             dispatch["start_wall"] = time.time()
@@ -223,6 +296,17 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                         lean_grant_ms=0.0,
                         lean_go_ms=0.0,
                         lean_result_ms=0.0,
+                        lean_prepare_ms=0.0,
+                        prepared_worker_selection_ms=0.0,
+                        grant_construction_ms=0.0,
+                        mediator_setup_ms=0.0,
+                        prepared_policy_binding_ms=0.0,
+                        channel_thread_setup_ms=0.0,
+                        certificate_construction_ms=0.0,
+                        receipt_validation_ms=0.0,
+                        request_encoding_ms=0.0,
+                        worker_ready_wait_ms=0.0,
+                        worker_result_wait_ms=0.0,
                     )
                     mediator_spans["operation_ms"] = 0.0
                     dispatch.update(start_wall=0.0, elapsed_ms=0.0, activated_at=0.0)
@@ -244,6 +328,17 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                         lean_grant_ms=0.0,
                         lean_go_ms=0.0,
                         lean_result_ms=0.0,
+                        lean_prepare_ms=0.0,
+                        prepared_worker_selection_ms=0.0,
+                        grant_construction_ms=0.0,
+                        mediator_setup_ms=0.0,
+                        prepared_policy_binding_ms=0.0,
+                        channel_thread_setup_ms=0.0,
+                        certificate_construction_ms=0.0,
+                        receipt_validation_ms=0.0,
+                        request_encoding_ms=0.0,
+                        worker_ready_wait_ms=0.0,
+                        worker_result_wait_ms=0.0,
                     )
                     pool_before = dict(dispatcher.worker_pool_stats())
                     checker_before = checker.statistics()
@@ -313,6 +408,17 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                             "lean_grant_ms": spans["lean_grant_ms"],
                             "lean_go_ms": spans["lean_go_ms"],
                             "lean_result_ms": spans["lean_result_ms"],
+                            "lean_prepare_ms": spans["lean_prepare_ms"],
+                            "prepared_worker_selection_ms": spans["prepared_worker_selection_ms"],
+                            "grant_construction_ms": spans["grant_construction_ms"],
+                            "mediator_setup_ms": spans["mediator_setup_ms"],
+                            "prepared_policy_binding_ms": spans["prepared_policy_binding_ms"],
+                            "channel_thread_setup_ms": spans["channel_thread_setup_ms"],
+                            "certificate_construction_ms": spans["certificate_construction_ms"],
+                            "receipt_validation_ms": spans["receipt_validation_ms"],
+                            "request_encoding_ms": spans["request_encoding_ms"],
+                            "worker_ready_wait_ms": spans["worker_ready_wait_ms"],
+                            "worker_result_wait_ms": spans["worker_result_wait_ms"],
                             "execution_ms": mediator_spans["operation_ms"],
                             "mediator_transport_ms": mediator_transport_ms,
                             "audit_ms": spans["audit_ms"],
@@ -349,6 +455,17 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             ObjectPolicyHostExecutor._authorize = originals["authorize"]
             LandlockSandboxExecutor._cleanup_worker = originals["cleanup"]
             LeanLifecycleChecker._require = originals["lean"]
+            LeanLifecycleChecker._prepare_captured_route = originals["lean_prepare"]
+            LeanLifecycleChecker._require_prepared_captured = originals["lean_prepared"]
+            dispatcher._new_worker = originals["new_worker"]
+            _ObjectWorker._compile_grant = originals["compile_grant"]
+            _ObjectWorker._prepare_grant = originals["prepare_grant"]
+            _ObjectWorker._bind_prepared_policy = originals["bind_policy"]
+            _ObjectBroker.bind_prepared_session = originals["bind_session"]
+            landlock_module._capture_receipt_certificate = originals["capture_certificate"]
+            _ObjectWorker._receipt = originals["receipt"]
+            linux_module._encode_worker_request = originals["encode_worker_request"]
+            linux_module._readline_json = originals["readline_json"]
             dispatcher.close()
 
 

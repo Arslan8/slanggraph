@@ -60,6 +60,7 @@ from langgraph.prebuilt.security.lean_lifecycle import (
     LeanLifecycleChecker,
     LeanLifecycleSession,
     _capture_receipt_certificate,
+    _data,
 )
 from langgraph.prebuilt.security.policy import MandatoryPolicyBackend
 from langgraph.prebuilt.security.profile import ProfileDocument
@@ -1040,9 +1041,9 @@ class LandlockSandboxExecutor:
             with self._lifecycle_lock:
                 self._lifecycle_records.append(
                     {
-                        "binding": json.loads(lifecycle._binding),
-                        "certificate": json.loads(lifecycle._certificate),
-                        "events": json.loads(lifecycle._events),
+                        "binding": _data(lifecycle._binding),
+                        "certificate": _data(lifecycle._certificate),
+                        "events": _data(lifecycle._events),
                         "object_route": getattr(self, "_lean_object_route", False),
                         "phase": "ready",
                         "cleanup_confirmed": True,

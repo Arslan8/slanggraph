@@ -439,6 +439,53 @@ private def check (input : String) : Except String Json := do
   return Json.mkObj [("protocol", toJson "worker-route-grant-v3"),
     ("schema", toJson (3 : Nat)), ("phase", toJson phase)]
 
+/-- The invocation-stable portion of a lifecycle request. The native bridge
+    retains this Lean value between gates, so bindings and certificates are
+    parsed once while every event trace is still decided by the proved core. -/
+structure PreparedRoute where
+  original : Binding
+  certificate : GrantCoverage.Certificate
+  objectRoute : Bool
+
+private def prepareRoute (input : String) : Except String PreparedRoute := do
+  let value ← ProtocolParser.parse input
+  fields value ["protocol", "kind", "binding", "certificate"]
+  unless (← textField value "protocol") == "worker-route-grant-v3" do
+    throw "unsupported protocol"
+  let kind ← textField value "kind"
+  unless kind == "route" || kind == "object-route" do
+    throw "unsupported request kind"
+  return {
+    original := ← binding (← value.getObjVal? "binding")
+    certificate := ← certificate (← value.getObjVal? "certificate")
+    objectRoute := kind == "object-route"
+  }
+
+private def checkPrepared (prepared : PreparedRoute) (input : String) : Except String String := do
+  let value ← ProtocolParser.parse input
+  let events ← value.getArr?
+  unless events.size ≤ 32 do throw "event budget"
+  let events ← events.toList.mapM event
+  return phaseName
+    (if prepared.objectRoute then
+      ResourceGrantCoverage.runCertified prepared.original prepared.certificate events
+    else
+      GrantCoverage.runCertified prepared.original prepared.certificate events).phase
+
+/-- Parse and type-check the stable certificate once. -/
+@[export argus_worker_route_prepare]
+def prepareNative (input : String) : Option PreparedRoute :=
+  match prepareRoute input with
+  | .error _ => none
+  | .ok prepared => some prepared
+
+/-- Apply a fresh cumulative event trace to a retained, parsed certificate. -/
+@[export argus_worker_route_check_prepared]
+def checkPreparedNative (prepared : PreparedRoute) (input : String) : String :=
+  match checkPrepared prepared input with
+  | .error _ => ""
+  | .ok phase => phase
+
 /-- Native-library entry point. An empty response is a fail-closed parse or
     decision failure; successful responses use the exact CLI protocol. -/
 @[export argus_worker_route_check]

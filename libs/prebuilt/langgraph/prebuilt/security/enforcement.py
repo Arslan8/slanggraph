@@ -109,6 +109,7 @@ class Grant:
     rules: tuple[GrantRule, ...]
     deployment_digest: str = ""
     runtime_digest: str = ""
+    _digest_value: str = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         identifiers = (
@@ -127,34 +128,39 @@ class Grant:
         if len(rule_ids) != len(set(rule_ids)):
             raise ValueError("grant rule IDs must be unique")
         object.__setattr__(self, "rules", rules)
+        object.__setattr__(
+            self,
+            "_digest_value",
+            _digest(
+                {
+                    "artifact_digest": self.artifact_digest,
+                    "call_id": self.call_id,
+                    "normalized_intent_digest": self.normalized_intent_digest,
+                    "policy_digest": self.policy_digest,
+                    "principal_id": self.principal_id,
+                    "rules": [
+                        rule.canonical() for rule in sorted(self.rules, key=_rule_key)
+                    ],
+                    "session_id": self.session_id,
+                    "tool_name": self.tool_name,
+                    **(
+                        {"deployment_digest": self.deployment_digest}
+                        if self.deployment_digest
+                        else {}
+                    ),
+                    **(
+                        {"runtime_digest": self.runtime_digest}
+                        if self.runtime_digest
+                        else {}
+                    ),
+                }
+            ),
+        )
 
     @property
     def digest(self) -> str:
         """Return a canonical SHA-256 digest of the complete authorized authority."""
-        return _digest(
-            {
-                "artifact_digest": self.artifact_digest,
-                "call_id": self.call_id,
-                "normalized_intent_digest": self.normalized_intent_digest,
-                "policy_digest": self.policy_digest,
-                "principal_id": self.principal_id,
-                "rules": [
-                    rule.canonical() for rule in sorted(self.rules, key=_rule_key)
-                ],
-                "session_id": self.session_id,
-                "tool_name": self.tool_name,
-                **(
-                    {"deployment_digest": self.deployment_digest}
-                    if self.deployment_digest
-                    else {}
-                ),
-                **(
-                    {"runtime_digest": self.runtime_digest}
-                    if self.runtime_digest
-                    else {}
-                ),
-            }
-        )
+        return self._digest_value
 
 
 @dataclass(frozen=True, slots=True)
@@ -479,6 +485,7 @@ class HostAttestation:
     context: Mapping[str, str]
     evidence: Mapping[str, Any]
     signature: str
+    _digest_value: str = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         if not all(
@@ -490,23 +497,28 @@ class HostAttestation:
         object.__setattr__(self, "capabilities", frozenset(self.capabilities))
         object.__setattr__(self, "context", _freeze_string_mapping(self.context))
         object.__setattr__(self, "evidence", _freeze_mapping(self.evidence))
+        object.__setattr__(
+            self,
+            "_digest_value",
+            _digest(
+                {
+                    "boot_id": self.boot_id,
+                    "capabilities": sorted(self.capabilities),
+                    "context": dict(self.context),
+                    "evidence": _plain(self.evidence),
+                    "expires_at": self.expires_at,
+                    "issued_at": self.issued_at,
+                    "issuer": self.issuer,
+                    "nonce": self.nonce,
+                    "platform": self.platform,
+                }
+            ),
+        )
 
     @property
     def digest(self) -> str:
         """Hash the authenticated statement; the hash is not itself authentication."""
-        return _digest(
-            {
-                "boot_id": self.boot_id,
-                "capabilities": sorted(self.capabilities),
-                "context": dict(self.context),
-                "evidence": _plain(self.evidence),
-                "expires_at": self.expires_at,
-                "issued_at": self.issued_at,
-                "issuer": self.issuer,
-                "nonce": self.nonce,
-                "platform": self.platform,
-            }
-        )
+        return self._digest_value
 
 
 @runtime_checkable
@@ -631,6 +643,7 @@ class ExecutionContext:
     credential_digest: str
     cgroup_id: str
     broker_epoch: str
+    _digest_value: str = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         if not all(
@@ -645,21 +658,26 @@ class ExecutionContext:
         ):
             raise ValueError("execution context identity fields must be non-empty")
         object.__setattr__(self, "namespaces", _freeze_string_mapping(self.namespaces))
+        object.__setattr__(
+            self,
+            "_digest_value",
+            _digest(
+                {
+                    "boot_id": self.boot_id,
+                    "broker_epoch": self.broker_epoch,
+                    "cgroup_id": self.cgroup_id,
+                    "credential_digest": self.credential_digest,
+                    "namespaces": dict(self.namespaces),
+                    "process_identity": self.process_identity,
+                    "worker_id": self.worker_id,
+                }
+            ),
+        )
 
     @property
     def digest(self) -> str:
         """Return the context digest bound into every activation statement."""
-        return _digest(
-            {
-                "boot_id": self.boot_id,
-                "broker_epoch": self.broker_epoch,
-                "cgroup_id": self.cgroup_id,
-                "credential_digest": self.credential_digest,
-                "namespaces": dict(self.namespaces),
-                "process_identity": self.process_identity,
-                "worker_id": self.worker_id,
-            }
-        )
+        return self._digest_value
 
 
 @dataclass(frozen=True, slots=True)
@@ -683,11 +701,15 @@ class EnforcementPlan:
     adapter_plans: tuple[AdapterPlan, ...]
     waived_obligations: tuple[str, ...] = ()
     removed_wants: tuple[str, ...] = ()
+    _digest_value: str = field(init=False, repr=False, compare=False, default="")
 
     @property
     def digest(self) -> str:
         """Return a canonical digest of assignments, plans, and reductions."""
-        return _digest(
+        cached = self._digest_value
+        if cached:
+            return cached
+        cached = _digest(
             {
                 "adapter_plans": [
                     {
@@ -717,6 +739,8 @@ class EnforcementPlan:
                 "waived_obligations": list(self.waived_obligations),
             }
         )
+        object.__setattr__(self, "_digest_value", cached)
+        return cached
 
 
 @dataclass(frozen=True, slots=True)

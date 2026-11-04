@@ -468,6 +468,7 @@ class ObjectGrant:
     policy_digest: str
     lines: tuple[ObjectGrantLine, ...]
     enforcement_waivers: Mapping[str, str] = field(default_factory=dict)
+    _digest_value: str = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         waivers = dict(self.enforcement_waivers)
@@ -478,18 +479,26 @@ class ObjectGrant:
             _text(reason, "enforcement waiver reason")
         object.__setattr__(self, "lines", tuple(self.lines))
         object.__setattr__(self, "enforcement_waivers", MappingProxyType(waivers))
+        object.__setattr__(
+            self,
+            "_digest_value",
+            hashlib.sha256(
+                _json(
+                    {
+                        "call_id": self.call_id,
+                        "lines": [line.canonical() for line in self.lines],
+                        "enforcement_waivers": dict(self.enforcement_waivers),
+                        "policy_digest": self.policy_digest,
+                        "principal_id": self.principal_id,
+                        "tool_name": self.tool_name,
+                    }
+                ).encode()
+            ).hexdigest(),
+        )
 
     @property
     def digest(self) -> str:
-        payload = {
-            "call_id": self.call_id,
-            "lines": [line.canonical() for line in self.lines],
-            "enforcement_waivers": dict(self.enforcement_waivers),
-            "policy_digest": self.policy_digest,
-            "principal_id": self.principal_id,
-            "tool_name": self.tool_name,
-        }
-        return hashlib.sha256(_json(payload).encode()).hexdigest()
+        return self._digest_value
 
 
 @dataclass(frozen=True, slots=True)

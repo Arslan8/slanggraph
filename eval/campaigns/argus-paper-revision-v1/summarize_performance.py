@@ -64,6 +64,22 @@ def main() -> int:
             "framework_residual": "framework_residual_ms",
         }.items()
     }
+    activation_breakdown = {
+        name: statistics.fmean(row[field] for row in steady_protected)
+        for name, field in {
+            "prepared_worker_selection": "prepared_worker_selection_ms",
+            "grant_construction": "grant_construction_ms",
+            "mediator_setup_inclusive": "mediator_setup_ms",
+            "prepared_policy_binding": "prepared_policy_binding_ms",
+            "channel_thread_setup": "channel_thread_setup_ms",
+            "certificate_construction": "certificate_construction_ms",
+            "receipt_activation_validation": "receipt_validation_ms",
+            "lean_certificate_preparation": "lean_prepare_ms",
+            "request_encoding": "request_encoding_ms",
+            "worker_ready_wait": "worker_ready_wait_ms",
+        }.items()
+        if all(field in row for row in steady_protected)
+    }
     result = {
         "schema": 2,
         "sessions": len(set(row["session"] for row in protected)),
@@ -101,6 +117,13 @@ def main() -> int:
             "relative_overhead_ratio": protected_stats["mean_ms"] / baseline_stats["mean_ms"],
         },
         "online_breakdown_mean_ms": breakdown,
+        "invocation_activation_detail_mean_ms": activation_breakdown,
+        "release_detail_mean_ms": {
+            "worker_result_wait": statistics.fmean(
+                row.get("worker_result_wait_ms", 0.0) for row in steady_protected
+            ),
+            "worker_release": statistics.fmean(row["cleanup_ms"] for row in steady_protected),
+        },
         "online_breakdown_reconciled_ms": sum(breakdown.values()),
         "instrumentation": {
             "inline_checking_active": all(row["checker"]["inline"] for row in protected),

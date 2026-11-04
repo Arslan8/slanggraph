@@ -461,6 +461,45 @@ def test_compiled_core_preserves_useful_unicode_bound_route(checker):
         session.permit_success(bound)
 
 
+def test_inline_session_prepares_certificate_once_and_checks_both_gates(
+    native_checker,
+):
+    bound = binding()
+    passed = certificate(bound)
+    before = native_checker.statistics()
+    session = LeanLifecycleSession(native_checker, bound, passed)
+
+    # The controller owns the parsed Lean value; aliases retained by setup
+    # code cannot alter it after preparation.
+    passed["plan"]["assignments"].clear()
+    passed["receipt"]["evidence"].clear()
+    session.permit_go(bound, supported=True)
+    session.permit_success(bound)
+
+    after = native_checker.statistics()
+    assert after["prepared_routes"] == before["prepared_routes"] + 1
+    assert after["prepared_calls"] == before["prepared_calls"] + 2
+    assert after["subprocess_calls"] == before["subprocess_calls"]
+
+
+def test_prepared_route_is_checker_bound_and_closed_after_release(native_checker):
+    bound = binding()
+    prepared = native_checker.prepare_route(bound, certificate(bound))
+    foreign = LeanLifecycleChecker(
+        native_checker.binary_path,
+        native_checker.binary_sha256,
+        native_checker.runtime_path,
+        native_checker.runtime_sha256,
+    )
+    try:
+        with pytest.raises(HostExecutionDenied, match="lean_binary_configuration"):
+            foreign.require_prepared(prepared, trace(bound), "ready")
+    finally:
+        prepared.close()
+    with pytest.raises(HostExecutionDenied, match="lean_lifecycle_refused"):
+        native_checker.require_prepared(prepared, trace(bound), "ready")
+
+
 @pytest.mark.parametrize(
     "field",
     [

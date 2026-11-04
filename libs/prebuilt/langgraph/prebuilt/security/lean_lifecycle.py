@@ -427,25 +427,26 @@ def _capture_certificate(plan: Any, receipt: Any, plan_digest: Any) -> dict:
                 "obligations": _strings(obligations, unordered=True, budget=budget),
             }
         )
-    return _data(
-        {
-            "plan": plan_data,
-            "receipt": {
-                "grant": _string(grant, nonempty=True, budget=budget),
-                "plan": _string(plan_id, nonempty=True, budget=budget),
-                "host": _string(host, nonempty=True, budget=budget),
-                "context": _string(context, nonempty=True, budget=budget),
-                "nonce": _string(nonce, nonempty=True, budget=budget),
-                "artifact": _string(artifact, nonempty=True, budget=budget),
-                "deployment": _string(deployment, budget=budget),
-                "runtime": _string(runtime, budget=budget),
-                "mode": _mode(mode),
-                "activated": _strings(activated, unordered=True, budget=budget),
-                "removedWants": _strings(removed, budget=budget),
-                "evidence": proofs,
-            },
-        }
-    )
+    # The outer capture performs the single bounded detachment over the full
+    # grant/certificate envelope. Re-copying this subtree here used to walk and
+    # validate every immutable row twice on each invocation.
+    return {
+        "plan": plan_data,
+        "receipt": {
+            "grant": _string(grant, nonempty=True, budget=budget),
+            "plan": _string(plan_id, nonempty=True, budget=budget),
+            "host": _string(host, nonempty=True, budget=budget),
+            "context": _string(context, nonempty=True, budget=budget),
+            "nonce": _string(nonce, nonempty=True, budget=budget),
+            "artifact": _string(artifact, nonempty=True, budget=budget),
+            "deployment": _string(deployment, budget=budget),
+            "runtime": _string(runtime, budget=budget),
+            "mode": _mode(mode),
+            "activated": _strings(activated, unordered=True, budget=budget),
+            "removedWants": _strings(removed, budget=budget),
+            "evidence": proofs,
+        },
+    }
 
 
 def _response_pairs(pairs: list) -> dict:
@@ -478,12 +479,27 @@ class LeanLifecycleChecker:
         init=False, repr=False, compare=False, default=()
     )
     _native_check: Any = field(init=False, repr=False, compare=False, default=None)
+    _native_prepare: Any = field(init=False, repr=False, compare=False, default=None)
+    _native_check_prepared: Any = field(
+        init=False, repr=False, compare=False, default=None
+    )
+    _native_free_prepared: Any = field(
+        init=False, repr=False, compare=False, default=None
+    )
     _stats: dict[str, int] = field(init=False, repr=False, compare=False)
     _stats_lock: RLock = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         object.__setattr__(
-            self, "_stats", {"loads": 0, "inline_calls": 0, "subprocess_calls": 0}
+            self,
+            "_stats",
+            {
+                "loads": 0,
+                "inline_calls": 0,
+                "prepared_routes": 0,
+                "prepared_calls": 0,
+                "subprocess_calls": 0,
+            },
         )
         object.__setattr__(self, "_stats_lock", RLock())
         if (
@@ -527,6 +543,21 @@ class LeanLifecycleChecker:
                     ctypes.c_size_t,
                 )
                 function.restype = ctypes.c_int
+                prepare = library.argus_worker_route_prepare_json
+                prepare.argtypes = (ctypes.c_char_p, ctypes.c_size_t)
+                prepare.restype = ctypes.c_void_p
+                check_prepared = library.argus_worker_route_check_prepared_json
+                check_prepared.argtypes = (
+                    ctypes.c_void_p,
+                    ctypes.c_char_p,
+                    ctypes.c_size_t,
+                    ctypes.POINTER(ctypes.c_char),
+                    ctypes.c_size_t,
+                )
+                check_prepared.restype = ctypes.c_int
+                free_prepared = library.argus_worker_route_free_prepared
+                free_prepared.argtypes = (ctypes.c_void_p,)
+                free_prepared.restype = None
             except HostExecutionDenied:
                 raise
             except (AttributeError, OSError) as exc:
@@ -538,6 +569,9 @@ class LeanLifecycleChecker:
                     os.close(library_descriptor)
             object.__setattr__(self, "_native_libraries", (runtime, library))
             object.__setattr__(self, "_native_check", function)
+            object.__setattr__(self, "_native_prepare", prepare)
+            object.__setattr__(self, "_native_check_prepared", check_prepared)
+            object.__setattr__(self, "_native_free_prepared", free_prepared)
             self._stats["loads"] = 1
         elif self.runtime_path is not None or self.runtime_sha256 is not None:
             raise HostExecutionDenied("host:lean_native_runtime_configuration")
@@ -597,6 +631,79 @@ class LeanLifecycleChecker:
             },
             "grant_ready",
         )
+
+    def prepare_route(
+        self, binding: dict, certificate: dict, *, object_route: bool = False
+    ) -> _PreparedLifecycleRoute:
+        """Parse the stable binding and certificate into a retained Lean value."""
+        if type(self) is not LeanLifecycleChecker or self._native_prepare is None:
+            raise HostExecutionDenied("host:lean_inline_required")
+        return self._prepare_captured_route(
+            _data(binding), _data(certificate), object_route=object_route
+        )
+
+    def _prepare_captured_route(
+        self, binding: dict, certificate: dict, *, object_route: bool
+    ) -> _PreparedLifecycleRoute:
+        """Prepare data already detached by the controller's native-slot capture."""
+        request = _encoded(
+            {
+                "protocol": _PROTOCOL,
+                "kind": "object-route" if object_route else "route",
+                "binding": binding,
+                "certificate": certificate,
+            }
+        )
+        if len(request) > _MAX_REQUEST:
+            raise HostExecutionDenied("host:lean_protocol_shape")
+        with self._stats_lock:
+            handle = self._native_prepare(request, len(request))
+            if handle:
+                self._stats["prepared_routes"] += 1
+        if not handle:
+            raise HostExecutionDenied("host:lean_lifecycle_refused")
+        return _PreparedLifecycleRoute(self, handle)
+
+    def require_prepared(
+        self, prepared: _PreparedLifecycleRoute, events: list, phase: str
+    ) -> None:
+        """Run the proved transition over fresh events and a parsed certificate."""
+        if (
+            type(self) is not LeanLifecycleChecker
+            or type(prepared) is not _PreparedLifecycleRoute
+            or prepared.checker is not self
+            or type(phase) is not str
+            or type(events) is not list
+            or len(events) > 32
+        ):
+            raise HostExecutionDenied("host:lean_binary_configuration")
+        self._require_prepared_captured(prepared, _data(events), phase)
+
+    def _require_prepared_captured(
+        self, prepared: _PreparedLifecycleRoute, events: list, phase: str
+    ) -> None:
+        """Check a controller-owned event trace without another object walk."""
+        handle = prepared.handle
+        if handle is None or self._native_check_prepared is None:
+            raise HostExecutionDenied("host:lean_lifecycle_refused")
+        request = _encoded(events)
+        if len(request) > _MAX_REQUEST:
+            raise HostExecutionDenied("host:lean_protocol_shape")
+        output = ctypes.create_string_buffer(32)
+        with self._stats_lock:
+            self._stats["inline_calls"] += 1
+            self._stats["prepared_calls"] += 1
+            size = self._native_check_prepared(
+                handle, request, len(request), output, len(output)
+            )
+        if size <= 0 or output.raw[:size] != phase.encode():
+            raise HostExecutionDenied("host:lean_lifecycle_refused")
+
+    def _free_route(self, handle: int) -> None:
+        function = self._native_free_prepared
+        if function is not None:
+            with self._stats_lock:
+                function(handle)
 
     def _require(self, payload: dict, phase: str) -> None:
         if type(self) is not LeanLifecycleChecker or type(phase) is not str:
@@ -688,6 +795,25 @@ class LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_lifecycle_refused")
 
 
+class _PreparedLifecycleRoute:
+    """One native Lean value owned by exactly one lifecycle session."""
+
+    __slots__ = ("checker", "handle")
+
+    def __init__(self, checker: LeanLifecycleChecker, handle: int) -> None:
+        self.checker = checker
+        self.handle = handle
+
+    def close(self) -> None:
+        handle = self.handle
+        if handle is not None:
+            self.handle = None
+            self.checker._free_route(handle)
+
+    def __del__(self) -> None:
+        self.close()
+
+
 class LeanLifecycleSession:
     """Controller-owned trace; a refused transition permanently closes it."""
 
@@ -698,6 +824,7 @@ class LeanLifecycleSession:
         "_events",
         "_failed",
         "_object_route",
+        "_prepared",
     )
 
     def __init__(
@@ -711,11 +838,20 @@ class LeanLifecycleSession:
         if type(checker) is not LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_binary_configuration")
         self._checker = checker
-        self._binding = _encoded(_data(binding))
-        self._certificate = _encoded(_data(certificate))
-        self._events = b"[]"
+        binding = _data(binding)
+        certificate = _data(certificate)
+        self._binding = binding
+        self._certificate = certificate
+        self._events = []
         self._failed = False
         self._object_route = object_route
+        self._prepared = (
+            checker._prepare_captured_route(
+                binding, certificate, object_route=object_route
+            )
+            if checker.inline
+            else None
+        )
 
     def permit_go(self, observed: dict, *, supported: bool) -> None:
         """Called only after grant negotiation and receipt validation succeed."""
@@ -747,16 +883,24 @@ class LeanLifecycleSession:
         if self._failed:
             raise HostExecutionDenied("host:lean_lifecycle_refused")
         try:
-            candidate = json.loads(self._events) + _data(events)
-            captured = _encoded(candidate)
-            self._checker.require(
-                json.loads(self._binding),
-                candidate,
-                phase,
-                certificate=json.loads(self._certificate),
-                **({"object_route": True} if self._object_route else {}),
-            )
-            self._events = captured
+            candidate = self._events + _data(events)
+            if self._prepared is not None:
+                self._checker._require_prepared_captured(
+                    self._prepared, candidate, phase
+                )
+            else:
+                self._checker.require(
+                    _data(self._binding),
+                    _data(candidate),
+                    phase,
+                    certificate=_data(self._certificate),
+                    **({"object_route": True} if self._object_route else {}),
+                )
+            self._events = candidate
+            if phase == "ready" and self._prepared is not None:
+                self._prepared.close()
         except BaseException:
             self._failed = True
+            if self._prepared is not None:
+                self._prepared.close()
             raise

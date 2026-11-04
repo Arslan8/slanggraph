@@ -15,6 +15,7 @@ import secrets
 import sys
 from collections import deque
 from collections.abc import Callable, Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 from threading import RLock
@@ -121,7 +122,11 @@ class _ObjectBroker(CredentialBroker):
     """Reuse bounded spawn-bound transport without credential issuance."""
 
     def __init__(
-        self, grant: ObjectGrant, bindings: Mapping[str, str] | None = None
+        self,
+        grant: ObjectGrant,
+        bindings: Mapping[str, str] | None = None,
+        *,
+        server_executor: ThreadPoolExecutor | None = None,
     ) -> None:
         self.bindings = dict(bindings or {})
         self.grant = grant
@@ -130,6 +135,7 @@ class _ObjectBroker(CredentialBroker):
         self.spawn: SpawnRecord | None = None
         self._audit: deque[BrokerAuditRecord] = deque(maxlen=4096)
         self._lock = RLock()
+        self._server_executor = server_executor
 
     def bind_spawn(self, spawn, grant):
         if (
@@ -479,9 +485,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
         ):
             raise HostExecutionDenied("object_lowering:prepared_host_changed")
         if prepared.candidate.rules != prepared.grant.rules:
-            raise HostExecutionDenied(
-                "object_lowering:prepared_attenuation_unsupported"
-            )
+            raise HostExecutionDenied("object_lowering:prepared_attenuation_changed")
         if self._prepared_value(
             [rule.canonical() for rule in prepared.candidate.rules]
         ) != self._prepared_value([rule.canonical() for rule in grant.rules]):
@@ -649,6 +653,14 @@ class ObjectBrokerDispatcher:
             lifecycle_checker.require_inline()
         self.worker_pool_idle_s = float(worker_pool_idle_s)
         self._worker_pool_state = _LandlockWorkerPoolState.create()
+        self._broker_executor = (
+            ThreadPoolExecutor(
+                max_workers=worker_pool_capacity,
+                thread_name_prefix="slanggraph-broker",
+            )
+            if worker_pool_capacity
+            else None
+        )
         self._prepared_workers: dict[tuple[Any, ...], _ObjectWorker] = {}
         self._preparation_stats = {
             "preparations": 0,
@@ -743,6 +755,8 @@ class ObjectBrokerDispatcher:
             self._prepared_workers.clear()
         if workers:
             workers[0].close()
+        if self._broker_executor is not None:
+            self._broker_executor.shutdown(wait=True, cancel_futures=True)
 
     def supports(self, object_class: ObjectClass, line: ObjectGrantLine) -> bool:
         """Host-independent discovery cannot certify concrete enforceability."""
@@ -842,7 +856,9 @@ class ObjectBrokerDispatcher:
         key = _object_authority_key(grant)
         with self._lock:
             prepared = self._prepared_workers.get(key)
-        broker = _ObjectBroker(grant, self.bindings)
+        broker = _ObjectBroker(
+            grant, self.bindings, server_executor=self._broker_executor
+        )
         if prepared is not None:
             worker = copy.copy(prepared)
             worker.object_grant = grant

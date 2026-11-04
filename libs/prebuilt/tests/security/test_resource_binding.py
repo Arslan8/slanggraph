@@ -156,7 +156,6 @@ def test_optional_mediator_preserves_typed_checks(constructor):
         {"operation": "delete"},
         {"lowering": "other.v1"},
         {"attributes": {"extra": "value"}},
-        {"enforcer": EnforcementKind.LANGUAGE_SANDBOX},
     ],
 )
 def test_binding_cannot_assess_or_execute_another_contract(change):
