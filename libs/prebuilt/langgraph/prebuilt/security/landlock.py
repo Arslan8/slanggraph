@@ -300,6 +300,7 @@ class LandlockSandboxExecutor:
             _worker_pool_state or _LandlockWorkerPoolState.create()
         )
         self._prepared_pool_key: str | None = None
+        self._prepared_lean_grant: Any = None
         self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
 
     def validate_tools(self, tool_names: Sequence[str]) -> None:
@@ -1046,18 +1047,29 @@ class LandlockSandboxExecutor:
         checker = self.lifecycle_checker
         if type(checker) is not LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_binary_configuration")
+        typed = self._prepared_lean_grant is not None
         captured = _capture_filtered_grant(
-            PolicyFilterResult(grant, ledger, "allow:captured")
+            PolicyFilterResult(grant, ledger, "allow:captured"), encode=not typed
         )
-        self._lean_grant = json.loads(captured.projection)
-        self._lean_obligations = json.loads(
-            _capture_obligations(obligations).projection
-        )
-        checker.require_grant(
-            self._lean_grant,
-            self._lean_obligations,
-            object_route=getattr(self, "_lean_object_route", False),
-        )
+        captured_obligations = _capture_obligations(obligations, encode=not typed)
+        if captured.data is None:
+            raise HostExecutionDenied("host:lean_grant_missing")
+        self._lean_grant = captured.data
+        self._lean_obligations = captured_obligations.data
+        if typed:
+            checker.require_prepared_grant(self._prepared_lean_grant, self._lean_grant)
+        elif self.worker_pool_capacity:
+            self._prepared_lean_grant = checker.prepare_grant(
+                self._lean_grant,
+                self._lean_obligations,
+                object_route=getattr(self, "_lean_object_route", False),
+            )
+        else:
+            checker.require_grant(
+                self._lean_grant,
+                self._lean_obligations,
+                object_route=getattr(self, "_lean_object_route", False),
+            )
 
     def _cleanup_worker(
         self,

@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+import langgraph.prebuilt.security.lean_grant as lean_grant
 import langgraph.prebuilt.security.linux as linux
 from langgraph.prebuilt.security import ResourceSupport, SupportLevel
 from langgraph.prebuilt.security.capabilities import probe_landlock_abi
@@ -203,12 +204,18 @@ def test_optimized_invocation_launches_no_checker_subprocess(
     def unexpected_digest(*args, **kwargs):
         raise AssertionError("prepared invocation rehashed its loaded runtime")
 
+    def unexpected_grant_json(*args, **kwargs):
+        raise AssertionError("prepared invocation encoded the grant as JSON")
+
     monkeypatch.setattr(subprocess, "run", unexpected)
     monkeypatch.setattr(linux, "_file_digest", unexpected_digest)
+    monkeypatch.setattr(lean_grant, "_encoded", unexpected_grant_json)
     before = native_checker.statistics()
     assert dispatcher.invoke(principal, call, grant).value == "inspected"
     after = native_checker.statistics()
     assert after["inline_calls"] - before["inline_calls"] == 3
+    assert after["typed_grant_calls"] - before["typed_grant_calls"] == 1
+    assert after["prepared_grants"] == before["prepared_grants"]
     assert after["subprocess_calls"] - before["subprocess_calls"] == 0
 
 

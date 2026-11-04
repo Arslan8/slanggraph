@@ -164,8 +164,10 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             "cleanup": LandlockSandboxExecutor._cleanup_worker,
             "audit": sink.write,
             "lean": LeanLifecycleChecker._require,
+            "lean_typed_grant": LeanLifecycleChecker.require_prepared_grant,
             "lean_prepare": LeanLifecycleChecker._prepare_captured_route,
             "lean_prepared": LeanLifecycleChecker._require_prepared_captured,
+            "lean_transition": LeanLifecycleChecker._require_prepared_transition,
             "new_worker": dispatcher._new_worker,
             "compile_grant": _ObjectWorker._compile_grant,
             "prepare_grant": _ObjectWorker._prepare_grant,
@@ -204,6 +206,9 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
                 spans[name] += (time.perf_counter_ns() - start) / 1e6
 
         LeanLifecycleChecker._require = timed_lean
+        LeanLifecycleChecker.require_prepared_grant = timed(
+            "lean_grant_ms", originals["lean_typed_grant"]
+        )
 
         def timed_lean_prepare(*args, **kwargs):
             start = time.perf_counter_ns()
@@ -212,7 +217,6 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             finally:
                 elapsed = (time.perf_counter_ns() - start) / 1e6
                 spans["lean_prepare_ms"] += elapsed
-                spans["lean_go_ms"] += elapsed
 
         def timed_lean_prepared(instance, prepared, events, phase):
             name = {"running": "lean_go_ms", "ready": "lean_result_ms"}[phase]
@@ -224,6 +228,18 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
 
         LeanLifecycleChecker._prepare_captured_route = timed_lean_prepare
         LeanLifecycleChecker._require_prepared_captured = timed_lean_prepared
+
+        def timed_lean_transition(instance, prepared, observed, phase, **kwargs):
+            name = {"running": "lean_go_ms", "ready": "lean_result_ms"}[phase]
+            start = time.perf_counter_ns()
+            try:
+                return originals["lean_transition"](
+                    instance, prepared, observed, phase, **kwargs
+                )
+            finally:
+                spans[name] += (time.perf_counter_ns() - start) / 1e6
+
+        LeanLifecycleChecker._require_prepared_transition = timed_lean_transition
         dispatcher._new_worker = timed("prepared_worker_selection_ms", originals["new_worker"])
         _ObjectWorker._compile_grant = timed("grant_construction_ms", originals["compile_grant"])
         _ObjectWorker._prepare_grant = timed("mediator_setup_ms", originals["prepare_grant"])
@@ -454,8 +470,12 @@ def run_session(output: Path, session: int, warmups: int, measured: int) -> None
             ObjectPolicyHostExecutor._authorize = originals["authorize"]
             LandlockSandboxExecutor._cleanup_worker = originals["cleanup"]
             LeanLifecycleChecker._require = originals["lean"]
+            LeanLifecycleChecker.require_prepared_grant = originals["lean_typed_grant"]
             LeanLifecycleChecker._prepare_captured_route = originals["lean_prepare"]
             LeanLifecycleChecker._require_prepared_captured = originals["lean_prepared"]
+            LeanLifecycleChecker._require_prepared_transition = originals[
+                "lean_transition"
+            ]
             dispatcher._new_worker = originals["new_worker"]
             _ObjectWorker._compile_grant = originals["compile_grant"]
             _ObjectWorker._prepare_grant = originals["prepare_grant"]

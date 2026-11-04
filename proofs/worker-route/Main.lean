@@ -447,6 +447,12 @@ structure PreparedRoute where
   certificate : GrantCoverage.Certificate
   objectRoute : Bool
 
+/-- A fully checked grant inventory retained across invocation bindings. -/
+structure PreparedGrant where
+  original : GrantCoverage.Grant
+  obligations : List GrantCoverage.Obligation
+  objectRoute : Bool
+
 private def prepareRoute (input : String) : Except String PreparedRoute := do
   let value ← ProtocolParser.parse input
   fields value ["protocol", "kind", "binding", "certificate"]
@@ -472,6 +478,68 @@ private def checkPrepared (prepared : PreparedRoute) (input : String) : Except S
     else
       GrantCoverage.runCertified prepared.original prepared.certificate events).phase
 
+private def prepareGrant (input : String) : Except String PreparedGrant := do
+  let value ← ProtocolParser.parse input
+  fields value ["protocol", "kind", "grant", "obligations"]
+  unless (← textField value "protocol") == "worker-route-grant-v3" do
+    throw "unsupported protocol"
+  let kind ← textField value "kind"
+  unless kind == "grant" || kind == "object-grant" do
+    throw "unsupported request kind"
+  let original ← grant (← value.getObjVal? "grant")
+  let obligations ← recordArray value "obligations" obligation
+  let objectRoute := kind == "object-grant"
+  let accepted := if objectRoute then
+    ResourceGrantCoverage.obligationsAccept original obligations
+  else
+    GrantCoverage.obligationsAccept original obligations
+  unless accepted do throw "invalid grant inventory"
+  return { original, obligations, objectRoute }
+
+private def bindPreparedGrant (prepared : PreparedGrant)
+    (principal session tool artifact call intent policy deployment runtime digest : String) : Bool :=
+  let bound : GrantCoverage.Grant := {
+    prepared.original with
+    principal := principal
+    session := session
+    tool := tool
+    artifact := artifact
+    call := call
+    intent := intent
+    policy := policy
+    deployment := deployment
+    runtime := runtime
+    digest := digest
+  }
+  if prepared.objectRoute then
+    ResourceGrantCoverage.obligationsAccept bound prepared.obligations
+  else
+    GrantCoverage.obligationsAccept bound prepared.obligations
+
+private def observedBinding
+    (principal session call intent policy tool artifact deployment runtime grant plan nonce host context
+      workerPid workerStartTime workerBootId : String) : Binding := {
+  principal, session, call, intent, policy, tool, artifact, deployment, runtime, grant, plan, nonce,
+  host, context,
+  worker := { pid := workerPid, startTime := workerStartTime, bootId := workerBootId }
+}
+
+private def preparedPhase (prepared : PreparedRoute) (events : List Event) : Phase :=
+  (if prepared.objectRoute then
+    ResourceGrantCoverage.runCertified prepared.original prepared.certificate events
+  else
+    GrantCoverage.runCertified prepared.original prepared.certificate events).phase
+
+private def checkPreparedGo (prepared : PreparedRoute) (observed : Binding)
+    (supported : Bool) : Bool :=
+  preparedPhase prepared
+    [.authorize observed true, .activate observed supported true, .go observed] == .running
+
+private def checkPreparedSuccess (prepared : PreparedRoute) (observed : Binding) : Bool :=
+  preparedPhase prepared
+    [.authorize prepared.original true, .activate prepared.original true true, .go prepared.original,
+      .result observed true, .cleanup true] == .ready
+
 /-- Parse and type-check the stable certificate once. -/
 @[export argus_worker_route_prepare]
 def prepareNative (input : String) : Option PreparedRoute :=
@@ -485,6 +553,37 @@ def checkPreparedNative (prepared : PreparedRoute) (input : String) : String :=
   match checkPrepared prepared input with
   | .error _ => ""
   | .ok phase => phase
+
+/-- Parse and prove the stable grant inventory once. -/
+@[export argus_worker_route_prepare_grant]
+def prepareGrantNative (input : String) : Option PreparedGrant :=
+  match prepareGrant input with
+  | .error _ => none
+  | .ok prepared => some prepared
+
+/-- Bind fresh invocation identity to a retained proved grant inventory. -/
+@[export argus_worker_route_check_prepared_grant]
+def checkPreparedGrantNative (prepared : PreparedGrant)
+    (principal session tool artifact call intent policy deployment runtime digest : String) : Bool :=
+  bindPreparedGrant prepared principal session tool artifact call intent policy deployment runtime digest
+
+/-- Check authorization, activation, and GO without an event JSON transport. -/
+@[export argus_worker_route_check_prepared_go]
+def checkPreparedGoNative (prepared : PreparedRoute)
+    (principal session call intent policy tool artifact deployment runtime grant plan nonce host context
+      workerPid workerStartTime workerBootId : String) (supported : Bool) : Bool :=
+  checkPreparedGo prepared
+    (observedBinding principal session call intent policy tool artifact deployment runtime grant plan nonce
+      host context workerPid workerStartTime workerBootId) supported
+
+/-- Check result release and confirmed cleanup without an event JSON transport. -/
+@[export argus_worker_route_check_prepared_success]
+def checkPreparedSuccessNative (prepared : PreparedRoute)
+    (principal session call intent policy tool artifact deployment runtime grant plan nonce host context
+      workerPid workerStartTime workerBootId : String) : Bool :=
+  checkPreparedSuccess prepared
+    (observedBinding principal session call intent policy tool artifact deployment runtime grant plan nonce
+      host context workerPid workerStartTime workerBootId)
 
 /-- Native-library entry point. An empty response is a fail-closed parse or
     decision failure; successful responses use the exact CLI protocol. -/

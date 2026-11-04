@@ -463,6 +463,7 @@ def test_compiled_core_preserves_useful_unicode_bound_route(checker):
 
 def test_inline_session_prepares_certificate_once_and_checks_both_gates(
     native_checker,
+    monkeypatch,
 ):
     bound = binding()
     passed = certificate(bound)
@@ -473,6 +474,11 @@ def test_inline_session_prepares_certificate_once_and_checks_both_gates(
     # code cannot alter it after preparation.
     passed["plan"]["assignments"].clear()
     passed["receipt"]["evidence"].clear()
+
+    def unexpected_json(*args, **kwargs):
+        raise AssertionError("prepared lifecycle transition encoded JSON")
+
+    monkeypatch.setattr(lean_lifecycle, "_encoded", unexpected_json)
     session.permit_go(bound, supported=True)
     session.permit_success(bound)
 

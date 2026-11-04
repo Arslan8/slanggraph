@@ -117,6 +117,7 @@ class CapturedGrant:
 
     filtered: PolicyFilterResult
     projection: bytes | None
+    data: dict | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,7 +125,8 @@ class CapturedObligations:
     """Detached native obligations and their immutable semantic projection."""
 
     obligations: tuple[EnforcementObligation, ...]
-    projection: bytes
+    projection: bytes | None
+    data: list
 
 
 def _enum(value: Any, choices: tuple) -> str:
@@ -217,7 +219,7 @@ def _conditions(value: Any, budget: list[int]) -> tuple[dict, dict]:
     return _condition(value, budget, set())
 
 
-def _capture_filtered_grant(filtered: Any) -> CapturedGrant:
+def _capture_filtered_grant(filtered: Any, *, encode: bool = True) -> CapturedGrant:
     """Admit raw filter slots before .allowed, compilation or digest helpers.
 
     Local missing-layout errors are not retained as context. Ambient caller
@@ -225,7 +227,7 @@ def _capture_filtered_grant(filtered: Any) -> CapturedGrant:
     """
     result = None
     try:
-        result = _filtered(filtered)
+        result = _filtered(filtered, encode=encode)
     except (AttributeError, RecursionError, ValueError, TypeError):
         pass
     if result is None:
@@ -233,7 +235,7 @@ def _capture_filtered_grant(filtered: Any) -> CapturedGrant:
     return result
 
 
-def _filtered(filtered: Any) -> CapturedGrant:
+def _filtered(filtered: Any, *, encode: bool) -> CapturedGrant:
     budget = [_MAX_REQUEST - 1]
     grant, ledger, reason, removed, diagnostics = _record(
         filtered, PolicyFilterResult, _FILTER
@@ -253,6 +255,7 @@ def _filtered(filtered: Any) -> CapturedGrant:
     if grant is None:
         return CapturedGrant(
             PolicyFilterResult(None, detached_ledger, reason, removed, diagnostics),
+            None,
             None,
         )
     (
@@ -345,17 +348,21 @@ def _filtered(filtered: Any) -> CapturedGrant:
         "digest": detached.digest,
         "rules": projected_rules,
     }
+    data = _data(projected)
     return CapturedGrant(
         PolicyFilterResult(detached, detached_ledger, reason, removed, diagnostics),
-        _encoded(_data(projected)),
+        _encoded(data) if encode else None,
+        data,
     )
 
 
-def _capture_obligations(obligations: Any) -> CapturedObligations:
+def _capture_obligations(
+    obligations: Any, *, encode: bool = True
+) -> CapturedObligations:
     """Detach the exact generated sequence before native lowering/negotiation."""
     result = None
     try:
-        result = _obligations(obligations)
+        result = _obligations(obligations, encode=encode)
     except (AttributeError, RecursionError, ValueError, TypeError):
         pass
     if result is None:
@@ -363,7 +370,7 @@ def _capture_obligations(obligations: Any) -> CapturedObligations:
     return result
 
 
-def _obligations(obligations: Any) -> CapturedObligations:
+def _obligations(obligations: Any, *, encode: bool) -> CapturedObligations:
     budget = [_MAX_REQUEST - 1]
     native = []
     projected = []
@@ -414,4 +421,5 @@ def _obligations(obligations: Any) -> CapturedObligations:
                 "waivable": waivable,
             }
         )
-    return CapturedObligations(tuple(native), _encoded(_data(projected)))
+    data = _data(projected)
+    return CapturedObligations(tuple(native), _encoded(data) if encode else None, data)

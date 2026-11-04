@@ -47,6 +47,53 @@ _MAX_REQUEST = 1_048_576
 _PROTOCOL = "worker-route-grant-v3"
 
 
+class _NativeSlice(ctypes.Structure):
+    _fields_ = (("data", ctypes.c_void_p), ("size", ctypes.c_size_t))
+
+
+class _NativeGrantBinding(ctypes.Structure):
+    _fields_ = tuple(
+        (name, _NativeSlice)
+        for name in (
+            "principal",
+            "session",
+            "tool",
+            "artifact",
+            "call",
+            "intent",
+            "policy",
+            "deployment",
+            "runtime",
+            "digest",
+        )
+    )
+
+
+_ROUTE_BINDING_NAMES = (
+    "principal",
+    "session",
+    "call",
+    "intent",
+    "policy",
+    "tool",
+    "artifact",
+    "deployment",
+    "runtime",
+    "grant",
+    "plan",
+    "nonce",
+    "host",
+    "context",
+    "worker_pid",
+    "worker_start_time",
+    "worker_boot_id",
+)
+
+
+class _NativeRouteBinding(ctypes.Structure):
+    _fields_ = tuple((name, _NativeSlice) for name in _ROUTE_BINDING_NAMES)
+
+
 @contextmanager
 def _macos_snapshot(image: bytes):
     """Private immutable inode for dyld/exec; remove it after native loading."""
@@ -515,7 +562,22 @@ class LeanLifecycleChecker:
     _native_check_prepared: Any = field(
         init=False, repr=False, compare=False, default=None
     )
+    _native_check_prepared_go: Any = field(
+        init=False, repr=False, compare=False, default=None
+    )
+    _native_check_prepared_success: Any = field(
+        init=False, repr=False, compare=False, default=None
+    )
     _native_free_prepared: Any = field(
+        init=False, repr=False, compare=False, default=None
+    )
+    _native_prepare_grant: Any = field(
+        init=False, repr=False, compare=False, default=None
+    )
+    _native_check_prepared_grant: Any = field(
+        init=False, repr=False, compare=False, default=None
+    )
+    _native_free_prepared_grant: Any = field(
         init=False, repr=False, compare=False, default=None
     )
     _stats: dict[str, int] = field(init=False, repr=False, compare=False)
@@ -530,6 +592,8 @@ class LeanLifecycleChecker:
                 "inline_calls": 0,
                 "prepared_routes": 0,
                 "prepared_calls": 0,
+                "prepared_grants": 0,
+                "typed_grant_calls": 0,
                 "subprocess_calls": 0,
             },
         )
@@ -587,9 +651,38 @@ class LeanLifecycleChecker:
                     ctypes.c_size_t,
                 )
                 check_prepared.restype = ctypes.c_int
+                check_prepared_go = library.argus_worker_route_check_prepared_go_typed
+                check_prepared_go.argtypes = (
+                    ctypes.c_void_p,
+                    ctypes.POINTER(_NativeRouteBinding),
+                    ctypes.c_int,
+                )
+                check_prepared_go.restype = ctypes.c_int
+                check_prepared_success = (
+                    library.argus_worker_route_check_prepared_success_typed
+                )
+                check_prepared_success.argtypes = (
+                    ctypes.c_void_p,
+                    ctypes.POINTER(_NativeRouteBinding),
+                )
+                check_prepared_success.restype = ctypes.c_int
                 free_prepared = library.argus_worker_route_free_prepared
                 free_prepared.argtypes = (ctypes.c_void_p,)
                 free_prepared.restype = None
+                prepare_grant = library.argus_worker_route_prepare_grant_json
+                prepare_grant.argtypes = (ctypes.c_char_p, ctypes.c_size_t)
+                prepare_grant.restype = ctypes.c_void_p
+                check_prepared_grant = (
+                    library.argus_worker_route_check_prepared_grant_typed
+                )
+                check_prepared_grant.argtypes = (
+                    ctypes.c_void_p,
+                    ctypes.POINTER(_NativeGrantBinding),
+                )
+                check_prepared_grant.restype = ctypes.c_int
+                free_prepared_grant = library.argus_worker_route_free_prepared_grant
+                free_prepared_grant.argtypes = (ctypes.c_void_p,)
+                free_prepared_grant.restype = None
             except HostExecutionDenied:
                 raise
             except (AttributeError, OSError) as exc:
@@ -603,7 +696,16 @@ class LeanLifecycleChecker:
             object.__setattr__(self, "_native_check", function)
             object.__setattr__(self, "_native_prepare", prepare)
             object.__setattr__(self, "_native_check_prepared", check_prepared)
+            object.__setattr__(self, "_native_check_prepared_go", check_prepared_go)
+            object.__setattr__(
+                self, "_native_check_prepared_success", check_prepared_success
+            )
             object.__setattr__(self, "_native_free_prepared", free_prepared)
+            object.__setattr__(self, "_native_prepare_grant", prepare_grant)
+            object.__setattr__(
+                self, "_native_check_prepared_grant", check_prepared_grant
+            )
+            object.__setattr__(self, "_native_free_prepared_grant", free_prepared_grant)
             self._stats["loads"] = 1
         elif self.runtime_path is not None or self.runtime_sha256 is not None:
             raise HostExecutionDenied("host:lean_native_runtime_configuration")
@@ -663,6 +765,77 @@ class LeanLifecycleChecker:
             },
             "grant_ready",
         )
+
+    def prepare_grant(
+        self, grant: dict, obligations: list, *, object_route: bool = False
+    ) -> _PreparedGrant:
+        """Parse and prove a stable grant inventory once during preparation."""
+        if type(self) is not LeanLifecycleChecker or self._native_prepare_grant is None:
+            raise HostExecutionDenied("host:lean_inline_required")
+        request = _encoded(
+            _data(
+                {
+                    "protocol": _PROTOCOL,
+                    "kind": "object-grant" if object_route else "grant",
+                    "grant": grant,
+                    "obligations": obligations,
+                }
+            )
+        )
+        if len(request) > _MAX_REQUEST:
+            raise HostExecutionDenied("host:lean_protocol_shape")
+        with self._stats_lock:
+            handle = self._native_prepare_grant(request, len(request))
+            if handle:
+                self._stats["prepared_grants"] += 1
+        if not handle:
+            raise HostExecutionDenied("host:lean_lifecycle_refused")
+        return _PreparedGrant(self, handle)
+
+    def require_prepared_grant(self, prepared: _PreparedGrant, grant: dict) -> None:
+        """Bind fresh grant identity through the typed native ABI."""
+        function = self._native_check_prepared_grant
+        if (
+            type(self) is not LeanLifecycleChecker
+            or type(prepared) is not _PreparedGrant
+            or prepared.checker is not self
+            or prepared.handle is None
+            or function is None
+            or type(grant) is not dict
+        ):
+            raise HostExecutionDenied("host:lean_binary_configuration")
+        names = (
+            "principal",
+            "session",
+            "tool",
+            "artifact",
+            "call",
+            "intent",
+            "policy",
+            "deployment",
+            "runtime",
+            "digest",
+        )
+        encoded = []
+        for name in names:
+            value = grant.get(name)
+            if type(value) is not str:
+                raise HostExecutionDenied("host:lean_grant_shape")
+            encoded.append(
+                _string(value, nonempty=name not in {"deployment", "runtime"}).encode()
+            )
+        buffers = tuple(ctypes.create_string_buffer(value) for value in encoded)
+        slices = tuple(
+            _NativeSlice(ctypes.addressof(buffer), len(value))
+            for buffer, value in zip(buffers, encoded, strict=True)
+        )
+        binding = _NativeGrantBinding(*slices)
+        with self._stats_lock:
+            self._stats["inline_calls"] += 1
+            self._stats["typed_grant_calls"] += 1
+            accepted = function(prepared.handle, ctypes.byref(binding))
+        if accepted != 1:
+            raise HostExecutionDenied("host:lean_lifecycle_refused")
 
     def prepare_route(
         self, binding: dict, certificate: dict, *, object_route: bool = False
@@ -731,8 +904,71 @@ class LeanLifecycleChecker:
         if size <= 0 or output.raw[:size] != phase.encode():
             raise HostExecutionDenied("host:lean_lifecycle_refused")
 
+    def _require_prepared_transition(
+        self,
+        prepared: _PreparedLifecycleRoute,
+        observed: dict,
+        phase: str,
+        *,
+        supported: bool = True,
+    ) -> None:
+        """Apply a typed useful transition to a retained Lean certificate."""
+        if (
+            type(prepared) is not _PreparedLifecycleRoute
+            or prepared.checker is not self
+            or prepared.handle is None
+            or type(observed) is not dict
+            or type(supported) is not bool
+            or phase not in {"running", "ready"}
+        ):
+            raise HostExecutionDenied("host:lean_binary_configuration")
+        worker = observed.get("worker")
+        if type(worker) is not dict:
+            raise HostExecutionDenied("host:lean_protocol_shape")
+        values = tuple(observed.get(name) for name in _ROUTE_BINDING_NAMES[:-3]) + (
+            worker.get("pid"),
+            worker.get("startTime"),
+            worker.get("bootId"),
+        )
+        encoded = tuple(
+            _string(
+                value,
+                nonempty=name not in {"deployment", "runtime"},
+            ).encode()
+            for name, value in zip(_ROUTE_BINDING_NAMES, values, strict=True)
+        )
+        buffers = tuple(ctypes.create_string_buffer(value) for value in encoded)
+        slices = tuple(
+            _NativeSlice(ctypes.addressof(buffer), len(value))
+            for buffer, value in zip(buffers, encoded, strict=True)
+        )
+        binding = _NativeRouteBinding(*slices)
+        function = (
+            self._native_check_prepared_go
+            if phase == "running"
+            else self._native_check_prepared_success
+        )
+        if function is None:
+            raise HostExecutionDenied("host:lean_inline_required")
+        with self._stats_lock:
+            self._stats["inline_calls"] += 1
+            self._stats["prepared_calls"] += 1
+            accepted = (
+                function(prepared.handle, ctypes.byref(binding), int(supported))
+                if phase == "running"
+                else function(prepared.handle, ctypes.byref(binding))
+            )
+        if accepted != 1:
+            raise HostExecutionDenied("host:lean_lifecycle_refused")
+
     def _free_route(self, handle: int) -> None:
         function = self._native_free_prepared
+        if function is not None:
+            with self._stats_lock:
+                function(handle)
+
+    def _free_grant(self, handle: int) -> None:
+        function = self._native_free_prepared_grant
         if function is not None:
             with self._stats_lock:
                 function(handle)
@@ -846,6 +1082,25 @@ class _PreparedLifecycleRoute:
         self.close()
 
 
+class _PreparedGrant:
+    """One proved grant inventory retained for typed invocation binding."""
+
+    __slots__ = ("checker", "handle")
+
+    def __init__(self, checker: LeanLifecycleChecker, handle: int) -> None:
+        self.checker = checker
+        self.handle = handle
+
+    def close(self) -> None:
+        handle = self.handle
+        if handle is not None:
+            self.handle = None
+            self.checker._free_grant(handle)
+
+    def __del__(self) -> None:
+        self.close()
+
+
 class LeanLifecycleSession:
     """Controller-owned trace; a refused transition permanently closes it."""
 
@@ -948,11 +1203,24 @@ class LeanLifecycleSession:
         if self._failed:
             raise HostExecutionDenied("host:lean_lifecycle_refused")
         try:
-            candidate = self._events + _data(events)
+            captured = _data(events)
+            candidate = self._events + captured
             if self._prepared is not None:
-                self._checker._require_prepared_captured(
-                    self._prepared, candidate, phase
-                )
+                if phase == "running":
+                    self._checker._require_prepared_transition(
+                        self._prepared,
+                        captured[0]["binding"],
+                        phase,
+                        supported=captured[1]["supported"],
+                    )
+                elif phase == "ready":
+                    self._checker._require_prepared_transition(
+                        self._prepared, captured[0]["binding"], phase
+                    )
+                else:
+                    self._checker._require_prepared_captured(
+                        self._prepared, candidate, phase
+                    )
             else:
                 self._checker.require(
                     _data(self._binding),
