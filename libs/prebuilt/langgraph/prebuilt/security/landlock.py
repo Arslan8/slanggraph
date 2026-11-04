@@ -1048,17 +1048,35 @@ class LandlockSandboxExecutor:
         if type(checker) is not LeanLifecycleChecker:
             raise HostExecutionDenied("host:lean_binary_configuration")
         typed = self._prepared_lean_grant is not None
+        if typed:
+            template = self._lean_grant
+            captured_obligations = self._lean_obligations
+            if type(template) is not dict or type(captured_obligations) is not list:
+                raise HostExecutionDenied("host:lean_grant_missing")
+            self._lean_grant = {
+                **template,
+                "principal": grant.principal_id,
+                "session": grant.session_id,
+                "tool": grant.tool_name,
+                "artifact": grant.artifact_digest,
+                "call": grant.call_id,
+                "intent": grant.normalized_intent_digest,
+                "policy": grant.policy_digest,
+                "deployment": grant.deployment_digest,
+                "runtime": grant.runtime_digest,
+                "digest": grant.digest,
+            }
+            checker.require_prepared_grant(self._prepared_lean_grant, self._lean_grant)
+            return
         captured = _capture_filtered_grant(
-            PolicyFilterResult(grant, ledger, "allow:captured"), encode=not typed
+            PolicyFilterResult(grant, ledger, "allow:captured")
         )
-        captured_obligations = _capture_obligations(obligations, encode=not typed)
+        captured_obligations = _capture_obligations(obligations)
         if captured.data is None:
             raise HostExecutionDenied("host:lean_grant_missing")
         self._lean_grant = captured.data
         self._lean_obligations = captured_obligations.data
-        if typed:
-            checker.require_prepared_grant(self._prepared_lean_grant, self._lean_grant)
-        elif self.worker_pool_capacity:
+        if self.worker_pool_capacity:
             self._prepared_lean_grant = checker.prepare_grant(
                 self._lean_grant,
                 self._lean_obligations,

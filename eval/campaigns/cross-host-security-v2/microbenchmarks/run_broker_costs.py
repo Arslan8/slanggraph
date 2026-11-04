@@ -37,6 +37,7 @@ from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 from langgraph.prebuilt.security.mediators.records import RECORDS
 from langgraph.prebuilt.security.object_broker import _ObjectBroker, _ObjectWorker
 from langgraph.prebuilt.security.object_policy import ObjectPolicyHostExecutor
+from langgraph.prebuilt.security.policy import TypedPolicyBackend
 from langgraph.prebuilt.security.types import Tool, ToolCall, ToolDac
 
 POLICY = (
@@ -150,6 +151,7 @@ def run_session(
             "audit_ms": 0.0,
             "cleanup_ms": 0.0,
             "lean_grant_ms": 0.0,
+            "grant_capture_check_ms": 0.0,
             "lean_go_ms": 0.0,
             "lean_result_ms": 0.0,
             "lean_prepare_ms": 0.0,
@@ -175,6 +177,11 @@ def run_session(
             "lean_prepare": LeanLifecycleChecker._prepare_captured_route,
             "lean_prepared": LeanLifecycleChecker._require_prepared_captured,
             "lean_transition": LeanLifecycleChecker._require_prepared_transition,
+            "grant_capture_check": LandlockSandboxExecutor._check_lean_grant,
+            "policy_filter": TypedPolicyBackend.filter,
+            "landlock_lower": LandlockSandboxExecutor._lower,
+            "limits": LandlockSandboxExecutor._limits,
+            "pool_key": LandlockSandboxExecutor._pool_key,
             "new_worker": dispatcher._new_worker,
             "compile_grant": _ObjectWorker._compile_grant,
             "prepare_grant": _ObjectWorker._prepare_grant,
@@ -246,6 +253,13 @@ def run_session(
                 spans[name] += (time.perf_counter_ns() - start) / 1e6
 
         LeanLifecycleChecker._require_prepared_transition = timed_lean_transition
+        LandlockSandboxExecutor._check_lean_grant = timed(
+            "grant_capture_check_ms", originals["grant_capture_check"]
+        )
+        TypedPolicyBackend.filter = timed("policy_filter_ms", originals["policy_filter"])
+        LandlockSandboxExecutor._lower = timed("landlock_lower_ms", originals["landlock_lower"])
+        LandlockSandboxExecutor._limits = timed("limits_ms", originals["limits"])
+        LandlockSandboxExecutor._pool_key = timed("pool_key_ms", originals["pool_key"])
         dispatcher._new_worker = timed("prepared_worker_selection_ms", originals["new_worker"])
         _ObjectWorker._compile_grant = timed("grant_construction_ms", originals["compile_grant"])
         _ObjectWorker._prepare_grant = timed(
@@ -319,6 +333,11 @@ def run_session(
                         audit_ms=0.0,
                         cleanup_ms=0.0,
                         lean_grant_ms=0.0,
+                        grant_capture_check_ms=0.0,
+                        policy_filter_ms=0.0,
+                        landlock_lower_ms=0.0,
+                        limits_ms=0.0,
+                        pool_key_ms=0.0,
                         lean_go_ms=0.0,
                         lean_result_ms=0.0,
                         lean_prepare_ms=0.0,
@@ -351,6 +370,11 @@ def run_session(
                         audit_ms=0.0,
                         cleanup_ms=0.0,
                         lean_grant_ms=0.0,
+                        grant_capture_check_ms=0.0,
+                        policy_filter_ms=0.0,
+                        landlock_lower_ms=0.0,
+                        limits_ms=0.0,
+                        pool_key_ms=0.0,
                         lean_go_ms=0.0,
                         lean_result_ms=0.0,
                         lean_prepare_ms=0.0,
@@ -431,6 +455,11 @@ def run_session(
                             "authorization_ms": spans["authorization_ms"],
                             "activation_ms": activation_ms,
                             "lean_grant_ms": spans["lean_grant_ms"],
+                            "grant_capture_check_ms": spans["grant_capture_check_ms"],
+                            "policy_filter_ms": spans["policy_filter_ms"],
+                            "landlock_lower_ms": spans["landlock_lower_ms"],
+                            "limits_ms": spans["limits_ms"],
+                            "pool_key_ms": spans["pool_key_ms"],
                             "lean_go_ms": spans["lean_go_ms"],
                             "lean_result_ms": spans["lean_result_ms"],
                             "lean_prepare_ms": spans["lean_prepare_ms"],
@@ -484,6 +513,11 @@ def run_session(
             LeanLifecycleChecker._prepare_captured_route = originals["lean_prepare"]
             LeanLifecycleChecker._require_prepared_captured = originals["lean_prepared"]
             LeanLifecycleChecker._require_prepared_transition = originals["lean_transition"]
+            LandlockSandboxExecutor._check_lean_grant = originals["grant_capture_check"]
+            TypedPolicyBackend.filter = originals["policy_filter"]
+            LandlockSandboxExecutor._lower = originals["landlock_lower"]
+            LandlockSandboxExecutor._limits = originals["limits"]
+            LandlockSandboxExecutor._pool_key = originals["pool_key"]
             dispatcher._new_worker = originals["new_worker"]
             _ObjectWorker._compile_grant = originals["compile_grant"]
             _ObjectWorker._prepare_grant = originals["prepare_grant"]

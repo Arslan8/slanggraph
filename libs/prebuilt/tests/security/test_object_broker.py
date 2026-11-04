@@ -208,9 +208,14 @@ def test_optimized_invocation_launches_no_checker_subprocess(
     def unexpected_grant_json(*args, **kwargs):
         raise AssertionError("prepared invocation encoded the grant as JSON")
 
+    def unexpected_grant_capture(*args, **kwargs):
+        raise AssertionError("prepared invocation recaptured the semantic grant")
+
     monkeypatch.setattr(subprocess, "run", unexpected)
     monkeypatch.setattr(linux, "_file_digest", unexpected_digest)
     monkeypatch.setattr(lean_grant, "_encoded", unexpected_grant_json)
+    monkeypatch.setattr(lean_grant, "_capture_filtered_grant", unexpected_grant_capture)
+    monkeypatch.setattr(lean_grant, "_capture_obligations", unexpected_grant_capture)
     before = native_checker.statistics()
     assert dispatcher.invoke(principal, call, grant).value == "inspected"
     after = native_checker.statistics()
