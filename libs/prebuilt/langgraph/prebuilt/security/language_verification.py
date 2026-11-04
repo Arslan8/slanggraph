@@ -317,7 +317,15 @@ def derive_program(
                     invariants[:] = before_invariants
                 # The loop may execute zero times; body-created locals are not
                 # definitely bound afterward. A break can also skip loop else.
-                _, _, else_results = statements(value[3], environment)
+                else_environment, else_returns, else_results = statements(
+                    value[3], environment
+                )
+                if not else_returns:
+                    environment = {
+                        name: kind | else_environment[name]
+                        for name, kind in environment.items()
+                        if name in else_environment
+                    }
                 results.update(body_results | else_results)
             elif rule == "if":
                 node(value, 4)

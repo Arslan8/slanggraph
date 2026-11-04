@@ -292,3 +292,19 @@ def test_effect_projection_refuses_unknown_instructions():
     spec.loader.exec_module(module)
     with pytest.raises(ValueError, match="unprojectable"):
         module.effect_stmts((("unknown",),))
+
+
+def test_loop_else_type_changes_are_included_in_following_call_check():
+    with pytest.raises(SecurityConfigurationError, match="terminal_argument_type"):
+        lower(
+            "def f(path):\n    while False:\n        pass\n    else:\n        path = 7\n    return read_text(path)\n",
+            lambda path: path,
+        )
+
+
+def test_loop_else_assignment_does_not_hide_break_path_type():
+    with pytest.raises(SecurityConfigurationError, match="terminal_argument_type"):
+        lower(
+            "def f(path):\n    n = 0\n    while True:\n        break\n    else:\n        n = path\n    return read_text(n)\n",
+            lambda path: path,
+        )
