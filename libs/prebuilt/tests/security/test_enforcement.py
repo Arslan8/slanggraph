@@ -379,7 +379,7 @@ def test_immutable_authority_digests_are_computed_once(monkeypatch) -> None:
     assert grant.digest == grant.digest
     assert host.digest == host.digest
     assert context.digest == context.digest
-    assert calls == eager_calls
+    assert calls == eager_calls + 1
 
     plan = EnforcementPlan(
         grant.digest,
@@ -390,7 +390,7 @@ def test_immutable_authority_digests_are_computed_once(monkeypatch) -> None:
         (),
     )
     assert plan.digest == plan.digest
-    assert calls == eager_calls + 1
+    assert calls == eager_calls + 2
 
 
 def test_capability_class_does_not_substitute_for_exact_rule_support() -> None:

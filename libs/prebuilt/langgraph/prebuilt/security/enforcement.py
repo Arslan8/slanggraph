@@ -109,7 +109,7 @@ class Grant:
     rules: tuple[GrantRule, ...]
     deployment_digest: str = ""
     runtime_digest: str = ""
-    _digest_value: str = field(init=False, repr=False, compare=False)
+    _digest_value: str = field(init=False, repr=False, compare=False, default="")
 
     def __post_init__(self) -> None:
         identifiers = (
@@ -128,39 +128,39 @@ class Grant:
         if len(rule_ids) != len(set(rule_ids)):
             raise ValueError("grant rule IDs must be unique")
         object.__setattr__(self, "rules", rules)
-        object.__setattr__(
-            self,
-            "_digest_value",
-            _digest(
-                {
-                    "artifact_digest": self.artifact_digest,
-                    "call_id": self.call_id,
-                    "normalized_intent_digest": self.normalized_intent_digest,
-                    "policy_digest": self.policy_digest,
-                    "principal_id": self.principal_id,
-                    "rules": [
-                        rule.canonical() for rule in sorted(self.rules, key=_rule_key)
-                    ],
-                    "session_id": self.session_id,
-                    "tool_name": self.tool_name,
-                    **(
-                        {"deployment_digest": self.deployment_digest}
-                        if self.deployment_digest
-                        else {}
-                    ),
-                    **(
-                        {"runtime_digest": self.runtime_digest}
-                        if self.runtime_digest
-                        else {}
-                    ),
-                }
-            ),
-        )
 
     @property
     def digest(self) -> str:
         """Return a canonical SHA-256 digest of the complete authorized authority."""
-        return self._digest_value
+        cached = self._digest_value
+        if cached:
+            return cached
+        cached = _digest(
+            {
+                "artifact_digest": self.artifact_digest,
+                "call_id": self.call_id,
+                "normalized_intent_digest": self.normalized_intent_digest,
+                "policy_digest": self.policy_digest,
+                "principal_id": self.principal_id,
+                "rules": [
+                    rule.canonical() for rule in sorted(self.rules, key=_rule_key)
+                ],
+                "session_id": self.session_id,
+                "tool_name": self.tool_name,
+                **(
+                    {"deployment_digest": self.deployment_digest}
+                    if self.deployment_digest
+                    else {}
+                ),
+                **(
+                    {"runtime_digest": self.runtime_digest}
+                    if self.runtime_digest
+                    else {}
+                ),
+            }
+        )
+        object.__setattr__(self, "_digest_value", cached)
+        return cached
 
 
 @dataclass(frozen=True, slots=True)
