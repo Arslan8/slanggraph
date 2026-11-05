@@ -9,7 +9,7 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 from langgraph.prebuilt.security import mac
 from langgraph.prebuilt.security import object_policy as op
@@ -61,19 +61,17 @@ class TracingAuthorizer(op.CedarObjectAuthorizer):
         self,
         executable: str,
         engine: tuple[str, int, int, int, int, int],
-        root: Path,
-        entities_path: Path,
+        bundle: Any,
         entities_json: str,
         name: str,
         source: str,
-        request: dict[str, object],
+        request: Mapping[str, object],
     ) -> bool:
         try:
             allowed = super()._allows(
                 executable,
                 engine,
-                root,
-                entities_path,
+                bundle,
                 entities_json,
                 name,
                 source,

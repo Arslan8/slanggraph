@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import enum
-import hashlib
 import json
 import time
 import uuid
@@ -17,37 +16,15 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
-    CedarObjectAuthorizer,
-    CedarPolicySet,
-    DacOverrides,
-    EnforcementKind,
-    LinuxToolSpec,
     MemoryAuditSink,
-    ObjectPolicyHostExecutor,
     Principal,
-    SecurityConfig,
-    ToolDac,
+    cedar_security_many,
     install_mac_policy,
-    parse_security_manifest,
     with_principal,
 )
-from langgraph.prebuilt.security.object_policy import _language_sandbox_owner_policy
-from native_host import NATIVE_HOST, native_object_dispatcher, selected_lifecycle_checker
 from timing import ModelTiming
-from tool_calling_worker import add as worker_add
-from tool_calling_worker import get_coolest_cities as worker_get_coolest_cities
-from tool_calling_worker import get_weather as worker_get_weather
-from tool_calling_worker import greet as worker_greet
-from tool_calling_worker import multiply as worker_multiply
 
-HERE = Path(__file__).resolve().parent
-WORKER = HERE / "tool_calling_worker.py"
-WORKER_DIGEST = hashlib.sha256(WORKER.read_bytes()).hexdigest()
 MODEL_DIGEST = "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41"
-LEAN_RUNTIME = (
-    "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so"
-)
-LEAN_RUNTIME_SHA256 = "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
 PRINCIPAL_POLICY = 'permit(principal == slangGraph::User::"alice", action, resource);'
 OPERATOR_POLICY = 'forbid(principal == slangGraph::User::"blocked", action, resource);'
 
@@ -55,37 +32,39 @@ OPERATOR_POLICY = 'forbid(principal == slangGraph::User::"blocked", action, reso
 @tool
 def multiply(a: int, b: int) -> int:
     """Multiply two numbers."""
-    return worker_multiply(a, b)
+    return a * b
 
 
 @tool
 def add(a: int, b: int) -> int:
     """Add two numbers."""
-    return worker_add(a, b)
+    return a + b
 
 
 @tool("add", return_direct=True)
 def add_direct(a: int, b: int) -> int:
     """Add two numbers."""
-    return worker_add(a, b)
+    return a + b
 
 
 @tool
 def get_weather(location: str) -> str:
     """Call to get the current weather."""
-    return worker_get_weather(location)
+    if location == "San Francisco":
+        return "It's 60 degrees and foggy."
+    return "It's 90 degrees and sunny."
 
 
 @tool
 def get_coolest_cities() -> str:
     """Get a list of coolest cities."""
-    return worker_get_coolest_cities()
+    return "nyc, sf"
 
 
 @tool(return_direct=True)
 def greet(user_name: str) -> str:
     """Greet user."""
-    return worker_greet(user_name)
+    return f"Hello {user_name}!"
 
 
 TOOLS = {item.name: item for item in (multiply, add, get_weather, get_coolest_cities, greet)}
@@ -121,53 +100,21 @@ def model() -> ChatOpenAI:
 
 
 def security(
-    tool_names: tuple[str, ...],
-    worker_route: Path,
+    tools,
     *,
     trusted_nodes: frozenset[str] = frozenset(),
     trusted_branches: frozenset[str] = frozenset(),
     record_audit: bool = False,
 ):
-    worker_route = worker_route.resolve()
     audit = MemoryAuditSink() if record_audit else None
-    checker = selected_lifecycle_checker(
-        worker_route, runtime_path=LEAN_RUNTIME, runtime_sha256=LEAN_RUNTIME_SHA256
-    )
-    dispatcher = native_object_dispatcher(
-        {
-            name: LinuxToolSpec(f"tool_calling_worker:{name}", WORKER, WORKER_DIGEST)
-            for name in tool_names
-        },
-        runtime_roots=(HERE,),
-        lifecycle_checker=checker,
-        integrity_recheck="preflight-only",
-    )
-    manifest = "\n".join(
-        f"tool {name} {{\nruns {NATIVE_HOST}\nreturns normal\n}}" for name in tool_names
-    )
-    parsed = parse_security_manifest(
-        manifest,
-        enforcers={EnforcementKind.KERNEL: dispatcher},
-    )
-    policies = CedarPolicySet(
-        {name: _language_sandbox_owner_policy(parsed.tools[name]) for name in tool_names},
-        PRINCIPAL_POLICY,
-    )
-    executor = ObjectPolicyHostExecutor(
-        CedarObjectAuthorizer(parsed, policies),
-        dispatcher,
-        tool_owners={name: "application" for name in tool_names},
-    )
-    config = SecurityConfig(
-        host_executor=executor,
-        dac_overrides=DacOverrides({name: ToolDac("__cedar__", {"*": "x"}) for name in tool_names}),
+    config = dataclasses.replace(
+        cedar_security_many(tools, policy=PRINCIPAL_POLICY),
         audit_sink=audit,
         closed_admission=True,
         trusted_application_nodes=trusted_nodes,
         trusted_application_branches=trusted_branches,
     )
-    executor.validate_tools(tool_names)
-    return config, dispatcher, audit
+    return config, None, audit
 
 
 def custom_weather_graph(selected, model_timing: ModelTiming):
@@ -241,20 +188,17 @@ def build(
         ),
     }
     names, trusted_nodes, trusted_branches = definitions[demo]
+    chosen = [TOOLS[name] for name in names]
+    if demo == "return-direct":
+        chosen = [add_direct]
     selected = dispatcher = audit = None
     if mode == "Argus":
-        if worker_route is None:
-            raise ValueError("Argus requires the pinned Lean worker route")
         selected, dispatcher, audit = security(
-            names,
-            worker_route,
+            chosen,
             trusted_nodes=trusted_nodes,
             trusted_branches=trusted_branches,
             record_audit=record_audit,
         )
-    chosen = [TOOLS[name] for name in names]
-    if demo == "return-direct":
-        chosen = [add_direct]
     if demo == "custom-weather":
         graph = custom_weather_graph(selected, model_timing)
         prompt = "What's the weather in San Francisco?"
@@ -389,6 +333,7 @@ def main() -> None:
             {
                 "demo": args.demo,
                 "mode": args.mode,
+                "isolation_route": "language" if selected else "baseline",
                 "prompt": prompt,
                 "wall_ms": invocation_ms,
                 "invocation_ms": invocation_ms,

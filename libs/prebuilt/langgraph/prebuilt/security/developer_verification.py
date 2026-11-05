@@ -434,7 +434,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     try:
         repo = args.repo.resolve()
-        evidence_dir = args.evidence_dir
+        evidence_dir = (
+            args.evidence_dir.resolve() if args.evidence_dir is not None else None
+        )
         if evidence_dir is None and not args.no_lean_audit:
             evidence_dir = Path(tempfile.mkdtemp(prefix="developer-verification-"))
         evidence = verify_layers(repo)

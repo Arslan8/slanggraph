@@ -958,7 +958,9 @@ def _main(argv: list[str] | None = None) -> int:
     if not repo.is_dir():
         print(f"error: repository is not a directory: {repo}", file=sys.stderr)
         return 2
-    evidence_dir = args.evidence_dir
+    evidence_dir = (
+        args.evidence_dir.resolve() if args.evidence_dir is not None else None
+    )
     if evidence_dir is None and not args.no_lean_audit:
         evidence_dir = Path(tempfile.mkdtemp(prefix="route-verification-"))
     report = verify_routes(

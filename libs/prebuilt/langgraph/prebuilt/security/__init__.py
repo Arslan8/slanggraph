@@ -175,6 +175,7 @@ from langgraph.prebuilt.security.object_policy import (
     SecurityManifest,
     ToolManifest,
     cedar_security,
+    cedar_security_many,
     parse_security_manifest,
 )
 from langgraph.prebuilt.security.objects import (
@@ -403,11 +404,16 @@ __all__ = (
     "ResourceInvocation",
     "negotiate_object_grant",
     "SQLITE_RECORD_SCHEMA",
+    "airline_sqlite_resource",
     "sqlite_record_mediator",
     "sqlite_records_resource",
     "random_values_resource",
+    "readonly_sqlite_resource",
     "langchain_text_retrieval_resource",
     "sklearn_text_retrieval_resource",
+    "sklearn_json_search_resource",
+    "static_text_retrieval_resource",
+    "static_json_search_resource",
     "OstreeDeploymentManager",
     "ObjectManagerHost",
     "ObjectManagerPolicy",
@@ -493,6 +499,7 @@ __all__ = (
     "compile_obligations",
     "check_profiles",
     "cedar_security",
+    "cedar_security_many",
     "dac",
     "dac_check",
     "delegate",
@@ -515,10 +522,17 @@ __all__ = (
     "with_principal",
 )
 
+from langgraph.prebuilt.security.mediators.airline_sqlite import airline_sqlite_resource
 from langgraph.prebuilt.security.mediators.randomness import random_values_resource
+from langgraph.prebuilt.security.mediators.readonly_sqlite import (
+    readonly_sqlite_resource,
+)
 from langgraph.prebuilt.security.mediators.retrieval import (
     langchain_text_retrieval_resource,
+    sklearn_json_search_resource,
     sklearn_text_retrieval_resource,
+    static_json_search_resource,
+    static_text_retrieval_resource,
 )
 from langgraph.prebuilt.security.mediators.sqlite import (
     SQLITE_RECORD_SCHEMA,

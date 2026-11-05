@@ -1,39 +1,31 @@
-"""Worker-side travel tool implementations over the typed travel resource."""
+"""Tool-side travel operations over the typed travel resource."""
 
-import json
-
-from .api import travel
+from langgraph.prebuilt.security.mediators.airline_sqlite import airline_sqlite as travel
 
 
-def fetch_user_flight_information() -> list[dict]:
-    return json.loads(travel.fetch_user("alice"))
+def fetch_user_flight_information() -> str:
+    return travel.fetch_user()
 
 
 def search_flights(
-    departure_airport: str | None = None,
-    arrival_airport: str | None = None,
-    start_time: str | None = None,
-    end_time: str | None = None,
+    departure_airport: str = "",
+    arrival_airport: str = "",
+    start_time: str = "",
+    end_time: str = "",
     limit: int = 20,
-) -> list[dict]:
-    return json.loads(
-        travel.search_flights(
-            json.dumps(
-                {
-                    "departure_airport": departure_airport,
-                    "arrival_airport": arrival_airport,
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "limit": limit,
-                }
-            )
-        )
+) -> str:
+    return travel.search_flights(
+        departure_airport,
+        arrival_airport,
+        start_time,
+        end_time,
+        limit,
     )
 
 
 def update_ticket_to_new_flight(ticket_no: str, new_flight_id: int) -> str:
-    return travel.update_ticket(ticket_no, new_flight_id, "alice")
+    return travel.update_ticket(ticket_no, new_flight_id)
 
 
 def cancel_ticket(ticket_no: str) -> str:
-    return travel.cancel_ticket(ticket_no, "alice")
+    return travel.cancel_ticket(ticket_no)

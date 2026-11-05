@@ -5,9 +5,7 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import enum
-import hashlib
 import json
-import sys
 import time
 from pathlib import Path
 from typing import Literal
@@ -21,15 +19,12 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
-    LinuxToolSpec,
     Principal,
     install_mac_policy,
+    readonly_sqlite_resource,
     with_principal,
 )
-from native_host import framework_library, native_broker_dispatcher
-from resource_monitors.api import SQL_DATABASE
-from resource_monitors.backends import ExactBrokerMediator, ReadOnlySQLBackend
-from resource_monitors.security import monitored_security
+from resource_monitors.security import mediated_language_security
 from resource_monitors.sql_worker import list_tables as broker_list_tables
 from resource_monitors.sql_worker import query as broker_query
 from resource_monitors.sql_worker import schema as broker_schema
@@ -127,48 +122,7 @@ def build(
         get_schema_tool = baseline_get_schema
         run_query_tool = baseline_run_query
     else:
-        resource = SQL_DATABASE.bind(
-            implementation=ReadOnlySQLBackend(db_path),
-            mediator=ExactBrokerMediator(
-                "read-only SQL metadata and SELECT execution",
-                "eval/tests/test_demo_resource_monitors.py",
-                (db_path,),
-            ),
-        )
-        worker = Path(__file__).with_name("resource_monitors") / "sql_worker.py"
-        specs = {
-            "sql_db_list_tables": LinuxToolSpec(
-                "resource_monitors.sql_worker:list_tables",
-                worker,
-                hashlib.sha256(worker.read_bytes()).hexdigest(),
-            ),
-            "sql_db_schema": LinuxToolSpec(
-                "resource_monitors.sql_worker:schema",
-                worker,
-                hashlib.sha256(worker.read_bytes()).hexdigest(),
-            ),
-            "sql_db_query": LinuxToolSpec(
-                "resource_monitors.sql_worker:query",
-                worker,
-                hashlib.sha256(worker.read_bytes()).hexdigest(),
-            ),
-        }
-        dispatcher = native_broker_dispatcher(
-            specs,
-            runtime_roots=(
-                Path(__file__).resolve().parent,
-                framework_library("prebuilt"),
-                framework_library("langgraph"),
-                framework_library("checkpoint"),
-                framework_library("sdk-py"),
-                *(
-                    Path(item).resolve()
-                    for item in sys.path
-                    if item and "site-packages" in item and Path(item).is_dir()
-                ),
-            ),
-            resources=(resource,),
-        )
+        resource = readonly_sqlite_resource(db_path)
         list_tables_tool = tool(
             "sql_db_list_tables",
             description=baseline_list_tables.description,
@@ -191,9 +145,8 @@ def build(
         ):
             assert_tool_parity(baseline, protected)
         tool_set = (list_tables_tool, get_schema_tool, run_query_tool)
-        security, audit = monitored_security(
+        security, audit = mediated_language_security(
             tool_set,
-            dispatcher=dispatcher,
             resources=(resource,),
             permissions={
                 "sql_db_list_tables": (resource.permission("list_tables"),),
@@ -376,6 +329,7 @@ def main() -> None:
             {
                 "messages": [message.model_dump() for message in result["messages"]],
                 "answer": str(result["messages"][-1].content),
+                "isolation_route": "language" if security else "baseline",
                 "wall_ms": invocation_ms,
                 "invocation_ms": invocation_ms,
                 "preparation_ms": preparation_ms,

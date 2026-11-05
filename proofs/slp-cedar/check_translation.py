@@ -82,7 +82,10 @@ def main():
         # Check that the authenticated identity type accepts this principal.
         Principal(principal, frozenset(), frozenset(), "proof-session")
         authorizer = op.CedarObjectAuthorizer(
-            manifest, op.CedarPolicySet({"lookup": PERMIT}, PERMIT), executable=cedar
+            manifest,
+            op.CedarPolicySet({"lookup": PERMIT}, PERMIT),
+            executable=cedar,
+            retain_authorization_artifacts=True,
         )
         case = {"principal": principal}
         try:

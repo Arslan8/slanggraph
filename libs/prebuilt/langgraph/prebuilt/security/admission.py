@@ -839,8 +839,19 @@ def _model_state(captured: _CapturedModel) -> tuple[str, str, dict[str, Any]]:
 
 def _language_admission(dispatcher: Any) -> Any:
     from langgraph.prebuilt.security.inprocess import ManifestAdmission
-    from langgraph.prebuilt.security.object_policy import _LanguageSandboxDispatcher
+    from langgraph.prebuilt.security.object_policy import (
+        _LanguageSandboxDispatcher,
+        _LanguageSandboxDispatchers,
+    )
 
+    if type(dispatcher) is _LanguageSandboxDispatchers:
+        admissions = dispatcher.admissions
+        if type(admissions) is not MappingProxyType:
+            raise PermissionError(UNSUPPORTED_NODE_BODY)
+        for name, item in admissions.items():
+            if type(name) is not str or type(item) is not ManifestAdmission:
+                raise PermissionError(UNSUPPORTED_NODE_BODY)
+        return admissions
     if type(dispatcher) is not _LanguageSandboxDispatcher:
         return None
     admission = dispatcher.admission
@@ -871,6 +882,7 @@ def _tool_node_state(
         CedarObjectAuthorizer,
         ObjectPolicyHostExecutor,
         _LanguageSandboxDispatcher,
+        _LanguageSandboxDispatchers,
     )
     from langgraph.prebuilt.tool_node import ToolNode
 
@@ -922,6 +934,9 @@ def _tool_node_state(
         if dispatcher_type is _LanguageSandboxDispatcher:
             kind = AdmittedKind.LANGUAGE_PROGRAM
             details = _language_details(captured, dispatcher)
+        elif dispatcher_type is _LanguageSandboxDispatchers:
+            kind = AdmittedKind.LANGUAGE_PROGRAM
+            details = _language_many_details(captured, dispatcher)
         elif dispatcher_type is DockerObjectDispatcher:
             kind = AdmittedKind.NATIVE_DEPLOYMENT
             details = _docker_details(dispatcher, tool_names)
@@ -949,9 +964,6 @@ def _tool_node_state(
 
 def _language_details(captured: _CapturedToolNode, dispatcher: Any) -> dict[str, Any]:
     """Project the admitted language programs with closed terminal IDs."""
-    from langgraph.prebuilt.security._language_sandbox import LanguageProgram
-    from langgraph.prebuilt.security.errors import SecurityConfigurationError
-    from langgraph.prebuilt.security.execution import HostExecutionDenied
     from langgraph.prebuilt.security.inprocess import ManifestAdmission
 
     admission = dispatcher.admission
@@ -963,6 +975,41 @@ def _language_details(captured: _CapturedToolNode, dispatcher: Any) -> dict[str,
         or len(captured.tools) != 1
         or captured.tools[0][1] is not tool
     ):
+        raise PermissionError(DESCRIPTOR_CHANGED)
+    return _project_language_admission(admission, tool, captured.tools[0][0])
+
+
+def _language_many_details(
+    captured: _CapturedToolNode, dispatcher: Any
+) -> dict[str, Any]:
+    admissions = dispatcher.admissions
+    if admissions is not captured.admission or type(admissions) is not MappingProxyType:
+        raise PermissionError(DESCRIPTOR_CHANGED)
+    tools = dict(captured.tools)
+    if set(tools) != set(admissions) or set(tools) != set(dispatcher.dispatchers):
+        raise PermissionError(DESCRIPTOR_CHANGED)
+    projected = {}
+    sources = []
+    for name in sorted(tools):
+        selected = dispatcher.dispatchers[name]
+        admission = admissions[name]
+        if selected.admission is not admission or selected.tool is not tools[name]:
+            raise PermissionError(DESCRIPTOR_CHANGED)
+        details = _project_language_admission(admission, tools[name], name)
+        projected[name] = details["programs"]
+        sources.extend(details["sources"])
+    return {"programs_by_tool": projected, "sources": sources}
+
+
+def _project_language_admission(
+    admission: Any, tool: Any, tool_name: str
+) -> dict[str, Any]:
+    from langgraph.prebuilt.security._language_sandbox import LanguageProgram
+    from langgraph.prebuilt.security.errors import SecurityConfigurationError
+    from langgraph.prebuilt.security.execution import HostExecutionDenied
+    from langgraph.prebuilt.security.inprocess import ManifestAdmission
+
+    if type(admission) is not ManifestAdmission or admission.tool is not tool:
         raise PermissionError(DESCRIPTOR_CHANGED)
     try:
         admission.validate()
@@ -1001,6 +1048,7 @@ def _language_details(captured: _CapturedToolNode, dispatcher: Any) -> dict[str,
                     None
                     if parameter.default is Parameter.empty
                     else _native(parameter.default),
+                    parameter.annotation,
                 ]
                 for parameter in signature.parameters.values()
             ],
@@ -1016,7 +1064,7 @@ def _language_details(captured: _CapturedToolNode, dispatcher: Any) -> dict[str,
         }
         source_digests.append(source)
     return {
-        "tool": captured.tools[0][0],
+        "tool": tool_name,
         "programs": projected,
         "sources": source_digests,
     }

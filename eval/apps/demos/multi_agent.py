@@ -28,12 +28,12 @@ from langgraph.prebuilt.security import (
     LinuxToolSpec,
     Principal,
     install_mac_policy,
+    sklearn_json_search_resource,
     with_principal,
 )
-from resource_monitors.api import PYTHON_SESSION, SEARCH
+from resource_monitors.api import PYTHON_SESSION
 from resource_monitors.backends import (
     ExactBrokerMediator,
-    FrozenSearchBackend,
     PersistentPythonBackend,
 )
 from resource_monitors.python_worker import python_repl_tool as broker_python
@@ -147,14 +147,7 @@ def build(
         tavily_tool = baseline_tavily_tool
         python_repl_tool = baseline_python_repl_tool
     else:
-        search_resource = SEARCH.bind(
-            implementation=FrozenSearchBackend(documents, limit=5),
-            mediator=ExactBrokerMediator(
-                "query-only access to the frozen GDP corpus",
-                "eval/tests/test_demo_resource_monitors.py",
-                (gdp_path,),
-            ),
-        )
+        search_resource = sklearn_json_search_resource(documents, top_k=5)
         runtime_roots = (
             Path(__file__).resolve().parent,
             framework_library("prebuilt"),
@@ -340,6 +333,7 @@ def main() -> None:
         json.dumps(
             {
                 "answer": str(result["messages"][-1].content),
+                "isolation_route": "host" if security else "baseline",
                 "messages": [message.model_dump() for message in result["messages"]],
                 "artifact": str(args.artifact),
                 "observer": str(args.observer),

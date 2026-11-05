@@ -319,9 +319,12 @@ class ManifestAdmission:
                 *(function.__defaults__ or ()),
                 *(function.__kwdefaults__ or {}).values(),
             )
-            if any(type(value) is not str for value in defaults):
+            if any(
+                not any(type(value) is kind for kind in (str, int, float, bool))
+                for value in defaults
+            ):
                 raise SecurityConfigurationError(
-                    "manifest_consistency: defaults must be inert strings"
+                    "manifest_consistency: defaults must be inert scalars"
                 )
             # Only framework resource APIs are terminals, not arbitrary helpers
             # supplied by the tool author. Bind their actual identities as well
@@ -574,7 +577,8 @@ class ManifestAdmission:
     @staticmethod
     def _validate_arguments(arguments: Mapping[str, object]) -> None:
         if type(arguments) is not dict or any(
-            type(key) is not str or type(value) is not str
+            type(key) is not str
+            or not any(type(value) is kind for kind in (str, int, float, bool))
             for key, value in arguments.items()
         ):
-            raise HostExecutionDenied("manifest_consistency:arguments_must_be_strings")
+            raise HostExecutionDenied("manifest_consistency:arguments_must_be_scalars")

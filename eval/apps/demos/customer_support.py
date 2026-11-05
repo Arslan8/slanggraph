@@ -6,12 +6,10 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import enum
-import hashlib
 import json
 import re
 import shutil
 import sqlite3
-import sys
 import time
 import uuid
 from pathlib import Path
@@ -28,22 +26,16 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import AnyMessage, add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.prebuilt.security import (
-    LinuxToolSpec,
     Principal,
+    airline_sqlite_resource,
     install_mac_policy,
+    sklearn_text_retrieval_resource,
+    static_json_search_resource,
     with_principal,
-)
-from native_host import framework_library, native_broker_dispatcher
-from resource_monitors.api import POLICY, SEARCH, TRAVEL
-from resource_monitors.backends import (
-    EmptySearchBackend,
-    ExactBrokerMediator,
-    TFIDFRetrieverBackend,
-    TravelSQLiteBackend,
 )
 from resource_monitors.policy_worker import lookup_policy as broker_lookup_policy
 from resource_monitors.search_worker import frozen_search as broker_search
-from resource_monitors.security import monitored_security
+from resource_monitors.security import mediated_language_security
 from resource_monitors.travel_worker import (
     cancel_ticket as broker_cancel,
 )
@@ -205,72 +197,14 @@ def build(
         lookup_policy = baseline_lookup_policy
         frozen_search = baseline_frozen_search
     else:
-        travel_resource = TRAVEL.bind(
-            implementation=TravelSQLiteBackend(database, PASSENGER, FROZEN_NOW.to_pydatetime()),
-            mediator=ExactBrokerMediator(
-                "principal-bound travel reads and ticket mutations",
-                "eval/tests/test_demo_resource_monitors.py",
-                (database,),
-            ),
+        travel_resource = airline_sqlite_resource(
+            database,
+            passenger_id=PASSENGER,
+            principal_id="alice",
+            frozen_now=FROZEN_NOW.to_pydatetime(),
         )
-        policy_resource = POLICY.bind(
-            implementation=TFIDFRetrieverBackend(faq_sections, limit=2),
-            mediator=ExactBrokerMediator(
-                "query-only access to the frozen airline policy index",
-                "eval/tests/test_demo_resource_monitors.py",
-                (faq_path,),
-            ),
-        )
-        search_resource = SEARCH.bind(
-            implementation=EmptySearchBackend(),
-            mediator=ExactBrokerMediator(
-                "query-only access to the frozen empty travel search fixture",
-                "eval/tests/test_demo_resource_monitors.py",
-            ),
-        )
-        monitor_dir = Path(__file__).with_name("resource_monitors")
-        travel_worker = monitor_dir / "travel_worker.py"
-        policy_worker = monitor_dir / "policy_worker.py"
-        search_worker = monitor_dir / "search_worker.py"
-        specs = {
-            name: LinuxToolSpec(
-                f"resource_monitors.travel_worker:{entrypoint}",
-                travel_worker,
-                hashlib.sha256(travel_worker.read_bytes()).hexdigest(),
-            )
-            for name, entrypoint in {
-                "fetch_user_flight_information": "fetch_user_flight_information",
-                "search_flights": "search_flights",
-                "update_ticket_to_new_flight": "update_ticket_to_new_flight",
-                "cancel_ticket": "cancel_ticket",
-            }.items()
-        }
-        specs["lookup_policy"] = LinuxToolSpec(
-            "resource_monitors.policy_worker:lookup_policy",
-            policy_worker,
-            hashlib.sha256(policy_worker.read_bytes()).hexdigest(),
-        )
-        specs["tavily_search_results_json"] = LinuxToolSpec(
-            "resource_monitors.search_worker:frozen_search",
-            search_worker,
-            hashlib.sha256(search_worker.read_bytes()).hexdigest(),
-        )
-        dispatcher = native_broker_dispatcher(
-            specs,
-            runtime_roots=(
-                Path(__file__).resolve().parent,
-                framework_library("prebuilt"),
-                framework_library("langgraph"),
-                framework_library("checkpoint"),
-                framework_library("sdk-py"),
-                *(
-                    Path(item).resolve()
-                    for item in sys.path
-                    if item and "site-packages" in item and Path(item).is_dir()
-                ),
-            ),
-            resources=(travel_resource, policy_resource, search_resource),
-        )
+        policy_resource = sklearn_text_retrieval_resource(faq_sections, top_k=2)
+        search_resource = static_json_search_resource()
         fetch = tool(
             "fetch_user_flight_information",
             description=baseline_fetch.description,
@@ -311,9 +245,8 @@ def build(
         ):
             assert_tool_parity(baseline, protected)
         all_tools = (frozen_search, fetch, search, lookup_policy, update, cancel)
-        security, audit = monitored_security(
+        security, audit = mediated_language_security(
             all_tools,
-            dispatcher=dispatcher,
             resources=(travel_resource, policy_resource, search_resource),
             permissions={
                 "fetch_user_flight_information": (travel_resource.permission("fetch_user"),),
@@ -510,6 +443,7 @@ def main() -> None:
         json.dumps(
             {
                 "before": before,
+                "isolation_route": "language" if security else "baseline",
                 "after": after,
                 "interrupts": result["interrupts"],
                 "messages": [message.model_dump() for message in state.get("messages", [])],

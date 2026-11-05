@@ -115,7 +115,12 @@ def _signature_snapshot(signature: Signature) -> Signature:
         if type(key) is not str or type(parameter) is not Parameter:
             raise SecurityConfigurationError("language_proof:invalid_signature")
         try:
-            name, kind, default = parameter._name, parameter._kind, parameter._default
+            name, kind, default, annotation = (
+                parameter._name,
+                parameter._kind,
+                parameter._default,
+                parameter._annotation,
+            )
         except AttributeError:
             raise SecurityConfigurationError(
                 "language_proof:invalid_signature"
@@ -128,10 +133,16 @@ def _signature_snapshot(signature: Signature) -> Signature:
             and kind is not Parameter.KEYWORD_ONLY
         ):
             raise SecurityConfigurationError("language_proof:variadic_parameters")
-        if default is not Parameter.empty and type(default) is not str:
+        if annotation is Parameter.empty:
+            annotation = "str"
+        if type(annotation) is not str or annotation not in _SCALARS - {"NoneType"}:
+            raise SecurityConfigurationError("language_proof:invalid_parameter_type")
+        if default is not Parameter.empty and type(default).__name__ != annotation:
             raise SecurityConfigurationError("language_proof:non_data_default")
         try:
-            parameters.append(Parameter(name, kind, default=default))
+            parameters.append(
+                Parameter(name, kind, default=default, annotation=annotation)
+            )
         except (TypeError, ValueError):
             raise SecurityConfigurationError(
                 "language_proof:invalid_signature"
@@ -379,11 +390,15 @@ def derive_program(
         }:
             reject("variadic_parameters")
         if (
-            parameter.default is not Parameter.empty
-            and type(parameter.default) is not str
+            type(parameter.annotation) is not str
+            or parameter.annotation not in _SCALARS
+        ):
+            reject("invalid_parameter_type")
+        if parameter.default is not Parameter.empty and (
+            type(parameter.default).__name__ != parameter.annotation
         ):
             reject("non_data_default")
-        environment[name] = frozenset({"str"})
+        environment[name] = frozenset({parameter.annotation})
     _, returns, results = statements(body, environment)
     if not returns:
         results.add("NoneType")
@@ -395,6 +410,7 @@ def derive_program(
                 parameter.kind.name,
                 None if parameter.default is Parameter.empty else parameter.default,
                 parameter.default is Parameter.empty,
+                parameter.annotation,
             )
             for name, parameter in signature.parameters.items()
         ],

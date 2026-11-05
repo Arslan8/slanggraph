@@ -1,6 +1,8 @@
 """Worker-side retrieval tool implementation."""
 
-from .api import retriever
+from langgraph.prebuilt.security.mediators.retrieval import (
+    text_retrieval as retriever,
+)
 
 
 def retrieve_blog_posts(query: str) -> str:

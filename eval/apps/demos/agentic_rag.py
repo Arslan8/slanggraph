@@ -6,10 +6,8 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import enum
-import hashlib
 import html
 import json
-import sys
 import time
 from collections.abc import Sequence
 from html.parser import HTMLParser
@@ -24,17 +22,14 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
-    LinuxToolSpec,
     Principal,
     install_mac_policy,
+    sklearn_text_retrieval_resource,
     with_principal,
 )
-from native_host import framework_library, native_broker_dispatcher
 from pydantic import BaseModel, Field
-from resource_monitors.api import RETRIEVER
-from resource_monitors.backends import ExactBrokerMediator, TFIDFRetrieverBackend
 from resource_monitors.retriever_worker import retrieve_blog_posts as broker_retrieve
-from resource_monitors.security import monitored_security
+from resource_monitors.security import mediated_language_security
 from sklearn.feature_extraction.text import TfidfVectorizer
 from timing import ModelTiming, assert_tool_parity
 
@@ -124,46 +119,15 @@ def build(
         retrieve_blog_posts = baseline_retrieve_blog_posts
 
     else:
-        resource = RETRIEVER.bind(
-            implementation=TFIDFRetrieverBackend(documents),
-            mediator=ExactBrokerMediator(
-                "query-only access to the frozen TF-IDF index",
-                "eval/tests/test_demo_resource_monitors.py",
-                paths,
-            ),
-        )
-        worker = Path(__file__).with_name("resource_monitors") / "retriever_worker.py"
-        dispatcher = native_broker_dispatcher(
-            {
-                "retrieve_blog_posts": LinuxToolSpec(
-                    "resource_monitors.retriever_worker:retrieve_blog_posts",
-                    worker,
-                    hashlib.sha256(worker.read_bytes()).hexdigest(),
-                )
-            },
-            runtime_roots=(
-                Path(__file__).resolve().parent,
-                framework_library("prebuilt"),
-                framework_library("langgraph"),
-                framework_library("checkpoint"),
-                framework_library("sdk-py"),
-                *(
-                    Path(item).resolve()
-                    for item in sys.path
-                    if item and "site-packages" in item and Path(item).is_dir()
-                ),
-            ),
-            resources=(resource,),
-        )
+        resource = sklearn_text_retrieval_resource(documents, top_k=5)
         retrieve_blog_posts = tool(
             "retrieve_blog_posts",
             description=baseline_retrieve_blog_posts.description,
             args_schema=baseline_retrieve_blog_posts.args_schema,
         )(broker_retrieve)
         assert_tool_parity(baseline_retrieve_blog_posts, retrieve_blog_posts)
-        security, audit = monitored_security(
+        security, audit = mediated_language_security(
             (retrieve_blog_posts,),
-            dispatcher=dispatcher,
             resources=(resource,),
             permissions={"retrieve_blog_posts": (resource.permission("search"),)},
             trusted_nodes=("agent", "rewrite", "generate"),
@@ -276,6 +240,7 @@ def main() -> None:
         json.dumps(
             {
                 "answer": str(result["messages"][-1].content),
+                "isolation_route": "language" if security else "baseline",
                 "messages": [message.model_dump() for message in result["messages"]],
                 "wall_ms": invocation_ms,
                 "invocation_ms": invocation_ms,

@@ -104,15 +104,14 @@ def test_signature_snapshot_rejects_unavailable_backing_inspection(monkeypatch):
         _signature_snapshot(Signature())
 
 
-def test_signature_snapshot_ignores_annotations_and_validates_parameter_names():
+def test_signature_snapshot_rejects_foreign_annotations_without_protocols():
     parameter = Parameter(
         "path", Parameter.POSITIONAL_OR_KEYWORD, annotation=ForeignMetadata()
     )
     signature = Signature([parameter], return_annotation=ForeignMetadata())
     ForeignMetadata.calls = 0
-    captured = _signature_snapshot(signature)
-    assert captured.parameters["path"].annotation is Parameter.empty
-    assert captured.return_annotation is Signature.empty
+    with pytest.raises(SecurityConfigurationError, match="invalid_parameter_type"):
+        _signature_snapshot(signature)
     assert ForeignMetadata.calls == 0
     parameter._name = "different"
     with pytest.raises(SecurityConfigurationError, match="invalid_signature"):

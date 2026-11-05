@@ -15,6 +15,7 @@ from typing import Annotated
 from add_tools_protected import (
     MODEL_DIGEST,
     OPERATOR_POLICY,
+    baseline_search_tool,
     search_tool,
     security,
 )
@@ -57,9 +58,8 @@ def build(
 ):
     selected = dispatcher = audit = None
     if mode == "Argus":
-        if worker_route is None:
-            raise ValueError("Argus requires the pinned Lean worker route")
-        selected, dispatcher, audit = security(worker_route, record_audit=record_audit)
+        selected, dispatcher, audit = security(record_audit=record_audit)
+    selected_tool = search_tool if mode == "Argus" else baseline_search_tool
     llm = ChatOpenAI(
         model="qwen3:8b",
         base_url="http://127.0.0.1:11434/v1",
@@ -69,7 +69,7 @@ def build(
         timeout=600,
         max_retries=0,
         reasoning_effort="none",
-    ).bind_tools([search_tool])
+    ).bind_tools([selected_tool])
     builder = StateGraph(State)
 
     def chatbot(state: State):
@@ -79,7 +79,7 @@ def build(
         return "tools" if state["messages"][-1].tool_calls else END
 
     builder.add_node("chatbot", chatbot)
-    builder.add_node("tools", ToolNode([search_tool], security=selected))
+    builder.add_node("tools", ToolNode([selected_tool], security=selected))
     builder.add_conditional_edges("chatbot", route_tools, ["tools", END])
     builder.add_edge("tools", "chatbot")
     builder.add_edge(START, "chatbot")
@@ -164,6 +164,7 @@ def main() -> None:
             {
                 "demo": args.demo,
                 "mode": args.mode,
+                "isolation_route": "language" if selected else "baseline",
                 "wall_ms": invocation_ms,
                 "invocation_ms": invocation_ms,
                 "preparation_ms": preparation_ms,

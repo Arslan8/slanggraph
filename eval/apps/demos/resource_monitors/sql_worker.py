@@ -1,6 +1,8 @@
 """Worker-side SQL toolkit-compatible operations."""
 
-from .api import sql_database
+from langgraph.prebuilt.security.mediators.readonly_sqlite import (
+    readonly_sqlite as sql_database,
+)
 
 
 def list_tables() -> str:

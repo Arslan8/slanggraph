@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from collections.abc import Mapping, Sequence
 
 from langchain_core.tools import BaseTool
@@ -14,6 +15,7 @@ from langgraph.prebuilt.security import (
     ObjectPolicyHostExecutor,
     SecurityConfig,
     ToolDac,
+    cedar_security_many,
     parse_security_manifest,
 )
 from langgraph.prebuilt.security.object_policy import _language_sandbox_owner_policy
@@ -72,6 +74,36 @@ def monitored_security(
     config = SecurityConfig(
         host_executor=executor,
         dac_overrides=DacOverrides({item.name: ToolDac("__cedar__", {"*": "x"}) for item in tools}),
+        audit_sink=audit,
+        closed_admission=True,
+        trusted_application_nodes=frozenset(trusted_nodes),
+        trusted_application_branches=frozenset(trusted_branches),
+    )
+    return config, audit
+
+
+def mediated_language_security(
+    tools: Sequence[BaseTool],
+    *,
+    resources: Sequence,
+    permissions: Mapping[str, Sequence[str]],
+    trusted_nodes: Sequence[str] = (),
+    trusted_branches: Sequence[str] = (),
+    record_audit: bool = False,
+):
+    """Admit typed tool programs while sharing setup-bound mediator resources."""
+    manifests = {
+        item.name: "\n".join(("runs inprocess", *permissions[item.name], "returns normal"))
+        for item in tools
+    }
+    audit = MemoryAuditSink() if record_audit else None
+    config = dataclasses.replace(
+        cedar_security_many(
+            tools,
+            policy='permit(principal == slangGraph::User::"alice", action, resource);',
+            manifests=manifests,
+            resources=resources,
+        ),
         audit_sink=audit,
         closed_admission=True,
         trusted_application_nodes=frozenset(trusted_nodes),

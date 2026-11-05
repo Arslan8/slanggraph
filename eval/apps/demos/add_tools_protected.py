@@ -5,47 +5,30 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import enum
-import hashlib
 import json
 import time
 import uuid
 from pathlib import Path
 from typing import Annotated
 
-from frozen_search_worker import search
+from frozen_search_worker import DOCUMENTS, search
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
-    CedarObjectAuthorizer,
-    CedarPolicySet,
-    DacOverrides,
-    EnforcementKind,
-    LinuxToolSpec,
     MemoryAuditSink,
-    ObjectPolicyHostExecutor,
     Principal,
-    SecurityConfig,
-    ToolDac,
+    cedar_security,
     install_mac_policy,
-    parse_security_manifest,
+    sklearn_json_search_resource,
     with_principal,
 )
-from langgraph.prebuilt.security.object_policy import _language_sandbox_owner_policy
-from native_host import NATIVE_HOST, native_object_dispatcher, selected_lifecycle_checker
 from timing import ModelTiming
 from typing_extensions import TypedDict
 
-HERE = Path(__file__).resolve().parent
-WORKER = HERE / "frozen_search_worker.py"
-WORKER_DIGEST = hashlib.sha256(WORKER.read_bytes()).hexdigest()
 MODEL_DIGEST = "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41"
-LEAN_RUNTIME = (
-    "/home/faculty/abk6349/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean/libleanshared.so"
-)
-LEAN_RUNTIME_SHA256 = "6b30cc963d065fc9d2f87f7e9cbe0682b23000ae5425bccd769c5d477fa74f13"
 PRINCIPAL_POLICY = 'permit(principal == slangGraph::User::"alice", action, resource);'
 OPERATOR_POLICY = """
 forbid(
@@ -61,9 +44,19 @@ class State(TypedDict):
 
 
 @tool("tavily_search")
-def search_tool(query: str) -> list[dict[str, str]]:
+def baseline_search_tool(query: str) -> list[dict[str, str]]:
     """Search and return up to two relevant results from the frozen web corpus."""
     return search(query)
+
+
+@tool("tavily_search")
+def search_tool(query: str) -> str:
+    """Search and return up to two relevant results from the frozen web corpus."""
+    from langgraph.prebuilt.security.mediators.retrieval import (
+        json_search as frozen_search,
+    )
+
+    return frozen_search.search(query)
 
 
 def serial(value):
@@ -82,41 +75,22 @@ def serial(value):
     return str(value)
 
 
-def security(worker_route: Path, *, record_audit: bool = False):
-    worker_route = worker_route.resolve()
+def security(*, record_audit: bool = False):
+    resource = sklearn_json_search_resource(DOCUMENTS, top_k=2)
     audit = MemoryAuditSink() if record_audit else None
-    checker = selected_lifecycle_checker(
-        worker_route, runtime_path=LEAN_RUNTIME, runtime_sha256=LEAN_RUNTIME_SHA256
-    )
-    dispatcher = native_object_dispatcher(
-        {"tavily_search": LinuxToolSpec("frozen_search_worker:search", WORKER, WORKER_DIGEST)},
-        runtime_roots=(HERE,),
-        lifecycle_checker=checker,
-        integrity_recheck="preflight-only",
-    )
-    parsed = parse_security_manifest(
-        f"tool tavily_search {{\nruns {NATIVE_HOST}\nreturns normal\n}}",
-        enforcers={EnforcementKind.KERNEL: dispatcher},
-    )
-    policies = CedarPolicySet(
-        {"tavily_search": _language_sandbox_owner_policy(parsed.tools["tavily_search"])},
-        PRINCIPAL_POLICY,
-    )
-    executor = ObjectPolicyHostExecutor(
-        CedarObjectAuthorizer(parsed, policies),
-        dispatcher,
-        tool_owners={"tavily_search": "application"},
-    )
-    config = SecurityConfig(
-        host_executor=executor,
-        dac_overrides=DacOverrides({"tavily_search": ToolDac("__cedar__", {"*": "x"})}),
+    config = dataclasses.replace(
+        cedar_security(
+            search_tool,
+            policy=PRINCIPAL_POLICY,
+            manifest="runs inprocess\n" + resource.permission("search"),
+            resources=(resource,),
+        ),
         audit_sink=audit,
         closed_admission=True,
         trusted_application_nodes=frozenset({"chatbot"}),
         trusted_application_branches=frozenset({"chatbot:branch:route_tools"}),
     )
-    executor.validate_tools(("tavily_search",))
-    return config, dispatcher, audit
+    return config, None, audit
 
 
 def build(
@@ -136,12 +110,11 @@ def build(
         max_retries=0,
         reasoning_effort="none",
     )
-    model_with_tools = model.bind_tools([search_tool])
+    selected_tool = search_tool if mode == "Argus" else baseline_search_tool
+    model_with_tools = model.bind_tools([selected_tool])
     selected = dispatcher = audit = None
     if mode == "Argus":
-        if worker_route is None:
-            raise ValueError("Argus requires the pinned Lean worker route")
-        selected, dispatcher, audit = security(worker_route, record_audit=record_audit)
+        selected, dispatcher, audit = security(record_audit=record_audit)
     builder = StateGraph(State)
 
     def chatbot(state: State):
@@ -151,7 +124,7 @@ def build(
         return "tools" if state["messages"][-1].tool_calls else END
 
     builder.add_node("chatbot", chatbot)
-    builder.add_node("tools", ToolNode(tools=[search_tool], security=selected))
+    builder.add_node("tools", ToolNode(tools=[selected_tool], security=selected))
     builder.add_conditional_edges("chatbot", route_tools, ["tools", END])
     builder.add_edge("tools", "chatbot")
     builder.add_edge(START, "chatbot")
@@ -191,6 +164,7 @@ def main() -> None:
         json.dumps(
             {
                 "mode": args.mode,
+                "isolation_route": "language" if selected else "baseline",
                 "model": {
                     "name": "qwen3:8b",
                     "digest": MODEL_DIGEST,

@@ -89,6 +89,16 @@ def common_metadata() -> dict:
             "primary_modes": "disabled",
             "special_case": "measure separately with run_broker_costs.py --audit",
         },
+        "argus_routes": {
+            "language": [
+                "D1-sql",
+                "D2-rag",
+                "D3-plan-execute",
+                "D5-support",
+                *OLD_DEMOS,
+            ],
+            "host": ["D4-multi-agent"],
+        },
         "upstream_commit": "23961cff61a42b52525f3b20b4094d8d2fba1744",
         "task_digest": sha256(tasks),
         "fixture_digests": {str(path.relative_to(ROOT)): sha256(path) for path in fixtures},
@@ -413,6 +423,7 @@ def execute(job: Job, root: Path, tasks: dict) -> dict:
         "preparation_ms": inner.get("preparation_ms"),
         "model_time_ms": inner.get("model_time_ms"),
         "model_calls": inner.get("model_calls"),
+        "isolation_route": inner.get("isolation_route"),
         "security_evidence": security_evidence,
         "grant_count": len(grants),
         "lowering_count": len(lowerings),
@@ -425,6 +436,18 @@ def execute(job: Job, root: Path, tasks: dict) -> dict:
     }
     if job.mode == "Baseline" and security_evidence:
         raise AssertionError(f"baseline unexpectedly produced security evidence: {job}")
+    expected_route = (
+        "baseline"
+        if job.mode == "Baseline"
+        else "host"
+        if job.application == "D4-multi-agent"
+        else "language"
+    )
+    if record["isolation_route"] is not None and record["isolation_route"] != expected_route:
+        raise AssertionError(
+            f"unexpected isolation route for {job}: "
+            f"{record['isolation_route']!r}, expected {expected_route!r}"
+        )
     (trial / "trial.json").write_text(json.dumps(record, indent=2) + "\n")
     return record
 

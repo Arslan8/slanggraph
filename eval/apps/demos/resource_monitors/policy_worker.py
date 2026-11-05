@@ -1,6 +1,8 @@
 """Worker-side policy retrieval operation."""
 
-from .api import policy_index
+from langgraph.prebuilt.security.mediators.retrieval import (
+    text_retrieval as policy_index,
+)
 
 
 def lookup_policy(query: str) -> str:

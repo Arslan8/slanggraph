@@ -87,3 +87,51 @@ def search_procedure(query: str) -> str:
     )
 
     return search.search(query)
+
+
+@tool
+def search_web(query: str) -> str:
+    """Search a setup-bound JSON result index."""
+    from langgraph.prebuilt.security.mediators.retrieval import json_search as search
+
+    return search.search(query)
+
+
+@tool
+def list_database_tables() -> str:
+    """List tables through the registered read-only SQLite interface."""
+    from langgraph.prebuilt.security.mediators.readonly_sqlite import (
+        readonly_sqlite as database,
+    )
+
+    return database.list_tables()
+
+
+@tool
+def query_database(query: str) -> str:
+    """Run one read-only query through the registered SQLite interface."""
+    from langgraph.prebuilt.security.mediators.readonly_sqlite import (
+        readonly_sqlite as database,
+    )
+
+    return database.query(query)
+
+
+@tool
+def fetch_itinerary() -> str:
+    """Fetch the setup-bound passenger itinerary."""
+    from langgraph.prebuilt.security.mediators.airline_sqlite import (
+        airline_sqlite as airline,
+    )
+
+    return airline.fetch_user()
+
+
+@tool
+def change_flight(ticket_no: str, flight_id: int) -> str:
+    """Change one setup-bound passenger ticket."""
+    from langgraph.prebuilt.security.mediators.airline_sqlite import (
+        airline_sqlite as airline,
+    )
+
+    return airline.update_ticket(ticket_no, flight_id)

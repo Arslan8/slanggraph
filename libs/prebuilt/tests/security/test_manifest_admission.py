@@ -17,6 +17,7 @@ from langgraph.prebuilt.security import (
     Principal,
     SecurityConfigurationError,
     cedar_security,
+    cedar_security_many,
     with_principal,
 )
 from langgraph.prebuilt.security.inprocess import read_text
@@ -159,7 +160,7 @@ def test_arbitrary_argument_objects_are_not_coerced():
             raise AssertionError("unverified object behavior executed")
 
     security = cedar_security(reader, manifest=MANIFEST, policy=PERMIT)
-    with pytest.raises(HostExecutionDenied, match="arguments_must_be_strings"):
+    with pytest.raises(HostExecutionDenied, match="arguments_must_be_scalars"):
         security.host_executor.dispatcher.admission.invoke({"path": ReflectiveValue()})
 
 
@@ -237,6 +238,31 @@ async def test_grant_scoped_read_and_restriction(tmp_path, asynchronous, restric
 def constant_reader(path: str) -> str:
     """Return a constant without using declared read permission."""
     return "nothing"
+
+
+@tool
+def add_scalars(left: int, right: int) -> int:
+    """Add exact inert integer inputs."""
+    return left + right
+
+
+def test_exact_scalar_arguments_are_typed_and_admitted():
+    admission = cedar_security(
+        add_scalars, policy=PERMIT
+    ).host_executor.dispatcher.admission
+    assert admission.invoke({"left": 2, "right": 3}) == 5
+    with pytest.raises(HostExecutionDenied, match="argument_type"):
+        admission.invoke({"left": "2", "right": 3})
+    with pytest.raises(HostExecutionDenied, match="arguments_must_be_scalars"):
+        admission.invoke({"left": [2], "right": 3})
+
+
+def test_multiple_language_tools_share_one_policy_executor():
+    security = cedar_security_many((constant_reader, add_scalars), policy=PERMIT)
+    admissions = security.host_executor.dispatcher.admissions
+    assert set(admissions) == {"constant_reader", "add_scalars"}
+    assert admissions["constant_reader"].invoke({"path": "safe"}) == "nothing"
+    assert admissions["add_scalars"].invoke({"left": 4, "right": 5}) == 9
 
 
 def test_unused_permission_is_accepted_at_real_admission():

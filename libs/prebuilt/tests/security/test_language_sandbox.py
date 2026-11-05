@@ -216,7 +216,7 @@ def test_hostile_argument_mapping_is_not_executed():
     admission = cedar_security(
         constant_reader, policy=PERMIT
     ).host_executor.dispatcher.admission
-    with pytest.raises(HostExecutionDenied, match="arguments_must_be_strings"):
+    with pytest.raises(HostExecutionDenied, match="arguments_must_be_scalars"):
         admission.invoke(Mapping(path="inert"))
 
 

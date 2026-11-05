@@ -6,10 +6,8 @@ import argparse
 import asyncio
 import dataclasses
 import enum
-import hashlib
 import json
 import operator
-import sys
 import time
 from pathlib import Path
 from typing import Annotated
@@ -20,17 +18,14 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import (
-    LinuxToolSpec,
     Principal,
     install_mac_policy,
+    sklearn_json_search_resource,
     with_principal,
 )
-from native_host import framework_library, native_broker_dispatcher
 from pydantic import BaseModel, Field
-from resource_monitors.api import SEARCH
-from resource_monitors.backends import ExactBrokerMediator, FrozenSearchBackend
 from resource_monitors.search_worker import frozen_search as broker_search
-from resource_monitors.security import monitored_security
+from resource_monitors.security import mediated_language_security
 from sklearn.feature_extraction.text import TfidfVectorizer
 from timing import ModelTiming, assert_tool_parity
 from typing_extensions import TypedDict
@@ -113,46 +108,15 @@ def build(
         frozen_search = baseline_frozen_search
 
     else:
-        resource = SEARCH.bind(
-            implementation=FrozenSearchBackend(corpus),
-            mediator=ExactBrokerMediator(
-                "query-only access to the frozen search corpus",
-                "eval/tests/test_demo_resource_monitors.py",
-                (corpus_path,),
-            ),
-        )
-        worker = Path(__file__).with_name("resource_monitors") / "search_worker.py"
-        dispatcher = native_broker_dispatcher(
-            {
-                "tavily_search_results_json": LinuxToolSpec(
-                    "resource_monitors.search_worker:frozen_search",
-                    worker,
-                    hashlib.sha256(worker.read_bytes()).hexdigest(),
-                )
-            },
-            runtime_roots=(
-                Path(__file__).resolve().parent,
-                framework_library("prebuilt"),
-                framework_library("langgraph"),
-                framework_library("checkpoint"),
-                framework_library("sdk-py"),
-                *(
-                    Path(item).resolve()
-                    for item in sys.path
-                    if item and "site-packages" in item and Path(item).is_dir()
-                ),
-            ),
-            resources=(resource,),
-        )
+        resource = sklearn_json_search_resource(corpus, top_k=3)
         frozen_search = tool(
             "tavily_search_results_json",
             description=baseline_frozen_search.description,
             args_schema=baseline_frozen_search.args_schema,
         )(broker_search)
         assert_tool_parity(baseline_frozen_search, frozen_search)
-        security, audit = monitored_security(
+        security, audit = mediated_language_security(
             (frozen_search,),
-            dispatcher=dispatcher,
             resources=(resource,),
             permissions={"tavily_search_results_json": (resource.permission("search"),)},
             trusted_nodes=(
@@ -282,6 +246,7 @@ async def run(args) -> None:
         json.dumps(
             {
                 "answer": result.get("response"),
+                "isolation_route": "language" if security else "baseline",
                 "state": result,
                 "status": status,
                 "error": error,

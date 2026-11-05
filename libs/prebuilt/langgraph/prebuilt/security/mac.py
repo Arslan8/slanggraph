@@ -375,6 +375,7 @@ class RuntimeMAC:
             CedarObjectAuthorizer,
             ObjectPolicyHostExecutor,
             _LanguageSandboxDispatcher,
+            _LanguageSandboxDispatchers,
         )
 
         executor = node._security_host_executor
@@ -390,6 +391,7 @@ class RuntimeMAC:
             MacOSObjectDispatcher,
             ObjectBrokerDispatcher,
             _LanguageSandboxDispatcher,
+            _LanguageSandboxDispatchers,
         ):
             raise SecurityConfigurationError("mac:unsupported_dispatcher")
         if node._wrap_tool_call is not None or node._awrap_tool_call is not None:

@@ -281,6 +281,14 @@ _ENTRIES: tuple[UnsupportedFeature, ...] = (
         "admission",
     ),
     UnsupportedFeature(
+        "language_sandbox:unsupported_parameter_type",
+        _U,
+        "tool parameter outside the exact inert scalar types",
+        "language sandbox",
+        "parameters must be annotated as str, int, float, or bool",
+        "admission",
+    ),
+    UnsupportedFeature(
         "language_proof:unsupported_expression",
         _U,
         "expression outside the language proof subset",
@@ -382,11 +390,11 @@ _ENTRIES: tuple[UnsupportedFeature, ...] = (
         "runtime",
     ),
     UnsupportedFeature(
-        "language_proof:arguments_must_be_strings",
+        "language_proof:arguments_must_be_scalars",
         _U,
-        "language-sandbox terminal call with non-string arguments",
+        "language-sandbox terminal call with non-scalar arguments",
         "language sandbox",
-        "the admitted language passes only exact strings",
+        "the admitted language passes only exact inert scalars",
         "admission",
     ),
     UnsupportedFeature(

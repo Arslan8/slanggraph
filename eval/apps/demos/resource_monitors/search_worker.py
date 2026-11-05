@@ -1,10 +1,8 @@
-"""Worker-side frozen search implementation."""
+"""Tool-side frozen search operation over a registered mediator client."""
 
-import json
-
-from .api import search
+from langgraph.prebuilt.security.mediators.retrieval import json_search as search
 
 
-def frozen_search(query: str) -> list[dict]:
+def frozen_search(query: str) -> str:
     """Search the registered frozen corpus."""
-    return json.loads(search.search(query))
+    return search.search(query)

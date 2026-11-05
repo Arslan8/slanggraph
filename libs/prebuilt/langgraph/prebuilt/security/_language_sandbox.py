@@ -76,6 +76,22 @@ class LanguageProgram:
         ):
             raise SecurityConfigurationError("language_sandbox:reserved_local")
         parameters = []
+
+        def parameter_type(arg: ast.arg) -> str:
+            annotation = arg.annotation
+            if annotation is None:
+                return "str"
+            if isinstance(annotation, ast.Name) and annotation.id in {
+                "str",
+                "int",
+                "float",
+                "bool",
+            }:
+                return annotation.id
+            raise SecurityConfigurationError(
+                "language_sandbox:unsupported_parameter_type"
+            )
+
         positional = [*entry.args.posonlyargs, *entry.args.args]
         first_default = len(positional) - len(positional_defaults)
         for index, arg in enumerate(positional):
@@ -88,6 +104,7 @@ class LanguageProgram:
                     default=positional_defaults[index - first_default]
                     if index >= first_default
                     else Parameter.empty,
+                    annotation=parameter_type(arg),
                 )
             )
         for arg in entry.args.kwonlyargs:
@@ -96,6 +113,7 @@ class LanguageProgram:
                     arg.arg,
                     Parameter.KEYWORD_ONLY,
                     default=keyword_defaults.get(arg.arg, Parameter.empty),
+                    annotation=parameter_type(arg),
                 )
             )
         if entry.args.vararg or entry.args.kwarg:
@@ -371,19 +389,25 @@ class LanguageProgram:
             )
         return body, signature, terminals, contracts
 
-    def invoke(self, arguments: dict[str, str]) -> Any:
+    def invoke(self, arguments: dict[str, str | int | float | bool]) -> Any:
         # No saved certificate or caller-supplied passing flag grants execution.
         body, signature, terminals, contracts = self._snapshot()
         derive_program(body, signature, contracts)
         if type(arguments) is not dict or any(
-            type(key) is not str or type(value) is not str
+            type(key) is not str
+            or not any(type(value) is kind for kind in (str, int, float, bool))
             for key, value in arguments.items()
         ):
-            raise HostExecutionDenied("language_proof:arguments_must_be_strings")
+            raise HostExecutionDenied("language_proof:arguments_must_be_scalars")
         # Binding uses the captured, data-only signature, never a mutable function
         # signature, defaults, globals, descriptors, or a tool schema validator.
         bound = signature.bind(**arguments)
         bound.apply_defaults()
+        if any(
+            type(value).__name__ != signature.parameters[name].annotation
+            for name, value in bound.arguments.items()
+        ):
+            raise HostExecutionDenied("language_proof:argument_type")
         environment = dict(bound.arguments)
 
         cancelled = _language_cancel.get()

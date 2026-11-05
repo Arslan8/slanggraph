@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime, timezone
 
 import pytest
 
@@ -17,8 +18,11 @@ from langgraph.prebuilt.security import (
     Tool,
     ToolCall,
     ToolDac,
+    airline_sqlite_resource,
     parse_security_manifest,
     random_values_resource,
+    readonly_sqlite_resource,
+    sklearn_json_search_resource,
     sklearn_text_retrieval_resource,
     sqlite_records_resource,
 )
@@ -28,11 +32,16 @@ from langgraph.prebuilt.security.object_policy import _LanguageSandboxDispatcher
 from tests.security.fixtures.mediated_tools import (
     arbitrary_import,
     backend_traversal,
+    change_flight,
+    fetch_itinerary,
     health_booking,
     imported_record_read,
+    list_database_tables,
     module_alias_record_read,
+    query_database,
     search_policy,
     search_procedure,
+    search_web,
     travel_booking,
     unregistered_record_member,
 )
@@ -212,3 +221,101 @@ def test_sklearn_integration_is_useful_reusable_and_grant_scoped():
         )
         with pytest.raises(HostExecutionDenied, match="not_granted"):
             _invoke(dispatcher, candidate, {"query": "retention"}, ())
+
+
+def test_sklearn_json_search_returns_only_inert_registered_fields():
+    pytest.importorskip("sklearn")
+    resource = sklearn_json_search_resource(
+        (
+            {
+                "url": "https://example.test/a",
+                "title": "Rail",
+                "content": "rail policy",
+            },
+            {"url": "https://example.test/b", "title": "Air", "content": "air policy"},
+        ),
+        top_k=1,
+    )
+    dispatcher = _dispatcher(search_web, resource, resource.permission("search"))
+    result = _invoke(
+        dispatcher,
+        search_web,
+        {"query": "rail"},
+        (_line(resource, "search", resource._object_id),),
+    )
+    assert result == '[{"url":"https://example.test/a","content":"rail policy"}]'
+
+
+def test_readonly_sqlite_is_reusable_grant_scoped_and_rejects_mutation(tmp_path):
+    database = tmp_path / "application.sqlite"
+    with sqlite3.connect(database) as connection:
+        connection.execute("CREATE TABLE cities (name TEXT PRIMARY KEY)")
+        connection.executemany("INSERT INTO cities VALUES (?)", [("NYC",), ("SF",)])
+    resource = readonly_sqlite_resource(database)
+
+    list_line = _line(resource, "list_tables", resource._object_id)
+    listing = _dispatcher(
+        list_database_tables, resource, resource.permission("list_tables")
+    )
+    assert _invoke(listing, list_database_tables, {}, (list_line,)) == "cities"
+
+    query_line = _line(resource, "query", resource._object_id)
+    querying = _dispatcher(query_database, resource, resource.permission("query"))
+    assert "NYC" in _invoke(
+        querying,
+        query_database,
+        {"query": "SELECT name FROM cities ORDER BY name"},
+        (query_line,),
+    )
+    with pytest.raises(HostExecutionDenied, match="not_granted"):
+        _invoke(
+            querying,
+            query_database,
+            {"query": "SELECT name FROM cities"},
+            (),
+        )
+    with pytest.raises(PermissionError, match="only SELECT"):
+        _invoke(
+            querying,
+            query_database,
+            {"query": "DELETE FROM cities"},
+            (query_line,),
+        )
+    with sqlite3.connect(database) as connection:
+        assert connection.execute("SELECT count(*) FROM cities").fetchone() == (2,)
+
+
+def test_airline_sqlite_binds_principal_and_checks_mutation_grant(tmp_path):
+    database = tmp_path / "airline.sqlite"
+    with sqlite3.connect(database) as connection:
+        connection.executescript(
+            """
+            CREATE TABLE tickets(ticket_no TEXT PRIMARY KEY, book_ref TEXT, passenger_id TEXT);
+            CREATE TABLE flights(flight_id INTEGER PRIMARY KEY, flight_no TEXT,
+              departure_airport TEXT, arrival_airport TEXT, scheduled_departure TEXT,
+              scheduled_arrival TEXT);
+            CREATE TABLE ticket_flights(ticket_no TEXT, flight_id INTEGER, fare_conditions TEXT);
+            CREATE TABLE boarding_passes(ticket_no TEXT, flight_id INTEGER, seat_no TEXT);
+            INSERT INTO tickets VALUES ('T1', 'B1', 'P1');
+            INSERT INTO flights VALUES (1, 'F1', 'SFO', 'JFK', '2027-01-01T12:00:00+00:00', '2027-01-01T18:00:00+00:00');
+            INSERT INTO flights VALUES (2, 'F2', 'SFO', 'JFK', '2027-01-02T12:00:00+00:00', '2027-01-02T18:00:00+00:00');
+            INSERT INTO ticket_flights VALUES ('T1', 1, 'Economy');
+            INSERT INTO boarding_passes VALUES ('T1', 1, '1A');
+            """
+        )
+    resource = airline_sqlite_resource(
+        database,
+        passenger_id="P1",
+        principal_id="alice",
+        frozen_now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    )
+    fetch = _dispatcher(fetch_itinerary, resource, resource.permission("fetch_user"))
+    assert '"ticket_no":"T1"' in _invoke(
+        fetch,
+        fetch_itinerary,
+        {},
+        (_line(resource, "fetch_user", resource._object_id),),
+    )
+    update = _dispatcher(change_flight, resource, resource.permission("update_ticket"))
+    with pytest.raises(HostExecutionDenied, match="not_granted"):
+        _invoke(update, change_flight, {"ticket_no": "T1", "flight_id": 2}, ())

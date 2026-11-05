@@ -12,6 +12,8 @@ does not discover plugins or open resources.
 | `sqlite.py` | Built-in SQLite record implementation |
 | `randomness.py` | Bounded booking values backed by Python `secrets` |
 | `retrieval.py` | Bounded scikit-learn and LangChain text retrieval |
+| `readonly_sqlite.py` | Read-only SQLite metadata and query operations |
+| `airline_sqlite.py` | Principal-bound ACE airline reads and ticket mutations |
 | `template.py` | Empty object-bound tutorial; denies all authority until implemented |
 
 The complete application example is [demo 08](../../../../../../workspace/08_custom_mediator/README.md).
@@ -24,9 +26,11 @@ new counter mediator.
 | --- | --- | --- | --- | --- |
 | SQLite records | `read(record: str) -> RecordRead`, `write(record: str, value: str) -> RecordMutation`, `delete(record: str) -> RecordMutation` | `db_record` with `read`, `write`, or `delete`; `record` is the selector | `<database_id>/<key>`; both components are bounded ASCII names, values are at most 8192 UTF-8 bytes, and the schema is exactly `records(key TEXT PRIMARY KEY, value TEXT NOT NULL)` | Language: exact because the admitted interpreter has no filesystem, module, or connection values. Broker: Python 3.11+, `broker:spawn-bound`, `seccomp:minimal`, and custody of the database directory. |
 | Random booking values | `appointment_time() -> str`, `booking_reference() -> str` | one opaque `random_source` resource with the matching action | The setup-bound generator is the resource. Results are fixed-shape strings; no generator object or state is returned. | Language and broker; Python 3.11+ `secrets`; no extra host capability. |
-| Text retrieval | `search(query: str) -> str` | one opaque `text_index` resource with action `search` | The setup-bound index/retriever is the resource. Queries are at most 4096 UTF-8 bytes and results at most 65536 bytes. | Language and broker. The scikit-learn factory assumes the compatible `TfidfVectorizer` API (tested with 1.x). The LangChain factory assumes synchronous `invoke(str)` returning documents with string `page_content`. Network and credential availability remain coordinator deployment requirements. |
+| Text retrieval/search | `search(query: str) -> str` | one opaque `text_index` resource with action `search` | The setup-bound index/retriever is the resource. Queries are at most 4096 UTF-8 bytes and results at most 65536 bytes. `sklearn_json_search_resource` emits a JSON array containing only registered URLs and content. | Language and broker. The scikit-learn factories assume the compatible `TfidfVectorizer` API (tested with 1.x). The LangChain factory assumes synchronous `invoke(str)` returning documents with string `page_content`. Network and credential availability remain coordinator deployment requirements. |
+| Read-only SQLite | `list_tables() -> str`, `schema(table_names: str) -> str`, `query(query: str) -> str` | one opaque `readonly_sqlite` database resource with the corresponding action | The setup-bound database is the resource. Table names are validated, queries are one `SELECT`/`WITH` statement, results are capped at 1000 rows and 262144 UTF-8 bytes. | Language and broker; Python 3.11+ `sqlite3`. Connections use read-only and query-only modes. No connection, path, or backend object is returned. |
+| Airline SQLite | `fetch_user() -> str`, `search_flights(...) -> str`, `update_ticket(ticket_no: str, new_flight_id: int) -> str`, `cancel_ticket(ticket_no: str) -> str` | one opaque `airline_sqlite` database resource with the corresponding action | Trusted setup binds the database, passenger, principal, and policy clock. Every request rechecks the invocation principal; mutations use parameterized SQL and ownership predicates. | Language and broker; the ACE airline SQLite schema and Python 3.11+ `sqlite3`. Database paths, connections, and passenger bindings stay in trusted setup. |
 
-All three return only validated inert data. SQLite connections, random-library
+All integrations return only validated inert data. SQLite connections, random-library
 state, vectorizers, LangChain retrievers, credentials, and backend instances
 remain in trusted setup or mediator code. The framework checks the effective
 invocation grant immediately before every call; an import alias locates an
@@ -145,8 +149,8 @@ security = cedar_security(
 )
 ```
 
-Existing admission limits on tool inputs still apply (string arguments and
-defaults); typed resource calls may use scalar literals. Mandatory admission
+Tool inputs and defaults may use exact inert scalar values (`str`, `int`,
+`float`, and `bool`); typed resource calls may use scalar literals. Mandatory admission
 infers the exact object and operation from the registered client. It checks `inferred ⊆ manifest` and that effects use approved operations.
 Unused manifest permissions remain valid. Methods with no arguments are checked
 too. Runtime dispatch still checks the effective DAC/MAC grant for every call;

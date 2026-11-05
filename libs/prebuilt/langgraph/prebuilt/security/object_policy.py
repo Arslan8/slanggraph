@@ -1368,8 +1368,11 @@ class _LanguageSandboxDispatcher:
         arguments = {
             name: call.normalized.get(name, value) for name, value in call.args.items()
         }
-        if any(type(value) is not str for value in arguments.values()):
-            raise HostExecutionDenied("manifest_consistency:arguments_must_be_strings")
+        if any(
+            not any(type(value) is kind for kind in (str, int, float, bool))
+            for value in arguments.values()
+        ):
+            raise HostExecutionDenied("manifest_consistency:arguments_must_be_scalars")
         return arguments
 
     def _receipt(
@@ -1407,6 +1410,42 @@ class _LanguageSandboxDispatcher:
                 for line in grant.lines
             ),
         )
+
+
+class _LanguageSandboxDispatchers:
+    """Route several independently admitted tools through one policy executor."""
+
+    def __init__(
+        self, tools: Sequence[BaseTool], manifest: SecurityManifest, resources=()
+    ):
+        self.dispatchers = MappingProxyType(
+            {
+                item.name: _LanguageSandboxDispatcher(item, manifest, resources)
+                for item in tools
+            }
+        )
+        self.admissions = MappingProxyType(
+            {name: item.admission for name, item in self.dispatchers.items()}
+        )
+
+    def _dispatcher(self, call: ToolCall) -> _LanguageSandboxDispatcher:
+        dispatcher = self.dispatchers.get(call.tool.name)
+        if dispatcher is None:
+            raise HostExecutionDenied("object_policy:tool_dispatcher_missing")
+        return dispatcher
+
+    def invoke(
+        self, principal: Principal, call: ToolCall, grant: ObjectGrant
+    ) -> HostExecutionResult:
+        return self._dispatcher(call).invoke(principal, call, grant)
+
+    async def ainvoke(
+        self, principal: Principal, call: ToolCall, grant: ObjectGrant
+    ) -> HostExecutionResult:
+        return await self._dispatcher(call).ainvoke(principal, call, grant)
+
+    def confirm_termination(self, recovery: TerminationRecovery) -> bool:
+        return True
 
 
 def cedar_security(
@@ -1567,6 +1606,81 @@ def cedar_security(
         modules=tuple(modules),
         host_executor=executor,
         dac_overrides=overrides,
+    )
+
+
+def cedar_security_many(
+    tools: Sequence[BaseTool],
+    *,
+    policy: str,
+    manifests: Mapping[str, str] | None = None,
+    owner: str = "application",
+    executable: str | Path = "cedar",
+    modules: Sequence[SecurityModule] = (),
+    resources: Sequence[Any] = (),
+) -> SecurityConfig:
+    """Bind several source-admitted language tools to one Cedar executor."""
+    selected = tuple(tools)
+    if not selected or any(not isinstance(item, BaseTool) for item in selected):
+        raise TypeError("cedar_security_many requires one or more BaseTool values")
+    names = tuple(item.name for item in selected)
+    if len(set(names)) != len(names) or any(
+        not _NAME.fullmatch(name) for name in names
+    ):
+        raise ValueError("tool names must be unique identifiers")
+    _text(owner, "tool owner")
+    manifest_by_tool = dict(manifests or {})
+    unknown = set(manifest_by_tool).difference(names)
+    if unknown:
+        raise ValueError(
+            "manifest supplied for unknown tool: " + ", ".join(sorted(unknown))
+        )
+
+    from langgraph.prebuilt.security.mediators.contracts import object_bindings
+
+    resources = tuple(resources)
+    object_bindings(resources)
+    declarations = {}
+    for resource in resources:
+        resource.adapter
+        declaration = resource.class_declaration(enforced_by="language_sandbox")
+        previous = declarations.setdefault(resource.class_name, declaration)
+        if previous != declaration:
+            raise ValueError("conflicting resource class definitions")
+    blocks = [
+        f"tool {name} {{\n"
+        + manifest_by_tool.get(name, "runs inprocess\nreturns normal")
+        + "\n}"
+        for name in names
+    ]
+    parsed = parse_security_manifest(
+        "\n".join((*declarations.values(), *blocks)),
+        source="<multi-tool language manifest>",
+        enforcers={EnforcementKind.LANGUAGE_SANDBOX: _LanguageSandboxEnforcer()},
+        classes=_LANGUAGE_SANDBOX_CORE_CLASSES,
+    )
+    if any(parsed.tools[name].runs != "inprocess" for name in names):
+        raise ValueError("cedar_security_many requires runs inprocess")
+    policies = CedarPolicySet(
+        {name: _language_sandbox_owner_policy(parsed.tools[name]) for name in names},
+        policy,
+    )
+    overrides = DacOverrides(
+        {
+            item.name: security_for_tool(item)[1]
+            if _has_declared_dac(item)
+            else ToolDac("__cedar__", {"*": "x"})
+            for item in selected
+        }
+    )
+    executor = ObjectPolicyHostExecutor(
+        CedarObjectAuthorizer(parsed, policies, executable=executable),
+        _LanguageSandboxDispatchers(selected, parsed, resources),
+        tool_owners={name: owner for name in names},
+    )
+    executor.validate_tools(names)
+    return SecurityConfig(
+        modules=tuple(modules), host_executor=executor, dac_overrides=overrides
     )
 
 
@@ -2160,5 +2274,6 @@ __all__ = (
     "SecurityManifest",
     "ToolManifest",
     "cedar_security",
+    "cedar_security_many",
     "parse_security_manifest",
 )
