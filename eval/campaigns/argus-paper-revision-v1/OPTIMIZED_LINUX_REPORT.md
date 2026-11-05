@@ -1,5 +1,12 @@
 # Final Linux object-broker runtime result
 
+> **Performance result withdrawn pending rerun.** The retained run below used
+> direct SQLite as its baseline rather than the same LangGraph/`ToolNode`
+> workload without Argus. Its absolute protected timings remain historical
+> observations, but its overhead ratio is not an Argus-overhead measurement and
+> must not be cited. The corrected schema-3 runner uses an unprotected matched
+> LangGraph baseline; this report must be regenerated from a controlled-host run.
+
 ## Evaluated configuration
 
 The final evaluated implementation is commit

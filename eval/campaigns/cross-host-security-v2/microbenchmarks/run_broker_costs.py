@@ -1,4 +1,4 @@
-"""Measure a fully protected current object-broker route in fresh sessions."""
+"""Measure matched LangGraph SQLite routes with and without Argus."""
 
 from __future__ import annotations
 
@@ -68,6 +68,102 @@ def _write(stream, row: dict) -> None:
     stream.flush()
 
 
+def _initialize_database(database: Path) -> None:
+    with sqlite3.connect(database) as connection:
+        connection.execute(SQLITE_RECORD_SCHEMA)
+        connection.executemany(
+            "INSERT INTO records VALUES (?, ?)",
+            [("alice", "AUTHORIZED_RECORD"), ("bob", "BOB_PRIVATE")],
+        )
+
+
+def run_baseline_session(output: Path, session: int, warmups: int, measured: int) -> None:
+    """Run the same LangGraph workload without Argus in a clean interpreter."""
+    output.parent.mkdir(parents=True, exist_ok=True)
+    os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
+    with tempfile.TemporaryDirectory(prefix="slg-broker-baseline-") as folder:
+        database = Path(folder) / "records.sqlite"
+        _initialize_database(database)
+
+        @tool("broker_read")
+        def baseline_read(record: str) -> dict:
+            """Read the requested record directly from application SQLite."""
+            database_id, separator, key = record.partition("/")
+            if database_id != "notes" or separator != "/" or not key:
+                raise ValueError("unsupported record")
+            with sqlite3.connect(database) as connection:
+                row = connection.execute(
+                    "SELECT value FROM records WHERE key = ?", (key,)
+                ).fetchone()
+            return {"found": row is not None, "value": row[0] if row else None}
+
+        setup_start = time.perf_counter_ns()
+        builder = StateGraph(MessagesState)
+        builder.add_node("tools", ToolNode([baseline_read]))
+        builder.add_edge(START, "tools")
+        graph = builder.compile()
+        setup_ms = (time.perf_counter_ns() - setup_start) / 1e6
+        with output.open("x") as stream:
+            _write(
+                stream,
+                {
+                    "kind": "baseline_setup",
+                    "session": session,
+                    "cpu_affinity": sorted(os.sched_getaffinity(0)),
+                    "graph_setup_ms": setup_ms,
+                },
+            )
+            for index in range(1 + warmups + measured):
+                phase = "first_use" if index == 0 else "warmup" if index <= warmups else "measured"
+                call_id = f"baseline-{session}-{index}-{uuid.uuid4().hex}"
+                request = {
+                    "messages": [
+                        AIMessage(
+                            content="",
+                            tool_calls=[
+                                {
+                                    "name": "broker_read",
+                                    "args": {"record": "notes/alice"},
+                                    "id": call_id,
+                                }
+                            ],
+                        )
+                    ]
+                }
+                start = time.perf_counter_ns()
+                result = graph.invoke(request)
+                elapsed_ms = (time.perf_counter_ns() - start) / 1e6
+                _write(
+                    stream,
+                    {
+                        "kind": "call",
+                        "route": "langgraph-baseline",
+                        "session": session,
+                        "round": index,
+                        "phase": phase,
+                        "elapsed_ms": elapsed_ms,
+                        "valid": "AUTHORIZED_RECORD" in result["messages"][-1].content,
+                    },
+                )
+                start = time.perf_counter_ns()
+                with sqlite3.connect(database) as connection:
+                    direct = connection.execute(
+                        "SELECT value FROM records WHERE key='alice'"
+                    ).fetchone()[0]
+                _write(
+                    stream,
+                    {
+                        "kind": "diagnostic",
+                        "route": "direct-sqlite",
+                        "session": session,
+                        "round": index,
+                        "phase": phase,
+                        "elapsed_ms": (time.perf_counter_ns() - start) / 1e6,
+                        "valid": direct == "AUTHORIZED_RECORD",
+                    },
+                )
+
+
 def run_session(
     output: Path,
     session: int,
@@ -96,12 +192,7 @@ def run_session(
         source = root / "worker.py"
         database = root / "records.sqlite"
         source.write_text(SOURCE)
-        with sqlite3.connect(database) as connection:
-            connection.execute(SQLITE_RECORD_SCHEMA)
-            connection.executemany(
-                "INSERT INTO records VALUES (?, ?)",
-                [("alice", "AUTHORIZED_RECORD"), ("bob", "BOB_PRIVATE")],
-            )
+        _initialize_database(database)
         mediator_spans = {"operation_ms": 0.0}
         mediator = sqlite_record_mediator(database, database_id="notes")
         original_mediator_invoke = mediator.invoke
@@ -548,24 +639,6 @@ def run_session(
                             "prepared_lowering_repeated_online": False,
                         },
                     )
-                    start = time.perf_counter_ns()
-                    with sqlite3.connect(database) as connection:
-                        direct = connection.execute(
-                            "SELECT value FROM records WHERE key='alice'"
-                        ).fetchone()[0]
-                    direct_ms = (time.perf_counter_ns() - start) / 1e6
-                    _write(
-                        stream,
-                        {
-                            "kind": "call",
-                            "route": "direct-broker",
-                            "session": session,
-                            "round": index,
-                            "phase": phase,
-                            "elapsed_ms": direct_ms,
-                            "valid": direct == "AUTHORIZED_RECORD",
-                        },
-                    )
         finally:
             ObjectPolicyHostExecutor._authorize = originals["authorize"]
             LandlockSandboxExecutor._cleanup_worker = originals["cleanup"]
@@ -610,6 +683,7 @@ def main() -> None:
     parser.add_argument("--warmups", type=int, default=10)
     parser.add_argument("--measured", type=int, default=20)
     parser.add_argument("--session", type=int)
+    parser.add_argument("--route", choices=("baseline", "protected"), default="protected")
     parser.add_argument("--checker-library", type=Path)
     parser.add_argument("--checker-runtime", type=Path)
     parser.add_argument(
@@ -626,39 +700,46 @@ def main() -> None:
         os.environ["ARGUS_LIFECYCLE_CHECKER_RUNTIME"] = str(
             args.checker_runtime.resolve(strict=True)
         )
-    if not {
+    if args.route == "protected" and not {
         "ARGUS_LIFECYCLE_CHECKER_LIBRARY",
         "ARGUS_LIFECYCLE_CHECKER_RUNTIME",
     }.issubset(os.environ):
         parser.error("--checker-library and --checker-runtime are required")
     if args.session is not None:
-        run_session(
-            args.output,
-            args.session,
-            args.warmups,
-            args.measured,
-            audit=args.audit,
-        )
+        if args.route == "baseline":
+            run_baseline_session(args.output, args.session, args.warmups, args.measured)
+        else:
+            run_session(
+                args.output,
+                args.session,
+                args.warmups,
+                args.measured,
+                audit=args.audit,
+            )
         return
     args.output.mkdir(parents=True, exist_ok=False)
     for session in range(args.sessions):
-        command = [
-            sys.executable,
-            __file__,
-            "--output",
-            str(args.output / f"session-{session}.jsonl"),
-            "--warmups",
-            str(args.warmups),
-            "--measured",
-            str(args.measured),
-            "--session",
-            str(session),
-        ]
-        if args.audit:
-            command.append("--audit")
-        log = args.output / f"session-{session}.log"
-        with log.open("x") as stream:
-            subprocess.run(command, check=True, stdout=stream, stderr=subprocess.STDOUT)
+        routes = ("baseline", "protected") if session % 2 == 0 else ("protected", "baseline")
+        for route in routes:
+            command = [
+                sys.executable,
+                __file__,
+                "--output",
+                str(args.output / f"session-{session}-{route}.jsonl"),
+                "--warmups",
+                str(args.warmups),
+                "--measured",
+                str(args.measured),
+                "--session",
+                str(session),
+                "--route",
+                route,
+            ]
+            if args.audit and route == "protected":
+                command.append("--audit")
+            log = args.output / f"session-{session}-{route}.log"
+            with log.open("x") as stream:
+                subprocess.run(command, check=True, stdout=stream, stderr=subprocess.STDOUT)
         print(f"broker session {session} complete", flush=True)
 
 

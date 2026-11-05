@@ -57,6 +57,12 @@ The qualification establishes only an otherwise-quiet selected CPU. This host
 is shared and dynamically frequency-scaled; that limitation is recorded and
 must accompany timing results.
 
+The performance runner measures the baseline through an unprotected compiled
+LangGraph with the same `ToolNode`, request, SQLite workload, and result shape.
+It runs in a separate clean interpreter because the sealed operator MAC must
+refuse unsecured graphs in the protected interpreter. Raw SQLite timing is
+retained only as a diagnostic and is never used as the Argus baseline.
+
 ## Evidence map
 
 - `CONFIGURATIONS.md`: complete-label criteria and production path.

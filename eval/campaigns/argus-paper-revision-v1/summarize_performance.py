@@ -25,6 +25,10 @@ def summary(values: list[float]) -> dict[str, float]:
     }
 
 
+def pairing(rows: list[dict]) -> list[tuple[int, int, str]]:
+    return sorted((row["session"], row["round"], row["phase"]) for row in rows)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--raw", type=Path, required=True)
@@ -36,14 +40,27 @@ def main() -> int:
         for line in path.read_text().splitlines()
     ]
     setups = [row for row in rows if row["kind"] == "setup"]
+    baseline_setups = [row for row in rows if row["kind"] == "baseline_setup"]
     calls = [row for row in rows if row["kind"] == "call"]
     protected = [row for row in calls if row["route"] == "broker"]
-    baseline = [row for row in calls if row["route"] == "direct-broker"]
+    baseline = [row for row in calls if row["route"] == "langgraph-baseline"]
+    diagnostics = [row for row in rows if row["kind"] == "diagnostic"]
     first_protected = [row for row in protected if row["phase"] == "first_use"]
     first_baseline = [row for row in baseline if row["phase"] == "first_use"]
     steady_protected = [row for row in protected if row["phase"] == "measured"]
     steady_baseline = [row for row in baseline if row["phase"] == "measured"]
-    if not setups or len(steady_protected) != len(steady_baseline):
+    steady_direct = [
+        row for row in diagnostics if row["route"] == "direct-sqlite" and row["phase"] == "measured"
+    ]
+    if (
+        not setups
+        or len(baseline_setups) != len(setups)
+        or len(steady_protected) != len(steady_baseline)
+        or len(steady_protected) != len(steady_direct)
+        or pairing(protected) != pairing(baseline)
+        or pairing(protected) != pairing(diagnostics)
+        or not all(row["valid"] for row in (*protected, *baseline, *diagnostics))
+    ):
         raise ValueError("incomplete paired broker timing records")
     protected_values = [row["elapsed_ms"] for row in steady_protected]
     baseline_values = [row["elapsed_ms"] for row in steady_baseline]
@@ -81,7 +98,7 @@ def main() -> int:
         if all(field in row for row in steady_protected)
     }
     result = {
-        "schema": 2,
+        "schema": 3,
         "sessions": len(set(row["session"] for row in protected)),
         "warmups_per_session": sum(row["phase"] == "warmup" for row in protected)
         // len(set(row["session"] for row in protected)),
@@ -91,6 +108,9 @@ def main() -> int:
             "dispatcher_mean_ms": statistics.fmean(row["dispatcher_setup_ms"] for row in setups),
             "admission_policy_mean_ms": statistics.fmean(
                 row["admission_setup_ms"] for row in setups
+            ),
+            "baseline_graph_mean_ms": statistics.fmean(
+                row["graph_setup_ms"] for row in baseline_setups
             ),
             "first_worker_mean_ms": statistics.fmean(
                 row["worker_preparation_ms"] for row in first_protected
@@ -113,9 +133,10 @@ def main() -> int:
         "prepared_steady_state": {
             "baseline": baseline_stats,
             "argus": protected_stats,
-            "absolute_difference_mean_ms": protected_stats["mean_ms"] - baseline_stats["mean_ms"],
-            "relative_overhead_ratio": protected_stats["mean_ms"] / baseline_stats["mean_ms"],
+            "incremental_argus_mean_ms": (protected_stats["mean_ms"] - baseline_stats["mean_ms"]),
+            "end_to_end_ratio": (protected_stats["mean_ms"] / baseline_stats["mean_ms"]),
         },
+        "raw_sqlite_diagnostic": summary([row["elapsed_ms"] for row in steady_direct]),
         "online_breakdown_mean_ms": breakdown,
         "invocation_activation_detail_mean_ms": activation_breakdown,
         "release_detail_mean_ms": {
