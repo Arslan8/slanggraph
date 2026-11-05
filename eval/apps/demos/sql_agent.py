@@ -97,7 +97,14 @@ def serial(value):
     return str(value)
 
 
-def build(db_path: Path, events: Path, mode: str, model_timing: ModelTiming):
+def build(
+    db_path: Path,
+    events: Path,
+    mode: str,
+    model_timing: ModelTiming,
+    *,
+    record_audit: bool = False,
+):
     llm = ChatOpenAI(
         model=MODEL["name"],
         base_url=MODEL["base_url"],
@@ -201,6 +208,7 @@ def build(db_path: Path, events: Path, mode: str, model_timing: ModelTiming):
                 "check_query",
             ),
             trusted_branches=("generate_query:branch:should_continue",),
+            record_audit=record_audit,
         )
     node_tools = (
         tool_set if mode == "Argus" else (list_tables_tool, get_schema_tool, run_query_tool)
@@ -337,13 +345,20 @@ def main() -> None:
     parser.add_argument("--events", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--mode", choices=("Baseline", "Argus"), required=True)
+    parser.add_argument("--audit", action="store_true")
     args = parser.parse_args()
+    if args.audit and args.mode != "Argus":
+        parser.error("--audit is only valid with --mode Argus")
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
-    started = time.perf_counter()
+    preparation_started = time.perf_counter()
     model_timing = ModelTiming()
     graph, security, dispatcher, audit = build(
-        args.database.resolve(), args.events, args.mode, model_timing
+        args.database.resolve(),
+        args.events,
+        args.mode,
+        model_timing,
+        record_audit=args.audit,
     )
     config = {"recursion_limit": 50}
     if security is not None:
@@ -352,13 +367,18 @@ def main() -> None:
             Principal("alice", frozenset(), frozenset(), "D1-resource-monitor"),
             modules=security.modules,
         )
+    preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    invocation_started = time.perf_counter()
     result = graph.invoke({"messages": [("user", args.prompt)]}, config=config)
+    invocation_ms = (time.perf_counter() - invocation_started) * 1000
     args.output.write_text(
         json.dumps(
             {
                 "messages": [message.model_dump() for message in result["messages"]],
                 "answer": str(result["messages"][-1].content),
-                "wall_ms": (time.perf_counter() - started) * 1000,
+                "wall_ms": invocation_ms,
+                "invocation_ms": invocation_ms,
+                "preparation_ms": preparation_ms,
                 "model_time_ms": model_timing.wall_ms,
                 "model_calls": model_timing.calls,
                 "authorization_decisions": [serial(item) for item in audit.records()]

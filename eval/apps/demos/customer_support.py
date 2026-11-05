@@ -160,6 +160,8 @@ def build(
     notebook: Path,
     faq_path: Path,
     mode: str,
+    *,
+    record_audit: bool = False,
 ):
     namespace = dict(globals())
     namespace.update({"db": str(database), "tool": tool})
@@ -323,6 +325,7 @@ def build(
             },
             trusted_nodes=("request_user_info", "format_user_info", "assistant"),
             trusted_branches=("assistant:branch:route_tools",),
+            record_audit=record_audit,
         )
     safe_tools = [frozen_search, fetch, search, lookup_policy]
     sensitive_tools = [update, cancel]
@@ -479,16 +482,28 @@ def main() -> None:
     parser.add_argument("--task-id", type=int, choices=range(1, 6), required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--mode", choices=("Baseline", "Argus"), required=True)
+    parser.add_argument("--audit", action="store_true")
     args = parser.parse_args()
+    if args.audit and args.mode != "Argus":
+        parser.error("--audit is only valid with --mode Argus")
     prepare_database(args.source_database, args.database)
     before = snapshot(args.database)
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
-    started = time.perf_counter()
+    preparation_started = time.perf_counter()
     model_timing = ModelTiming()
     _MODEL_TIMING = model_timing
-    graph, security, dispatcher, audit = build(args.database, args.notebook, args.faq, args.mode)
+    graph, security, dispatcher, audit = build(
+        args.database,
+        args.notebook,
+        args.faq,
+        args.mode,
+        record_audit=args.audit,
+    )
+    preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    invocation_started = time.perf_counter()
     result = drive(graph, args.task_id, security)
+    invocation_ms = (time.perf_counter() - invocation_started) * 1000
     after = snapshot(args.database)
     state = result["state"] or {"messages": []}
     args.output.write_text(
@@ -498,7 +513,9 @@ def main() -> None:
                 "after": after,
                 "interrupts": result["interrupts"],
                 "messages": [message.model_dump() for message in state.get("messages", [])],
-                "wall_ms": (time.perf_counter() - started) * 1000,
+                "wall_ms": invocation_ms,
+                "invocation_ms": invocation_ms,
+                "preparation_ms": preparation_ms,
                 "model_time_ms": model_timing.wall_ms,
                 "model_calls": model_timing.calls,
                 "frozen_now": FROZEN_NOW.isoformat(),

@@ -126,9 +126,10 @@ def security(
     *,
     trusted_nodes: frozenset[str] = frozenset(),
     trusted_branches: frozenset[str] = frozenset(),
+    record_audit: bool = False,
 ):
     worker_route = worker_route.resolve()
-    audit = MemoryAuditSink()
+    audit = MemoryAuditSink() if record_audit else None
     checker = selected_lifecycle_checker(
         worker_route, runtime_path=LEAN_RUNTIME, runtime_sha256=LEAN_RUNTIME_SHA256
     )
@@ -188,7 +189,14 @@ def custom_weather_graph(selected, model_timing: ModelTiming):
     return builder.compile(security=selected)
 
 
-def build(demo: str, mode: str, worker_route: Path | None, model_timing: ModelTiming):
+def build(
+    demo: str,
+    mode: str,
+    worker_route: Path | None,
+    model_timing: ModelTiming,
+    *,
+    record_audit: bool = False,
+):
     definitions = {
         "prebuilt-multiply": (
             ("multiply",),
@@ -242,6 +250,7 @@ def build(demo: str, mode: str, worker_route: Path | None, model_timing: ModelTi
             worker_route,
             trusted_nodes=trusted_nodes,
             trusted_branches=trusted_branches,
+            record_audit=record_audit,
         )
     chosen = [TOOLS[name] for name in names]
     if demo == "return-direct":
@@ -310,18 +319,26 @@ def main() -> None:
     parser.add_argument("--mode", choices=("Baseline", "Argus"), required=True)
     parser.add_argument("--worker-route", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--audit", action="store_true")
     args = parser.parse_args()
+    if args.audit and args.mode != "Argus":
+        parser.error("--audit is only valid with --mode Argus")
     if args.mode == "Argus":
         install_mac_policy(OPERATOR_POLICY)
-    started = time.perf_counter()
+    preparation_started = time.perf_counter()
     model_timing = ModelTiming()
     graph, prompt, selected, dispatcher, audit = build(
-        args.demo, args.mode, args.worker_route, model_timing
+        args.demo,
+        args.mode,
+        args.worker_route,
+        model_timing,
+        record_audit=args.audit,
     )
     principal = Principal("alice", frozenset(), frozenset(), f"{args.demo}-{uuid.uuid4().hex}")
     config = {"recursion_limit": 20}
     if selected is not None:
         config = with_principal(config, principal, modules=selected.modules)
+    preparation_ms = (time.perf_counter() - preparation_started) * 1000
     if args.demo == "fixed-weather":
         graph_input = {
             "messages": [
@@ -362,8 +379,9 @@ def main() -> None:
         }
     else:
         graph_input = {"messages": [("user", prompt)]}
+    invocation_started = time.perf_counter()
     result = graph.invoke(graph_input, config=config)
-    wall_ms = (time.perf_counter() - started) * 1000
+    invocation_ms = (time.perf_counter() - invocation_started) * 1000
     messages = result["messages"]
     tool_messages = [message for message in messages if message.type == "tool"]
     args.output.write_text(
@@ -372,7 +390,9 @@ def main() -> None:
                 "demo": args.demo,
                 "mode": args.mode,
                 "prompt": prompt,
-                "wall_ms": wall_ms,
+                "wall_ms": invocation_ms,
+                "invocation_ms": invocation_ms,
+                "preparation_ms": preparation_ms,
                 "model_time_ms": model_timing.wall_ms,
                 "model_calls": model_timing.calls,
                 "answer": str(messages[-1].content),

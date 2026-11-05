@@ -89,6 +89,8 @@ def build(
     observer: Path,
     mode: str,
     model_timing: ModelTiming,
+    *,
+    record_audit: bool = False,
 ):
     payload = json.loads(gdp_path.read_text())[1]
     documents = []
@@ -222,6 +224,7 @@ def build(
                 "chart_model:branch:route_chart",
                 "chart_handoff:branch:route_after_chart",
             ),
+            record_audit=record_audit,
         )
 
     research_model = llm().bind_tools([tavily_tool])
@@ -302,13 +305,21 @@ def main() -> None:
     parser.add_argument("--observer", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--mode", choices=("Baseline", "Argus"), required=True)
+    parser.add_argument("--audit", action="store_true")
     args = parser.parse_args()
+    if args.audit and args.mode != "Argus":
+        parser.error("--audit is only valid with --mode Argus")
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
-    started = time.perf_counter()
+    preparation_started = time.perf_counter()
     model_timing = ModelTiming()
     graph, security, dispatcher, audit, python_backend = build(
-        args.gdp, args.artifact, args.observer, args.mode, model_timing
+        args.gdp,
+        args.artifact,
+        args.observer,
+        args.mode,
+        model_timing,
+        record_audit=args.audit,
     )
     config = {"recursion_limit": 150}
     if security is not None:
@@ -317,11 +328,14 @@ def main() -> None:
             Principal("alice", frozenset(), frozenset(), "D4-resource-monitor"),
             modules=security.modules,
         )
+    preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    invocation_started = time.perf_counter()
     try:
         result = graph.invoke({"messages": [("user", args.prompt)]}, config)
     finally:
         if python_backend is not None:
             python_backend.close()
+    invocation_ms = (time.perf_counter() - invocation_started) * 1000
     args.output.write_text(
         json.dumps(
             {
@@ -329,7 +343,9 @@ def main() -> None:
                 "messages": [message.model_dump() for message in result["messages"]],
                 "artifact": str(args.artifact),
                 "observer": str(args.observer),
-                "wall_ms": (time.perf_counter() - started) * 1000,
+                "wall_ms": invocation_ms,
+                "invocation_ms": invocation_ms,
+                "preparation_ms": preparation_ms,
                 "model_time_ms": model_timing.wall_ms,
                 "model_calls": model_timing.calls,
                 "authorization_decisions": [serial(item) for item in audit.records()]

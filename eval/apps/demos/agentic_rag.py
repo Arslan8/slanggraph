@@ -101,7 +101,13 @@ def serial(value):
     return str(value)
 
 
-def build(paths: list[Path], mode: str, model_timing: ModelTiming):
+def build(
+    paths: list[Path],
+    mode: str,
+    model_timing: ModelTiming,
+    *,
+    record_audit: bool = False,
+):
     documents = chunks(paths)
     vectorizer = TfidfVectorizer(stop_words="english").fit(documents)
     matrix = vectorizer.transform(documents)
@@ -165,6 +171,7 @@ def build(paths: list[Path], mode: str, model_timing: ModelTiming):
                 "agent:branch:route_tools",
                 "retrieve:branch:grade_documents",
             ),
+            record_audit=record_audit,
         )
 
     tools = [retrieve_blog_posts]
@@ -240,12 +247,20 @@ def main() -> None:
     parser.add_argument("--prompt", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--mode", choices=("Baseline", "Argus"), required=True)
+    parser.add_argument("--audit", action="store_true")
     args = parser.parse_args()
+    if args.audit and args.mode != "Argus":
+        parser.error("--audit is only valid with --mode Argus")
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
-    started = time.perf_counter()
+    preparation_started = time.perf_counter()
     model_timing = ModelTiming()
-    graph, security, dispatcher, audit = build(args.documents, args.mode, model_timing)
+    graph, security, dispatcher, audit = build(
+        args.documents,
+        args.mode,
+        model_timing,
+        record_audit=args.audit,
+    )
     config = {"recursion_limit": 50}
     if security is not None:
         config = with_principal(
@@ -253,13 +268,18 @@ def main() -> None:
             Principal("alice", frozenset(), frozenset(), "D2-resource-monitor"),
             modules=security.modules,
         )
+    preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    invocation_started = time.perf_counter()
     result = graph.invoke({"messages": [("user", args.prompt)]}, config)
+    invocation_ms = (time.perf_counter() - invocation_started) * 1000
     args.output.write_text(
         json.dumps(
             {
                 "answer": str(result["messages"][-1].content),
                 "messages": [message.model_dump() for message in result["messages"]],
-                "wall_ms": (time.perf_counter() - started) * 1000,
+                "wall_ms": invocation_ms,
+                "invocation_ms": invocation_ms,
+                "preparation_ms": preparation_ms,
                 "model_time_ms": model_timing.wall_ms,
                 "model_calls": model_timing.calls,
                 "authorization_decisions": [serial(item) for item in audit.records()]

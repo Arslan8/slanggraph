@@ -27,13 +27,37 @@ def percentile(values: list[float], fraction: float) -> float:
     return ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
 
 
-def ratio_for(records: list[dict], repetitions: list[int]) -> float:
+def timing_samples(records: list[dict], repetitions: list[int]) -> dict[str, list[float]]:
     samples = {mode: [] for mode in MODES}
     for repetition in repetitions:
-        for record in records:
-            if record["repetition"] == repetition:
-                samples[record["mode"]].append(record["wall_ms"])
+        selected = [item for item in records if item["repetition"] == repetition]
+        by_pair: dict[tuple[str, int, int], dict[str, dict]] = {}
+        for record in selected:
+            key = (record["application"], record["repetition"], record["task"])
+            by_pair.setdefault(key, {})[record["mode"]] = record
+        for pair in by_pair.values():
+            if set(pair) != set(MODES):
+                continue
+            if not all(
+                item["status"] == "completed"
+                and item["correct"]
+                and item.get("invocation_ms") is not None
+                for item in pair.values()
+            ):
+                continue
+            for mode in MODES:
+                samples[mode].append(pair[mode]["invocation_ms"])
+    return samples
+
+
+def ratio_for(records: list[dict], repetitions: list[int]) -> float:
+    samples = timing_samples(records, repetitions)
     return statistics.fmean(samples["Argus"]) / statistics.fmean(samples["Baseline"])
+
+
+def mean_or_none(values) -> float | None:
+    selected = list(values)
+    return statistics.fmean(selected) if selected else None
 
 
 def summarize_mode(records: list[dict]) -> dict:
@@ -45,7 +69,10 @@ def summarize_mode(records: list[dict]) -> dict:
         "timeouts": sum(item["status"] == "timeout" for item in records),
         "compatibility_failures": sum(item["status"] == "compatibility_failed" for item in records),
         "execution_errors": sum(item["status"] == "execution_error" for item in records),
-        "mean_wall_ms": statistics.fmean(item["wall_ms"] for item in records),
+        "mean_process_wall_ms": statistics.fmean(item["process_wall_ms"] for item in records),
+        "mean_preparation_ms": mean_or_none(
+            item["preparation_ms"] for item in records if item.get("preparation_ms") is not None
+        ),
         "mean_model_ms": statistics.fmean(model_times) if model_times else None,
         "model_calls": sum(item["model_calls"] or 0 for item in records),
         "security_evidence_trials": sum(item["security_evidence"] for item in records),
@@ -78,12 +105,23 @@ def main() -> None:
             mode: summarize_mode([item for item in selected if item["mode"] == mode])
             for mode in MODES
         }
-        paired = len({item["task"] for item in selected if item["mode"] == "Baseline"}) == len(
-            {item["task"] for item in selected if item["mode"] == "Argus"}
-        ) and all(modes[mode]["attempts"] > 0 for mode in MODES)
-        runnable = all(modes[mode]["completed"] > 0 for mode in MODES)
-        application_result = {"modes": modes, "paired": paired, "runnable": runnable}
-        if paired and runnable:
+        population_paired = len(
+            {item["task"] for item in selected if item["mode"] == "Baseline"}
+        ) == len({item["task"] for item in selected if item["mode"] == "Argus"}) and all(
+            modes[mode]["attempts"] > 0 for mode in MODES
+        )
+        samples = timing_samples(selected, repetitions)
+        matched_pairs = len(samples["Baseline"])
+        for mode in MODES:
+            modes[mode]["matched_mean_invocation_ms"] = (
+                statistics.fmean(samples[mode]) if samples[mode] else None
+            )
+        application_result = {
+            "modes": modes,
+            "population_paired": population_paired,
+            "matched_successful_pairs": matched_pairs,
+        }
+        if population_paired and matched_pairs:
             ratio = ratio_for(selected, repetitions)
             bootstrap = [ratio_for(selected, sample) for sample in resampled_blocks]
             application_result.update(
@@ -103,42 +141,31 @@ def main() -> None:
             included.append(application)
         else:
             application_result["exclusion"] = (
-                "unpaired cohort" if not paired else "no completed trial in at least one mode"
+                "unpaired cohort"
+                if not population_paired
+                else "no pair completed correctly in both modes"
             )
         results[application] = application_result
 
     ratios = [results[item]["ratio"] for item in included]
-    suite_ratio = math.exp(statistics.fmean(math.log(value) for value in ratios))
-    suite_bootstrap = []
+    geometric_ratio = math.exp(statistics.fmean(math.log(value) for value in ratios))
+    latency_records = [item for item in records if item["application"] in included]
+    suite_ratio = ratio_for(latency_records, repetitions)
+    suite_bootstrap = [ratio_for(latency_records, sample) for sample in resampled_blocks]
+    geometric_bootstrap = []
     for sample in resampled_blocks:
-        sampled_ratios = []
-        for application in included:
-            selected = [item for item in records if item["application"] == application]
-            sampled_ratios.append(ratio_for(selected, sample))
-        suite_bootstrap.append(
-            math.exp(statistics.fmean(math.log(value) for value in sampled_ratios))
-        )
-    utility_matched = [
-        application
-        for application in included
-        if results[application]["modes"]["Baseline"]["correct"]
-        == results[application]["modes"]["Argus"]["correct"]
-    ]
-    utility_ratio = math.exp(
-        statistics.fmean(math.log(results[item]["ratio"]) for item in utility_matched)
-    )
-    utility_bootstrap = []
-    for sample in resampled_blocks:
-        sampled_ratios = []
-        for application in utility_matched:
-            selected = [item for item in records if item["application"] == application]
-            sampled_ratios.append(ratio_for(selected, sample))
-        utility_bootstrap.append(
+        sampled_ratios = [
+            ratio_for([item for item in records if item["application"] == application], sample)
+            for application in included
+        ]
+        geometric_bootstrap.append(
             math.exp(statistics.fmean(math.log(value) for value in sampled_ratios))
         )
     statistics_output = {
         "run_id": args.run_id,
-        "primary_timer": "parent subprocess wall clock including process startup",
+        "primary_timer": "application invocation wall clock after preparation",
+        "latency_population": "task/repetition pairs completed correctly in both modes",
+        "audit": "disabled in primary modes; measured separately as an explicit special case",
         "attempts": len(records),
         "repetitions": len(repetitions),
         "bootstrap": {
@@ -150,8 +177,8 @@ def main() -> None:
         "suite": {
             "included": included,
             "excluded": [item for item in applications if item not in included],
-            "geometric_mean_ratio": suite_ratio,
-            "geometric_mean_overhead_percent": 100 * (suite_ratio - 1),
+            "pooled_matched_ratio": suite_ratio,
+            "pooled_matched_overhead_percent": 100 * (suite_ratio - 1),
             "ratio_ci95": [
                 percentile(suite_bootstrap, 0.025),
                 percentile(suite_bootstrap, 0.975),
@@ -160,27 +187,27 @@ def main() -> None:
                 100 * (percentile(suite_bootstrap, 0.025) - 1),
                 100 * (percentile(suite_bootstrap, 0.975) - 1),
             ],
-            "utility_matched_secondary": {
-                "included": utility_matched,
-                "geometric_mean_ratio": utility_ratio,
-                "geometric_mean_overhead_percent": 100 * (utility_ratio - 1),
+            "equal_application_weight_secondary": {
+                "included": included,
+                "geometric_mean_ratio": geometric_ratio,
+                "geometric_mean_overhead_percent": 100 * (geometric_ratio - 1),
                 "ratio_ci95": [
-                    percentile(utility_bootstrap, 0.025),
-                    percentile(utility_bootstrap, 0.975),
+                    percentile(geometric_bootstrap, 0.025),
+                    percentile(geometric_bootstrap, 0.975),
                 ],
                 "overhead_ci95_percent": [
-                    100 * (percentile(utility_bootstrap, 0.025) - 1),
-                    100 * (percentile(utility_bootstrap, 0.975) - 1),
+                    100 * (percentile(geometric_bootstrap, 0.025) - 1),
+                    100 * (percentile(geometric_bootstrap, 0.975) - 1),
                 ],
                 "interpretation": (
-                    "Sensitivity analysis limited to applications with identical task-success "
-                    "counts in both modes; it is not a replacement suite average."
+                    "Secondary equal-application-weight summary. It magnifies ratios for "
+                    "very short applications and is not the primary overhead estimate."
                 ),
             },
             "interpretation": (
-                "Attempt-duration summary over runnable applications. Differing correctness, "
-                "compatibility failures, and capped timeouts remain in the means, so this is "
-                "not a pure enforcement-only overhead estimate."
+                "Ratio of pooled invocation durations over matched task/repetition pairs that "
+                "completed correctly in both modes. Preparation, process startup, audit, "
+                "failures, and timeouts are excluded from the overhead estimate."
             ),
         },
     }
@@ -190,11 +217,12 @@ def main() -> None:
         "# Matched ordinary-demo results",
         "",
         f"Run `{args.run_id}` contains {len(records)} retained attempts in "
-        f"{len(repetitions)} paired repetition blocks. The primary timer includes process startup.",
+        f"{len(repetitions)} paired repetition blocks. The primary timer begins after "
+        "application and Argus preparation. Audit is disabled in both primary modes.",
         "",
-        "| Application | Baseline success | Argus success | Status B/A | "
-        "Baseline mean (ms) | Argus mean (ms) | Ratio [95% CI] |",
-        "|---|---:|---:|---|---:|---:|---:|",
+        "| Application | Baseline success | Argus success | Status B/A | Matched pairs | "
+        "Preparation B/A (ms) | Invocation B/A (ms) | Ratio [95% CI] |",
+        "|---|---:|---:|---|---:|---:|---:|---:|",
     ]
     for application in applications:
         item = results[application]
@@ -213,45 +241,65 @@ def main() -> None:
             f"C{argus['completed']}/F{argus['compatibility_failures']}/"
             f"E{argus['execution_errors']}/T{argus['timeouts']}"
         )
+        baseline_preparation = (
+            f"{baseline['mean_preparation_ms']:.1f}"
+            if baseline["mean_preparation_ms"] is not None
+            else "n/a"
+        )
+        argus_preparation = (
+            f"{argus['mean_preparation_ms']:.1f}"
+            if argus["mean_preparation_ms"] is not None
+            else "n/a"
+        )
+        baseline_invocation = (
+            f"{baseline['matched_mean_invocation_ms']:.1f}"
+            if baseline["matched_mean_invocation_ms"] is not None
+            else "n/a"
+        )
+        argus_invocation = (
+            f"{argus['matched_mean_invocation_ms']:.1f}"
+            if argus["matched_mean_invocation_ms"] is not None
+            else "n/a"
+        )
         lines.append(
             f"| {application} | {baseline['correct']}/{baseline['attempts']} | "
             f"{argus['correct']}/{argus['attempts']} | {baseline_status} / {argus_status} | "
-            f"{baseline['mean_wall_ms']:.1f} | {argus['mean_wall_ms']:.1f} | {ratio} |"
+            f"{item['matched_successful_pairs']} | "
+            f"{baseline_preparation}/{argus_preparation} | "
+            f"{baseline_invocation}/{argus_invocation} | {ratio} |"
         )
     suite = statistics_output["suite"]
-    utility = suite["utility_matched_secondary"]
+    equal_weight = suite["equal_application_weight_secondary"]
     lines.extend(
         (
             "",
-            "The suite result is the geometric mean of per-application attempt-duration ratios, "
-            "not a pooled ratio or arithmetic mean of percentages. Because utility and failure "
-            "status differ for some included applications, it is not a pure enforcement-only "
-            "overhead estimate.",
+            "The primary suite result pools invocation time from task/repetition pairs that "
+            "completed correctly in both modes. It excludes preparation, interpreter startup, "
+            "audit logging, failures, and timeout caps.",
             "Status abbreviations: C=completed, F=compatibility failure, "
             "E=execution error, T=timeout. D4 timeout durations are capped at 300 seconds.",
             "",
             f"Included applications: {', '.join(included)}.",
             f"Excluded applications: {', '.join(suite['excluded']) or 'none'}.",
-            f"Geometric-mean ratio: **{suite_ratio:.3f}x** "
+            f"Pooled matched invocation ratio: **{suite_ratio:.3f}x** "
             f"(95% paired-block CI {suite['ratio_ci95'][0]:.3f}-"
             f"{suite['ratio_ci95'][1]:.3f}); "
-            f"overhead **{suite['geometric_mean_overhead_percent']:.1f}%**.",
+            f"overhead **{suite['pooled_matched_overhead_percent']:.1f}%**.",
             "",
-            "No defensible overhead average exists over all 15 applications. Excluded "
-            "applications have no completed trial in at least one mode; their failed-attempt "
-            "durations are retained in the table but never treated as successful latency.",
+            "Excluded applications have no task/repetition pair that completed correctly in "
+            "both modes. Their failures remain in the status table but are never treated as "
+            "successful latency.",
             "",
-            "As a secondary sensitivity analysis, applications with the same success count "
-            "in both modes have geometric-mean ratio "
-            f"**{utility['geometric_mean_ratio']:.3f}x** "
-            f"(95% CI {utility['ratio_ci95'][0]:.3f}-"
-            f"{utility['ratio_ci95'][1]:.3f}); overhead "
-            f"**{utility['geometric_mean_overhead_percent']:.1f}%** across "
-            f"{len(utility['included'])} applications.",
+            "The secondary equal-application-weight geometric mean is "
+            f"**{equal_weight['geometric_mean_ratio']:.3f}x** "
+            f"(95% CI {equal_weight['ratio_ci95'][0]:.3f}-"
+            f"{equal_weight['ratio_ci95'][1]:.3f}); overhead "
+            f"**{equal_weight['geometric_mean_overhead_percent']:.1f}%**. It is retained as "
+            "a sensitivity analysis because very short applications can dominate ratios.",
             "",
-            "Timeout-capped attempts, failures, and refusals remain in the per-mode means. "
-            "Success counts are reported separately so a failed fast run is not presented "
-            "as useful speed.",
+            "Preparation and parent-process wall time remain in `statistics.json` as separate "
+            "diagnostics. Audit-on performance is a separate special case and is not called "
+            "Argus overhead.",
         )
     )
     (output / "RESULTS.md").write_text("\n".join(lines) + "\n")
@@ -275,9 +323,9 @@ def main() -> None:
         capsize=3,
     )
     axis.axhline(1.0, color="black", linewidth=1, linestyle="--")
-    axis.set_ylabel("Complete-system runtime (matching Baseline = 1.0x)")
+    axis.set_ylabel("Matched invocation runtime (Baseline = 1.0x)")
     axis.set_xticks(range(len(plotted)), plotted, rotation=45, ha="right")
-    axis.set_title("Argus ordinary-demo overhead; paired repetition-block 95% intervals")
+    axis.set_title("Argus invocation overhead; preparation and audit excluded")
     figure.tight_layout()
     figure.savefig(output / "application-overhead.png", dpi=180)
     plt.close(figure)

@@ -36,6 +36,7 @@ def monitored_security(
     permissions: Mapping[str, Sequence[str]],
     trusted_nodes: Sequence[str] = (),
     trusted_branches: Sequence[str] = (),
+    record_audit: bool = False,
 ):
     """Build one closed-admission policy over several typed resource tools."""
     declarations = [FS_CLASS]
@@ -67,7 +68,7 @@ def monitored_security(
         tool_owners={item.name: "application" for item in tools},
     )
     executor.validate_tools(tuple(item.name for item in tools))
-    audit = MemoryAuditSink()
+    audit = MemoryAuditSink() if record_audit else None
     config = SecurityConfig(
         host_executor=executor,
         dac_overrides=DacOverrides({item.name: ToolDac("__cedar__", {"*": "x"}) for item in tools}),

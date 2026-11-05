@@ -87,7 +87,13 @@ def serial(value):
     return str(value)
 
 
-def build(corpus_path: Path, mode: str, model_timing: ModelTiming):
+def build(
+    corpus_path: Path,
+    mode: str,
+    model_timing: ModelTiming,
+    *,
+    record_audit: bool = False,
+):
     corpus = json.loads(corpus_path.read_text())
     texts = [f"{item['title']} {item['content']}" for item in corpus]
     vectorizer = TfidfVectorizer(stop_words="english").fit(texts)
@@ -160,6 +166,7 @@ def build(corpus_path: Path, mode: str, model_timing: ModelTiming):
                 "agent_model:branch:route_agent",
                 "replan:branch:should_end",
             ),
+            record_audit=record_audit,
         )
     bound = llm().bind_tools([frozen_search])
     planner_prompt = ChatPromptTemplate.from_messages(
@@ -236,9 +243,14 @@ If no more steps are needed, respond to the user. Otherwise return only steps st
 async def run(args) -> None:
     if args.mode == "Argus":
         install_mac_policy('forbid(principal == slangGraph::User::"blocked", action, resource);')
-    started = time.perf_counter()
+    preparation_started = time.perf_counter()
     model_timing = ModelTiming()
-    graph, security, dispatcher, audit = build(args.corpus, args.mode, model_timing)
+    graph, security, dispatcher, audit = build(
+        args.corpus,
+        args.mode,
+        model_timing,
+        record_audit=args.audit,
+    )
     config = {"recursion_limit": 50}
     if security is not None:
         config = with_principal(
@@ -246,8 +258,10 @@ async def run(args) -> None:
             Principal("alice", frozenset(), frozenset(), "D3-resource-monitor"),
             modules=security.modules,
         )
+    preparation_ms = (time.perf_counter() - preparation_started) * 1000
     status = "completed"
     error = None
+    invocation_started = time.perf_counter()
     try:
         result = await graph.ainvoke(
             {
@@ -263,6 +277,7 @@ async def run(args) -> None:
         status = "execution_error"
         error = f"{type(exc).__name__}: {exc}"
         result = {}
+    invocation_ms = (time.perf_counter() - invocation_started) * 1000
     args.output.write_text(
         json.dumps(
             {
@@ -270,7 +285,9 @@ async def run(args) -> None:
                 "state": result,
                 "status": status,
                 "error": error,
-                "wall_ms": (time.perf_counter() - started) * 1000,
+                "wall_ms": invocation_ms,
+                "invocation_ms": invocation_ms,
+                "preparation_ms": preparation_ms,
                 "model_time_ms": model_timing.wall_ms,
                 "model_calls": model_timing.calls,
                 "authorization_decisions": [serial(item) for item in audit.records()]
@@ -301,4 +318,8 @@ if __name__ == "__main__":
     parser.add_argument("--prompt", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--mode", choices=("Baseline", "Argus"), required=True)
-    asyncio.run(run(parser.parse_args()))
+    parser.add_argument("--audit", action="store_true")
+    args = parser.parse_args()
+    if args.audit and args.mode != "Argus":
+        parser.error("--audit is only valid with --mode Argus")
+    asyncio.run(run(args))

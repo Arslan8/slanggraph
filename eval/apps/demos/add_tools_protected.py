@@ -82,9 +82,9 @@ def serial(value):
     return str(value)
 
 
-def security(worker_route: Path):
+def security(worker_route: Path, *, record_audit: bool = False):
     worker_route = worker_route.resolve()
-    audit = MemoryAuditSink()
+    audit = MemoryAuditSink() if record_audit else None
     checker = selected_lifecycle_checker(
         worker_route, runtime_path=LEAN_RUNTIME, runtime_sha256=LEAN_RUNTIME_SHA256
     )
@@ -119,7 +119,13 @@ def security(worker_route: Path):
     return config, dispatcher, audit
 
 
-def build(mode: str, worker_route: Path | None, model_timing: ModelTiming):
+def build(
+    mode: str,
+    worker_route: Path | None,
+    model_timing: ModelTiming,
+    *,
+    record_audit: bool = False,
+):
     model = ChatOpenAI(
         model="qwen3:8b",
         base_url="http://127.0.0.1:11434/v1",
@@ -135,7 +141,7 @@ def build(mode: str, worker_route: Path | None, model_timing: ModelTiming):
     if mode == "Argus":
         if worker_route is None:
             raise ValueError("Argus requires the pinned Lean worker route")
-        selected, dispatcher, audit = security(worker_route)
+        selected, dispatcher, audit = security(worker_route, record_audit=record_audit)
     builder = StateGraph(State)
 
     def chatbot(state: State):
@@ -158,18 +164,28 @@ def main() -> None:
     parser.add_argument("--prompt", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--worker-route", type=Path)
+    parser.add_argument("--audit", action="store_true")
     args = parser.parse_args()
+    if args.audit and args.mode != "Argus":
+        parser.error("--audit is only valid with --mode Argus")
     if args.mode == "Argus":
         install_mac_policy(OPERATOR_POLICY)
-    started = time.perf_counter()
+    preparation_started = time.perf_counter()
     model_timing = ModelTiming()
-    graph, selected, dispatcher, audit = build(args.mode, args.worker_route, model_timing)
+    graph, selected, dispatcher, audit = build(
+        args.mode,
+        args.worker_route,
+        model_timing,
+        record_audit=args.audit,
+    )
     principal = Principal("alice", frozenset(), frozenset(), f"add-tools-{uuid.uuid4().hex}")
     config = {"recursion_limit": 20}
     if selected is not None:
         config = with_principal(config, principal, modules=selected.modules)
+    preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    invocation_started = time.perf_counter()
     result = graph.invoke({"messages": [("user", args.prompt)]}, config=config)
-    elapsed = (time.perf_counter() - started) * 1000
+    invocation_ms = (time.perf_counter() - invocation_started) * 1000
     tool_messages = [message for message in result["messages"] if message.type == "tool"]
     args.output.write_text(
         json.dumps(
@@ -182,7 +198,9 @@ def main() -> None:
                     "seed": 20261005,
                     "reasoning_effort": "none",
                 },
-                "wall_ms": elapsed,
+                "wall_ms": invocation_ms,
+                "invocation_ms": invocation_ms,
+                "preparation_ms": preparation_ms,
                 "model_time_ms": model_timing.wall_ms,
                 "model_calls": model_timing.calls,
                 "answer": str(result["messages"][-1].content),
@@ -207,7 +225,7 @@ def main() -> None:
                     "principal_authorization": selected is not None,
                     "sealed_operator_policy": selected is not None,
                     "linux_isolation": selected is not None,
-                    "audit": selected is not None,
+                    "audit": args.audit,
                     "lean_per_call": selected is not None,
                 },
             },

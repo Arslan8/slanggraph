@@ -85,13 +85,20 @@ def common_metadata() -> dict:
             "object_authorizer": "exact-result cache (typed aggressive mode not on this route)",
         },
         "integrity_recheck": "preflight-only",
+        "audit": {
+            "primary_modes": "disabled",
+            "special_case": "measure separately with run_broker_costs.py --audit",
+        },
         "upstream_commit": "23961cff61a42b52525f3b20b4094d8d2fba1744",
         "task_digest": sha256(tasks),
         "fixture_digests": {str(path.relative_to(ROOT)): sha256(path) for path in fixtures},
         "source_digests": {str(path.relative_to(ROOT)): sha256(path) for path in scripts},
         "worker_route_digest": sha256(WORKER),
         "timeouts_seconds": {"D1-D3_and_T1-T10": 180, "D4-D5": 300},
-        "primary_timer": "parent subprocess wall clock, including process startup",
+        "primary_timer": "application-reported invocation wall clock after preparation",
+        "secondary_timers": (
+            "application preparation and parent subprocess wall clock are retained separately"
+        ),
     }
 
 
@@ -397,10 +404,13 @@ def execute(job: Job, root: Path, tasks: dict) -> dict:
         "status": status,
         "correct": correct,
         "wall_ms": wall_ms,
+        "process_wall_ms": wall_ms,
         "timeout_cap_seconds": timeout,
         "censored": timed_out,
         "returncode": returncode,
         "inner_wall_ms": inner.get("wall_ms"),
+        "invocation_ms": inner.get("invocation_ms", inner.get("wall_ms")),
+        "preparation_ms": inner.get("preparation_ms"),
         "model_time_ms": inner.get("model_time_ms"),
         "model_calls": inner.get("model_calls"),
         "security_evidence": security_evidence,
@@ -489,7 +499,9 @@ def main() -> None:
             records.append(record)
             print(
                 f"{job.repetition} {job.application} {job.task} {job.mode}: "
-                f"{record['status']} correct={record['correct']} {record['wall_ms']:.1f} ms",
+                f"{record['status']} correct={record['correct']} "
+                f"invocation={record['invocation_ms']} ms "
+                f"preparation={record['preparation_ms']} ms",
                 flush=True,
             )
     (root / "trials.json").write_text(json.dumps(records, indent=2) + "\n")

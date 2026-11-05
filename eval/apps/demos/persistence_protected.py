@@ -48,12 +48,18 @@ def serial(value):
     return str(value)
 
 
-def build(mode: str, worker_route: Path | None, model_timing: ModelTiming):
+def build(
+    mode: str,
+    worker_route: Path | None,
+    model_timing: ModelTiming,
+    *,
+    record_audit: bool = False,
+):
     selected = dispatcher = audit = None
     if mode == "Argus":
         if worker_route is None:
             raise ValueError("Argus requires the pinned Lean worker route")
-        selected, dispatcher, audit = security(worker_route)
+        selected, dispatcher, audit = security(worker_route, record_audit=record_audit)
     llm = ChatOpenAI(
         model="qwen3:8b",
         base_url="http://127.0.0.1:11434/v1",
@@ -87,12 +93,20 @@ def main() -> None:
     parser.add_argument("--mode", choices=("Baseline", "Argus"), required=True)
     parser.add_argument("--worker-route", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--audit", action="store_true")
     args = parser.parse_args()
+    if args.audit and args.mode != "Argus":
+        parser.error("--audit is only valid with --mode Argus")
     if args.mode == "Argus":
         install_mac_policy(OPERATOR_POLICY)
-    started = time.perf_counter()
+    preparation_started = time.perf_counter()
     model_timing = ModelTiming()
-    graph, selected, dispatcher, audit = build(args.mode, args.worker_route, model_timing)
+    graph, selected, dispatcher, audit = build(
+        args.mode,
+        args.worker_route,
+        model_timing,
+        record_audit=args.audit,
+    )
     thread_id = uuid.uuid4().hex
     principal = Principal("alice", frozenset(), frozenset(), f"{args.demo}-{uuid.uuid4().hex}")
     config = {
@@ -101,6 +115,8 @@ def main() -> None:
     }
     if selected is not None:
         config = with_principal(config, principal, modules=selected.modules)
+    preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    invocation_started = time.perf_counter()
     first = graph.invoke(
         {
             "messages": [
@@ -140,7 +156,7 @@ def main() -> None:
             replay_config = with_principal(replay_config, principal, modules=selected.modules)
         final = graph.invoke(None, config=replay_config)
         replayed = True
-    wall_ms = (time.perf_counter() - started) * 1000
+    invocation_ms = (time.perf_counter() - invocation_started) * 1000
     all_messages = final["messages"]
     tool_messages = [message for message in all_messages if message.type == "tool"]
     args.output.write_text(
@@ -148,7 +164,9 @@ def main() -> None:
             {
                 "demo": args.demo,
                 "mode": args.mode,
-                "wall_ms": wall_ms,
+                "wall_ms": invocation_ms,
+                "invocation_ms": invocation_ms,
+                "preparation_ms": preparation_ms,
                 "model_time_ms": model_timing.wall_ms,
                 "model_calls": model_timing.calls,
                 "first_answer": str(first["messages"][-1].content),
