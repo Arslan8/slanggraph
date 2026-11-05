@@ -1,7 +1,7 @@
 {
   "version": 1,
   "filesystem_policy": {
-    "include_workdir": true,
+    "include_workdir": false,
     "read_only": [
       "/bin",
       "/usr",
@@ -10,10 +10,14 @@
       "/etc",
       "/proc",
       "/dev/urandom",
-      "/home/faculty/abk6349/.local/share/uv"
+      "/home/faculty/abk6349/.local/share/uv",
+      "/data/langgraph/eval/.venv",
+      "/data/langgraph/eval/src",
+      "/data/langgraph/eval/apps/demos",
+      "/data/langgraph/eval/campaigns/langgraph-demos-v3/permissive-comparators/model_relay.py",
+      "/data/langgraph/libs"
     ],
     "read_write": [
-      "/data/langgraph",
       "/workspace",
       "/tmp",
       "/dev/null"
@@ -28,7 +32,7 @@
   },
   "network_policies": {
     "model-relay": {
-      "name": "unrestricted-local-model-relay",
+      "name": "local-model-relay-only",
       "endpoints": [
         {
           "host": "host.openshell.internal",

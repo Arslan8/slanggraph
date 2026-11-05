@@ -1,4 +1,4 @@
-"""Run the fixed 15 applications against permissive NoNo and APF/OpenShell."""
+"""Run the fixed 15 applications under enforceable NoNo and APF policies."""
 
 from __future__ import annotations
 
@@ -6,11 +6,14 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import random
 import subprocess
 import sys
 import time
 from pathlib import Path
+
+import yaml
 
 CAMPAIGN = Path(__file__).resolve().parent
 V3 = CAMPAIGN.parent
@@ -21,11 +24,23 @@ DEFAULT_NONO = ROOT / "eval/vendor/nono/target/release/nono"
 DEFAULT_OPENSHELL = ROOT / "eval/campaigns/remediation-v2/raw/openshell-setup/openshell"
 APF_POLICY = CAMPAIGN / "apf-policy.yaml"
 APF_PROJECTED_POLICY = CAMPAIGN / "apf-projected-policy.json"
+APF_EXPORTER = ROOT / "eval/remaining/apf_probe/target/debug/export_policy"
 DEFAULT_OPENSHELL_IMAGE_ID = (
     "sha256:82e95e8b7e3bb7ccdcf65c806a0b37435b0e086d36946b596e743a935eef8e19"
 )
 SEED = 20261028
-MODES = ("Baseline", "Argus", "NoNo-permissive", "APF-permissive")
+MODES = ("Baseline", "Argus", "NoNo-enforced", "APF-enforced")
+APF_IMAGE = "slg-apf-apps:bd035dd06"
+MODEL_RELAY = (
+    "/data/langgraph/eval/campaigns/langgraph-demos-v3/permissive-comparators/model_relay.py"
+)
+PYTHON_RUNTIME = "/home/faculty/abk6349/.local/share/uv"
+READ_ONLY_CODE = (
+    ROOT / "eval/.venv",
+    ROOT / "eval/src",
+    ROOT / "eval/apps/demos",
+    ROOT / "libs",
+)
 
 
 def load_base_runner():
@@ -86,10 +101,72 @@ def comparator_command(job, trial: Path, tasks: dict) -> tuple[list[str], int]:
     return base.command(baseline_job, trial, tasks)
 
 
-def remap_trial_arguments(command: list[str], trial: Path, inner_trial: Path) -> list[str]:
-    source = str(trial)
-    target = str(inner_trial)
-    return [target + item[len(source) :] if item.startswith(source) else item for item in command]
+def resource_inputs(job, trial: Path, tasks: dict) -> list[Path]:
+    if job.application == "D1-sql":
+        return [trial / "Chinook.db"]
+    if job.application == "D2-rag":
+        return [V1 / item for item in tasks["D2"]["documents"]]
+    if job.application == "D3-plan-execute":
+        return [V1 / tasks["D3"]["corpus"]]
+    if job.application == "D4-multi-agent":
+        return [V1 / tasks["D4"]["fixture"]]
+    if job.application == "D5-support":
+        return [
+            V1 / "fixtures/customer-support/travel2.sqlite",
+            V1 / "upstream/docs/docs/tutorials/customer-support/customer-support.ipynb",
+            V1 / "fixtures/customer-support/swiss_faq.md",
+        ]
+    return []
+
+
+def apf_input_bindings(job, trial: Path, tasks: dict) -> list[tuple[Path, Path]]:
+    inputs = resource_inputs(job, trial, tasks)
+    if job.application == "D1-sql":
+        return [(inputs[0], V1 / tasks["D1"]["fixture"])]
+    return [(path, path) for path in inputs]
+
+
+def remap_apf_arguments(
+    command: list[str], trial: Path, inner_trial: Path, bindings: list[tuple[Path, Path]]
+) -> list[str]:
+    input_targets = {str(source): str(target) for source, target in bindings}
+    trial_prefix = str(trial)
+    result = []
+    for item in command:
+        if item in input_targets:
+            result.append(input_targets[item])
+        elif item.startswith(trial_prefix):
+            result.append(str(inner_trial) + item[len(trial_prefix) :])
+        else:
+            result.append(item)
+    return result
+
+
+def project_apf_policy(trial: Path, inputs: list[Path]) -> Path:
+    policy = yaml.safe_load(APF_POLICY.read_text())
+    policy["spec"]["filesystem"]["read_only"].extend(str(path) for path in inputs)
+    source = trial / "apf-policy.yaml"
+    projected = trial / "apf-projected-policy.json"
+    source.write_text(yaml.safe_dump(policy, sort_keys=False))
+    result = subprocess.run(
+        [str(APF_EXPORTER), str(source)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"APF projection failed: {result.stderr}")
+    json.loads(result.stdout)
+    projected.write_text(result.stdout.rstrip() + "\n")
+    return projected
+
+
+def apf_sandbox_name(root: Path, job) -> str:
+    run_digest = hashlib.sha256(root.name.encode()).hexdigest()[:6]
+    application = hashlib.sha256(job.application.encode()).hexdigest()[:4]
+    return f"a{run_digest}r{job.repetition}{application}t{job.task}"
 
 
 def read_apf_output(
@@ -161,69 +238,108 @@ def execute_external(
     nono: Path,
     openshell: Path,
     endpoint: str,
-    sandbox: str,
 ) -> dict:
     trial = root / f"rep-{job.repetition}" / job.application / f"task-{job.task}" / job.mode
     trial.mkdir(parents=True, exist_ok=False)
     app_command, timeout = comparator_command(job, trial, tasks)
     output = trial / "output.json"
     retrieval_error = ""
-    if job.mode == "NoNo-permissive":
+    sandbox = None
+    sandbox_preparation_ms = 0.0
+    cleanup_ms = 0.0
+    cleanup_confirmed = None
+    apf_policy_sha256 = None
+    apf_projected_policy_sha256 = None
+    execution_cwd = ROOT
+    execution_env = None
+    inputs = resource_inputs(job, trial, tasks)
+    if job.mode == "NoNo-enforced":
+        (trial / "tmp").mkdir()
         executed_command = [
             str(nono),
             "run",
+            "--allow-cwd",
             "--allow",
-            "/data",
-            "--allow",
-            "/tmp",
-            "--allow",
-            "/home/faculty/abk6349/.cache",
-            "--allow",
-            "/home/faculty/abk6349/.local/share/uv",
+            str(trial),
+            *[item for path in READ_ONLY_CODE for item in ("--read", str(path))],
+            "--read",
+            PYTHON_RUNTIME,
+            *[item for path in inputs for item in ("--read-file", str(path))],
+            "--block-net",
+            "--allow-connect-port",
+            "11434",
             "--no-audit",
             "--no-rollback",
-            "--trust-override",
             "--silent",
             "--",
             *app_command,
         ]
+        execution_cwd = trial
+        execution_env = {
+            **os.environ,
+            "TMPDIR": str(trial / "tmp"),
+            "MPLCONFIGDIR": str(trial / "tmp/matplotlib"),
+            "PYTHONDONTWRITEBYTECODE": "1",
+        }
     else:
-        inner_trial = Path("/workspace/results") / (
-            f"rep-{job.repetition}/{job.application}/task-{job.task}/{job.mode}"
+        inner_trial = Path("/workspace/results")
+        sandbox = apf_sandbox_name(root, job)
+        subprocess.run(
+            [*openshell_prefix(openshell, endpoint), "sandbox", "delete", sandbox],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
         )
-        setup = openshell_exec(
-            openshell,
-            endpoint,
-            sandbox,
-            ["/bin/rm", "-rf", str(inner_trial)],
-            timeout=30,
-            cwd=None,
+        preparation_started = time.perf_counter()
+        bindings = apf_input_bindings(job, trial, tasks)
+        projected_policy = project_apf_policy(trial, [target for _, target in bindings])
+        apf_policy_sha256 = sha256(trial / "apf-policy.yaml")
+        apf_projected_policy_sha256 = sha256(projected_policy)
+        setup = subprocess.run(
+            [
+                *openshell_prefix(openshell, endpoint),
+                "sandbox",
+                "create",
+                "--name",
+                sandbox,
+                "--from",
+                APF_IMAGE,
+                "--policy",
+                str(projected_policy),
+                "--no-tty",
+                "--detach",
+                "--",
+                "/data/langgraph/eval/.venv/bin/python",
+                MODEL_RELAY,
+                "--target-host",
+                "host.openshell.internal",
+                "--target-port",
+                "11435",
+                "--rewrite-authority",
+                "127.0.0.1:11434",
+                "host.openshell.internal:11435",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=90,
+            check=False,
         )
-        if setup.returncode != 0:
-            raise RuntimeError(f"failed to reset OpenShell trial {inner_trial}: {setup.stderr}")
-        setup = openshell_exec(
-            openshell,
-            endpoint,
-            sandbox,
-            ["/bin/mkdir", "-p", str(inner_trial)],
-            timeout=30,
-            cwd=None,
-        )
-        if setup.returncode != 0:
-            raise RuntimeError(f"failed to create OpenShell trial {inner_trial}: {setup.stderr}")
-        if job.application == "D1-sql":
-            fixture = V1 / tasks["D1"]["fixture"]
+        setup_errors = [setup.stderr]
+        inner_command = remap_apf_arguments(app_command, trial, inner_trial, bindings)
+        if setup.returncode == 0:
             setup = openshell_exec(
                 openshell,
                 endpoint,
                 sandbox,
-                ["/bin/cp", str(fixture), str(inner_trial / "Chinook.db")],
+                ["/bin/mkdir", "-p", str(inner_trial)],
                 timeout=30,
                 cwd=None,
             )
-            if setup.returncode != 0:
-                raise RuntimeError(f"failed to prepare OpenShell database: {setup.stderr}")
-        inner_command = remap_trial_arguments(app_command, trial, inner_trial)
+            setup_errors.append(setup.stderr)
+        sandbox_preparation_ms = (time.perf_counter() - preparation_started) * 1000
         executed_command = [
             *openshell_prefix(openshell, endpoint),
             "sandbox",
@@ -241,30 +357,37 @@ def execute_external(
 
     started = time.perf_counter()
     timed_out = False
-    try:
-        completed = subprocess.run(
-            executed_command,
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            timeout=timeout + (30 if job.mode == "APF-permissive" else 0),
-            check=False,
-        )
-        returncode = completed.returncode
-        stdout, stderr = completed.stdout, completed.stderr
-        process_wall_ms = (time.perf_counter() - started) * 1000
-    except subprocess.TimeoutExpired as error:
-        timed_out = True
-        returncode = None
-        stdout = error.stdout or ""
-        stderr = error.stderr or ""
-        if isinstance(stdout, bytes):
-            stdout = stdout.decode(errors="replace")
-        if isinstance(stderr, bytes):
-            stderr = stderr.decode(errors="replace")
-        process_wall_ms = timeout * 1000.0
+    if job.mode == "APF-enforced" and setup.returncode != 0:
+        returncode = setup.returncode
+        stdout = setup.stdout
+        stderr = "\n".join(setup_errors)
+        process_wall_ms = 0.0
+    else:
+        try:
+            completed = subprocess.run(
+                executed_command,
+                cwd=execution_cwd,
+                env=execution_env,
+                capture_output=True,
+                text=True,
+                timeout=timeout + (30 if job.mode == "APF-enforced" else 0),
+                check=False,
+            )
+            returncode = completed.returncode
+            stdout, stderr = completed.stdout, completed.stderr
+            process_wall_ms = (time.perf_counter() - started) * 1000
+        except subprocess.TimeoutExpired as error:
+            timed_out = True
+            returncode = None
+            stdout = error.stdout or ""
+            stderr = error.stderr or ""
+            if isinstance(stdout, bytes):
+                stdout = stdout.decode(errors="replace")
+            if isinstance(stderr, bytes):
+                stderr = stderr.decode(errors="replace")
+            process_wall_ms = timeout * 1000.0
 
-    if job.mode == "APF-permissive":
+    if job.mode == "APF-enforced" and setup.returncode == 0:
         retrieval_error = read_apf_output(
             openshell,
             endpoint,
@@ -281,10 +404,25 @@ def execute_external(
                 trial,
             )
 
+    if sandbox is not None:
+        cleanup_started = time.perf_counter()
+        cleanup = subprocess.run(
+            [*openshell_prefix(openshell, endpoint), "sandbox", "delete", sandbox],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+        cleanup_ms = (time.perf_counter() - cleanup_started) * 1000
+        cleanup_confirmed = cleanup.returncode == 0
+        if not cleanup_confirmed:
+            retrieval_error += f"\nfailed to delete sandbox {sandbox}: {cleanup.stderr}"
+
     inner = json.loads(output.read_text()) if output.exists() else {}
     if timed_out:
         status = "timeout"
-    elif returncode != 0:
+    elif cleanup_confirmed is False or returncode != 0:
         status = "compatibility_failed"
     elif inner.get("status") == "execution_error" or inner.get("error"):
         status = "execution_error"
@@ -302,7 +440,7 @@ def execute_external(
         "task": job.task,
         "repetition": job.repetition,
         "mode": job.mode,
-        "configuration": "deliberately insecure/permissive mechanism-only lower bound",
+        "configuration": "closest enforceable matched-authority host policy",
         "status": status,
         "correct": correct,
         "process_wall_ms": process_wall_ms,
@@ -311,10 +449,18 @@ def execute_external(
         "returncode": returncode,
         "invocation_ms": inner.get("invocation_ms", inner.get("wall_ms")),
         "preparation_ms": inner.get("preparation_ms"),
+        "sandbox_preparation_ms": sandbox_preparation_ms,
+        "sandbox_cleanup_ms": cleanup_ms,
+        "sandbox_cleanup_confirmed": cleanup_confirmed,
+        "end_to_end_wall_ms": sandbox_preparation_ms + process_wall_ms + cleanup_ms,
         "model_time_ms": inner.get("model_time_ms"),
         "model_calls": inner.get("model_calls"),
         "application_route": inner.get("isolation_route"),
         "security_equivalent_to_argus": False,
+        "filesystem_and_network_policy_enforced": True,
+        "semantic_resource_action_mediation": False,
+        "apf_policy_sha256": apf_policy_sha256,
+        "apf_projected_policy_sha256": apf_projected_policy_sha256,
         "audit_enabled": False,
         "command": executed_command,
         "raw_output": str(output.relative_to(ROOT)) if output.exists() else None,
@@ -326,76 +472,208 @@ def execute_external(
     return record
 
 
-def run_negative_probes(
+def run_enforcement_probes(
     root: Path,
     *,
     nono: Path,
     openshell: Path,
     endpoint: str,
-    sandbox: str,
 ) -> None:
-    secret = "COMPARATOR_POLICY_IS_DELIBERATELY_INSECURE"
-    probe = root / "setup-secret.txt"
-    probe.write_text(secret)
-    nono_result = subprocess.run(
+    probe_work = root / "probe-work"
+    probe_work.mkdir()
+    protected_fixture = V1 / "fixtures/sql/Chinook.db"
+    nono_denied = subprocess.run(
         [
             str(nono),
             "run",
+            "--allow-cwd",
             "--allow",
-            "/data",
-            "--allow",
-            "/tmp",
-            "--allow",
-            "/home/faculty/abk6349/.cache",
-            "--allow",
-            "/home/faculty/abk6349/.local/share/uv",
+            str(probe_work),
+            "--block-net",
             "--no-audit",
             "--no-rollback",
-            "--trust-override",
             "--silent",
             "--",
             "/bin/cat",
-            str(probe),
+            str(protected_fixture),
         ],
-        cwd=ROOT,
+        cwd=probe_work,
         capture_output=True,
         text=True,
         timeout=30,
         check=False,
     )
-    apf_secret = "/workspace/results/setup-secret.txt"
-    setup = openshell_exec(
+    nono_source_write = subprocess.run(
+        [
+            str(nono),
+            "run",
+            "--allow-cwd",
+            "--allow",
+            str(probe_work),
+            "--read",
+            str(ROOT / "eval/apps/demos"),
+            "--block-net",
+            "--no-audit",
+            "--no-rollback",
+            "--silent",
+            "--",
+            "/bin/sh",
+            "-c",
+            "printf denied > /data/langgraph/eval/apps/demos/.write-probe",
+        ],
+        cwd=probe_work,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    network_command = [
+        str(nono),
+        "run",
+        "--allow-cwd",
+        "--allow",
+        str(probe_work),
+        "--read",
+        PYTHON_RUNTIME,
+        "--block-net",
+        "--allow-connect-port",
+        "11434",
+        "--no-audit",
+        "--no-rollback",
+        "--silent",
+        "--",
+        f"{PYTHON_RUNTIME}/python/cpython-3.11.14-linux-x86_64-gnu/bin/python3.11",
+    ]
+    nono_model = subprocess.run(
+        [
+            *network_command,
+            "-c",
+            "import urllib.request; print(urllib.request.urlopen("
+            "'http://127.0.0.1:11434/api/tags', timeout=5).status)",
+        ],
+        cwd=probe_work,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    nono_wrong_port = subprocess.run(
+        [
+            *network_command,
+            "-c",
+            'import socket; socket.create_connection(("127.0.0.1", 11435), 2)',
+        ],
+        cwd=probe_work,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    sandbox = f"apf-{hashlib.sha256(root.name.encode()).hexdigest()[:8]}-probe"
+    subprocess.run(
+        [*openshell_prefix(openshell, endpoint), "sandbox", "delete", sandbox],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    apf_create = subprocess.run(
+        [
+            *openshell_prefix(openshell, endpoint),
+            "sandbox",
+            "create",
+            "--name",
+            sandbox,
+            "--from",
+            APF_IMAGE,
+            "--policy",
+            str(APF_PROJECTED_POLICY),
+            "--no-tty",
+            "--detach",
+            "--",
+            "/data/langgraph/eval/.venv/bin/python",
+            MODEL_RELAY,
+            "--target-host",
+            "host.openshell.internal",
+            "--target-port",
+            "11435",
+            "--rewrite-authority",
+            "127.0.0.1:11434",
+            "host.openshell.internal:11435",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=90,
+        check=False,
+    )
+    if apf_create.returncode != 0:
+        raise RuntimeError(f"failed to create APF enforcement probe: {apf_create.stderr}")
+    apf_denied = openshell_exec(
+        openshell, endpoint, sandbox, ["/bin/cat", str(protected_fixture)], timeout=30, cwd=None
+    )
+    apf_source_write = openshell_exec(
         openshell,
         endpoint,
         sandbox,
-        ["/bin/sh", "-c", f"printf %s {secret} > {apf_secret}"],
+        ["/bin/sh", "-c", "printf denied > /data/langgraph/eval/apps/demos/.write-probe"],
         timeout=30,
         cwd=None,
     )
-    apf_result = openshell_exec(
+    apf_wrong_port = openshell_exec(
         openshell,
         endpoint,
         sandbox,
-        ["/bin/cat", apf_secret],
+        [
+            "/data/langgraph/eval/.venv/bin/python",
+            "-c",
+            'import socket; socket.create_connection(("host.openshell.internal", 11434), 2)',
+        ],
         timeout=30,
         cwd=None,
+    )
+    apf_model = openshell_exec(
+        openshell,
+        endpoint,
+        sandbox,
+        [
+            "/data/langgraph/eval/.venv/bin/python",
+            "-c",
+            "import urllib.request; print(urllib.request.urlopen("
+            "'http://127.0.0.1:11434/api/tags', timeout=5).status)",
+        ],
+        timeout=30,
+        cwd=None,
+    )
+    apf_delete = subprocess.run(
+        [*openshell_prefix(openshell, endpoint), "sandbox", "delete", sandbox],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
     )
     evidence = {
-        "purpose": "prove comparator configurations are insecure and not authority-equivalent",
-        "expected": "the unscoped secret read succeeds",
+        "purpose": "verify every host-level control the comparators can enforce",
+        "expected": "ungranted resource and network probes fail; the model endpoint succeeds",
         "nono": {
-            "returncode": nono_result.returncode,
-            "secret_observed": secret in nono_result.stdout,
+            "ungranted_fixture_read_denied": nono_denied.returncode != 0,
+            "source_write_denied": nono_source_write.returncode != 0,
+            "model_endpoint_allowed": nono_model.returncode == 0 and "200" in nono_model.stdout,
+            "other_port_denied": nono_wrong_port.returncode != 0,
         },
         "apf_openshell": {
-            "setup_returncode": setup.returncode,
-            "returncode": apf_result.returncode,
-            "secret_observed": secret in apf_result.stdout,
+            "ungranted_fixture_read_denied": apf_denied.returncode != 0,
+            "source_write_denied": apf_source_write.returncode != 0,
+            "model_endpoint_allowed": apf_model.returncode == 0 and "200" in apf_model.stdout,
+            "other_port_denied": apf_wrong_port.returncode != 0,
+            "sandbox_cleanup_confirmed": apf_delete.returncode == 0,
         },
     }
-    if not evidence["nono"]["secret_observed"] or not evidence["apf_openshell"]["secret_observed"]:
-        raise RuntimeError(f"permissive negative probes did not succeed: {evidence}")
-    (root / "insecure-probes.json").write_text(json.dumps(evidence, indent=2) + "\n")
+    if not all(evidence["nono"].values()) or not all(evidence["apf_openshell"].values()):
+        raise RuntimeError(f"comparator enforcement probes failed: {evidence}")
+    (root / "enforcement-probes.json").write_text(json.dumps(evidence, indent=2) + "\n")
 
 
 def main() -> None:
@@ -406,32 +684,14 @@ def main() -> None:
     parser.add_argument("--nono", type=Path, default=DEFAULT_NONO)
     parser.add_argument("--openshell", type=Path, default=DEFAULT_OPENSHELL)
     parser.add_argument("--openshell-endpoint", default="http://127.0.0.1:18080")
-    parser.add_argument("--openshell-sandbox", default="apf-permissive-15")
     parser.add_argument("--openshell-image-id", default=DEFAULT_OPENSHELL_IMAGE_ID)
     args = parser.parse_args()
-    for executable in (args.nono, args.openshell):
+    for executable in (args.nono, args.openshell, APF_EXPORTER):
         if not executable.is_file():
             raise RuntimeError(f"missing comparator executable: {executable}")
     root = V3 / "raw" / args.run_id
     root.mkdir(parents=True, exist_ok=False)
     tasks = json.loads((V1 / "tasks.json").read_text())
-    sandbox_status = subprocess.run(
-        [
-            *openshell_prefix(args.openshell, args.openshell_endpoint),
-            "sandbox",
-            "get",
-            args.openshell_sandbox,
-            "--output",
-            "json",
-        ],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        timeout=30,
-        check=False,
-    )
-    if sandbox_status.returncode != 0 or json.loads(sandbox_status.stdout)["phase"] != "Ready":
-        raise RuntimeError(f"OpenShell sandbox is not ready: {sandbox_status.stderr}")
     metadata = base.common_metadata()
     metadata.update(
         {
@@ -447,14 +707,25 @@ def main() -> None:
             "repetitions": 1 if args.smoke else args.repetitions,
             "smoke": args.smoke,
             "comparison_scope": (
-                "same fixed 15 applications; comparator policies are deliberately insecure "
-                "and are mechanism-only performance lower bounds"
+                "same fixed 15 applications; each comparator enforces every filesystem, "
+                "process, and network restriction it can express for the invocation"
+            ),
+            "residual_comparator_gap": (
+                "NoNo and APF/OpenShell do not mediate typed library operations as Cedar "
+                "resource/action terminals; APF and NoNo input path grants are "
+                "therefore host-resource approximations, not Argus semantic equivalence"
             ),
             "timers": {
                 "invocation_ms": "application-reported invocation after application preparation",
                 "process_wall_ms": (
                     "parent dispatch through process exit; includes NoNo activation or "
-                    "OpenShell exec transport but excludes reusable OpenShell sandbox creation"
+                    "OpenShell exec transport; excludes APF sandbox creation and cleanup"
+                ),
+                "sandbox_preparation_ms": (
+                    "APF projection, fresh sandbox creation, policy admission, and output setup"
+                ),
+                "end_to_end_wall_ms": (
+                    "sandbox preparation plus dispatch/process plus confirmed sandbox deletion"
                 ),
             },
             "nono": {
@@ -466,11 +737,15 @@ def main() -> None:
                 ).stdout.strip(),
                 "binary": str(args.nono.relative_to(ROOT)),
                 "sha256": sha256(args.nono),
-                "audit": "disabled",
-                "rollback": "disabled",
-                "network": "unrestricted",
-                "filesystem": "broad writable /data, /tmp, and runtime/cache paths",
-                "trust_override": True,
+                "audit": "disabled to match final Argus configuration",
+                "rollback": "disabled because Argus does not claim rollback",
+                "network": "deny by default; direct TCP permitted only on port 11434",
+                "network_residual": "the port grant cannot restrict destination host",
+                "filesystem": (
+                    "code/runtime read-only; exact external inputs read-only; only the fresh "
+                    "trial directory writable"
+                ),
+                "trust_override": False,
             },
             "apf_openshell": {
                 "apf_revision": subprocess.run(
@@ -487,28 +762,28 @@ def main() -> None:
                 ).stdout.strip(),
                 "cli_sha256": sha256(args.openshell),
                 "endpoint": args.openshell_endpoint,
-                "sandbox": args.openshell_sandbox,
                 "application_image_id": args.openshell_image_id,
-                "sandbox_status": json.loads(sandbox_status.stdout),
-                "sandbox_creation": "one-time preparation excluded from both timers",
+                "sandbox_lifecycle": "fresh sandbox per invocation; deletion confirmed",
+                "input_binding": (
+                    "each projected policy grants only the current invocation's read-only inputs"
+                ),
                 "policy_source": "permissive-comparators/apf-policy.yaml",
                 "policy_source_sha256": sha256(APF_POLICY),
                 "projected_policy_sha256": sha256(APF_PROJECTED_POLICY),
                 "policy_semantics": (
-                    "official APF compiler/OpenShell projector; broad application-tree access; "
-                    "best-effort Landlock; local model relay"
+                    "official APF compiler/OpenShell projector; code/runtime read-only; "
+                    "private workspace writable; best-effort Landlock; local model relay only"
                 ),
                 "audit": "OpenShell defaults retained; not included in application output",
             },
         }
     )
     (root / "configuration.json").write_text(json.dumps(metadata, indent=2) + "\n")
-    run_negative_probes(
+    run_enforcement_probes(
         root,
         nono=args.nono,
         openshell=args.openshell,
         endpoint=args.openshell_endpoint,
-        sandbox=args.openshell_sandbox,
     )
 
     records = []
@@ -543,7 +818,6 @@ def main() -> None:
                     nono=args.nono,
                     openshell=args.openshell,
                     endpoint=args.openshell_endpoint,
-                    sandbox=args.openshell_sandbox,
                 )
             records.append(record)
             print(
