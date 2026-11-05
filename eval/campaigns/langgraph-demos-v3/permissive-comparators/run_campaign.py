@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import importlib.util
 import json
 import os
 import random
+import signal
 import subprocess
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
@@ -41,6 +44,86 @@ READ_ONLY_CODE = (
     ROOT / "eval/apps/demos",
     ROOT / "libs",
 )
+
+
+@dataclass(frozen=True)
+class ProcessResult:
+    returncode: int | None
+    stdout: str
+    stderr: str
+    timed_out: bool
+    cleanup_confirmed: bool
+    process_group_id: int
+
+
+def _process_group_exists(process_group_id: int) -> bool:
+    try:
+        os.killpg(process_group_id, 0)
+    except ProcessLookupError:
+        return False
+    return True
+
+
+def _terminate_process_group(process: subprocess.Popen[str], grace_seconds: float) -> bool:
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return True
+
+    deadline = time.monotonic() + grace_seconds
+    while _process_group_exists(process.pid) and time.monotonic() < deadline:
+        time.sleep(0.01)
+    if _process_group_exists(process.pid):
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(process.pid, signal.SIGKILL)
+
+    with contextlib.suppress(subprocess.TimeoutExpired):
+        process.wait(timeout=grace_seconds)
+
+    deadline = time.monotonic() + grace_seconds
+    while _process_group_exists(process.pid) and time.monotonic() < deadline:
+        time.sleep(0.01)
+    return not _process_group_exists(process.pid)
+
+
+def run_with_process_group_cleanup(
+    command: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None,
+    timeout: float,
+    cleanup_grace_seconds: float = 5.0,
+) -> ProcessResult:
+    process = subprocess.Popen(
+        command,
+        cwd=cwd,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+    )
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        cleanup_confirmed = _terminate_process_group(process, cleanup_grace_seconds)
+        stdout, stderr = process.communicate()
+        return ProcessResult(
+            returncode=None,
+            stdout=stdout,
+            stderr=stderr,
+            timed_out=True,
+            cleanup_confirmed=cleanup_confirmed,
+            process_group_id=process.pid,
+        )
+    return ProcessResult(
+        returncode=process.returncode,
+        stdout=stdout,
+        stderr=stderr,
+        timed_out=False,
+        cleanup_confirmed=True,
+        process_group_id=process.pid,
+    )
 
 
 def load_base_runner():
@@ -357,35 +440,24 @@ def execute_external(
 
     started = time.perf_counter()
     timed_out = False
+    timeout_cleanup_confirmed = None
     if job.mode == "APF-enforced" and setup.returncode != 0:
         returncode = setup.returncode
         stdout = setup.stdout
         stderr = "\n".join(setup_errors)
         process_wall_ms = 0.0
     else:
-        try:
-            completed = subprocess.run(
-                executed_command,
-                cwd=execution_cwd,
-                env=execution_env,
-                capture_output=True,
-                text=True,
-                timeout=timeout + (30 if job.mode == "APF-enforced" else 0),
-                check=False,
-            )
-            returncode = completed.returncode
-            stdout, stderr = completed.stdout, completed.stderr
-            process_wall_ms = (time.perf_counter() - started) * 1000
-        except subprocess.TimeoutExpired as error:
-            timed_out = True
-            returncode = None
-            stdout = error.stdout or ""
-            stderr = error.stderr or ""
-            if isinstance(stdout, bytes):
-                stdout = stdout.decode(errors="replace")
-            if isinstance(stderr, bytes):
-                stderr = stderr.decode(errors="replace")
-            process_wall_ms = timeout * 1000.0
+        completed = run_with_process_group_cleanup(
+            executed_command,
+            cwd=execution_cwd,
+            env=execution_env,
+            timeout=timeout + (30 if job.mode == "APF-enforced" else 0),
+        )
+        timed_out = completed.timed_out
+        timeout_cleanup_confirmed = completed.cleanup_confirmed
+        returncode = completed.returncode
+        stdout, stderr = completed.stdout, completed.stderr
+        process_wall_ms = timeout * 1000.0 if timed_out else (time.perf_counter() - started) * 1000
 
     if job.mode == "APF-enforced" and setup.returncode == 0:
         retrieval_error = read_apf_output(
@@ -446,6 +518,7 @@ def execute_external(
         "process_wall_ms": process_wall_ms,
         "timeout_cap_seconds": timeout,
         "censored": timed_out,
+        "timeout_cleanup_confirmed": timeout_cleanup_confirmed,
         "returncode": returncode,
         "invocation_ms": inner.get("invocation_ms", inner.get("wall_ms")),
         "preparation_ms": inner.get("preparation_ms"),

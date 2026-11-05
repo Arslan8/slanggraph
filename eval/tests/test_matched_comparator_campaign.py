@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -94,3 +95,32 @@ def test_secured_wall_includes_apf_lifecycle_only() -> None:
         )
         == 21.0
     )
+
+
+def test_timeout_kills_entire_process_group(tmp_path: Path) -> None:
+    campaign = load_module("matched_comparator_campaign_cleanup", "run_campaign.py")
+    child_pid_file = tmp_path / "child.pid"
+    parent = (
+        "import pathlib, subprocess, sys, time; "
+        "child=subprocess.Popen([sys.executable, '-c', "
+        "'import signal, time; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(60)']); "
+        f"pathlib.Path({str(child_pid_file)!r}).write_text(str(child.pid)); "
+        "time.sleep(60)"
+    )
+
+    result = campaign.run_with_process_group_cleanup(
+        [sys.executable, "-c", parent],
+        cwd=tmp_path,
+        env=None,
+        timeout=0.2,
+        cleanup_grace_seconds=2.0,
+    )
+
+    assert result.timed_out
+    assert result.cleanup_confirmed
+    assert not campaign._process_group_exists(result.process_group_id)
+    child_pid = int(child_pid_file.read_text())
+    deadline = time.monotonic() + 2.0
+    while Path(f"/proc/{child_pid}").exists() and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert not Path(f"/proc/{child_pid}").exists()
