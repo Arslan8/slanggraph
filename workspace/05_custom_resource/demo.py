@@ -288,6 +288,9 @@ def build_demo(socket_path: Path, cedar: str) -> tuple[Any, Any]:
         manifest,
         CedarPolicySet({"control_pump": owner_policy}, POLICY),
         executable=cedar,
+        # This diagnostics demo prints and inspects every Cedar input bundle.
+        # Production invocation paths leave artifact retention disabled.
+        retain_authorization_artifacts=True,
     )
     security = SecurityConfig(
         host_executor=ObjectPolicyHostExecutor(

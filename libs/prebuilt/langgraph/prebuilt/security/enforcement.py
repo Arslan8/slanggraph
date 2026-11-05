@@ -162,6 +162,42 @@ class Grant:
         object.__setattr__(self, "_digest_value", cached)
         return cached
 
+    def _bind_prepared_digest(
+        self,
+        prepared_digest: str,
+        authority_digest: str,
+        dynamic_rules: Sequence[GrantRule],
+    ) -> None:
+        """Bind fresh fields to an already verified immutable grant template."""
+        if self._digest_value or not prepared_digest or not authority_digest:
+            raise ValueError("prepared grant binding requires fresh exact identities")
+        rules = tuple(dynamic_rules)
+        current = {rule.rule_id: rule for rule in self.rules}
+        if any(current.get(rule.rule_id) != rule for rule in rules):
+            raise ValueError("prepared grant binding has an unknown dynamic rule")
+        object.__setattr__(
+            self,
+            "_digest_value",
+            _digest(
+                {
+                    "artifact_digest": self.artifact_digest,
+                    "authority_digest": authority_digest,
+                    "call_id": self.call_id,
+                    "deployment_digest": self.deployment_digest,
+                    "dynamic_rules": [
+                        rule.canonical() for rule in sorted(rules, key=_rule_key)
+                    ],
+                    "normalized_intent_digest": self.normalized_intent_digest,
+                    "policy_digest": self.policy_digest,
+                    "prepared_digest": prepared_digest,
+                    "principal_id": self.principal_id,
+                    "runtime_digest": self.runtime_digest,
+                    "session_id": self.session_id,
+                    "tool_name": self.tool_name,
+                }
+            ),
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class RequirementEntry:
@@ -741,6 +777,22 @@ class EnforcementPlan:
         )
         object.__setattr__(self, "_digest_value", cached)
         return cached
+
+    def _bind_prepared_digest(self, prepared_digest: str) -> None:
+        """Bind fresh grant and host identities to a sealed prepared plan."""
+        if self._digest_value or not prepared_digest:
+            raise ValueError("prepared plan binding requires a fresh identity")
+        object.__setattr__(
+            self,
+            "_digest_value",
+            _digest(
+                {
+                    "grant_digest": self.grant_digest,
+                    "host_digest": self.host_digest,
+                    "prepared_digest": prepared_digest,
+                }
+            ),
+        )
 
 
 @dataclass(frozen=True, slots=True)

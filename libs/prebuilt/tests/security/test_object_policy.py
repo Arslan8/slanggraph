@@ -350,7 +350,12 @@ def test_authorizer_intersects_owner_envelope_and_mac(tmp_path: Path) -> None:
             'when { resource.schema == "private" };'
         ),
     )
-    authorizer = CedarObjectAuthorizer(manifest, policies, executable=cedar)
+    authorizer = CedarObjectAuthorizer(
+        manifest,
+        policies,
+        executable=cedar,
+        retain_authorization_artifacts=True,
+    )
 
     grant = authorizer.authorize(
         principal_id="alice",
@@ -395,6 +400,7 @@ def test_authorizer_reuses_exact_cedar_results_and_retains_artifacts(
         manifest,
         CedarPolicySet({"run_report": permit}, permit),
         executable=cedar,
+        retain_authorization_artifacts=True,
     )
     inputs = {
         "principal_id": "alice",
@@ -414,6 +420,43 @@ def test_authorizer_reuses_exact_cedar_results_and_retains_artifacts(
     assert second.call_id == "call-2"
     assert len(authorizer.authorization_artifacts()) == 2
     assert list(authorizer.authorization_artifacts()[1].glob("owner-*.request.json"))
+
+
+def test_cached_authorization_does_not_materialize_diagnostic_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cedar = _fake_cedar(tmp_path)
+    manifest = parse_security_manifest(
+        MANIFEST,
+        enforcers={EnforcementKind.BROKER: _Broker()},
+    )
+    permit = "permit(principal, action, resource);"
+    authorizer = _CountingCedarObjectAuthorizer(
+        manifest,
+        CedarPolicySet({"run_report": permit}, permit),
+        executable=cedar,
+    )
+    inputs = {
+        "principal_id": "alice",
+        "roles": {"analyst"},
+        "tool_name": "run_report",
+        "tool_owner": "reporting",
+        "arguments": {"quarter": "Q4"},
+    }
+    first = authorizer.authorize(call_id="call-1", **inputs)
+
+    def unexpected_directory(*args, **kwargs):
+        raise AssertionError("cached authorization materialized diagnostic files")
+
+    monkeypatch.setattr(
+        "langgraph.prebuilt.security.object_policy.tempfile.mkdtemp",
+        unexpected_directory,
+    )
+    second = authorizer.authorize(call_id="call-2", **inputs)
+
+    assert authorizer.authorization_artifacts() == ()
+    assert first.digest != second.digest
+    assert second.digest == authorizer.authorize(call_id="call-2", **inputs).digest
 
 
 def test_authorizer_cache_tracks_cedar_executable_identity(tmp_path: Path) -> None:

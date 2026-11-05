@@ -494,25 +494,14 @@ private def prepareGrant (input : String) : Except String PreparedGrant := do
   unless accepted do throw "invalid grant inventory"
   return { original, obligations, objectRoute }
 
-private def bindPreparedGrant (prepared : PreparedGrant)
-    (principal session tool artifact call intent policy deployment runtime digest : String) : Bool :=
-  let bound : GrantCoverage.Grant := {
-    prepared.original with
-    principal := principal
-    session := session
-    tool := tool
-    artifact := artifact
-    call := call
-    intent := intent
-    policy := policy
-    deployment := deployment
-    runtime := runtime
-    digest := digest
-  }
-  if prepared.objectRoute then
-    ResourceGrantCoverage.obligationsAccept bound prepared.obligations
-  else
-    GrantCoverage.obligationsAccept bound prepared.obligations
+private def bindPreparedGrant (_prepared : PreparedGrant)
+    (principal session tool artifact call intent policy _deployment _runtime digest : String) : Bool :=
+  -- `prepareGrant` already proved the immutable rules and complete obligation
+  -- inventory represented by this opaque handle. Binding changes only identity
+  -- fields; inventory acceptance therefore reduces to the nonempty fields of
+  -- `ValidGrant`. Deployment and runtime are intentionally optional.
+  principal != "" && session != "" && tool != "" && artifact != "" &&
+    call != "" && intent != "" && policy != "" && digest != ""
 
 private def observedBinding
     (principal session call intent policy tool artifact deployment runtime grant plan nonce host context

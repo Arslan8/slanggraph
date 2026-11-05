@@ -74,8 +74,7 @@ class _LandlockObjectAdapter(_LocalEvidence):
             host.issuer == self.adapter_id
             and self.host is not None
             and host.digest == self.host.digest
-            and host.boot_id
-            == Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+            and host.boot_id == self.worker.capabilities.boot_id
             and hmac.compare_digest(host.signature, self._sign(host.digest))
         )
 

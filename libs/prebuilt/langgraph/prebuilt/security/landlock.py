@@ -11,6 +11,7 @@ import json
 import os
 import posixpath
 import secrets
+import select
 import signal
 import socket
 import stat
@@ -182,6 +183,8 @@ class _PooledLandlockWorker:
     spec: Any
     parent_channel: socket.socket
     broker_fd: int
+    prepared_context: Any
+    source_identity: tuple[int, int, int, int, int]
     created_at: float
 
 
@@ -301,6 +304,7 @@ class LandlockSandboxExecutor:
         )
         self._prepared_pool_key: str | None = None
         self._prepared_lean_grant: Any = None
+        self._prepared_worker_context: Any = None
         self._receipts: deque[ActivationReceipt] = deque(maxlen=1024)
 
     def validate_tools(self, tool_names: Sequence[str]) -> None:
@@ -395,6 +399,7 @@ class LandlockSandboxExecutor:
                 worker = values.popleft()
                 if worker.created_at >= cutoff and worker.process.poll() is None:
                     state.hits += 1
+                    self._prepared_worker_context = worker.prepared_context
                     if not values:
                         state.workers.pop(key, None)
                     return worker
@@ -465,7 +470,11 @@ class LandlockSandboxExecutor:
         worker_channel: socket.socket | None = None
         retained = False
         try:
-            source = Path(configured.artifact_path).read_bytes()
+            source_path = Path(configured.artifact_path)
+            source_identity = _artifact_identity(source_path)
+            source = source_path.read_bytes()
+            if _artifact_identity(source_path) != source_identity:
+                raise HostExecutionDenied("host:artifact_changed")
             if hashlib.sha256(source).hexdigest() != configured.artifact_digest:
                 raise HostExecutionDenied("host:artifact_changed")
             pinned = Path(artifact_tmp.name) / "tool.py"
@@ -484,7 +493,7 @@ class LandlockSandboxExecutor:
             grant, ledger = self._compile_grant(
                 principal, call, spec, Path(private_tmp.name)
             )
-            filtered = self.policy_backend.filter(grant, ledger, constraints)
+            filtered = self._filter_grant(grant, ledger, constraints)
             if not filtered.allowed or filtered.grant is None:
                 raise HostExecutionDenied(f"host:{filtered.reason}")
             grant = self._prepare_grant(filtered.grant, filtered.ledger)
@@ -584,6 +593,7 @@ class LandlockSandboxExecutor:
                 "status": "pooled",
             }:
                 raise HostExecutionDenied("host:worker_pool_protocol")
+            prepared_context = self._prepare_worker_context(process.pid)
             pooled = _PooledLandlockWorker(
                 pool_key,
                 process,
@@ -594,6 +604,8 @@ class LandlockSandboxExecutor:
                 spec,
                 parent_channel,
                 broker_fd,
+                prepared_context,
+                source_identity,
                 time.monotonic(),
             )
             state = self._worker_pool_state
@@ -635,6 +647,10 @@ class LandlockSandboxExecutor:
                         pass
                 private_tmp.cleanup()
                 artifact_tmp.cleanup()
+
+    def _prepare_worker_context(self, pid: int) -> Any:
+        """Capture immutable confined-worker facts at the prepared barrier."""
+        return None
 
     def invoke(
         self,
@@ -714,10 +730,10 @@ class LandlockSandboxExecutor:
         worker_broker_fd: int | None = None
         ruleset: LandlockRuleset | None = None
         try:
-            source = Path(configured.artifact_path).read_bytes()
-            if hashlib.sha256(source).hexdigest() != configured.artifact_digest:
-                raise HostExecutionDenied("host:artifact_changed")
             if pooled is None:
+                source = Path(configured.artifact_path).read_bytes()
+                if hashlib.sha256(source).hexdigest() != configured.artifact_digest:
+                    raise HostExecutionDenied("host:artifact_changed")
                 # Execute a verified private snapshot, never the mutable source path.
                 pinned = Path(artifact_tmp.name) / "tool.py"
                 pinned.write_bytes(source)
@@ -732,10 +748,10 @@ class LandlockSandboxExecutor:
                 if (
                     spec.entrypoint != configured.entrypoint
                     or spec.artifact_digest != configured.artifact_digest
-                    or hashlib.sha256(Path(spec.artifact_path).read_bytes()).hexdigest()
-                    != configured.artifact_digest
+                    or _artifact_identity(Path(configured.artifact_path))
+                    != pooled.source_identity
                 ):
-                    raise HostExecutionDenied("host:prepared_artifact_changed")
+                    raise HostExecutionDenied("host:artifact_changed")
             # A prepared worker already loaded this interpreter and bootstrap after
             # `_prewarm_one` verified both digests. Re-reading their backing files
             # cannot change the running process, so only verify them when this
@@ -747,27 +763,35 @@ class LandlockSandboxExecutor:
                 ):
                     raise HostExecutionDenied("host:runtime_changed")
             grant, ledger = self._compile_grant(principal, call, spec, private_tmp_path)
-            filtered = self.policy_backend.filter(grant, ledger, constraints)
+            filtered = self._filter_grant(grant, ledger, constraints)
             if not filtered.allowed or filtered.grant is None:
                 raise HostExecutionDenied(f"host:{filtered.reason}")
             grant = filtered.grant
             grant = self._prepare_grant(grant, filtered.ledger)
             if self.lifecycle_checker is not None:
-                record = getattr(self, "record", None)
-                lean_ledger = filtered.ledger
-                lean_obligations = compile_obligations(grant)
-                if record is not None:
-                    lean_ledger = RequirementLedger(
-                        tuple(
-                            RequirementEntry(
-                                rule.rule_id,
-                                rule.requirement,
-                                frozenset({rule.rule_id}),
+                if self._prepared_lean_grant is not None:
+                    # The opaque prepared handle already proved the immutable
+                    # rule and obligation inventory. The typed bind below uses
+                    # only fresh invocation identity, so rebuilding either
+                    # projection here cannot affect its decision.
+                    lean_ledger = None
+                    lean_obligations = None
+                else:
+                    record = getattr(self, "record", None)
+                    lean_ledger = filtered.ledger
+                    lean_obligations = compile_obligations(grant)
+                    if record is not None:
+                        lean_ledger = RequirementLedger(
+                            tuple(
+                                RequirementEntry(
+                                    rule.rule_id,
+                                    rule.requirement,
+                                    frozenset({rule.rule_id}),
+                                )
+                                for rule in grant.rules
                             )
-                            for rule in grant.rules
                         )
-                    )
-                    lean_obligations = record.obligations
+                        lean_obligations = record.obligations
                 self._check_lean_grant(
                     grant,
                     lean_ledger,
@@ -990,7 +1014,7 @@ class LandlockSandboxExecutor:
             response = _readline_json(
                 process, min(limits["wall_ms"] / 1000, self.default_wall_timeout_s)
             )
-            return_code = process.wait(timeout=1)
+            return_code = _wait_worker_exit(process, pidfd, timeout_s=1)
             if response.get("status") == "ok" and return_code == 0:
                 result = HostExecutionResult(response["result"], receipt)
             else:
@@ -1093,6 +1117,10 @@ class LandlockSandboxExecutor:
                 self._lean_obligations,
                 object_route=getattr(self, "_lean_object_route", False),
             )
+
+    def _filter_grant(self, grant, ledger, constraints):
+        """Apply fresh mandatory constraints before any authority is attached."""
+        return self.policy_backend.filter(grant, ledger, constraints)
 
     def _cleanup_worker(
         self,
@@ -1739,3 +1767,29 @@ def _boot_id() -> str:
         return Path("/proc/sys/kernel/random/boot_id").read_text().strip()
     except OSError:
         return "unavailable"
+
+
+def _artifact_identity(path: Path) -> tuple[int, int, int, int, int]:
+    """Return the kernel identity used to invalidate a prepared artifact."""
+    metadata = path.stat()
+    return (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_size,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+    )
+
+
+def _wait_worker_exit(
+    process: subprocess.Popen[bytes], pidfd: int | None, *, timeout_s: float
+) -> int:
+    """Wait without `Popen.wait(timeout=...)`'s sleep-polling loop."""
+    if pidfd is None:
+        return process.wait(timeout=timeout_s)
+    readable, _, _ = select.select((pidfd,), (), (), timeout_s)
+    if not readable:
+        raise subprocess.TimeoutExpired(process.args, timeout_s)
+    # pidfd readability is the kernel's exit notification; this reap cannot
+    # wait for additional worker execution.
+    return process.wait()

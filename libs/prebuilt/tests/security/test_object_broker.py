@@ -16,6 +16,7 @@ import langgraph.prebuilt.security.linux as linux
 import langgraph.prebuilt.security.object_broker as object_broker
 from langgraph.prebuilt.security import ResourceSupport, SupportLevel
 from langgraph.prebuilt.security.capabilities import probe_landlock_abi
+from langgraph.prebuilt.security.enforcement import EnforcementCoordinator
 from langgraph.prebuilt.security.execution import (
     HostExecutionDenied,
     HostExecutionError,
@@ -215,6 +216,19 @@ def test_optimized_invocation_launches_no_checker_subprocess(
     def unexpected_lifecycle_certificate(*args, **kwargs):
         raise AssertionError("optimized invocation constructed a lifecycle certificate")
 
+    def unexpected_duplicate_receipt_check(*args, **kwargs):
+        raise AssertionError("trusted activation receipt was revalidated")
+
+    source_path = dispatcher.tools[call.tool.name].artifact_path
+    original_read_bytes = Path.read_bytes
+
+    def unexpected_prepared_artifact_read(path):
+        if path == source_path or (
+            path.name == "tool.py" and "slanggraph-artifact-" in str(path)
+        ):
+            raise AssertionError("prepared invocation reread a loaded artifact")
+        return original_read_bytes(path)
+
     monkeypatch.setattr(subprocess, "run", unexpected)
     monkeypatch.setattr(linux, "_file_digest", unexpected_digest)
     monkeypatch.setattr(lean_grant, "_encoded", unexpected_grant_json)
@@ -225,6 +239,12 @@ def test_optimized_invocation_launches_no_checker_subprocess(
         "_capture_controller_receipt_certificate",
         unexpected_lifecycle_certificate,
     )
+    monkeypatch.setattr(
+        EnforcementCoordinator,
+        "validate_receipt",
+        unexpected_duplicate_receipt_check,
+    )
+    monkeypatch.setattr(Path, "read_bytes", unexpected_prepared_artifact_read)
     before = native_checker.statistics()
     assert dispatcher.invoke(principal, call, grant).value == "inspected"
     after = native_checker.statistics()
@@ -355,6 +375,18 @@ def test_prepared_mediator_reuses_lowering_but_rechecks_live_support(
     assessments = 0
     prepared_worker = next(iter(dispatcher._prepared_workers.values()))
     prepared_obligation_digest = prepared_worker._prepared_record.plan.obligation_digest
+    prepared_plan_digest = prepared_worker._prepared_record.plan.digest
+    prepared_rules = {
+        item.rule_id: item for item in prepared_worker._prepared_record.grant.rules
+    }
+    prepared_obligations = {
+        item.obligation_id: item
+        for item in prepared_worker._prepared_record.obligations
+    }
+    prepared_native_digests = tuple(
+        item.native_plan_digest
+        for item in prepared_worker._prepared_record.plan.adapter_plans
+    )
     runtime_call = replace(call, call_id="call-2")
     runtime_grant = replace(grant, call_id="call-2")
     assert runtime_grant.digest != grant.digest
@@ -372,6 +404,25 @@ def test_prepared_mediator_reuses_lowering_but_rechecks_live_support(
     assert (
         dispatcher.lowering_records()[-1].plan.obligation_digest
         == prepared_obligation_digest
+    )
+    assert dispatcher.lowering_records()[-1].plan.digest != prepared_plan_digest
+    runtime_record = dispatcher.lowering_records()[-1]
+    assert all(
+        item is prepared_rules[item.rule_id]
+        for item in runtime_record.grant.rules
+        if not item.rule_id.startswith(("runtime:artifact", "runtime:tmp"))
+    )
+    assert all(
+        item is prepared_obligations[item.obligation_id]
+        for item in runtime_record.obligations
+        if not item.rule_id.startswith(("runtime:artifact", "runtime:tmp"))
+    )
+    assert (
+        tuple(
+            item.native_plan_digest
+            for item in dispatcher.lowering_records()[-1].plan.adapter_plans
+        )
+        == prepared_native_digests
     )
     assert assessments == 2  # activation and operation, never online lowering
     assert seen == [("inspect", "pump-1")]

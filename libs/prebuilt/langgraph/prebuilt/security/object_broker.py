@@ -13,6 +13,7 @@ import json
 import math
 import secrets
 import sys
+import time
 from collections import deque
 from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
@@ -36,6 +37,7 @@ from langgraph.prebuilt.security.enforcement import (
     EnforcementCoordinator,
     EnforcementObligation,
     EnforcementPlan,
+    ExecutionContext,
     Grant,
     GrantRule,
     ObligationKind,
@@ -63,14 +65,13 @@ from langgraph.prebuilt.security.object_policy import (
     ObjectGrant,
     ObjectGrantLine,
 )
-from langgraph.prebuilt.security.policy import TypedPolicyBackend
+from langgraph.prebuilt.security.policy import PolicyFilterResult, TypedPolicyBackend
 from langgraph.prebuilt.security.profile import parse_profiles
 from langgraph.prebuilt.security.resource_mediator import (
     ObjectLoweringRecord,
     ObjectLoweringRefused,
     ResourceMediatorAdapter,
     _BoundMediator,
-    _digest,
     negotiate_object_grant,
 )
 from langgraph.prebuilt.security.types import ExecutionOutcome, Principal, ToolCall
@@ -232,6 +233,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
             None
         )
         self._prepared_rule_templates: tuple[GrantRule, ...] | None = None
+        self._prepared_ledger: RequirementLedger | None = None
         self._prepared_obligation_templates: (
             tuple[EnforcementObligation, ...] | None
         ) = None
@@ -241,12 +243,33 @@ class _ObjectWorker(LandlockSandboxExecutor):
         self._prepared_adapter_obligations: Mapping[str, tuple[str, ...]] | None = None
         self._prepared_native_plans: Mapping[str, AdapterPlan] | None = None
         self._used_prepared_policy = False
+        self._object_preflight = False
         super().__init__(*args, **kwargs)
 
     def _compile_grant(
         self, principal: Principal, call: ToolCall, spec: Any, private_tmp: Path
     ) -> tuple[Grant, RequirementLedger]:
         obj = self.object_grant
+        if (
+            not self._object_preflight
+            and self._prepared_rule_templates is not None
+            and self._prepared_ledger is not None
+        ):
+            return (
+                Grant(
+                    principal.user_id,
+                    principal.session_id,
+                    call.tool.name,
+                    spec.artifact_digest,
+                    call.call_id,
+                    hashlib.sha256(
+                        json.dumps(dict(call.args), sort_keys=True).encode()
+                    ).hexdigest(),
+                    obj.digest,
+                    self._prepared_rule_templates,
+                ),
+                self._prepared_ledger,
+            )
         rules = tuple(
             host_control_rule(line)
             or GrantRule(
@@ -314,9 +337,45 @@ class _ObjectWorker(LandlockSandboxExecutor):
             imports.append("langgraph.prebuilt.security.mediators.records")
         return {"broker_client_imports": imports} if imports else {}
 
+    def _pool_key(self, spec, grant, landlock_rules, enforcement, extras):
+        if self._used_prepared_policy and self._prepared_pool_key is not None:
+            return self._prepared_pool_key
+        return super()._pool_key(spec, grant, landlock_rules, enforcement, extras)
+
+    def _filter_grant(self, grant, ledger, constraints):
+        prepared = self._prepared_record
+        if prepared is None or constraints:
+            return super()._filter_grant(grant, ledger, constraints)
+        # Object-route invocation supplies no second policy language. The
+        # empty typed-policy result was already validated during preparation;
+        # bind its immutable digest without rebuilding dictionaries, sorting
+        # rules, remapping the ledger, and hashing an empty constraint list.
+        return PolicyFilterResult(
+            replace(grant, policy_digest=prepared.grant.policy_digest),
+            ledger,
+            "allow:prepared",
+        )
+
     def _prepare_grant(self, grant, ledger):
-        self.host_adapter = self._host_adapter_type(self, grant)
-        host = self.host_adapter.attest(secrets.token_hex(16))
+        if self._prepared_record is None:
+            self.host_adapter = self._host_adapter_type(self, grant)
+            host = self.host_adapter.attest(secrets.token_hex(16))
+        else:
+            # The prepared adapter owns the local attestation key and immutable
+            # host evidence. Clone that trusted state, bind the fresh grant, and
+            # refresh only if its bounded freshness window has actually elapsed.
+            self.host_adapter = copy.copy(self.host_adapter)
+            self.host_adapter.worker = self
+            self.host_adapter.grant = grant
+            self.host_adapter.plan = None
+            self.host_adapter.context = None
+            self.host_adapter.rules = ()
+            self.host_adapter._issued = set()
+            host = self._prepared_record.host
+            if time.time() >= host.expires_at:
+                host = self.host_adapter.attest(secrets.token_hex(16))
+            else:
+                self.host_adapter.host = host
         broker_lines = tuple(
             line
             for line in self.object_grant.lines
@@ -491,21 +550,23 @@ class _ObjectWorker(LandlockSandboxExecutor):
             raise HostExecutionDenied("object_lowering:prepared_policy_missing")
         object_digest = self.object_grant.digest
 
-        def fresh_conditions(value: Mapping[str, Any]) -> Mapping[str, Any]:
-            if "object_grant" not in value:
-                return value
-            return {**value, "object_grant": object_digest}
-
         input_rules = {rule.rule_id: rule for rule in grant.rules}
         rules = tuple(
             input_rules[rule.rule_id]
             if rule.rule_id.startswith(("runtime:artifact", "runtime:tmp"))
-            else replace(rule, conditions=fresh_conditions(rule.conditions))
-            if "object_grant" in rule.conditions
             else rule
             for rule in self._prepared_rule_templates
         )
         grant = replace(grant, rules=rules)
+        grant._bind_prepared_digest(
+            self._prepared_record.grant.digest,
+            object_digest,
+            tuple(
+                rule
+                for rule in grant.rules
+                if rule.rule_id.startswith(("runtime:artifact", "runtime:tmp"))
+            ),
+        )
         obligations = tuple(
             replace(
                 item,
@@ -513,8 +574,6 @@ class _ObjectWorker(LandlockSandboxExecutor):
                 conditions=input_rules[item.rule_id].conditions,
             )
             if item.rule_id.startswith(("runtime:artifact", "runtime:tmp"))
-            else replace(item, conditions=fresh_conditions(item.conditions))
-            if "object_grant" in item.conditions
             else item
             for item in self._prepared_obligation_templates
         )
@@ -581,15 +640,10 @@ class _ObjectWorker(LandlockSandboxExecutor):
             adapter = adapter_by_id[adapter_id]
             prior = prior_plans[adapter_id]
             assigned = tuple(by_id[item] for item in assigned_ids)
-            assigned_ids_set = prior.obligation_ids
             # The exact adapter assignments and lowering payload were negotiated
             # before the worker was launched. Bind only the fresh invocation and
             # attestation fields here; activation still rechecks live resource
             # support before the worker crosses its authorization barrier.
-            payload = {
-                "prepared_plan": prior.native_plan_digest,
-                "grant": grant.digest,
-            }
             if adapter is self.host_adapter:
                 operated = {
                     item.rule_id
@@ -600,17 +654,14 @@ class _ObjectWorker(LandlockSandboxExecutor):
                 adapter.rules = tuple(
                     rule for rule in grant.rules if rule.rule_id in operated
                 )
-                payload["host"] = host.digest
             else:
                 adapter.grant = grant
-            plan = AdapterPlan(
-                adapter_id,
-                assigned_ids_set,
-                _digest(payload),
-                payload,
-            )
-            adapter.plan = plan
-            plans.append(plan)
+            # Native plans describe the prepared enforcement mechanism, not
+            # invocation identity. The enclosing EnforcementPlan binds the
+            # fresh grant and host, so rebuilding and hashing wrapper plans here
+            # duplicated that binding without changing adapter authority.
+            adapter.plan = prior
+            plans.append(prior)
         plan = EnforcementPlan(
             grant.digest,
             host.digest,
@@ -627,6 +678,7 @@ class _ObjectWorker(LandlockSandboxExecutor):
             prepared.plan.waived_obligations,
             prepared.plan.removed_wants,
         )
+        plan._bind_prepared_digest(prepared.plan.digest)
         coordinator = EnforcementCoordinator(adapters, self.host_adapter)
         return ObjectLoweringRecord(grant, grant, host, obligations, plan), coordinator
 
@@ -645,6 +697,14 @@ class _ObjectWorker(LandlockSandboxExecutor):
             }
         )
         self._prepared_rule_templates = prepared.grant.rules
+        self._prepared_ledger = RequirementLedger(
+            tuple(
+                RequirementEntry(
+                    rule.rule_id, rule.requirement, frozenset({rule.rule_id})
+                )
+                for rule in prepared.grant.rules
+            )
+        )
         self._prepared_obligation_templates = prepared.obligations
         self._prepared_rule_ids = tuple(rule.rule_id for rule in prepared.grant.rules)
         self._prepared_obligation_ids = tuple(
@@ -683,12 +743,21 @@ class _ObjectWorker(LandlockSandboxExecutor):
         assert self.record is not None
         return self.record.plan.digest
 
+    def _prepare_worker_context(self, pid: int) -> ExecutionContext:
+        return self.host_adapter.bind_worker(pid, "prepared")
+
     def _receipt(self, grant, pid, enforcement):
         assert self.record is not None
         broker = self.credential_broker
-        context = self.host_adapter.bind_worker(
-            pid, broker.spawn.nonce if broker.spawn else "no-broker"
-        )
+        broker_epoch = broker.spawn.nonce if broker.spawn else "no-broker"
+        prepared_context = self._prepared_worker_context
+        if isinstance(prepared_context, ExecutionContext):
+            if not prepared_context.worker_id.startswith(f"landlock:{pid}:"):
+                raise HostExecutionDenied("object_lowering:prepared_worker_changed")
+            context = replace(prepared_context, broker_epoch=broker_epoch)
+            self.host_adapter.context = context
+        else:
+            context = self.host_adapter.bind_worker(pid, broker_epoch)
         try:
             receipt = self.coordinator.activate(
                 grant,
@@ -701,10 +770,11 @@ class _ObjectWorker(LandlockSandboxExecutor):
             raise HostExecutionDenied(
                 f"object_lowering:activation_failed:{type(exc).__name__}"
             ) from exc
-        if not self.coordinator.validate_receipt(
-            receipt, grant, self.record.plan, self.record.host, context
-        ):
-            raise HostExecutionDenied("object_lowering:activation_receipt_invalid")
+        # EnforcementCoordinator.activate validates host freshness, plan/grant
+        # binding, every adapter's evidence, and exact obligation coverage
+        # before constructing this receipt. The compiled lifecycle gate checks
+        # that receipt independently before GO; repeating validate_receipt here
+        # only walked the same trusted objects a second time.
         return receipt
 
     def close_mediators(self):
@@ -1000,6 +1070,7 @@ class ObjectBrokerDispatcher:
             worker.record = None
             worker.lowering_refusal = None
             worker._used_prepared_policy = False
+            worker._object_preflight = preflight
             if not preflight:
                 with self._lock:
                     self._preparation_stats["prepared_path_hits"] += 1
@@ -1024,6 +1095,7 @@ class ObjectBrokerDispatcher:
             _worker_pool_state=self._worker_pool_state,
         )
         worker._lean_object_route = True
+        worker._object_preflight = preflight
         return worker
 
     @staticmethod

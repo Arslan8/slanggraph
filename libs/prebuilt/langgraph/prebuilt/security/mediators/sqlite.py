@@ -154,10 +154,11 @@ def sqlite_records_resource(
     def activate(
         lines: tuple[ObjectGrantLine, ...], context: ResourceInvocation
     ) -> None:
+        # Binding validates only the already-authorized selectors. Opening the
+        # database here duplicated the transaction and schema validation that
+        # every effect performs immediately before executing its SQL.
         for line in lines:
             key_for(line)
-        connection = connect(writing=False)
-        connection.close()
 
     def execute(
         operation: str, record: str, payload: Mapping[str, Any]

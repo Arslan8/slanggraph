@@ -164,13 +164,14 @@ def test_invalid_payloads_do_not_touch_database(
         "CREATE VIRTUAL TABLE records USING fts5(key, value)",
     ],
 )
-def test_unknown_schemas_fail_before_activation(database, line, context, schema):
+def test_unknown_schemas_fail_before_effect(database, line, context, schema):
     with sqlite3.connect(database) as connection:
         connection.execute("DROP TABLE records")
         connection.execute(schema)
     adapter = sqlite_record_mediator(database, database_id="notes")
+    adapter.activate((line,), context)
     with pytest.raises(ValueError, match="required records schema"):
-        adapter.activate((line,), context)
+        adapter.invoke(line, {}, context)
 
 
 def test_schema_is_rechecked_after_activation(database, line, context):

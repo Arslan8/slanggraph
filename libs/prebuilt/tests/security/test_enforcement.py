@@ -393,6 +393,33 @@ def test_immutable_authority_digests_are_computed_once(monkeypatch) -> None:
     assert calls == eager_calls + 2
 
 
+def test_prepared_grant_digest_binds_every_fresh_input() -> None:
+    template = _grant()
+    runtime_rule = GrantRule(
+        "runtime:artifact:test",
+        AuthorityDomain.FILESYSTEM,
+        "read",
+        "/runtime/tool.py",
+        {},
+        Requirement.NEED,
+        ("runtime",),
+        True,
+    )
+    grant = replace(template, call_id="fresh", rules=(*template.rules, runtime_rule))
+    grant._bind_prepared_digest(template.digest, "object-authority", (runtime_rule,))
+
+    assert grant.digest != template.digest
+    assert grant.digest == grant.digest
+    changed = replace(grant, call_id="other")
+    changed._bind_prepared_digest(template.digest, "object-authority", (runtime_rule,))
+    assert changed.digest != grant.digest
+    changed_authority = replace(grant, call_id="fresh")
+    changed_authority._bind_prepared_digest(
+        template.digest, "different-object-authority", (runtime_rule,)
+    )
+    assert changed_authority.digest != grant.digest
+
+
 def test_capability_class_does_not_substitute_for_exact_rule_support() -> None:
     """A host capability cannot make an adapter's unsupported rule executable."""
     adapter = _Adapter("service", _complement_ids())

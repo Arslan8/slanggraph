@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -20,7 +21,7 @@ import time
 import warnings
 from collections import OrderedDict, deque
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from pathlib import Path
 from threading import RLock
@@ -468,7 +469,7 @@ class ObjectGrant:
     policy_digest: str
     lines: tuple[ObjectGrantLine, ...]
     enforcement_waivers: Mapping[str, str] = field(default_factory=dict)
-    _digest_value: str = field(init=False, repr=False, compare=False)
+    _digest_value: str = field(init=False, repr=False, compare=False, default="")
 
     def __post_init__(self) -> None:
         waivers = dict(self.enforcement_waivers)
@@ -479,6 +480,30 @@ class ObjectGrant:
             _text(reason, "enforcement waiver reason")
         object.__setattr__(self, "lines", tuple(self.lines))
         object.__setattr__(self, "enforcement_waivers", MappingProxyType(waivers))
+
+    @property
+    def digest(self) -> str:
+        cached = self._digest_value
+        if cached:
+            return cached
+        cached = hashlib.sha256(
+            _json(
+                {
+                    "call_id": self.call_id,
+                    "lines": [line.canonical() for line in self.lines],
+                    "enforcement_waivers": dict(self.enforcement_waivers),
+                    "policy_digest": self.policy_digest,
+                    "principal_id": self.principal_id,
+                    "tool_name": self.tool_name,
+                }
+            ).encode()
+        ).hexdigest()
+        object.__setattr__(self, "_digest_value", cached)
+        return cached
+
+    def _bind_prepared_call(self, prepared_digest: str) -> None:
+        if self._digest_value or not prepared_digest:
+            raise ValueError("prepared object grant binding requires fresh identities")
         object.__setattr__(
             self,
             "_digest_value",
@@ -486,19 +511,11 @@ class ObjectGrant:
                 _json(
                     {
                         "call_id": self.call_id,
-                        "lines": [line.canonical() for line in self.lines],
-                        "enforcement_waivers": dict(self.enforcement_waivers),
-                        "policy_digest": self.policy_digest,
-                        "principal_id": self.principal_id,
-                        "tool_name": self.tool_name,
+                        "prepared_digest": prepared_digest,
                     }
                 ).encode()
             ).hexdigest(),
         )
-
-    @property
-    def digest(self) -> str:
-        return self._digest_value
 
 
 @dataclass(frozen=True, slots=True)
@@ -545,6 +562,43 @@ class ObjectPolicyDenied(PermissionError):
     """Raised when construction, policy, or enforcement fails closed."""
 
 
+class _CedarAuthorizationBundle:
+    """Lazily materialize Cedar CLI inputs only for an uncached decision."""
+
+    def __init__(
+        self,
+        authorizer: CedarObjectAuthorizer,
+        schema: str,
+        entities_json: str,
+    ) -> None:
+        self.authorizer = authorizer
+        self.schema = schema
+        self.entities_json = entities_json
+        self.root: Path | None = None
+        self.schema_path: Path | None = None
+        self.entities_path: Path | None = None
+        self.temporary = False
+
+    def materialize(self) -> tuple[Path, Path, Path]:
+        if self.root is None:
+            root, temporary = self.authorizer._new_authorization_directory()
+            schema_path = root / "schema.cedarschema"
+            entities_path = root / "entities.json"
+            schema_path.write_text(self.schema, encoding="utf-8")
+            entities_path.write_text(self.entities_json, encoding="utf-8")
+            self.root = root
+            self.schema_path = schema_path
+            self.entities_path = entities_path
+            self.temporary = temporary
+        assert self.schema_path is not None
+        assert self.entities_path is not None
+        return self.root, self.schema_path, self.entities_path
+
+    def close(self) -> None:
+        if self.temporary and self.root is not None:
+            shutil.rmtree(self.root, ignore_errors=True)
+
+
 class CedarObjectAuthorizer:
     """Authorize an enumerable manifest using owner DAC, envelope DAC, and MAC."""
 
@@ -557,6 +611,7 @@ class CedarObjectAuthorizer:
         timeout_s: float = 5.0,
         cache_entries: int = 1024,
         enforcement_waivers: Mapping[str, str] | None = None,
+        retain_authorization_artifacts: bool = False,
     ) -> None:
         if timeout_s <= 0:
             raise ValueError("Cedar timeout must be positive")
@@ -568,11 +623,12 @@ class CedarObjectAuthorizer:
         self.timeout_s = timeout_s
         self.cache_entries = cache_entries
         self._cedar_cache: OrderedDict[str, bool] = OrderedDict()
-        self._cache_lock = RLock()
-        self._artifact_root = Path(
-            tempfile.mkdtemp(prefix="slanggraph-cedar-artifacts-")
+        self._authorization_cache: OrderedDict[tuple[Any, ...], ObjectGrant] = (
+            OrderedDict()
         )
-        self._artifact_root.chmod(0o700)
+        self._cache_lock = RLock()
+        self.retain_authorization_artifacts = retain_authorization_artifacts
+        self._artifact_root: Path | None = None
         self._artifact_directories: deque[Path] = deque(maxlen=1024)
         self._artifact_lock = RLock()
         waivers = dict(enforcement_waivers or {})
@@ -589,12 +645,28 @@ class CedarObjectAuthorizer:
     @property
     def artifact_root(self) -> Path:
         """Directory containing retained, private Cedar authorization bundles."""
-        return self._artifact_root
+        with self._artifact_lock:
+            if self._artifact_root is None:
+                root = Path(tempfile.mkdtemp(prefix="slanggraph-cedar-artifacts-"))
+                root.chmod(0o700)
+                self._artifact_root = root
+            return self._artifact_root
 
     def authorization_artifacts(self) -> tuple[Path, ...]:
         """Return retained Cedar bundle directories in authorization order."""
         with self._artifact_lock:
             return tuple(self._artifact_directories)
+
+    def _new_authorization_directory(self) -> tuple[Path, bool]:
+        if not self.retain_authorization_artifacts:
+            root = Path(tempfile.mkdtemp(prefix="slanggraph-cedar-"))
+            root.chmod(0o700)
+            return root, True
+        root = Path(tempfile.mkdtemp(prefix="authorization-", dir=self.artifact_root))
+        root.chmod(0o700)
+        with self._artifact_lock:
+            self._artifact_directories.append(root)
+        return root, False
 
     def authorize(
         self,
@@ -610,9 +682,9 @@ class CedarObjectAuthorizer:
         """Return the exact surviving grant or raise a fail-closed denial."""
         from langgraph.prebuilt.security.mac import runtime_mac_forbids
 
+        roles = tuple(sorted(roles))
         operator_forbids = runtime_mac_forbids()
         mandatory_forbids = "\n".join((operator_forbids, self.policies.mac_forbids))
-        candidates = self.manifest.expand(tool_name, arguments, labels=labels)
         executable = _resolve_executable(self.executable)
         if executable is None:
             raise ObjectPolicyDenied("cedar:executable_unavailable")
@@ -622,6 +694,25 @@ class CedarObjectAuthorizer:
         owner_policy = self.policies.owner_permits.get(tool_name)
         if owner_policy is None:
             raise ObjectPolicyDenied(f"cedar:owner_policy_missing:{tool_name}")
+        authorization_key = _authorization_cache_key(
+            engine,
+            operator_forbids,
+            principal_id,
+            roles,
+            tool_name,
+            tool_owner,
+            arguments,
+            labels,
+        )
+        if authorization_key is not None and not self.retain_authorization_artifacts:
+            with self._cache_lock:
+                cached_grant = self._authorization_cache.get(authorization_key)
+                if cached_grant is not None:
+                    self._authorization_cache.move_to_end(authorization_key)
+                    bound = replace(cached_grant, call_id=call_id)
+                    bound._bind_prepared_call(cached_grant.digest)
+                    return bound
+        candidates = self.manifest.expand(tool_name, arguments, labels=labels)
         schema = self.manifest.registry.cedar_schema()
         entities = _entities(
             self.manifest.registry,
@@ -636,17 +727,10 @@ class CedarObjectAuthorizer:
             for value in (self.policies.principal_permits, self.policies.share_permits)
             if value.strip()
         )
+        entities_json = _json(entities)
+        bundle = _CedarAuthorizationBundle(self, schema, entities_json)
         retained: list[ObjectGrantLine] = []
-        root = Path(tempfile.mkdtemp(prefix="authorization-", dir=self._artifact_root))
-        root.chmod(0o700)
-        with self._artifact_lock:
-            self._artifact_directories.append(root)
         try:
-            schema_path = root / "schema.cedarschema"
-            entities_path = root / "entities.json"
-            schema_path.write_text(schema, encoding="utf-8")
-            entities_json = _json(entities)
-            entities_path.write_text(entities_json, encoding="utf-8")
             policy_parts = {
                 "owner": owner_policy,
                 "envelope": envelope_policy,
@@ -655,17 +739,17 @@ class CedarObjectAuthorizer:
             for name, source in policy_parts.items():
                 if not source.strip() and name == "mac":
                     continue
-                self._validate(
-                    executable, engine, root, schema_path, schema, name, source
-                )
+                self._validate(executable, engine, bundle, schema, name, source)
             if operator_forbids:
                 # Operator vocabulary spans graphs. A graph-local schema cannot
                 # reject a forbid merely because its action belongs to another
                 # graph; Cedar still parses it and fails closed on evaluation errors.
-                operator_path = root / "operator-mac.cedar"
-                operator_path.write_text(operator_forbids, encoding="utf-8")
                 parse_key = _cedar_cache_key(engine, "parse", operator_forbids)
                 cached, _ = self._cached(parse_key)
+                if self.retain_authorization_artifacts or not cached:
+                    root, _, _ = bundle.materialize()
+                    operator_path = root / "operator-mac.cedar"
+                    operator_path.write_text(operator_forbids, encoding="utf-8")
                 if not cached:
                     parsed = self._run(
                         executable,
@@ -680,8 +764,7 @@ class CedarObjectAuthorizer:
             if not self._allows(
                 executable,
                 engine,
-                root,
-                entities_path,
+                bundle,
                 entities_json,
                 "owner-call",
                 owner_policy,
@@ -697,8 +780,7 @@ class CedarObjectAuthorizer:
             if not candidates and not self._allows(
                 executable,
                 engine,
-                root,
-                entities_path,
+                bundle,
                 entities_json,
                 "envelope-call",
                 self.policies.principal_permits,
@@ -708,8 +790,7 @@ class CedarObjectAuthorizer:
             if mandatory_forbids.strip() and not self._allows(
                 executable,
                 engine,
-                root,
-                entities_path,
+                bundle,
                 entities_json,
                 "mac-call",
                 _call_permit(principal_id, tool_name) + mandatory_forbids,
@@ -726,8 +807,7 @@ class CedarObjectAuthorizer:
                 if not self._allows(
                     executable,
                     engine,
-                    root,
-                    entities_path,
+                    bundle,
                     entities_json,
                     "owner",
                     owner_policy,
@@ -739,8 +819,7 @@ class CedarObjectAuthorizer:
                 if not self._allows(
                     executable,
                     engine,
-                    root,
-                    entities_path,
+                    bundle,
                     entities_json,
                     "envelope",
                     envelope_policy,
@@ -753,8 +832,7 @@ class CedarObjectAuthorizer:
                 if not self._allows(
                     executable,
                     engine,
-                    root,
-                    entities_path,
+                    bundle,
                     entities_json,
                     "mac-eval",
                     mac_policy,
@@ -766,10 +844,8 @@ class CedarObjectAuthorizer:
                 retained.append(line)
             if candidates and not retained:
                 raise ObjectPolicyDenied(f"dac:no_manifest_access:{tool_name}")
-        except BaseException:
-            # Retain failed bundles too; their exact inputs are useful when
-            # reviewing or experimenting with a policy denial.
-            raise
+        finally:
+            bundle.close()
         waived_lines: dict[str, str] = {}
         for line in retained:
             if self.manifest.registry.defers_to_lowering(line):
@@ -784,7 +860,7 @@ class CedarObjectAuthorizer:
                     f"{object_class.enforced_by.value}"
                 )
             waived_lines[line.line_id] = reason
-        return ObjectGrant(
+        result = ObjectGrant(
             principal_id,
             tool_name,
             call_id,
@@ -798,21 +874,30 @@ class CedarObjectAuthorizer:
             tuple(retained),
             waived_lines,
         )
+        if authorization_key is not None and self.cache_entries:
+            with self._cache_lock:
+                self._authorization_cache[authorization_key] = result
+                self._authorization_cache.move_to_end(authorization_key)
+                while len(self._authorization_cache) > self.cache_entries:
+                    self._authorization_cache.popitem(last=False)
+        return result
 
     def _validate(
         self,
         executable: str,
         engine: tuple[str, int, int, int, int, int],
-        root: Path,
-        schema_path: Path,
+        bundle: _CedarAuthorizationBundle,
         schema: str,
         name: str,
         source: str,
     ) -> None:
-        policy_path = root / f"{name}.cedar"
-        policy_path.write_text(source, encoding="utf-8")
         cache_key = _cedar_cache_key(engine, "validate", schema, source)
         cached, _ = self._cached(cache_key)
+        if cached and not self.retain_authorization_artifacts:
+            return
+        root, schema_path, _ = bundle.materialize()
+        policy_path = root / f"{name}.cedar"
+        policy_path.write_text(source, encoding="utf-8")
         if cached:
             return
         result = self._run(
@@ -833,8 +918,7 @@ class CedarObjectAuthorizer:
         self,
         executable: str,
         engine: tuple[str, int, int, int, int, int],
-        root: Path,
-        entities_path: Path,
+        bundle: _CedarAuthorizationBundle,
         entities_json: str,
         name: str,
         source: str,
@@ -842,14 +926,17 @@ class CedarObjectAuthorizer:
     ) -> bool:
         request_json = _json(request)
         request_id = hashlib.sha256(request_json.encode()).hexdigest()[:16]
-        policy_path = root / f"{name}-{request_id}.cedar"
-        request_path = root / f"{name}-{request_id}.request.json"
-        policy_path.write_text(source, encoding="utf-8")
-        request_path.write_text(request_json, encoding="utf-8")
         cache_key = _cedar_cache_key(
             engine, "authorize", entities_json, source, request_json
         )
         cached, allowed = self._cached(cache_key)
+        if cached and not self.retain_authorization_artifacts:
+            return allowed
+        root, _, entities_path = bundle.materialize()
+        policy_path = root / f"{name}-{request_id}.cedar"
+        request_path = root / f"{name}-{request_id}.request.json"
+        policy_path.write_text(source, encoding="utf-8")
+        request_path.write_text(request_json, encoding="utf-8")
         if cached:
             return allowed
         result = self._run(
@@ -1336,6 +1423,7 @@ def cedar_security(
     dispatcher: ObjectSandboxDispatcher | None = None,
     resources: Sequence[Any] = (),
     static_flow: StaticFlowPolicy | None = None,
+    retain_authorization_artifacts: bool = False,
     labels: Callable[
         [Principal, ToolCall],
         Mapping[tuple[str, str], Mapping[str, str]],
@@ -1365,6 +1453,8 @@ def cedar_security(
     Resource access must use approved `security.inprocess` APIs or registered
     typed resource clients. Optional `static_flow` rejects incompatible or unknown
     confidentiality bounds during in-process admission, before execution.
+    Set `retain_authorization_artifacts=True` only for policy diagnostics; the
+    default keeps cached authorization off the invocation filesystem.
     """
     if not isinstance(tool, BaseTool):
         raise TypeError("cedar_security requires a @tool-decorated BaseTool")
@@ -1456,7 +1546,12 @@ def cedar_security(
         else ToolDac("__cedar__", {"*": "x"})
     )
     overrides = DacOverrides({tool_name: local_policy})
-    authorizer = CedarObjectAuthorizer(parsed, policies, executable=executable)
+    authorizer = CedarObjectAuthorizer(
+        parsed,
+        policies,
+        executable=executable,
+        retain_authorization_artifacts=retain_authorization_artifacts,
+    )
     executor = ObjectPolicyHostExecutor(
         authorizer,
         dispatcher
@@ -1990,6 +2085,59 @@ def _cedar_cache_key(
     return hashlib.sha256(
         _json({"engine": engine, "operation": operation, "inputs": inputs}).encode()
     ).hexdigest()
+
+
+def _authorization_cache_key(
+    engine: tuple[str, int, int, int, int, int],
+    operator_forbids: str,
+    principal_id: str,
+    roles: tuple[str, ...],
+    tool_name: str,
+    tool_owner: str,
+    arguments: Mapping[str, object],
+    labels: Mapping[tuple[str, str], Mapping[str, str]] | None,
+) -> tuple[Any, ...] | None:
+    """Return an exact in-process key for reusable authorization results."""
+
+    def value(item: object) -> object:
+        if item is None or isinstance(item, str | int | bool | bytes):
+            return (type(item).__name__, item)
+        if isinstance(item, float):
+            if not math.isfinite(item):
+                raise TypeError
+            return ("float", item)
+        if isinstance(item, Mapping):
+            return (
+                "mapping",
+                tuple(
+                    sorted(
+                        ((value(key), value(member)) for key, member in item.items()),
+                        key=repr,
+                    )
+                ),
+            )
+        if isinstance(item, tuple | list):
+            return (type(item).__name__, tuple(value(member) for member in item))
+        if isinstance(item, set | frozenset):
+            return (
+                type(item).__name__,
+                tuple(sorted((value(member) for member in item), key=repr)),
+            )
+        raise TypeError
+
+    try:
+        return (
+            engine,
+            operator_forbids,
+            principal_id,
+            roles,
+            tool_name,
+            tool_owner,
+            value(arguments),
+            value(labels),
+        )
+    except TypeError:
+        return None
 
 
 __all__ = (

@@ -96,18 +96,9 @@ class _NativeRouteBinding(ctypes.Structure):
 
 def _native_route_binding(
     observed: dict,
-) -> tuple[_NativeRouteBinding, tuple[ctypes.Array, ...]]:
+) -> tuple[_NativeRouteBinding, tuple[ctypes.Array, ...], tuple[Any, ...]]:
     """Project controller-owned identity into the narrow native ABI."""
-    if type(observed) is not dict:
-        raise HostExecutionDenied("host:lean_protocol_shape")
-    worker = observed.get("worker")
-    if type(worker) is not dict:
-        raise HostExecutionDenied("host:lean_protocol_shape")
-    values = tuple(observed.get(name) for name in _ROUTE_BINDING_NAMES[:-3]) + (
-        worker.get("pid"),
-        worker.get("startTime"),
-        worker.get("bootId"),
-    )
+    values = _route_binding_values(observed)
     encoded = tuple(
         _string(value, nonempty=name not in {"deployment", "runtime"}).encode()
         for name, value in zip(_ROUTE_BINDING_NAMES, values, strict=True)
@@ -117,7 +108,21 @@ def _native_route_binding(
         _NativeSlice(ctypes.addressof(buffer), len(value))
         for buffer, value in zip(buffers, encoded, strict=True)
     )
-    return _NativeRouteBinding(*slices), buffers
+    return _NativeRouteBinding(*slices), buffers, values
+
+
+def _route_binding_values(observed: dict) -> tuple[Any, ...]:
+    """Return exact typed values without encoding an already prepared binding."""
+    if type(observed) is not dict:
+        raise HostExecutionDenied("host:lean_protocol_shape")
+    worker = observed.get("worker")
+    if type(worker) is not dict:
+        raise HostExecutionDenied("host:lean_protocol_shape")
+    return tuple(observed.get(name) for name in _ROUTE_BINDING_NAMES[:-3]) + (
+        worker.get("pid"),
+        worker.get("startTime"),
+        worker.get("bootId"),
+    )
 
 
 @contextmanager
@@ -909,14 +914,20 @@ class LeanLifecycleChecker:
             or self._native_prepare_binding is None
         ):
             raise HostExecutionDenied("host:lean_inline_required")
-        binding, _buffers = _native_route_binding(observed)
+        binding, buffers, values = _native_route_binding(observed)
         with self._stats_lock:
             handle = self._native_prepare_binding(ctypes.byref(binding))
             if handle:
                 self._stats["prepared_routes"] += 1
         if not handle:
             raise HostExecutionDenied("host:lean_lifecycle_refused")
-        return _PreparedLifecycleRoute(self, handle)
+        return _PreparedLifecycleRoute(
+            self,
+            handle,
+            native_binding=binding,
+            native_buffers=buffers,
+            binding_values=values,
+        )
 
     def require_prepared(
         self, prepared: _PreparedLifecycleRoute, events: list, phase: str
@@ -971,7 +982,12 @@ class LeanLifecycleChecker:
             or phase not in {"running", "ready"}
         ):
             raise HostExecutionDenied("host:lean_binary_configuration")
-        binding, _buffers = _native_route_binding(observed)
+        binding = prepared.native_binding
+        if binding is not None:
+            if _route_binding_values(observed) != prepared.binding_values:
+                raise HostExecutionDenied("host:lean_lifecycle_refused")
+        else:
+            binding, _buffers, _values = _native_route_binding(observed)
         function = (
             self._native_check_prepared_go
             if phase == "running"
@@ -1095,11 +1111,28 @@ class LeanLifecycleChecker:
 class _PreparedLifecycleRoute:
     """One native Lean value owned by exactly one lifecycle session."""
 
-    __slots__ = ("checker", "handle")
+    __slots__ = (
+        "binding_values",
+        "checker",
+        "handle",
+        "native_binding",
+        "native_buffers",
+    )
 
-    def __init__(self, checker: LeanLifecycleChecker, handle: int) -> None:
+    def __init__(
+        self,
+        checker: LeanLifecycleChecker,
+        handle: int,
+        *,
+        native_binding: _NativeRouteBinding | None = None,
+        native_buffers: tuple[ctypes.Array, ...] = (),
+        binding_values: tuple[Any, ...] = (),
+    ) -> None:
         self.checker = checker
         self.handle = handle
+        self.native_binding = native_binding
+        self.native_buffers = native_buffers
+        self.binding_values = binding_values
 
     def close(self) -> None:
         handle = self.handle
