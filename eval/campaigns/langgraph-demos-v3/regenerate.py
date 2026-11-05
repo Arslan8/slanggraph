@@ -60,6 +60,14 @@ def mean_or_none(values) -> float | None:
     return statistics.fmean(selected) if selected else None
 
 
+def describe_timings(values: list[float]) -> dict[str, float]:
+    return {
+        "mean_ms": statistics.fmean(values),
+        "median_ms": statistics.median(values),
+        "p95_ms": percentile(values, 0.95),
+    }
+
+
 def summarize_mode(records: list[dict]) -> dict:
     model_times = [item["model_time_ms"] for item in records if item["model_time_ms"] is not None]
     return {
@@ -92,6 +100,12 @@ def main() -> None:
     output.mkdir(parents=True, exist_ok=True)
     raw = CAMPAIGN / "raw" / args.run_id
     records = json.loads((raw / "trials.json").read_text())
+    configuration = json.loads((raw / "configuration.json").read_text())
+    configured_routes = {
+        application: route
+        for route, route_applications in configuration["argus_routes"].items()
+        for application in route_applications
+    }
     applications = sorted({item["application"] for item in records})
     repetitions = sorted({item["repetition"] for item in records})
     rng = random.Random(SEED)
@@ -118,6 +132,7 @@ def main() -> None:
             )
         application_result = {
             "modes": modes,
+            "argus_route": configured_routes[application],
             "population_paired": population_paired,
             "matched_successful_pairs": matched_pairs,
         }
@@ -152,6 +167,7 @@ def main() -> None:
     latency_records = [item for item in records if item["application"] in included]
     suite_ratio = ratio_for(latency_records, repetitions)
     suite_bootstrap = [ratio_for(latency_records, sample) for sample in resampled_blocks]
+    suite_samples = timing_samples(latency_records, repetitions)
     geometric_bootstrap = []
     for sample in resampled_blocks:
         sampled_ratios = [
@@ -161,6 +177,39 @@ def main() -> None:
         geometric_bootstrap.append(
             math.exp(statistics.fmean(math.log(value) for value in sampled_ratios))
         )
+    route_summaries = {}
+    for route in sorted(set(configured_routes.values())):
+        route_applications = sorted(
+            application for application in applications if configured_routes[application] == route
+        )
+        route_included = [
+            application for application in route_applications if application in included
+        ]
+        route_records = [item for item in records if item["application"] in route_included]
+        route_samples = timing_samples(route_records, repetitions)
+        route_ratio = ratio_for(route_records, repetitions)
+        route_bootstrap = [ratio_for(route_records, sample) for sample in resampled_blocks]
+        route_summaries[route] = {
+            "configured_applications": route_applications,
+            "included": route_included,
+            "excluded": [
+                application
+                for application in route_applications
+                if application not in route_included
+            ],
+            "matched_successful_pairs": len(route_samples["Baseline"]),
+            "timings": {mode: describe_timings(route_samples[mode]) for mode in MODES},
+            "pooled_matched_ratio": route_ratio,
+            "pooled_matched_overhead_percent": 100 * (route_ratio - 1),
+            "ratio_ci95": [
+                percentile(route_bootstrap, 0.025),
+                percentile(route_bootstrap, 0.975),
+            ],
+            "overhead_ci95_percent": [
+                100 * (percentile(route_bootstrap, 0.025) - 1),
+                100 * (percentile(route_bootstrap, 0.975) - 1),
+            ],
+        }
     statistics_output = {
         "run_id": args.run_id,
         "primary_timer": "application invocation wall clock after preparation",
@@ -179,6 +228,8 @@ def main() -> None:
             "excluded": [item for item in applications if item not in included],
             "pooled_matched_ratio": suite_ratio,
             "pooled_matched_overhead_percent": 100 * (suite_ratio - 1),
+            "matched_successful_pairs": len(suite_samples["Baseline"]),
+            "timings": {mode: describe_timings(suite_samples[mode]) for mode in MODES},
             "ratio_ci95": [
                 percentile(suite_bootstrap, 0.025),
                 percentile(suite_bootstrap, 0.975),
@@ -210,6 +261,7 @@ def main() -> None:
                 "failures, and timeouts are excluded from the overhead estimate."
             ),
         },
+        "routes": route_summaries,
     }
     (output / "statistics.json").write_text(json.dumps(statistics_output, indent=2) + "\n")
 
@@ -285,6 +337,26 @@ def main() -> None:
             f"(95% paired-block CI {suite['ratio_ci95'][0]:.3f}-"
             f"{suite['ratio_ci95'][1]:.3f}); "
             f"overhead **{suite['pooled_matched_overhead_percent']:.1f}%**.",
+            "",
+            "Configured-route breakdown (same matched-successful population and invocation timer):",
+            "",
+            "| Argus route | Applications included/configured | Matched pairs | "
+            "Baseline mean/median/p95 (ms) | Argus mean/median/p95 (ms) | "
+            "Ratio [95% CI] |",
+            "|---|---:|---:|---:|---:|---:|",
+            *(
+                f"| {route} | {len(item['included'])}/{len(item['configured_applications'])} | "
+                f"{item['matched_successful_pairs']} | "
+                f"{item['timings']['Baseline']['mean_ms']:.1f}/"
+                f"{item['timings']['Baseline']['median_ms']:.1f}/"
+                f"{item['timings']['Baseline']['p95_ms']:.1f} | "
+                f"{item['timings']['Argus']['mean_ms']:.1f}/"
+                f"{item['timings']['Argus']['median_ms']:.1f}/"
+                f"{item['timings']['Argus']['p95_ms']:.1f} | "
+                f"{item['pooled_matched_ratio']:.3f}x "
+                f"[{item['ratio_ci95'][0]:.3f}, {item['ratio_ci95'][1]:.3f}] |"
+                for route, item in route_summaries.items()
+            ),
             "",
             "Excluded applications have no task/repetition pair that completed correctly in "
             "both modes. Their failures remain in the status table but are never treated as "
