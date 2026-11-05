@@ -119,6 +119,12 @@ security = cedar_security(
 )
 ```
 
+Broker decision logging is disabled by default and is not part of enforcement.
+Pass `record_audit=True` when an application needs the bounded, in-memory records
+returned by `dispatcher.audit_records()`. The dispatcher still validates the
+effective invocation grant and the mediator contract on every call when logging
+is disabled.
+
 `cedar_security` derives the class declarations from these bindings. Multiple
 objects can share a compatible class and lowering contract. The manifest helper
 emits access to the exact object; do not persist or hand-author its opaque ID.

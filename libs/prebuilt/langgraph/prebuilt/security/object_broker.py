@@ -129,6 +129,7 @@ class _ObjectBroker(CredentialBroker):
         bindings: Mapping[str, str] | None = None,
         *,
         server_executor: ThreadPoolExecutor | None = None,
+        record_audit: bool = False,
     ) -> None:
         self.bindings = dict(bindings or {})
         self.grant = grant
@@ -138,6 +139,7 @@ class _ObjectBroker(CredentialBroker):
         self._audit: deque[BrokerAuditRecord] = deque(maxlen=4096)
         self._lock = RLock()
         self._server_executor = server_executor
+        self._record_audit = record_audit
 
     def bind_spawn(self, spawn, grant):
         if (
@@ -211,6 +213,18 @@ class _ObjectBroker(CredentialBroker):
             spawn, service, operation, line.line_id, True, "exact_object_grant"
         )
         return {"status": "ok", "result": result}
+
+    def _record(
+        self,
+        spawn: SpawnRecord,
+        service: str,
+        operation: str,
+        rule_id: str,
+        allowed: bool,
+        reason: str,
+    ) -> None:
+        if self._record_audit:
+            super()._record(spawn, service, operation, rule_id, allowed, reason)
 
 
 class _ObjectWorker(LandlockSandboxExecutor):
@@ -816,6 +830,7 @@ class ObjectBrokerDispatcher:
         lifecycle_checker: LeanLifecycleChecker | None = None,
         worker_pool_capacity: int = 0,
         worker_pool_idle_s: float = 300.0,
+        record_audit: bool = False,
     ) -> None:
         self.tools = MappingProxyType(dict(tools))
         if handlers:
@@ -863,6 +878,9 @@ class ObjectBrokerDispatcher:
         ):
             raise ValueError("object broker worker pool settings must be non-negative")
         self.worker_pool_capacity = worker_pool_capacity
+        if type(record_audit) is not bool:
+            raise TypeError("record_audit must be a bool")
+        self.record_audit = record_audit
         if worker_pool_capacity and lifecycle_checker is not None:
             lifecycle_checker.require_inline()
         self.worker_pool_idle_s = float(worker_pool_idle_s)
@@ -1002,7 +1020,8 @@ class ObjectBrokerDispatcher:
             raise
         finally:
             with self._lock:
-                self._audit.extend(broker.audit_records())
+                if self.record_audit:
+                    self._audit.extend(broker.audit_records())
                 if worker._used_prepared_policy:
                     self._preparation_stats["prepared_policy_bindings"] += 1
                 if getattr(worker, "lowering_refusal", None) is not None:
@@ -1060,7 +1079,10 @@ class ObjectBrokerDispatcher:
         with self._lock:
             prepared = self._prepared_workers.get(key)
         broker = _ObjectBroker(
-            grant, self.bindings, server_executor=self._broker_executor
+            grant,
+            self.bindings,
+            server_executor=self._broker_executor,
+            record_audit=self.record_audit,
         )
         if prepared is not None:
             worker = copy.copy(prepared)

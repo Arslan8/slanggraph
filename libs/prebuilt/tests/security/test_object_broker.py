@@ -132,6 +132,7 @@ def test_exact_capability(setup, operation, selector, expected):
     assert result.value == expected
     assert seen == ([("inspect", "pump-1")] if expected == "inspected" else [])
     assert result.receipt.grant_digest == grant.digest
+    assert dispatcher.audit_records() == ()
 
 
 @pytest.mark.skipif(probe_landlock_abi() < 5, reason="Landlock ABI 5 required")
@@ -335,6 +336,7 @@ def test_prepared_context_rebinds_fresh_principal_and_is_single_use(
         runtime_roots=dispatcher.runtime_roots,
         lifecycle_checker=native_checker,
         worker_pool_capacity=1,
+        record_audit=True,
     )
     dispatcher.prewarm(alice, call, grant)
     bob = replace(alice, user_id="bob", session_id="bob-session")
@@ -552,6 +554,7 @@ async def test_async_dispatch(setup):
         },
         mediators=dispatcher.mediators,
         runtime_roots=dispatcher.runtime_roots,
+        record_audit=True,
     )
     assert (await dispatcher.ainvoke(principal, call, grant)).value == "inspected"
     assert seen == [("inspect", "pump-1")]
@@ -737,6 +740,7 @@ def test_resource_support_rechecked_on_each_request(setup):
         dispatcher.tools,
         runtime_roots=dispatcher.runtime_roots,
         mediators=(replace(original, assess=assess, activate=activate),),
+        record_audit=True,
     )
     assert dispatcher.invoke(principal, call, grant).value == "denied"
     assert not seen
@@ -769,4 +773,15 @@ def test_bare_handler_is_not_a_lowering_contract(setup):
             dispatcher.tools,
             {("pump", "inspect"): lambda line, payload: None},
             runtime_roots=dispatcher.runtime_roots,
+        )
+
+
+def test_broker_audit_flag_must_be_boolean(setup):
+    dispatcher, *_ = setup
+    with pytest.raises(TypeError, match="record_audit must be a bool"):
+        ObjectBrokerDispatcher(
+            dispatcher.tools,
+            mediators=dispatcher.mediators,
+            runtime_roots=dispatcher.runtime_roots,
+            record_audit=1,
         )
