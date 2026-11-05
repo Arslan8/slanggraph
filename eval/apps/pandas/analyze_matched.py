@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import random
 import statistics
 from collections import defaultdict
@@ -206,11 +207,27 @@ def run(raw: Path, output: Path) -> None:
             "model_calls": sum(int(row["model_calls"]) for row in values),
         }
 
+    task_summaries = {}
+    for case in sorted({str(row["case_id"]) for row in selected}):
+        baseline_rows = [row for row in by_condition["Baseline"] if row["case_id"] == case]
+        protected_rows = [row for row in by_condition["slangGraph"] if row["case_id"] == case]
+        baseline_mean = statistics.mean(float(row["analysis_wall_ms"]) for row in baseline_rows)
+        protected_mean = statistics.mean(float(row["analysis_wall_ms"]) for row in protected_rows)
+        task_summaries[case] = {
+            "baseline_successes": sum(bool(row["legitimate_result"]) for row in baseline_rows),
+            "slanggraph_successes": sum(bool(row["legitimate_result"]) for row in protected_rows),
+            "attempts_per_condition": len(baseline_rows),
+            "baseline_mean_ms": baseline_mean,
+            "slanggraph_mean_ms": protected_mean,
+            "ratio": protected_mean / baseline_mean,
+        }
+
     summary = {
         "artifact": str(raw),
         "conditions": {
             condition: condition_summary(values) for condition, values in by_condition.items()
         },
+        "tasks": task_summaries,
         "primary": {
             "available": overhead_available,
             "estimand": "ratio of condition means over all 100 attempted task trials",
@@ -272,6 +289,26 @@ The interval is a percentile bootstrap of the ratio of means with {BOOTSTRAP_RES
         secondary_text = (
             "No matched-success timing analysis is available because no protected trial completed."
         )
+    if protected["successes"] == protected["attempts"]:
+        protected_outcome_text = (
+            "Every protected attempt completed successfully and matched the trusted utility oracle."
+        )
+    elif protected["successes"] == 0:
+        protected_outcome_text = (
+            "All protected attempts failed before completing useful application execution."
+        )
+    else:
+        protected_outcome_text = (
+            f"Protected execution completed correctly on {protected['successes']}/"
+            f"{protected['attempts']} attempts; failures remain included in the primary estimand."
+        )
+    task_table = "\n".join(
+        f"| `{case}` | {item['baseline_successes']}/{item['attempts_per_condition']} | "
+        f"{item['slanggraph_successes']}/{item['attempts_per_condition']} | "
+        f"{item['baseline_mean_ms']:.1f} ms | {item['slanggraph_mean_ms']:.1f} ms | "
+        f"{item['ratio']:.3f}x |"
+        for case, item in summary["tasks"].items()
+    )
     markdown = f"""# Matched Pandas complete-system overhead
 
 ## Primary result
@@ -287,7 +324,11 @@ Timeouts use a 180,000 ms cap in the primary estimand. The table reports timeout
 
 ## Correctness and matched-success sensitivity
 
-Baseline succeeded on {baseline["successes"]}/{baseline["attempts"]} attempts; Argus succeeded on {protected["successes"]}/{protected["attempts"]}. All protected attempts failed at host activation before computation because mandatory bubblewrap isolation was unavailable. {secondary_text}
+Baseline succeeded on {baseline["successes"]}/{baseline["attempts"]} attempts; Argus succeeded on {protected["successes"]}/{protected["attempts"]}. {protected_outcome_text} {secondary_text}
+
+| Task | Baseline success | Argus success | Baseline mean | Argus mean | Ratio |
+|---|---:|---:|---:|---:|---:|
+{task_table}
 
 ## Measurement boundary
 
@@ -297,10 +338,12 @@ Both conditions use the same subprocess wall-clock boundary: interpreter startup
 """
     (output / "RESULTS.md").write_text(markdown)
     hashes = []
+    artifact_root = Path(os.path.commonpath((raw.resolve(), output.resolve())))
     for path in sorted(raw.rglob("*")):
         if path.is_file():
             hashes.append(
-                f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(output)}"
+                f"{hashlib.sha256(path.read_bytes()).hexdigest()}  "
+                f"{path.resolve().relative_to(artifact_root)}"
             )
     (output / "SHA256SUMS").write_text("\n".join(hashes) + "\n")
 

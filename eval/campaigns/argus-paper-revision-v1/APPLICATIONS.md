@@ -23,7 +23,7 @@ cohort. Application completion is compatibility evidence, not a security test.
 | T8 serial-tools | 1/1 | 1/1 | correct |
 | T9 add-memory | 1/1 | 1/1 | correct |
 | T10 time-travel | 1/1 | 0/1 | `checkpoint:broken_chain`; integrity retained |
-| Pandas v23 | 10/10 | 10/10 | all frozen tasks correct; no output-validation failures |
+| Pandas v23 | 50/50 | 50/50 | ten tasks x five blocks; all correct; no timeout or validation failure |
 
 The fresh reliable-baseline subset is D1, D2, D4, D5, T1–T10, and all ten
 Pandas tasks. D3 remains visible instead of being averaged into the easy cases.
@@ -65,7 +65,11 @@ DataFrame and converted it back to `NaN`; that unsuccessful attempt is also
 retained. v23 uses a versioned sentinel only for the missing numeric bucket,
 allows the unchanged strict validator to inspect a finite/string state, and
 restores JSON `null` only at the admitted wrangling boundary. The final matched
-run is 10/10 in both modes with the original oracle.
+run at `0db4bf9f3f7cbf13fecb5c1329dfd4decc1acf78` is 50/50 in both modes with
+the original oracle. Baseline mean wall time is 10,228.4 ms and Argus mean is
+11,388.9 ms: 1.113x, or 11.3% overhead, with a paired-block 95% interval of
+10.7%-12.1%. See `pandas-final-0db4bf9f3-results/` for per-task results,
+statistics, checksums, and independent validation.
 
 T10 is not repaired by disabling checkpoint integrity. Restoring the selected
 historical checkpoint is not a valid continuation of the authenticated current

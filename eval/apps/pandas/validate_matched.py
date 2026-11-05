@@ -10,6 +10,10 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
+_EXPECTED_FAILURES = {
+    "22-full": Counter({("slangGraph", "monthly_mean"): 5}),
+    "23-full": Counter(),
+}
 
 
 def _campaign():
@@ -23,6 +27,16 @@ def _campaign():
 
 def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _expected_outcomes(manifest_version: str) -> tuple[Counter, int]:
+    try:
+        failures = _EXPECTED_FAILURES[manifest_version]
+    except KeyError as exc:
+        raise ValueError(
+            f"Unsupported matched-campaign manifest version: {manifest_version}"
+        ) from exc
+    return failures.copy(), 100 - sum(failures.values())
 
 
 def validate(raw: Path) -> dict:
@@ -124,11 +138,17 @@ def validate(raw: Path) -> dict:
 
     if timeout_count:
         issues.append(f"Unexpected timeouts in completed artifact: {timeout_count}")
-    expected_failures = Counter({("slangGraph", "monthly_mean"): 5})
+    try:
+        expected_failures, expected_successes = _expected_outcomes(plan.get("manifest_version", ""))
+    except ValueError as exc:
+        issues.append(str(exc))
+        expected_failures, expected_successes = Counter(), 100
     if failures != expected_failures:
         issues.append(f"Failure set differs: {dict(failures)}")
-    if sum(successes.values()) != 95:
-        issues.append(f"Expected 95 legitimate results, got {sum(successes.values())}")
+    if sum(successes.values()) != expected_successes:
+        issues.append(
+            f"Expected {expected_successes} legitimate results, got {sum(successes.values())}"
+        )
     return {
         "passed": not issues,
         "trials": len(rows),
@@ -143,7 +163,7 @@ def validate(raw: Path) -> dict:
             "common settings, model, fixture, and source identities",
             "Baseline negative security evidence",
             "slangGraph admission, policy, audit, and activation evidence",
-            "retained protected non-finite refusals",
+            "manifest-version outcome expectations",
         ],
     }
 

@@ -111,6 +111,14 @@ completed in 32 seconds on immediate diagnostic reproduction. A new five-block,
 350-trial application campaign is still required before publishing updated
 macrobenchmark results.
 
+The separate final-commit Pandas macrobenchmark is complete. All ten frozen
+tasks passed in all five repetition blocks under both conditions (50/50
+Baseline, 50/50 Argus), with no timeout or validation failure. Complete-system
+means were 10,228.4 ms and 11,388.9 ms respectively: 1.113x, or 11.3% overhead,
+with a paired-block 95% interval of 10.7%-12.1%. The independent matched
+validator reported zero issues; compact results are under
+`pandas-final-0db4bf9f3-results/`.
+
 ## Reproduction
 
 Build and preflight the checker:
