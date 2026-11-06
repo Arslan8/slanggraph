@@ -123,6 +123,27 @@ def test_retained_bundle_copies_inputs_and_hashes_outputs(tmp_path: Path) -> Non
     assert {line.split("  ", 1)[1] for line in checksum_lines} == expected_files
 
 
+def test_retained_results_explicitly_disclose_known_gaps() -> None:
+    results = (
+        ROOT / "eval/campaigns/langgraph-demos-v3/retained/"
+        "matched-comparators-final-c976a2070/RESULTS.md"
+    ).read_text()
+
+    for required in (
+        "Explicit gaps, limitations, and non-equivalences",
+        "Comparator semantic-policy equivalence",
+        "NoNo network resource scope",
+        "Argus language-route coverage",
+        "Argus T10 checkpoint replay compatibility",
+        "D3 application/model viability",
+        "D4 comparator functionality",
+        "Latency population",
+        "Model-trajectory comparability",
+        "APF timer boundary",
+    ):
+        assert required in results
+
+
 def test_timeout_kills_entire_process_group(tmp_path: Path) -> None:
     campaign = load_module("matched_comparator_campaign_cleanup", "run_campaign.py")
     child_pid_file = tmp_path / "child.pid"

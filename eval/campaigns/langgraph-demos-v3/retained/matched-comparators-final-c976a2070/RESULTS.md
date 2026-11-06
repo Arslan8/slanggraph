@@ -4,6 +4,28 @@ Run `matched-comparators-final-c976a2070` contains 700 fixed-population attempts
 
 **Security scope:** NoNo and APF/OpenShell enforce every filesystem, process, and network restriction used by this campaign. They cannot express Argus's typed library resource/action mediation, so this is the closest enforceable host-policy comparison rather than semantic security equivalence.
 
+## Explicit gaps, limitations, and non-equivalences
+
+These disclosures distinguish security-model gaps from application/model failures and measurement limitations. A failed application is not treated as evidence of an authorization denial unless the retained evidence says so.
+
+| Gap or limitation | Evidence in this campaign | Interpretation |
+|---|---|---|
+| Comparator semantic-policy equivalence | NoNo and APF/OpenShell do not mediate typed library operations as Cedar resource/action terminals; APF and NoNo input path grants are therefore host-resource approximations, not Argus semantic equivalence | NoNo and APF/OpenShell enforce the host controls they can express, but they are not security-equivalent to Argus's per-operation Cedar mediation. |
+| NoNo network resource scope | the port grant cannot restrict destination host | The campaign grants only model port 11434, but NoNo cannot bind that port grant to one destination host. |
+| Audit and rollback scope | Audit was disabled; NoNo rollback was disabled because Argus does not claim rollback. | These controls are not part of the reported runtime comparison; audit has a separate measurement and Argus does not claim rollback. |
+| Argus language-route coverage | 14/15 applications use language isolation; D4-multi-agent remains on host isolation. | D4's persistent Python chart session still requires OS confinement, so the final Argus configuration is hybrid rather than all-language. |
+| Argus T10 checkpoint replay compatibility | 5/5 Argus attempts failed with `PermissionError: checkpoint:broken_chain`; the other three modes were 5/5 correct. | This is an Argus compatibility gap, not a comparator denial. |
+| D3 application/model viability | 0/25 attempts were correct in every mode; all 100 attempts ended in execution errors (69 recursion-limit errors and 31 index errors). | D3 supplies no successful latency pairs and does not distinguish the security systems. |
+| D4 comparator functionality | NoNo completed 13/25 and APF completed 11/25, but neither had a correct attempt; all 13 and 11 completed runs respectively lacked the required chart/observer artifact pair. | The records do not isolate model trajectory from environment compatibility, so the zero correctness rate must not be presented as an authorization denial. |
+| D4 long-tail failures | Recursion-limit failures by mode were Baseline=8, Argus=7, NoNo-enforced=10, APF-enforced=14; NoNo also had 2 timeouts, both with confirmed cleanup. | These outcomes remain in the correctness/status table but are excluded from matched-success latency ratios. |
+| Latency population | Matched correct pairs were Baseline=103, NoNo=90, APF=92; only 89 pairs succeeded in all four modes. | Latency ratios do not represent failed attempts or the full 175-attempt population. |
+| Model-trajectory comparability | Invocation and process timers include model execution; matched correctness does not require identical model-call sequences or model time. | Macro ratios are end-to-end application measurements, not pure enforcement-only overhead. |
+| APF timer boundary | `process_wall_ms` excludes fresh APF creation/deletion, while `secured_wall_ms` includes projection, creation/admission, dispatch, and confirmed deletion. | Claims about APF must name the timer; only the secured timer includes the lifecycle that supplies fresh-invocation isolation. |
+
+All other correctness differences remain visible in the application table below. Without a recorded denial or compatibility error, they are not attributed to enforcement.
+
+## Application outcomes
+
 | Application | Baseline correct/status | Argus correct/status | NoNo-enforced correct/status | APF-enforced correct/status |
 |---|---:|---:|---:|---:|
 | D1-sql | 12/25 (C25/F0/E0/T0) | 12/25 (C25/F0/E0/T0) | 10/25 (C25/F0/E0/T0) | 12/25 (C25/F0/E0/T0) |

@@ -15,6 +15,63 @@
     "resamples": 10000
   },
   "common_successful_pairs_all_four_modes": 89,
+  "gaps_and_limitations": [
+    {
+      "gap": "Comparator semantic-policy equivalence",
+      "evidence": "NoNo and APF/OpenShell do not mediate typed library operations as Cedar resource/action terminals; APF and NoNo input path grants are therefore host-resource approximations, not Argus semantic equivalence",
+      "interpretation": "NoNo and APF/OpenShell enforce the host controls they can express, but they are not security-equivalent to Argus's per-operation Cedar mediation."
+    },
+    {
+      "gap": "NoNo network resource scope",
+      "evidence": "the port grant cannot restrict destination host",
+      "interpretation": "The campaign grants only model port 11434, but NoNo cannot bind that port grant to one destination host."
+    },
+    {
+      "gap": "Audit and rollback scope",
+      "evidence": "Audit was disabled; NoNo rollback was disabled because Argus does not claim rollback.",
+      "interpretation": "These controls are not part of the reported runtime comparison; audit has a separate measurement and Argus does not claim rollback."
+    },
+    {
+      "gap": "Argus language-route coverage",
+      "evidence": "14/15 applications use language isolation; D4-multi-agent remains on host isolation.",
+      "interpretation": "D4's persistent Python chart session still requires OS confinement, so the final Argus configuration is hybrid rather than all-language."
+    },
+    {
+      "gap": "Argus T10 checkpoint replay compatibility",
+      "evidence": "5/5 Argus attempts failed with `PermissionError: checkpoint:broken_chain`; the other three modes were 5/5 correct.",
+      "interpretation": "This is an Argus compatibility gap, not a comparator denial."
+    },
+    {
+      "gap": "D3 application/model viability",
+      "evidence": "0/25 attempts were correct in every mode; all 100 attempts ended in execution errors (69 recursion-limit errors and 31 index errors).",
+      "interpretation": "D3 supplies no successful latency pairs and does not distinguish the security systems."
+    },
+    {
+      "gap": "D4 comparator functionality",
+      "evidence": "NoNo completed 13/25 and APF completed 11/25, but neither had a correct attempt; all 13 and 11 completed runs respectively lacked the required chart/observer artifact pair.",
+      "interpretation": "The records do not isolate model trajectory from environment compatibility, so the zero correctness rate must not be presented as an authorization denial."
+    },
+    {
+      "gap": "D4 long-tail failures",
+      "evidence": "Recursion-limit failures by mode were Baseline=8, Argus=7, NoNo-enforced=10, APF-enforced=14; NoNo also had 2 timeouts, both with confirmed cleanup.",
+      "interpretation": "These outcomes remain in the correctness/status table but are excluded from matched-success latency ratios."
+    },
+    {
+      "gap": "Latency population",
+      "evidence": "Matched correct pairs were Baseline=103, NoNo=90, APF=92; only 89 pairs succeeded in all four modes.",
+      "interpretation": "Latency ratios do not represent failed attempts or the full 175-attempt population."
+    },
+    {
+      "gap": "Model-trajectory comparability",
+      "evidence": "Invocation and process timers include model execution; matched correctness does not require identical model-call sequences or model time.",
+      "interpretation": "Macro ratios are end-to-end application measurements, not pure enforcement-only overhead."
+    },
+    {
+      "gap": "APF timer boundary",
+      "evidence": "`process_wall_ms` excludes fresh APF creation/deletion, while `secured_wall_ms` includes projection, creation/admission, dispatch, and confirmed deletion.",
+      "interpretation": "Claims about APF must name the timer; only the secured timer includes the lifecycle that supplies fresh-invocation isolation."
+    }
+  ],
   "modes": {
     "Baseline": {
       "attempts": 175,
