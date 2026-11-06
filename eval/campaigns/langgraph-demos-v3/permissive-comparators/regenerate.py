@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import random
+import shutil
 import statistics
 from pathlib import Path
 
@@ -16,6 +18,19 @@ RESAMPLES = 10_000
 MODES = ("Baseline", "Argus", "NoNo-enforced", "APF-enforced")
 COMPARATORS = ("Baseline", "NoNo-enforced", "APF-enforced")
 METRICS = ("invocation_ms", "process_wall_ms", "secured_wall_ms")
+RETAINED_INPUTS = ("configuration.json", "enforcement-probes.json", "trials.json")
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def retain_inputs_and_checksums(raw: Path, output: Path) -> None:
+    for filename in RETAINED_INPUTS:
+        shutil.copy2(raw / filename, output / filename)
+    retained = sorted(path for path in output.iterdir() if path.name != "SHA256SUMS")
+    checksums = "".join(f"{sha256(path)}  {path.name}\n" for path in retained if path.is_file())
+    (output / "SHA256SUMS").write_text(checksums)
 
 
 def metric_value(record: dict, metric: str) -> float | None:
@@ -303,6 +318,7 @@ def main() -> None:
         )
     )
     (output / "RESULTS.md").write_text("\n".join(lines) + "\n")
+    retain_inputs_and_checksums(raw, output)
 
 
 if __name__ == "__main__":

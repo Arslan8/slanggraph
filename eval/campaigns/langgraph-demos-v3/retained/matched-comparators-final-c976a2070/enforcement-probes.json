@@ -1,0 +1,17 @@
+{
+  "purpose": "verify every host-level control the comparators can enforce",
+  "expected": "ungranted resource and network probes fail; the model endpoint succeeds",
+  "nono": {
+    "ungranted_fixture_read_denied": true,
+    "source_write_denied": true,
+    "model_endpoint_allowed": true,
+    "other_port_denied": true
+  },
+  "apf_openshell": {
+    "ungranted_fixture_read_denied": true,
+    "source_write_denied": true,
+    "model_endpoint_allowed": true,
+    "other_port_denied": true,
+    "sandbox_cleanup_confirmed": true
+  }
+}

@@ -9,7 +9,9 @@ Each comparator receives every restriction it can enforce for the invocation:
 - NoNo grants the interpreter and application code read-only, grants only the
   invocation's external input paths read-only, makes only its fresh trial directory
   writable, blocks networking by default, and permits direct TCP only on the local
-  model port. It does not use `--trust-override`.
+  model port. It does not use `--trust-override`. Each command owns a fresh process
+  group; a timeout terminates the entire group and records cleanup confirmation before
+  the next invocation begins.
 - APF/OpenShell uses a fresh sandbox for every invocation. The official APF compiler
   projects a policy containing only that invocation's read-only inputs, read-only
   code/runtime paths, a private writable workspace, and the local model relay. The
@@ -77,4 +79,5 @@ eval/.venv/bin/python \
 
 The analysis retains every outcome and uses only task/repetition pairs that completed
 correctly in both named modes for latency ratios. It does not retry or replace failed
-applications.
+applications. A retained bundle contains the exact configuration, enforcement probes,
+all trial records, generated statistics and report, plus a `SHA256SUMS` manifest.

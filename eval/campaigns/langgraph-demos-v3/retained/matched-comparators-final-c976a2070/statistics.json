@@ -1,0 +1,4178 @@
+{
+  "run_id": "matched-comparators-final-c976a2070",
+  "attempts": 700,
+  "repetitions": 5,
+  "warning": "NoNo and APF/OpenShell enforce their expressible filesystem, process, and network controls. They cannot express Argus's typed library resource/action mediation, so they remain host-policy approximations rather than semantic security equivalents.",
+  "timers": {
+    "invocation_ms": "application-reported invocation after application preparation; excludes NoNo activation, OpenShell exec transport, and Python startup",
+    "process_wall_ms": "parent dispatch through process exit; includes Python startup and either NoNo activation or OpenShell exec transport; excludes fresh OpenShell sandbox preparation and cleanup",
+    "secured_wall_ms": "process_wall_ms for Baseline, Argus, and per-command NoNo; fresh sandbox preparation plus process dispatch plus confirmed deletion for APF/OpenShell"
+  },
+  "latency_population": "pairwise task/repetition pairs completed correctly in both modes",
+  "bootstrap": {
+    "method": "paired repetition-block bootstrap",
+    "seed": 20261028,
+    "resamples": 10000
+  },
+  "common_successful_pairs_all_four_modes": 89,
+  "modes": {
+    "Baseline": {
+      "attempts": 175,
+      "correct": 115,
+      "completed": 142,
+      "compatibility_failed": 8,
+      "execution_error": 25,
+      "timeout": 0
+    },
+    "Argus": {
+      "attempts": 175,
+      "correct": 112,
+      "completed": 138,
+      "compatibility_failed": 12,
+      "execution_error": 25,
+      "timeout": 0
+    },
+    "NoNo-enforced": {
+      "attempts": 175,
+      "correct": 99,
+      "completed": 138,
+      "compatibility_failed": 10,
+      "execution_error": 25,
+      "timeout": 2
+    },
+    "APF-enforced": {
+      "attempts": 175,
+      "correct": 101,
+      "completed": 136,
+      "compatibility_failed": 14,
+      "execution_error": 25,
+      "timeout": 0
+    }
+  },
+  "comparisons": {
+    "Baseline": {
+      "invocation_ms": {
+        "matched_successful_pairs": 103,
+        "timings": {
+          "Argus": {
+            "mean_ms": 5051.918842217171,
+            "median_ms": 3053.500371053815,
+            "p95_ms": 16496.184970927425,
+            "total_ms": 520347.6407483686
+          },
+          "Baseline": {
+            "mean_ms": 4420.604467645143,
+            "median_ms": 3046.633794903755,
+            "p95_ms": 14621.891426993532,
+            "total_ms": 455322.2601674497
+          }
+        },
+        "argus_over_other_ratio": 1.1862635519630333,
+        "argus_over_other_ci95": [
+          1.081264562444283,
+          1.2141755423368263
+        ],
+        "argus_relative_percent": 18.626355196303336,
+        "argus_relative_percent_ci95": [
+          8.126456244428294,
+          21.417554233682633
+        ],
+        "other_over_argus_speedup": 0.8429829934041185
+      },
+      "process_wall_ms": {
+        "matched_successful_pairs": 103,
+        "timings": {
+          "Argus": {
+            "mean_ms": 9014.631705397052,
+            "median_ms": 4943.4799761511385,
+            "p95_ms": 21876.065022475086,
+            "total_ms": 928507.0656558964
+          },
+          "Baseline": {
+            "mean_ms": 8030.552320326995,
+            "median_ms": 4550.371776102111,
+            "p95_ms": 19558.88723132666,
+            "total_ms": 827146.8889936805
+          }
+        },
+        "argus_over_other_ratio": 1.1486368816637547,
+        "argus_over_other_ci95": [
+          1.086548612392647,
+          1.164145102372136
+        ],
+        "argus_relative_percent": 14.863688166375466,
+        "argus_relative_percent_ci95": [
+          8.654861239264712,
+          16.41451023721361
+        ],
+        "other_over_argus_speedup": 0.8705971538642743
+      },
+      "secured_wall_ms": {
+        "matched_successful_pairs": 103,
+        "timings": {
+          "Argus": {
+            "mean_ms": 9014.631705397052,
+            "median_ms": 4943.4799761511385,
+            "p95_ms": 21876.065022475086,
+            "total_ms": 928507.0656558964
+          },
+          "Baseline": {
+            "mean_ms": 8030.552320326995,
+            "median_ms": 4550.371776102111,
+            "p95_ms": 19558.88723132666,
+            "total_ms": 827146.8889936805
+          }
+        },
+        "argus_over_other_ratio": 1.1486368816637547,
+        "argus_over_other_ci95": [
+          1.086548612392647,
+          1.164145102372136
+        ],
+        "argus_relative_percent": 14.863688166375466,
+        "argus_relative_percent_ci95": [
+          8.654861239264712,
+          16.41451023721361
+        ],
+        "other_over_argus_speedup": 0.8705971538642743
+      }
+    },
+    "NoNo-enforced": {
+      "invocation_ms": {
+        "matched_successful_pairs": 90,
+        "timings": {
+          "Argus": {
+            "mean_ms": 3411.384273467896,
+            "median_ms": 2787.1432590764016,
+            "p95_ms": 8686.92614234751,
+            "total_ms": 307024.58461211063
+          },
+          "NoNo-enforced": {
+            "mean_ms": 3075.810823064401,
+            "median_ms": 2808.960083522834,
+            "p95_ms": 8640.235779550854,
+            "total_ms": 276822.9740757961
+          }
+        },
+        "argus_over_other_ratio": 1.157440404490189,
+        "argus_over_other_ci95": [
+          1.0427959176622459,
+          1.2023595876335857
+        ],
+        "argus_relative_percent": 15.744040449018893,
+        "argus_relative_percent_ci95": [
+          4.279591766224589,
+          20.235958763358575
+        ],
+        "other_over_argus_speedup": 0.8639753685119228
+      },
+      "process_wall_ms": {
+        "matched_successful_pairs": 90,
+        "timings": {
+          "Argus": {
+            "mean_ms": 7427.226438238803,
+            "median_ms": 4658.496925374493,
+            "p95_ms": 21472.787615819834,
+            "total_ms": 668450.3794414923
+          },
+          "NoNo-enforced": {
+            "mean_ms": 7079.254550711873,
+            "median_ms": 4331.483891000971,
+            "p95_ms": 20334.549429488827,
+            "total_ms": 637132.9095640685
+          }
+        },
+        "argus_over_other_ratio": 1.0690267750267788,
+        "argus_over_other_ci95": [
+          0.9970319032505953,
+          1.1016936574877518
+        ],
+        "argus_relative_percent": 6.902677502677879,
+        "argus_relative_percent_ci95": [
+          -0.29680967494046806,
+          10.169365748775183
+        ],
+        "other_over_argus_speedup": 0.93543026550944
+      },
+      "secured_wall_ms": {
+        "matched_successful_pairs": 90,
+        "timings": {
+          "Argus": {
+            "mean_ms": 7427.226438238803,
+            "median_ms": 4658.496925374493,
+            "p95_ms": 21472.787615819834,
+            "total_ms": 668450.3794414923
+          },
+          "NoNo-enforced": {
+            "mean_ms": 7079.254550711873,
+            "median_ms": 4331.483891000971,
+            "p95_ms": 20334.549429488827,
+            "total_ms": 637132.9095640685
+          }
+        },
+        "argus_over_other_ratio": 1.0690267750267788,
+        "argus_over_other_ci95": [
+          0.9970319032505953,
+          1.1016936574877518
+        ],
+        "argus_relative_percent": 6.902677502677879,
+        "argus_relative_percent_ci95": [
+          -0.29680967494046806,
+          10.169365748775183
+        ],
+        "other_over_argus_speedup": 0.93543026550944
+      }
+    },
+    "APF-enforced": {
+      "invocation_ms": {
+        "matched_successful_pairs": 92,
+        "timings": {
+          "Argus": {
+            "mean_ms": 3443.3977921650257,
+            "median_ms": 2869.483159040101,
+            "p95_ms": 8685.0659495336,
+            "total_ms": 316792.5968791824
+          },
+          "APF-enforced": {
+            "mean_ms": 2622.8819017288397,
+            "median_ms": 2502.2673985222355,
+            "p95_ms": 6781.9229911197945,
+            "total_ms": 241305.13495905325
+          }
+        },
+        "argus_over_other_ratio": 1.3845537632029448,
+        "argus_over_other_ci95": [
+          1.22259968624679,
+          1.436732730920852
+        ],
+        "argus_relative_percent": 38.45537632029448,
+        "argus_relative_percent_ci95": [
+          22.259968624679004,
+          43.673273092085196
+        ],
+        "other_over_argus_speedup": 0.7222543656857782
+      },
+      "process_wall_ms": {
+        "matched_successful_pairs": 92,
+        "timings": {
+          "Argus": {
+            "mean_ms": 7409.099553334628,
+            "median_ms": 4705.651998403482,
+            "p95_ms": 21442.09947020281,
+            "total_ms": 681637.1589067858
+          },
+          "APF-enforced": {
+            "mean_ms": 8384.279946029774,
+            "median_ms": 5130.900025018491,
+            "p95_ms": 21491.239038889766,
+            "total_ms": 771353.7550347392
+          }
+        },
+        "argus_over_other_ratio": 0.9460364644941248,
+        "argus_over_other_ci95": [
+          0.7455131350853352,
+          1.0685544928567279
+        ],
+        "argus_relative_percent": -5.396353550587518,
+        "argus_relative_percent_ci95": [
+          -25.448686491466475,
+          6.855449285672788
+        ],
+        "other_over_argus_speedup": 1.0570417077260665
+      },
+      "secured_wall_ms": {
+        "matched_successful_pairs": 92,
+        "timings": {
+          "Argus": {
+            "mean_ms": 7409.099553334628,
+            "median_ms": 4705.651998403482,
+            "p95_ms": 21442.09947020281,
+            "total_ms": 681637.1589067858
+          },
+          "APF-enforced": {
+            "mean_ms": 15067.560365218567,
+            "median_ms": 11621.475532068871,
+            "p95_ms": 27801.6120206099,
+            "total_ms": 1386215.5536001083
+          }
+        },
+        "argus_over_other_ratio": 0.514335780582198,
+        "argus_over_other_ci95": [
+          0.4292835117731274,
+          0.5651546258197523
+        ],
+        "argus_relative_percent": -48.566421941780206,
+        "argus_relative_percent_ci95": [
+          -57.07164882268726,
+          -43.48453741802477
+        ],
+        "other_over_argus_speedup": 1.9442551690027448
+      }
+    }
+  },
+  "applications": {
+    "D1-sql": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "correct": 12,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "correct": 12,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 25,
+          "correct": 10,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 25,
+          "correct": 12,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 9,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4397.06597948033,
+                "median_ms": 3389.3594099208713,
+                "p95_ms": 6362.769095832482,
+                "total_ms": 39573.593815322965
+              },
+              "Baseline": {
+                "mean_ms": 4178.8953838662965,
+                "median_ms": 3715.2020828798413,
+                "p95_ms": 5688.283495698124,
+                "total_ms": 37610.05845479667
+              }
+            },
+            "argus_over_other_ratio": 1.0620986170137257,
+            "argus_over_other_ci95": [
+              1.0076467500269024,
+              1.1003830707139894
+            ],
+            "argus_relative_percent": 6.209861701372565,
+            "argus_relative_percent_ci95": [
+              0.7646750026902405,
+              10.038307071398943
+            ],
+            "other_over_argus_speedup": 0.9415321552829748
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 9,
+            "timings": {
+              "Argus": {
+                "mean_ms": 5882.404245462061,
+                "median_ms": 4919.509608997032,
+                "p95_ms": 8013.207184430212,
+                "total_ms": 52941.638209158555
+              },
+              "Baseline": {
+                "mean_ms": 5476.201920563148,
+                "median_ms": 5284.15117203258,
+                "p95_ms": 6921.137289702892,
+                "total_ms": 49285.81728506833
+              }
+            },
+            "argus_over_other_ratio": 1.0786866228546166,
+            "argus_over_other_ci95": [
+              1.04209446515663,
+              1.133663397037612
+            ],
+            "argus_relative_percent": 7.868662285461658,
+            "argus_relative_percent_ci95": [
+              4.209446515662996,
+              13.366339703761199
+            ],
+            "other_over_argus_speedup": 0.9270533061341006
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 9,
+            "timings": {
+              "Argus": {
+                "mean_ms": 5882.404245462061,
+                "median_ms": 4919.509608997032,
+                "p95_ms": 8013.207184430212,
+                "total_ms": 52941.638209158555
+              },
+              "Baseline": {
+                "mean_ms": 5476.201920563148,
+                "median_ms": 5284.15117203258,
+                "p95_ms": 6921.137289702892,
+                "total_ms": 49285.81728506833
+              }
+            },
+            "argus_over_other_ratio": 1.0786866228546166,
+            "argus_over_other_ci95": [
+              1.04209446515663,
+              1.133663397037612
+            ],
+            "argus_relative_percent": 7.868662285461658,
+            "argus_relative_percent_ci95": [
+              4.209446515662996,
+              13.366339703761199
+            ],
+            "other_over_argus_speedup": 0.9270533061341006
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 9,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4395.816390920017,
+                "median_ms": 3389.3594099208713,
+                "p95_ms": 6358.270577015355,
+                "total_ms": 39562.34751828015
+              },
+              "NoNo-enforced": {
+                "mean_ms": 4410.547443251643,
+                "median_ms": 3316.92863907665,
+                "p95_ms": 6390.963933803141,
+                "total_ms": 39694.926989264786
+              }
+            },
+            "argus_over_other_ratio": 1.0096208736753856,
+            "argus_over_other_ci95": [
+              0.972233955005856,
+              1.0374186349809853
+            ],
+            "argus_relative_percent": 0.9620873675385555,
+            "argus_relative_percent_ci95": [
+              -2.7766044994144035,
+              3.74186349809853
+            ],
+            "other_over_argus_speedup": 0.9904708055011164
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 9,
+            "timings": {
+              "Argus": {
+                "mean_ms": 5879.728027774642,
+                "median_ms": 4919.509608997032,
+                "p95_ms": 8003.572800755501,
+                "total_ms": 52917.55224997178
+              },
+              "NoNo-enforced": {
+                "mean_ms": 5815.364552998088,
+                "median_ms": 4670.668720034882,
+                "p95_ms": 7818.050037603825,
+                "total_ms": 52338.28097698279
+              }
+            },
+            "argus_over_other_ratio": 1.0291221794238863,
+            "argus_over_other_ci95": [
+              0.986810487270321,
+              1.0548102761284717
+            ],
+            "argus_relative_percent": 2.9122179423886285,
+            "argus_relative_percent_ci95": [
+              -1.3189512729679054,
+              5.481027612847167
+            ],
+            "other_over_argus_speedup": 0.9717019222730297
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 9,
+            "timings": {
+              "Argus": {
+                "mean_ms": 5879.728027774642,
+                "median_ms": 4919.509608997032,
+                "p95_ms": 8003.572800755501,
+                "total_ms": 52917.55224997178
+              },
+              "NoNo-enforced": {
+                "mean_ms": 5815.364552998088,
+                "median_ms": 4670.668720034882,
+                "p95_ms": 7818.050037603825,
+                "total_ms": 52338.28097698279
+              }
+            },
+            "argus_over_other_ratio": 1.0291221794238863,
+            "argus_over_other_ci95": [
+              0.986810487270321,
+              1.0548102761284717
+            ],
+            "argus_relative_percent": 2.9122179423886285,
+            "argus_relative_percent_ci95": [
+              -1.3189512729679054,
+              5.481027612847167
+            ],
+            "other_over_argus_speedup": 0.9717019222730297
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 10,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4563.5512062348425,
+                "median_ms": 4338.255512993783,
+                "p95_ms": 6338.635383185464,
+                "total_ms": 45635.512062348425
+              },
+              "APF-enforced": {
+                "mean_ms": 4472.067968524061,
+                "median_ms": 4489.97361259535,
+                "p95_ms": 6051.462138607167,
+                "total_ms": 44720.67968524061
+              }
+            },
+            "argus_over_other_ratio": 1.0278327880431446,
+            "argus_over_other_ci95": [
+              0.9327897317377216,
+              1.0753297881019444
+            ],
+            "argus_relative_percent": 2.7832788043144596,
+            "argus_relative_percent_ci95": [
+              -6.721026826227838,
+              7.532978810194435
+            ],
+            "other_over_argus_speedup": 0.9729208988398449
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 10,
+            "timings": {
+              "Argus": {
+                "mean_ms": 6035.089663811959,
+                "median_ms": 5804.0840399917215,
+                "p95_ms": 7964.885284740011,
+                "total_ms": 60350.89663811959
+              },
+              "APF-enforced": {
+                "mean_ms": 7620.9090722491965,
+                "median_ms": 7406.986421439797,
+                "p95_ms": 11304.431517387267,
+                "total_ms": 76209.09072249196
+              }
+            },
+            "argus_over_other_ratio": 0.7933516416415366,
+            "argus_over_other_ci95": [
+              0.5413747351862245,
+              0.9574075438352743
+            ],
+            "argus_relative_percent": -20.66483583584634,
+            "argus_relative_percent_ci95": [
+              -45.86252648137755,
+              -4.259245616472573
+            ],
+            "other_over_argus_speedup": 1.2604751128148974
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 10,
+            "timings": {
+              "Argus": {
+                "mean_ms": 6035.089663811959,
+                "median_ms": 5804.0840399917215,
+                "p95_ms": 7964.885284740011,
+                "total_ms": 60350.89663811959
+              },
+              "APF-enforced": {
+                "mean_ms": 14452.275511133485,
+                "median_ms": 13812.092888285406,
+                "p95_ms": 20519.978764117684,
+                "total_ms": 144522.75511133485
+              }
+            },
+            "argus_over_other_ratio": 0.40925628335929237,
+            "argus_over_other_ci95": [
+              0.28617251172856234,
+              0.48912076927286513
+            ],
+            "argus_relative_percent": -59.07437166407077,
+            "argus_relative_percent_ci95": [
+              -71.38274882714377,
+              -51.08792307271348
+            ],
+            "other_over_argus_speedup": 2.443456681450837
+          }
+        }
+      }
+    },
+    "D2-rag": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "correct": 16,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "correct": 17,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 25,
+          "correct": 19,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 25,
+          "correct": 19,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 16,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4672.828428214416,
+                "median_ms": 4652.625699527562,
+                "p95_ms": 7581.293556839228,
+                "total_ms": 74765.25485143065
+              },
+              "Baseline": {
+                "mean_ms": 4383.553200997994,
+                "median_ms": 4820.646665990353,
+                "p95_ms": 6154.4907439965755,
+                "total_ms": 70136.85121596791
+              }
+            },
+            "argus_over_other_ratio": 1.1093210393507535,
+            "argus_over_other_ci95": [
+              1.003408232564281,
+              1.147371210312431
+            ],
+            "argus_relative_percent": 10.932103935075354,
+            "argus_relative_percent_ci95": [
+              0.3408232564281022,
+              14.737121031243095
+            ],
+            "other_over_argus_speedup": 0.9014522978715563
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 16,
+            "timings": {
+              "Argus": {
+                "mean_ms": 6802.151348703774,
+                "median_ms": 6763.286460074596,
+                "p95_ms": 9666.502318053972,
+                "total_ms": 108834.42157926038
+              },
+              "Baseline": {
+                "mean_ms": 6309.387600442278,
+                "median_ms": 6687.633977504447,
+                "p95_ms": 8262.965406349394,
+                "total_ms": 100950.20160707645
+              }
+            },
+            "argus_over_other_ratio": 1.1048796514710637,
+            "argus_over_other_ci95": [
+              1.0261706394863288,
+              1.1352328538395955
+            ],
+            "argus_relative_percent": 10.48796514710637,
+            "argus_relative_percent_ci95": [
+              2.6170639486328806,
+              13.52328538395955
+            ],
+            "other_over_argus_speedup": 0.9050759498272736
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 16,
+            "timings": {
+              "Argus": {
+                "mean_ms": 6802.151348703774,
+                "median_ms": 6763.286460074596,
+                "p95_ms": 9666.502318053972,
+                "total_ms": 108834.42157926038
+              },
+              "Baseline": {
+                "mean_ms": 6309.387600442278,
+                "median_ms": 6687.633977504447,
+                "p95_ms": 8262.965406349394,
+                "total_ms": 100950.20160707645
+              }
+            },
+            "argus_over_other_ratio": 1.1048796514710637,
+            "argus_over_other_ci95": [
+              1.0261706394863288,
+              1.1352328538395955
+            ],
+            "argus_relative_percent": 10.48796514710637,
+            "argus_relative_percent_ci95": [
+              2.6170639486328806,
+              13.52328538395955
+            ],
+            "other_over_argus_speedup": 0.9050759498272736
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 16,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4672.828428214416,
+                "median_ms": 4652.625699527562,
+                "p95_ms": 7581.293556839228,
+                "total_ms": 74765.25485143065
+              },
+              "NoNo-enforced": {
+                "mean_ms": 4468.575147839147,
+                "median_ms": 4563.890952034853,
+                "p95_ms": 6125.389153312426,
+                "total_ms": 71497.20236542635
+              }
+            },
+            "argus_over_other_ratio": 1.0762744572466043,
+            "argus_over_other_ci95": [
+              0.933097589703828,
+              1.1410545277571993
+            ],
+            "argus_relative_percent": 7.627445724660431,
+            "argus_relative_percent_ci95": [
+              -6.690241029617205,
+              14.105452775719929
+            ],
+            "other_over_argus_speedup": 0.9291310346231438
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 16,
+            "timings": {
+              "Argus": {
+                "mean_ms": 6802.151348703774,
+                "median_ms": 6763.286460074596,
+                "p95_ms": 9666.502318053972,
+                "total_ms": 108834.42157926038
+              },
+              "NoNo-enforced": {
+                "mean_ms": 6613.514049109654,
+                "median_ms": 6636.109369341284,
+                "p95_ms": 8141.93026983412,
+                "total_ms": 105816.22478575446
+              }
+            },
+            "argus_over_other_ratio": 1.043776990790173,
+            "argus_over_other_ci95": [
+              0.9616749425152787,
+              1.0910254752537945
+            ],
+            "argus_relative_percent": 4.377699079017305,
+            "argus_relative_percent_ci95": [
+              -3.832505748472126,
+              9.102547525379446
+            ],
+            "other_over_argus_speedup": 0.9580590574649165
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 16,
+            "timings": {
+              "Argus": {
+                "mean_ms": 6802.151348703774,
+                "median_ms": 6763.286460074596,
+                "p95_ms": 9666.502318053972,
+                "total_ms": 108834.42157926038
+              },
+              "NoNo-enforced": {
+                "mean_ms": 6613.514049109654,
+                "median_ms": 6636.109369341284,
+                "p95_ms": 8141.93026983412,
+                "total_ms": 105816.22478575446
+              }
+            },
+            "argus_over_other_ratio": 1.043776990790173,
+            "argus_over_other_ci95": [
+              0.9616749425152787,
+              1.0910254752537945
+            ],
+            "argus_relative_percent": 4.377699079017305,
+            "argus_relative_percent_ci95": [
+              -3.832505748472126,
+              9.102547525379446
+            ],
+            "other_over_argus_speedup": 0.9580590574649165
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 17,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4615.300151437302,
+                "median_ms": 4628.907484002411,
+                "p95_ms": 7573.700653901324,
+                "total_ms": 78460.10257443413
+              },
+              "APF-enforced": {
+                "mean_ms": 4274.223814526682,
+                "median_ms": 4679.530533961952,
+                "p95_ms": 5637.760656327009,
+                "total_ms": 72661.8048469536
+              }
+            },
+            "argus_over_other_ratio": 1.128492357106187,
+            "argus_over_other_ci95": [
+              0.9889576489144485,
+              1.1583665317794547
+            ],
+            "argus_relative_percent": 12.84923571061869,
+            "argus_relative_percent_ci95": [
+              -1.1042351085551516,
+              15.83665317794547
+            ],
+            "other_over_argus_speedup": 0.8861380351430274
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 17,
+            "timings": {
+              "Argus": {
+                "mean_ms": 6740.462156259181,
+                "median_ms": 6738.397730048746,
+                "p95_ms": 9660.409710463136,
+                "total_ms": 114587.85665640607
+              },
+              "APF-enforced": {
+                "mean_ms": 8123.456007047721,
+                "median_ms": 7670.485092094168,
+                "p95_ms": 13031.199924414976,
+                "total_ms": 138098.75211981125
+              }
+            },
+            "argus_over_other_ratio": 0.9074457406537154,
+            "argus_over_other_ci95": [
+              0.6730373061504712,
+              1.0094940612926098
+            ],
+            "argus_relative_percent": -9.255425934628459,
+            "argus_relative_percent_ci95": [
+              -32.69626938495288,
+              0.9494061292609768
+            ],
+            "other_over_argus_speedup": 1.1019942627970345
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 17,
+            "timings": {
+              "Argus": {
+                "mean_ms": 6740.462156259181,
+                "median_ms": 6738.397730048746,
+                "p95_ms": 9660.409710463136,
+                "total_ms": 114587.85665640607
+              },
+              "APF-enforced": {
+                "mean_ms": 14815.326757099041,
+                "median_ms": 14071.356968022883,
+                "p95_ms": 22352.4062260054,
+                "total_ms": 251860.5548706837
+              }
+            },
+            "argus_over_other_ratio": 0.4779689537600196,
+            "argus_over_other_ci95": [
+              0.38267051565514276,
+              0.5232765855391658
+            ],
+            "argus_relative_percent": -52.203104623998044,
+            "argus_relative_percent_ci95": [
+              -61.73294843448572,
+              -47.67234144608342
+            ],
+            "other_over_argus_speedup": 2.0921860973047295
+          }
+        }
+      }
+    },
+    "D3-plan-execute": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "correct": 0,
+          "completed": 0,
+          "compatibility_failed": 0,
+          "execution_error": 25,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "correct": 0,
+          "completed": 0,
+          "compatibility_failed": 0,
+          "execution_error": 25,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 25,
+          "correct": 0,
+          "completed": 0,
+          "compatibility_failed": 0,
+          "execution_error": 25,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 25,
+          "correct": 0,
+          "completed": 0,
+          "compatibility_failed": 0,
+          "execution_error": 25,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          }
+        }
+      }
+    },
+    "D4-multi-agent": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "correct": 17,
+          "completed": 17,
+          "compatibility_failed": 8,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "correct": 18,
+          "completed": 18,
+          "compatibility_failed": 7,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 25,
+          "correct": 0,
+          "completed": 13,
+          "compatibility_failed": 10,
+          "execution_error": 0,
+          "timeout": 2
+        },
+        "APF-enforced": {
+          "attempts": 25,
+          "correct": 0,
+          "completed": 11,
+          "compatibility_failed": 14,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 13,
+            "timings": {
+              "Argus": {
+                "mean_ms": 16408.600756862703,
+                "median_ms": 16372.39098502323,
+                "p95_ms": 19584.977688547224,
+                "total_ms": 213311.80983921513
+              },
+              "Baseline": {
+                "mean_ms": 13770.54411294655,
+                "median_ms": 14446.676447056234,
+                "p95_ms": 17149.55085720867,
+                "total_ms": 179017.07346830517
+              }
+            },
+            "argus_over_other_ratio": 1.22465169497205,
+            "argus_over_other_ci95": [
+              1.125904478525257,
+              1.2354217088188024
+            ],
+            "argus_relative_percent": 22.465169497205007,
+            "argus_relative_percent_ci95": [
+              12.590447852525699,
+              23.542170881880242
+            ],
+            "other_over_argus_speedup": 0.8165587032669095
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 13,
+            "timings": {
+              "Argus": {
+                "mean_ms": 20002.5077119398,
+                "median_ms": 19556.429892079905,
+                "p95_ms": 23772.461036313325,
+                "total_ms": 260032.6002552174
+              },
+              "Baseline": {
+                "mean_ms": 16102.006470874096,
+                "median_ms": 16639.354865066707,
+                "p95_ms": 19353.70159749873,
+                "total_ms": 209326.08412136324
+              }
+            },
+            "argus_over_other_ratio": 1.2685615516405588,
+            "argus_over_other_ci95": [
+              1.1887896960670516,
+              1.2757145458982315
+            ],
+            "argus_relative_percent": 26.856155164055885,
+            "argus_relative_percent_ci95": [
+              18.878969606705166,
+              27.57145458982315
+            ],
+            "other_over_argus_speedup": 0.7882944258453652
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 13,
+            "timings": {
+              "Argus": {
+                "mean_ms": 20002.5077119398,
+                "median_ms": 19556.429892079905,
+                "p95_ms": 23772.461036313325,
+                "total_ms": 260032.6002552174
+              },
+              "Baseline": {
+                "mean_ms": 16102.006470874096,
+                "median_ms": 16639.354865066707,
+                "p95_ms": 19353.70159749873,
+                "total_ms": 209326.08412136324
+              }
+            },
+            "argus_over_other_ratio": 1.2685615516405588,
+            "argus_over_other_ci95": [
+              1.1887896960670516,
+              1.2757145458982315
+            ],
+            "argus_relative_percent": 26.856155164055885,
+            "argus_relative_percent_ci95": [
+              18.878969606705166,
+              27.57145458982315
+            ],
+            "other_over_argus_speedup": 0.7882944258453652
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          }
+        }
+      }
+    },
+    "D5-support": {
+      "modes": {
+        "Baseline": {
+          "attempts": 25,
+          "correct": 20,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 25,
+          "correct": 20,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 25,
+          "correct": 20,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 25,
+          "correct": 20,
+          "completed": 25,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 20,
+            "timings": {
+              "Argus": {
+                "mean_ms": 7308.345884969458,
+                "median_ms": 6936.121136997826,
+                "p95_ms": 9997.070761839865,
+                "total_ms": 146166.91769938916
+              },
+              "Baseline": {
+                "mean_ms": 6186.737709771842,
+                "median_ms": 5216.716093476862,
+                "p95_ms": 9938.046768505592,
+                "total_ms": 123734.75419543684
+              }
+            },
+            "argus_over_other_ratio": 1.267357981856429,
+            "argus_over_other_ci95": [
+              1.0828003578546341,
+              1.337645911258805
+            ],
+            "argus_relative_percent": 26.73579818564289,
+            "argus_relative_percent_ci95": [
+              8.280035785463413,
+              33.76459112588051
+            ],
+            "other_over_argus_speedup": 0.7890430441249107
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 20,
+            "timings": {
+              "Argus": {
+                "mean_ms": 19888.274987845216,
+                "median_ms": 19198.37130198721,
+                "p95_ms": 22815.458296181172,
+                "total_ms": 397765.4997569043
+              },
+              "Baseline": {
+                "mean_ms": 18690.19901989959,
+                "median_ms": 17950.0713594025,
+                "p95_ms": 22410.39820702281,
+                "total_ms": 373803.98039799184
+              }
+            },
+            "argus_over_other_ratio": 1.095208234962301,
+            "argus_over_other_ci95": [
+              1.0277001051714907,
+              1.1196471806531756
+            ],
+            "argus_relative_percent": 9.52082349623009,
+            "argus_relative_percent_ci95": [
+              2.7700105171490685,
+              11.964718065317559
+            ],
+            "other_over_argus_speedup": 0.9130683719104996
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 20,
+            "timings": {
+              "Argus": {
+                "mean_ms": 19888.274987845216,
+                "median_ms": 19198.37130198721,
+                "p95_ms": 22815.458296181172,
+                "total_ms": 397765.4997569043
+              },
+              "Baseline": {
+                "mean_ms": 18690.19901989959,
+                "median_ms": 17950.0713594025,
+                "p95_ms": 22410.39820702281,
+                "total_ms": 373803.98039799184
+              }
+            },
+            "argus_over_other_ratio": 1.095208234962301,
+            "argus_over_other_ci95": [
+              1.0277001051714907,
+              1.1196471806531756
+            ],
+            "argus_relative_percent": 9.52082349623009,
+            "argus_relative_percent_ci95": [
+              2.7700105171490685,
+              11.964718065317559
+            ],
+            "other_over_argus_speedup": 0.9130683719104996
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 20,
+            "timings": {
+              "Argus": {
+                "mean_ms": 7308.345884969458,
+                "median_ms": 6936.121136997826,
+                "p95_ms": 9997.070761839865,
+                "total_ms": 146166.91769938916
+              },
+              "NoNo-enforced": {
+                "mean_ms": 6011.02665537037,
+                "median_ms": 5243.007431970909,
+                "p95_ms": 9520.05344987847,
+                "total_ms": 120220.53310740739
+              }
+            },
+            "argus_over_other_ratio": 1.2983515828920327,
+            "argus_over_other_ci95": [
+              1.1138270620866262,
+              1.375138345634411
+            ],
+            "argus_relative_percent": 29.835158289203267,
+            "argus_relative_percent_ci95": [
+              11.382706208662619,
+              37.51383456344111
+            ],
+            "other_over_argus_speedup": 0.7702074023528627
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 20,
+            "timings": {
+              "Argus": {
+                "mean_ms": 19888.274987845216,
+                "median_ms": 19198.37130198721,
+                "p95_ms": 22815.458296181172,
+                "total_ms": 397765.4997569043
+              },
+              "NoNo-enforced": {
+                "mean_ms": 18616.519845323637,
+                "median_ms": 17609.88837108016,
+                "p95_ms": 22591.72795964405,
+                "total_ms": 372330.39690647274
+              }
+            },
+            "argus_over_other_ratio": 1.0938047350042233,
+            "argus_over_other_ci95": [
+              1.0195426405532908,
+              1.1299353664370564
+            ],
+            "argus_relative_percent": 9.380473500422326,
+            "argus_relative_percent_ci95": [
+              1.9542640553290802,
+              12.993536643705639
+            ],
+            "other_over_argus_speedup": 0.9142399625799197
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 20,
+            "timings": {
+              "Argus": {
+                "mean_ms": 19888.274987845216,
+                "median_ms": 19198.37130198721,
+                "p95_ms": 22815.458296181172,
+                "total_ms": 397765.4997569043
+              },
+              "NoNo-enforced": {
+                "mean_ms": 18616.519845323637,
+                "median_ms": 17609.88837108016,
+                "p95_ms": 22591.72795964405,
+                "total_ms": 372330.39690647274
+              }
+            },
+            "argus_over_other_ratio": 1.0938047350042233,
+            "argus_over_other_ci95": [
+              1.0195426405532908,
+              1.1299353664370564
+            ],
+            "argus_relative_percent": 9.380473500422326,
+            "argus_relative_percent_ci95": [
+              1.9542640553290802,
+              12.993536643705639
+            ],
+            "other_over_argus_speedup": 0.9142399625799197
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 20,
+            "timings": {
+              "Argus": {
+                "mean_ms": 7308.345884969458,
+                "median_ms": 6936.121136997826,
+                "p95_ms": 9997.070761839865,
+                "total_ms": 146166.91769938916
+              },
+              "APF-enforced": {
+                "mean_ms": 3780.907399277203,
+                "median_ms": 2892.0536095974967,
+                "p95_ms": 7817.943440575618,
+                "total_ms": 75618.14798554406
+              }
+            },
+            "argus_over_other_ratio": 2.06771482427804,
+            "argus_over_other_ci95": [
+              1.71848909452955,
+              2.242862291998518
+            ],
+            "argus_relative_percent": 106.77148242780402,
+            "argus_relative_percent_ci95": [
+              71.84890945295498,
+              124.28622919985179
+            ],
+            "other_over_argus_speedup": 0.4836256858337118
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 20,
+            "timings": {
+              "Argus": {
+                "mean_ms": 19888.274987845216,
+                "median_ms": 19198.37130198721,
+                "p95_ms": 22815.458296181172,
+                "total_ms": 397765.4997569043
+              },
+              "APF-enforced": {
+                "mean_ms": 20377.131717163138,
+                "median_ms": 18918.292318005115,
+                "p95_ms": 30876.879401330374,
+                "total_ms": 407542.63434326276
+              }
+            },
+            "argus_over_other_ratio": 1.0232193144703041,
+            "argus_over_other_ci95": [
+              0.8235497009581821,
+              1.1660208251398
+            ],
+            "argus_relative_percent": 2.321931447030412,
+            "argus_relative_percent_ci95": [
+              -17.645029904181786,
+              16.602082513980008
+            ],
+            "other_over_argus_speedup": 0.9773075877850056
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 20,
+            "timings": {
+              "Argus": {
+                "mean_ms": 19888.274987845216,
+                "median_ms": 19198.37130198721,
+                "p95_ms": 22815.458296181172,
+                "total_ms": 397765.4997569043
+              },
+              "APF-enforced": {
+                "mean_ms": 27097.900689346716,
+                "median_ms": 25431.972152437083,
+                "p95_ms": 38691.842240013655,
+                "total_ms": 541958.0137869343
+              }
+            },
+            "argus_over_other_ratio": 0.7654327479317872,
+            "argus_over_other_ci95": [
+              0.6292051300849497,
+              0.8558147818141205
+            ],
+            "argus_relative_percent": -23.456725206821282,
+            "argus_relative_percent_ci95": [
+              -37.07948699150503,
+              -14.418521818587948
+            ],
+            "other_over_argus_speedup": 1.306450504896763
+          }
+        }
+      }
+    },
+    "T1-add-tools": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1700.1796304248273,
+                "median_ms": 1605.3093660157174,
+                "p95_ms": 1924.365788185969,
+                "total_ms": 8500.898152124137
+              },
+              "Baseline": {
+                "mean_ms": 1579.718862567097,
+                "median_ms": 1591.8445598799735,
+                "p95_ms": 1650.6334083154798,
+                "total_ms": 7898.594312835485
+              }
+            },
+            "argus_over_other_ratio": 1.0162032410509663,
+            "argus_over_other_ci95": [
+              0.985733473801838,
+              1.20938323076422
+            ],
+            "argus_relative_percent": 1.6203241050966266,
+            "argus_relative_percent_ci95": [
+              -1.4266526198162044,
+              20.938323076422005
+            ],
+            "other_over_argus_speedup": 0.9840551177201435
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 3731.00556563586,
+                "median_ms": 3605.093506164849,
+                "p95_ms": 4072.4050692282617,
+                "total_ms": 18655.0278281793
+              },
+              "Baseline": {
+                "mean_ms": 2691.3313241675496,
+                "median_ms": 2699.8284850269556,
+                "p95_ms": 2822.008902952075,
+                "total_ms": 13456.656620837748
+              }
+            },
+            "argus_over_other_ratio": 1.3237760485585368,
+            "argus_over_other_ci95": [
+              1.2925223665994876,
+              1.517561756392578
+            ],
+            "argus_relative_percent": 32.37760485585368,
+            "argus_relative_percent_ci95": [
+              29.25223665994876,
+              51.756175639257805
+            ],
+            "other_over_argus_speedup": 0.7554147856723217
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 3731.00556563586,
+                "median_ms": 3605.093506164849,
+                "p95_ms": 4072.4050692282617,
+                "total_ms": 18655.0278281793
+              },
+              "Baseline": {
+                "mean_ms": 2691.3313241675496,
+                "median_ms": 2699.8284850269556,
+                "p95_ms": 2822.008902952075,
+                "total_ms": 13456.656620837748
+              }
+            },
+            "argus_over_other_ratio": 1.3237760485585368,
+            "argus_over_other_ci95": [
+              1.2925223665994876,
+              1.517561756392578
+            ],
+            "argus_relative_percent": 32.37760485585368,
+            "argus_relative_percent_ci95": [
+              29.25223665994876,
+              51.756175639257805
+            ],
+            "other_over_argus_speedup": 0.7554147856723217
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1700.1796304248273,
+                "median_ms": 1605.3093660157174,
+                "p95_ms": 1924.365788185969,
+                "total_ms": 8500.898152124137
+              },
+              "NoNo-enforced": {
+                "mean_ms": 1515.6646056566387,
+                "median_ms": 1531.4719390589744,
+                "p95_ms": 1564.2911482602358,
+                "total_ms": 7578.323028283194
+              }
+            },
+            "argus_over_other_ratio": 1.0646552796114763,
+            "argus_over_other_ci95": [
+              1.0385863342395345,
+              1.237162907286059
+            ],
+            "argus_relative_percent": 6.465527961147632,
+            "argus_relative_percent_ci95": [
+              3.8586334239534503,
+              23.716290728605905
+            ],
+            "other_over_argus_speedup": 0.9392711604876736
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 3731.00556563586,
+                "median_ms": 3605.093506164849,
+                "p95_ms": 4072.4050692282617,
+                "total_ms": 18655.0278281793
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2757.636682782322,
+                "median_ms": 2758.5162399336696,
+                "p95_ms": 2811.482786759734,
+                "total_ms": 13788.18341391161
+              }
+            },
+            "argus_over_other_ratio": 1.3168187271217704,
+            "argus_over_other_ci95": [
+              1.2939333491336198,
+              1.4281695605634444
+            ],
+            "argus_relative_percent": 31.68187271217704,
+            "argus_relative_percent_ci95": [
+              29.39333491336198,
+              42.81695605634444
+            ],
+            "other_over_argus_speedup": 0.7594059678857581
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 3731.00556563586,
+                "median_ms": 3605.093506164849,
+                "p95_ms": 4072.4050692282617,
+                "total_ms": 18655.0278281793
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2757.636682782322,
+                "median_ms": 2758.5162399336696,
+                "p95_ms": 2811.482786759734,
+                "total_ms": 13788.18341391161
+              }
+            },
+            "argus_over_other_ratio": 1.3168187271217704,
+            "argus_over_other_ci95": [
+              1.2939333491336198,
+              1.4281695605634444
+            ],
+            "argus_relative_percent": 31.68187271217704,
+            "argus_relative_percent_ci95": [
+              29.39333491336198,
+              42.81695605634444
+            ],
+            "other_over_argus_speedup": 0.7594059678857581
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1700.1796304248273,
+                "median_ms": 1605.3093660157174,
+                "p95_ms": 1924.365788185969,
+                "total_ms": 8500.898152124137
+              },
+              "APF-enforced": {
+                "mean_ms": 1554.0622182190418,
+                "median_ms": 1570.36081305705,
+                "p95_ms": 1630.1608798559755,
+                "total_ms": 7770.311091095209
+              }
+            },
+            "argus_over_other_ratio": 1.0386413911903336,
+            "argus_over_other_ci95": [
+              1.0014069996965518,
+              1.1914685599553618
+            ],
+            "argus_relative_percent": 3.8641391190333607,
+            "argus_relative_percent_ci95": [
+              0.14069996965517806,
+              19.146855995536182
+            ],
+            "other_over_argus_speedup": 0.9627962148263236
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 3731.00556563586,
+                "median_ms": 3605.093506164849,
+                "p95_ms": 4072.4050692282617,
+                "total_ms": 18655.0278281793
+              },
+              "APF-enforced": {
+                "mean_ms": 3635.528935538605,
+                "median_ms": 2879.6110230032355,
+                "p95_ms": 5006.913911923766,
+                "total_ms": 18177.644677693024
+              }
+            },
+            "argus_over_other_ratio": 1.1343344759099803,
+            "argus_over_other_ci95": [
+              0.8439202371581731,
+              1.3206444443025744
+            ],
+            "argus_relative_percent": 13.433447590998027,
+            "argus_relative_percent_ci95": [
+              -15.60797628418269,
+              32.064444430257446
+            ],
+            "other_over_argus_speedup": 0.8815741928303685
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 3731.00556563586,
+                "median_ms": 3605.093506164849,
+                "p95_ms": 4072.4050692282617,
+                "total_ms": 18655.0278281793
+              },
+              "APF-enforced": {
+                "mean_ms": 10026.87407466583,
+                "median_ms": 9275.63610766083,
+                "p95_ms": 11501.451502228156,
+                "total_ms": 50134.37037332915
+              }
+            },
+            "argus_over_other_ratio": 0.38084047105389907,
+            "argus_over_other_ci95": [
+              0.3374933589025178,
+              0.4066586117920278
+            ],
+            "argus_relative_percent": -61.91595289461009,
+            "argus_relative_percent_ci95": [
+              -66.25066410974823,
+              -59.33413882079722
+            ],
+            "other_over_argus_speedup": 2.625771355740376
+          }
+        }
+      }
+    },
+    "T10-time-travel": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 0,
+          "completed": 0,
+          "compatibility_failed": 5,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 0,
+            "exclusion": "no matched successful pairs"
+          }
+        }
+      }
+    },
+    "T2-custom-weather": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 976.6602621879429,
+                "median_ms": 965.5237400438637,
+                "p95_ms": 1044.5865809451789,
+                "total_ms": 4883.301310939714
+              },
+              "Baseline": {
+                "mean_ms": 968.5273798648268,
+                "median_ms": 954.9207028467208,
+                "p95_ms": 1034.380939975381,
+                "total_ms": 4842.636899324134
+              }
+            },
+            "argus_over_other_ratio": 1.0212603365712012,
+            "argus_over_other_ci95": [
+              0.9389039348880057,
+              1.0759831118099639
+            ],
+            "argus_relative_percent": 2.126033657120119,
+            "argus_relative_percent_ci95": [
+              -6.109606511199428,
+              7.598311180996387
+            ],
+            "other_over_argus_speedup": 0.9791822556797015
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2175.383551325649,
+                "median_ms": 2146.544724004343,
+                "p95_ms": 2299.4122424162924,
+                "total_ms": 10876.917756628245
+              },
+              "Baseline": {
+                "mean_ms": 2080.980307236314,
+                "median_ms": 2066.363479010761,
+                "p95_ms": 2199.8733745422214,
+                "total_ms": 10404.90153618157
+              }
+            },
+            "argus_over_other_ratio": 1.0541934384958724,
+            "argus_over_other_ci95": [
+              0.9939152279834803,
+              1.1002376873374762
+            ],
+            "argus_relative_percent": 5.419343849587244,
+            "argus_relative_percent_ci95": [
+              -0.6084772016519691,
+              10.023768733747618
+            ],
+            "other_over_argus_speedup": 0.9485925101438728
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2175.383551325649,
+                "median_ms": 2146.544724004343,
+                "p95_ms": 2299.4122424162924,
+                "total_ms": 10876.917756628245
+              },
+              "Baseline": {
+                "mean_ms": 2080.980307236314,
+                "median_ms": 2066.363479010761,
+                "p95_ms": 2199.8733745422214,
+                "total_ms": 10404.90153618157
+              }
+            },
+            "argus_over_other_ratio": 1.0541934384958724,
+            "argus_over_other_ci95": [
+              0.9939152279834803,
+              1.1002376873374762
+            ],
+            "argus_relative_percent": 5.419343849587244,
+            "argus_relative_percent_ci95": [
+              -0.6084772016519691,
+              10.023768733747618
+            ],
+            "other_over_argus_speedup": 0.9485925101438728
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 976.6602621879429,
+                "median_ms": 965.5237400438637,
+                "p95_ms": 1044.5865809451789,
+                "total_ms": 4883.301310939714
+              },
+              "NoNo-enforced": {
+                "mean_ms": 967.7158052101731,
+                "median_ms": 948.1965058948845,
+                "p95_ms": 1023.1334966607392,
+                "total_ms": 4838.579026050866
+              }
+            },
+            "argus_over_other_ratio": 0.982277795777138,
+            "argus_over_other_ci95": [
+              0.972557800796544,
+              1.0557721575866517
+            ],
+            "argus_relative_percent": -1.772220422286197,
+            "argus_relative_percent_ci95": [
+              -2.744219920345603,
+              5.577215758665166
+            ],
+            "other_over_argus_speedup": 1.0180419472974453
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2175.383551325649,
+                "median_ms": 2146.544724004343,
+                "p95_ms": 2299.4122424162924,
+                "total_ms": 10876.917756628245
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2472.56917944178,
+                "median_ms": 2233.8397060520947,
+                "p95_ms": 3245.2780606690794,
+                "total_ms": 12362.8458972089
+              }
+            },
+            "argus_over_other_ratio": 0.8656917273315793,
+            "argus_over_other_ci95": [
+              0.726497558312213,
+              1.0099148964327695
+            ],
+            "argus_relative_percent": -13.430827266842071,
+            "argus_relative_percent_ci95": [
+              -27.350244168778705,
+              0.9914896432769549
+            ],
+            "other_over_argus_speedup": 1.1551456118015757
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2175.383551325649,
+                "median_ms": 2146.544724004343,
+                "p95_ms": 2299.4122424162924,
+                "total_ms": 10876.917756628245
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2472.56917944178,
+                "median_ms": 2233.8397060520947,
+                "p95_ms": 3245.2780606690794,
+                "total_ms": 12362.8458972089
+              }
+            },
+            "argus_over_other_ratio": 0.8656917273315793,
+            "argus_over_other_ci95": [
+              0.726497558312213,
+              1.0099148964327695
+            ],
+            "argus_relative_percent": -13.430827266842071,
+            "argus_relative_percent_ci95": [
+              -27.350244168778705,
+              0.9914896432769549
+            ],
+            "other_over_argus_speedup": 1.1551456118015757
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 976.6602621879429,
+                "median_ms": 965.5237400438637,
+                "p95_ms": 1044.5865809451789,
+                "total_ms": 4883.301310939714
+              },
+              "APF-enforced": {
+                "mean_ms": 1145.3076504170895,
+                "median_ms": 1064.9630238767713,
+                "p95_ms": 1534.050668636337,
+                "total_ms": 5726.538252085447
+              }
+            },
+            "argus_over_other_ratio": 0.8515071854536355,
+            "argus_over_other_ci95": [
+              0.7273777203019602,
+              0.9576972486925616
+            ],
+            "argus_relative_percent": -14.849281454636454,
+            "argus_relative_percent_ci95": [
+              -27.262227969803977,
+              -4.230275130743843
+            ],
+            "other_over_argus_speedup": 1.1743882107903245
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2175.383551325649,
+                "median_ms": 2146.544724004343,
+                "p95_ms": 2299.4122424162924,
+                "total_ms": 10876.917756628245
+              },
+              "APF-enforced": {
+                "mean_ms": 2917.532203765586,
+                "median_ms": 2278.887312859297,
+                "p95_ms": 4597.765990160406,
+                "total_ms": 14587.66101882793
+              }
+            },
+            "argus_over_other_ratio": 0.9184849507022953,
+            "argus_over_other_ci95": [
+              0.5423717387187554,
+              0.9581109445220547
+            ],
+            "argus_relative_percent": -8.15150492977047,
+            "argus_relative_percent_ci95": [
+              -45.76282612812446,
+              -4.18890554779453
+            ],
+            "other_over_argus_speedup": 1.0887494664287927
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2175.383551325649,
+                "median_ms": 2146.544724004343,
+                "p95_ms": 2299.4122424162924,
+                "total_ms": 10876.917756628245
+              },
+              "APF-enforced": {
+                "mean_ms": 9337.522006453946,
+                "median_ms": 8865.115266060457,
+                "p95_ms": 11136.837841477245,
+                "total_ms": 46687.61003226973
+              }
+            },
+            "argus_over_other_ratio": 0.24903373257617908,
+            "argus_over_other_ci95": [
+              0.2065943205426793,
+              0.2501456988690024
+            ],
+            "argus_relative_percent": -75.09662674238209,
+            "argus_relative_percent_ci95": [
+              -79.34056794573208,
+              -74.98543011309977
+            ],
+            "other_over_argus_speedup": 4.015520265689715
+          }
+        }
+      }
+    },
+    "T3-fixed-weather": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 29.028227971866727,
+                "median_ms": 28.25932903215289,
+                "p95_ms": 31.408634269610047,
+                "total_ms": 145.14113985933363
+              },
+              "Baseline": {
+                "mean_ms": 3.818347631022334,
+                "median_ms": 3.7232101894915104,
+                "p95_ms": 4.297595005482435,
+                "total_ms": 19.09173815511167
+              }
+            },
+            "argus_over_other_ratio": 7.592855608501254,
+            "argus_over_other_ci95": [
+              6.908837396736583,
+              8.104651954375564
+            ],
+            "argus_relative_percent": 659.2855608501254,
+            "argus_relative_percent_ci95": [
+              590.8837396736583,
+              710.4651954375564
+            ],
+            "other_over_argus_speedup": 0.13170275474228188
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1233.2943223416805,
+                "median_ms": 1261.8024998810142,
+                "p95_ms": 1332.5423452071846,
+                "total_ms": 6166.471611708403
+              },
+              "Baseline": {
+                "mean_ms": 994.8365761898458,
+                "median_ms": 994.6746870409697,
+                "p95_ms": 1003.3136279322207,
+                "total_ms": 4974.182880949229
+              }
+            },
+            "argus_over_other_ratio": 1.2671959804581638,
+            "argus_over_other_ci95": [
+              1.1656153349844065,
+              1.313858068213224
+            ],
+            "argus_relative_percent": 26.719598045816383,
+            "argus_relative_percent_ci95": [
+              16.56153349844065,
+              31.385806821322394
+            ],
+            "other_over_argus_speedup": 0.7891439172956047
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1233.2943223416805,
+                "median_ms": 1261.8024998810142,
+                "p95_ms": 1332.5423452071846,
+                "total_ms": 6166.471611708403
+              },
+              "Baseline": {
+                "mean_ms": 994.8365761898458,
+                "median_ms": 994.6746870409697,
+                "p95_ms": 1003.3136279322207,
+                "total_ms": 4974.182880949229
+              }
+            },
+            "argus_over_other_ratio": 1.2671959804581638,
+            "argus_over_other_ci95": [
+              1.1656153349844065,
+              1.313858068213224
+            ],
+            "argus_relative_percent": 26.719598045816383,
+            "argus_relative_percent_ci95": [
+              16.56153349844065,
+              31.385806821322394
+            ],
+            "other_over_argus_speedup": 0.7891439172956047
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 29.028227971866727,
+                "median_ms": 28.25932903215289,
+                "p95_ms": 31.408634269610047,
+                "total_ms": 145.14113985933363
+              },
+              "NoNo-enforced": {
+                "mean_ms": 3.715299954637885,
+                "median_ms": 3.9001309778541327,
+                "p95_ms": 4.057022975757718,
+                "total_ms": 18.576499773189425
+              }
+            },
+            "argus_over_other_ratio": 7.659396462032674,
+            "argus_over_other_ci95": [
+              7.219986062640635,
+              8.381984006828308
+            ],
+            "argus_relative_percent": 665.9396462032674,
+            "argus_relative_percent_ci95": [
+              621.9986062640635,
+              738.1984006828308
+            ],
+            "other_over_argus_speedup": 0.1305585896952796
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1233.2943223416805,
+                "median_ms": 1261.8024998810142,
+                "p95_ms": 1332.5423452071846,
+                "total_ms": 6166.471611708403
+              },
+              "NoNo-enforced": {
+                "mean_ms": 1206.5187497995794,
+                "median_ms": 1159.0259808581322,
+                "p95_ms": 1353.1244887039065,
+                "total_ms": 6032.593748997897
+              }
+            },
+            "argus_over_other_ratio": 1.043616377858299,
+            "argus_over_other_ci95": [
+              0.9542025676540485,
+              1.105102917872117
+            ],
+            "argus_relative_percent": 4.361637785829897,
+            "argus_relative_percent_ci95": [
+              -4.579743234595146,
+              10.5102917872117
+            ],
+            "other_over_argus_speedup": 0.9582065030947404
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1233.2943223416805,
+                "median_ms": 1261.8024998810142,
+                "p95_ms": 1332.5423452071846,
+                "total_ms": 6166.471611708403
+              },
+              "NoNo-enforced": {
+                "mean_ms": 1206.5187497995794,
+                "median_ms": 1159.0259808581322,
+                "p95_ms": 1353.1244887039065,
+                "total_ms": 6032.593748997897
+              }
+            },
+            "argus_over_other_ratio": 1.043616377858299,
+            "argus_over_other_ci95": [
+              0.9542025676540485,
+              1.105102917872117
+            ],
+            "argus_relative_percent": 4.361637785829897,
+            "argus_relative_percent_ci95": [
+              -4.579743234595146,
+              10.5102917872117
+            ],
+            "other_over_argus_speedup": 0.9582065030947404
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 29.028227971866727,
+                "median_ms": 28.25932903215289,
+                "p95_ms": 31.408634269610047,
+                "total_ms": 145.14113985933363
+              },
+              "APF-enforced": {
+                "mean_ms": 4.744544625282288,
+                "median_ms": 4.3737159576267,
+                "p95_ms": 6.316274264827371,
+                "total_ms": 23.722723126411438
+              }
+            },
+            "argus_over_other_ratio": 6.726235919544982,
+            "argus_over_other_ci95": [
+              5.22823694391138,
+              6.911984025459424
+            ],
+            "argus_relative_percent": 572.6235919544982,
+            "argus_relative_percent_ci95": [
+              422.823694391138,
+              591.1984025459424
+            ],
+            "other_over_argus_speedup": 0.14867156191982756
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1233.2943223416805,
+                "median_ms": 1261.8024998810142,
+                "p95_ms": 1332.5423452071846,
+                "total_ms": 6166.471611708403
+              },
+              "APF-enforced": {
+                "mean_ms": 2029.8132875468582,
+                "median_ms": 1163.438648916781,
+                "p95_ms": 3468.6404566280544,
+                "total_ms": 10149.066437734291
+              }
+            },
+            "argus_over_other_ratio": 0.7730690702407753,
+            "argus_over_other_ci95": [
+              0.39001042615664033,
+              1.133995774889143
+            ],
+            "argus_relative_percent": -22.693092975922468,
+            "argus_relative_percent_ci95": [
+              -60.99895738433596,
+              13.399577488914293
+            ],
+            "other_over_argus_speedup": 1.2935454780108409
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1233.2943223416805,
+                "median_ms": 1261.8024998810142,
+                "p95_ms": 1332.5423452071846,
+                "total_ms": 6166.471611708403
+              },
+              "APF-enforced": {
+                "mean_ms": 8556.839153077453,
+                "median_ms": 8541.240728925914,
+                "p95_ms": 9832.898207008839,
+                "total_ms": 42784.19576538727
+              }
+            },
+            "argus_over_other_ratio": 0.1519921748648257,
+            "argus_over_other_ci95": [
+              0.123786782334449,
+              0.16759839778589494
+            ],
+            "argus_relative_percent": -84.80078251351743,
+            "argus_relative_percent_ci95": [
+              -87.6213217665551,
+              -83.2401602214105
+            ],
+            "other_over_argus_speedup": 6.579286077650711
+          }
+        }
+      }
+    },
+    "T4-parallel-weather": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 42.11149038746953,
+                "median_ms": 30.61031480319798,
+                "p95_ms": 76.67732057161629,
+                "total_ms": 210.55745193734765
+              },
+              "Baseline": {
+                "mean_ms": 4.172127228230238,
+                "median_ms": 4.183371085673571,
+                "p95_ms": 4.51634950004518,
+                "total_ms": 20.86063614115119
+              }
+            },
+            "argus_over_other_ratio": 9.760495249492209,
+            "argus_over_other_ci95": [
+              6.922120253042507,
+              14.993897987279839
+            ],
+            "argus_relative_percent": 876.0495249492209,
+            "argus_relative_percent_ci95": [
+              592.2120253042508,
+              1399.3897987279838
+            ],
+            "other_over_argus_speedup": 0.10245381760234197
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1209.3095444142818,
+                "median_ms": 1145.609722007066,
+                "p95_ms": 1400.0591957010329,
+                "total_ms": 6046.547722071409
+              },
+              "Baseline": {
+                "mean_ms": 1142.3343679402024,
+                "median_ms": 1020.9285039454699,
+                "p95_ms": 1339.4889628980309,
+                "total_ms": 5711.671839701012
+              }
+            },
+            "argus_over_other_ratio": 1.1175381185011917,
+            "argus_over_other_ci95": [
+              0.9028283614408628,
+              1.2553466423992106
+            ],
+            "argus_relative_percent": 11.753811850119167,
+            "argus_relative_percent_ci95": [
+              -9.717163855913725,
+              25.534664239921057
+            ],
+            "other_over_argus_speedup": 0.8948240632195793
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1209.3095444142818,
+                "median_ms": 1145.609722007066,
+                "p95_ms": 1400.0591957010329,
+                "total_ms": 6046.547722071409
+              },
+              "Baseline": {
+                "mean_ms": 1142.3343679402024,
+                "median_ms": 1020.9285039454699,
+                "p95_ms": 1339.4889628980309,
+                "total_ms": 5711.671839701012
+              }
+            },
+            "argus_over_other_ratio": 1.1175381185011917,
+            "argus_over_other_ci95": [
+              0.9028283614408628,
+              1.2553466423992106
+            ],
+            "argus_relative_percent": 11.753811850119167,
+            "argus_relative_percent_ci95": [
+              -9.717163855913725,
+              25.534664239921057
+            ],
+            "other_over_argus_speedup": 0.8948240632195793
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 42.11149038746953,
+                "median_ms": 30.61031480319798,
+                "p95_ms": 76.67732057161629,
+                "total_ms": 210.55745193734765
+              },
+              "NoNo-enforced": {
+                "mean_ms": 3.9344280026853085,
+                "median_ms": 3.578925970941782,
+                "p95_ms": 4.806015687063336,
+                "total_ms": 19.672140013426542
+              }
+            },
+            "argus_over_other_ratio": 9.744655154612408,
+            "argus_over_other_ci95": [
+              6.5759289326399335,
+              17.539241982711594
+            ],
+            "argus_relative_percent": 874.4655154612408,
+            "argus_relative_percent_ci95": [
+              557.5928932639933,
+              1653.9241982711594
+            ],
+            "other_over_argus_speedup": 0.10262035794326421
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1209.3095444142818,
+                "median_ms": 1145.609722007066,
+                "p95_ms": 1400.0591957010329,
+                "total_ms": 6046.547722071409
+              },
+              "NoNo-enforced": {
+                "mean_ms": 1703.4413684625179,
+                "median_ms": 1175.3727609757334,
+                "p95_ms": 3213.3367556612934,
+                "total_ms": 8517.20684231259
+              }
+            },
+            "argus_over_other_ratio": 0.7079946652718289,
+            "argus_over_other_ci95": [
+              0.4930365562524128,
+              0.9869263461068811
+            ],
+            "argus_relative_percent": -29.200533472817114,
+            "argus_relative_percent_ci95": [
+              -50.696344374758716,
+              -1.3073653893118875
+            ],
+            "other_over_argus_speedup": 1.4124400211632357
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1209.3095444142818,
+                "median_ms": 1145.609722007066,
+                "p95_ms": 1400.0591957010329,
+                "total_ms": 6046.547722071409
+              },
+              "NoNo-enforced": {
+                "mean_ms": 1703.4413684625179,
+                "median_ms": 1175.3727609757334,
+                "p95_ms": 3213.3367556612934,
+                "total_ms": 8517.20684231259
+              }
+            },
+            "argus_over_other_ratio": 0.7079946652718289,
+            "argus_over_other_ci95": [
+              0.4930365562524128,
+              0.9869263461068811
+            ],
+            "argus_relative_percent": -29.200533472817114,
+            "argus_relative_percent_ci95": [
+              -50.696344374758716,
+              -1.3073653893118875
+            ],
+            "other_over_argus_speedup": 1.4124400211632357
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 42.11149038746953,
+                "median_ms": 30.61031480319798,
+                "p95_ms": 76.67732057161629,
+                "total_ms": 210.55745193734765
+              },
+              "APF-enforced": {
+                "mean_ms": 5.965291894972324,
+                "median_ms": 5.160957109183073,
+                "p95_ms": 7.89490407332778,
+                "total_ms": 29.826459474861622
+              }
+            },
+            "argus_over_other_ratio": 7.979273431016283,
+            "argus_over_other_ci95": [
+              4.173881137375243,
+              12.107643236105975
+            ],
+            "argus_relative_percent": 697.9273431016284,
+            "argus_relative_percent_ci95": [
+              317.38811373752435,
+              1110.7643236105976
+            ],
+            "other_over_argus_speedup": 0.12532469386409217
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1209.3095444142818,
+                "median_ms": 1145.609722007066,
+                "p95_ms": 1400.0591957010329,
+                "total_ms": 6046.547722071409
+              },
+              "APF-enforced": {
+                "mean_ms": 2028.0364610254765,
+                "median_ms": 1133.2606838550419,
+                "p95_ms": 3380.8448788244277,
+                "total_ms": 10140.182305127382
+              }
+            },
+            "argus_over_other_ratio": 0.7617672476598786,
+            "argus_over_other_ci95": [
+              0.39183448325040415,
+              1.1209108865318345
+            ],
+            "argus_relative_percent": -23.823275234012144,
+            "argus_relative_percent_ci95": [
+              -60.816551674959584,
+              12.091088653183446
+            ],
+            "other_over_argus_speedup": 1.3127369325367608
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1209.3095444142818,
+                "median_ms": 1145.609722007066,
+                "p95_ms": 1400.0591957010329,
+                "total_ms": 6046.547722071409
+              },
+              "APF-enforced": {
+                "mean_ms": 8564.533651992679,
+                "median_ms": 7410.022109979764,
+                "p95_ms": 10723.928870959207,
+                "total_ms": 42822.66825996339
+              }
+            },
+            "argus_over_other_ratio": 0.1507686760710069,
+            "argus_over_other_ci95": [
+              0.11503781598681184,
+              0.1738052936854917
+            ],
+            "argus_relative_percent": -84.9231323928993,
+            "argus_relative_percent_ci95": [
+              -88.49621840131881,
+              -82.61947063145084
+            ],
+            "other_over_argus_speedup": 6.632677463646587
+          }
+        }
+      }
+    },
+    "T5-prebuilt-multiply": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1059.8126952536404,
+                "median_ms": 1070.6067620776594,
+                "p95_ms": 1075.2907745540142,
+                "total_ms": 5299.063476268202
+              },
+              "Baseline": {
+                "mean_ms": 1193.6270711012185,
+                "median_ms": 1090.3485110029578,
+                "p95_ms": 1519.0175040625036,
+                "total_ms": 5968.135355506092
+              }
+            },
+            "argus_over_other_ratio": 0.8161212554095829,
+            "argus_over_other_ci95": [
+              0.7572238354490451,
+              1.0023848906982593
+            ],
+            "argus_relative_percent": -18.387874459041708,
+            "argus_relative_percent_ci95": [
+              -24.277616455095487,
+              0.2384890698259312
+            ],
+            "other_over_argus_speedup": 1.2253081185811472
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2209.8650322295725,
+                "median_ms": 2203.6044460255653,
+                "p95_ms": 2244.2189515102655,
+                "total_ms": 11049.325161147863
+              },
+              "Baseline": {
+                "mean_ms": 2315.5120393726975,
+                "median_ms": 2154.676286969334,
+                "p95_ms": 2828.818120015785,
+                "total_ms": 11577.560196863487
+              }
+            },
+            "argus_over_other_ratio": 0.892443120057151,
+            "argus_over_other_ci95": [
+              0.8402922861054511,
+              1.035415810701335
+            ],
+            "argus_relative_percent": -10.755687994284902,
+            "argus_relative_percent_ci95": [
+              -15.970771389454885,
+              3.5415810701334927
+            ],
+            "other_over_argus_speedup": 1.1205195911375967
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2209.8650322295725,
+                "median_ms": 2203.6044460255653,
+                "p95_ms": 2244.2189515102655,
+                "total_ms": 11049.325161147863
+              },
+              "Baseline": {
+                "mean_ms": 2315.5120393726975,
+                "median_ms": 2154.676286969334,
+                "p95_ms": 2828.818120015785,
+                "total_ms": 11577.560196863487
+              }
+            },
+            "argus_over_other_ratio": 0.892443120057151,
+            "argus_over_other_ci95": [
+              0.8402922861054511,
+              1.035415810701335
+            ],
+            "argus_relative_percent": -10.755687994284902,
+            "argus_relative_percent_ci95": [
+              -15.970771389454885,
+              3.5415810701334927
+            ],
+            "other_over_argus_speedup": 1.1205195911375967
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1059.8126952536404,
+                "median_ms": 1070.6067620776594,
+                "p95_ms": 1075.2907745540142,
+                "total_ms": 5299.063476268202
+              },
+              "NoNo-enforced": {
+                "mean_ms": 1059.1112164780498,
+                "median_ms": 1055.3890010342002,
+                "p95_ms": 1127.1332510281354,
+                "total_ms": 5295.556082390249
+              }
+            },
+            "argus_over_other_ratio": 0.9905423702199192,
+            "argus_over_other_ci95": [
+              0.9639021800994791,
+              1.0455432262702768
+            ],
+            "argus_relative_percent": -0.9457629780080801,
+            "argus_relative_percent_ci95": [
+              -3.6097819900520856,
+              4.554322627027685
+            ],
+            "other_over_argus_speedup": 1.0095479305726023
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2209.8650322295725,
+                "median_ms": 2203.6044460255653,
+                "p95_ms": 2244.2189515102655,
+                "total_ms": 11049.325161147863
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2330.031906813383,
+                "median_ms": 2326.9022221211344,
+                "p95_ms": 2451.753887021914,
+                "total_ms": 11650.159534066916
+              }
+            },
+            "argus_over_other_ratio": 0.9624222088457868,
+            "argus_over_other_ci95": [
+              0.9157861615853182,
+              0.9816635123699777
+            ],
+            "argus_relative_percent": -3.7577791154213225,
+            "argus_relative_percent_ci95": [
+              -8.421383841468177,
+              -1.833648763002227
+            ],
+            "other_over_argus_speedup": 1.0390450166349336
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2209.8650322295725,
+                "median_ms": 2203.6044460255653,
+                "p95_ms": 2244.2189515102655,
+                "total_ms": 11049.325161147863
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2330.031906813383,
+                "median_ms": 2326.9022221211344,
+                "p95_ms": 2451.753887021914,
+                "total_ms": 11650.159534066916
+              }
+            },
+            "argus_over_other_ratio": 0.9624222088457868,
+            "argus_over_other_ci95": [
+              0.9157861615853182,
+              0.9816635123699777
+            ],
+            "argus_relative_percent": -3.7577791154213225,
+            "argus_relative_percent_ci95": [
+              -8.421383841468177,
+              -1.833648763002227
+            ],
+            "other_over_argus_speedup": 1.0390450166349336
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1059.8126952536404,
+                "median_ms": 1070.6067620776594,
+                "p95_ms": 1075.2907745540142,
+                "total_ms": 5299.063476268202
+              },
+              "APF-enforced": {
+                "mean_ms": 1354.9395996611565,
+                "median_ms": 1226.6854110639542,
+                "p95_ms": 1710.2737848646939,
+                "total_ms": 6774.697998305783
+              }
+            },
+            "argus_over_other_ratio": 0.8705768946231395,
+            "argus_over_other_ci95": [
+              0.6656362823759354,
+              0.9126736813713647
+            ],
+            "argus_relative_percent": -12.942310537686053,
+            "argus_relative_percent_ci95": [
+              -33.43637176240646,
+              -8.732631862863528
+            ],
+            "other_over_argus_speedup": 1.1486636116536104
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2209.8650322295725,
+                "median_ms": 2203.6044460255653,
+                "p95_ms": 2244.2189515102655,
+                "total_ms": 11049.325161147863
+              },
+              "APF-enforced": {
+                "mean_ms": 4438.880603946745,
+                "median_ms": 4633.202365832403,
+                "p95_ms": 6815.351919317618,
+                "total_ms": 22194.403019733727
+              }
+            },
+            "argus_over_other_ratio": 0.572166650668579,
+            "argus_over_other_ci95": [
+              0.3708419004540936,
+              0.7488056243850838
+            ],
+            "argus_relative_percent": -42.7833349331421,
+            "argus_relative_percent_ci95": [
+              -62.91580995459064,
+              -25.11943756149162
+            ],
+            "other_over_argus_speedup": 1.7477425481395954
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2209.8650322295725,
+                "median_ms": 2203.6044460255653,
+                "p95_ms": 2244.2189515102655,
+                "total_ms": 11049.325161147863
+              },
+              "APF-enforced": {
+                "mean_ms": 11809.653632342815,
+                "median_ms": 10603.302865754813,
+                "p95_ms": 17580.603048112243,
+                "total_ms": 59048.26816171408
+              }
+            },
+            "argus_over_other_ratio": 0.19775022229711897,
+            "argus_over_other_ci95": [
+              0.14173569664803018,
+              0.2423546094907885
+            ],
+            "argus_relative_percent": -80.22497777028809,
+            "argus_relative_percent_ci95": [
+              -85.82643033519697,
+              -75.76453905092116
+            ],
+            "other_over_argus_speedup": 5.056884328036324
+          }
+        }
+      }
+    },
+    "T6-return-direct": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 618.2261602021754,
+                "median_ms": 591.5287139359862,
+                "p95_ms": 669.0103250555694,
+                "total_ms": 3091.130801010877
+              },
+              "Baseline": {
+                "mean_ms": 577.2588145453483,
+                "median_ms": 572.2436488140374,
+                "p95_ms": 603.5659653600305,
+                "total_ms": 2886.2940727267414
+              }
+            },
+            "argus_over_other_ratio": 1.0771167274085534,
+            "argus_over_other_ci95": [
+              1.0268573176457507,
+              1.1397183635540042
+            ],
+            "argus_relative_percent": 7.711672740855335,
+            "argus_relative_percent_ci95": [
+              2.6857317645750722,
+              13.971836355400423
+            ],
+            "other_over_argus_speedup": 0.928404484447949
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1879.2716346215457,
+                "median_ms": 1793.014344992116,
+                "p95_ms": 2111.117937695235,
+                "total_ms": 9396.358173107728
+              },
+              "Baseline": {
+                "mean_ms": 1653.1475818250328,
+                "median_ms": 1623.704626923427,
+                "p95_ms": 1726.141217816621,
+                "total_ms": 8265.737909125164
+              }
+            },
+            "argus_over_other_ratio": 1.1965032847274308,
+            "argus_over_other_ci95": [
+              1.0465553362622197,
+              1.2326735070306643
+            ],
+            "argus_relative_percent": 19.650328472743084,
+            "argus_relative_percent_ci95": [
+              4.655533626221975,
+              23.267350703066427
+            ],
+            "other_over_argus_speedup": 0.8357687043272972
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1879.2716346215457,
+                "median_ms": 1793.014344992116,
+                "p95_ms": 2111.117937695235,
+                "total_ms": 9396.358173107728
+              },
+              "Baseline": {
+                "mean_ms": 1653.1475818250328,
+                "median_ms": 1623.704626923427,
+                "p95_ms": 1726.141217816621,
+                "total_ms": 8265.737909125164
+              }
+            },
+            "argus_over_other_ratio": 1.1965032847274308,
+            "argus_over_other_ci95": [
+              1.0465553362622197,
+              1.2326735070306643
+            ],
+            "argus_relative_percent": 19.650328472743084,
+            "argus_relative_percent_ci95": [
+              4.655533626221975,
+              23.267350703066427
+            ],
+            "other_over_argus_speedup": 0.8357687043272972
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 618.2261602021754,
+                "median_ms": 591.5287139359862,
+                "p95_ms": 669.0103250555694,
+                "total_ms": 3091.130801010877
+              },
+              "NoNo-enforced": {
+                "mean_ms": 614.6831349935383,
+                "median_ms": 622.4090189207345,
+                "p95_ms": 644.2830534186214,
+                "total_ms": 3073.4156749676913
+              }
+            },
+            "argus_over_other_ratio": 1.0365362297634053,
+            "argus_over_other_ci95": [
+              0.9472749049736143,
+              1.0616612064922681
+            ],
+            "argus_relative_percent": 3.6536229763405315,
+            "argus_relative_percent_ci95": [
+              -5.272509502638567,
+              6.166120649226814
+            ],
+            "other_over_argus_speedup": 0.9647516133886175
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1879.2716346215457,
+                "median_ms": 1793.014344992116,
+                "p95_ms": 2111.117937695235,
+                "total_ms": 9396.358173107728
+              },
+              "NoNo-enforced": {
+                "mean_ms": 1913.8842503540218,
+                "median_ms": 1824.4365330319852,
+                "p95_ms": 2188.662875024602,
+                "total_ms": 9569.421251770109
+              }
+            },
+            "argus_over_other_ratio": 1.0763343714060858,
+            "argus_over_other_ci95": [
+              0.8520418040380937,
+              1.1156687633235347
+            ],
+            "argus_relative_percent": 7.633437140608579,
+            "argus_relative_percent_ci95": [
+              -14.79581959619063,
+              11.56687633235347
+            ],
+            "other_over_argus_speedup": 0.9290793145383203
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1879.2716346215457,
+                "median_ms": 1793.014344992116,
+                "p95_ms": 2111.117937695235,
+                "total_ms": 9396.358173107728
+              },
+              "NoNo-enforced": {
+                "mean_ms": 1913.8842503540218,
+                "median_ms": 1824.4365330319852,
+                "p95_ms": 2188.662875024602,
+                "total_ms": 9569.421251770109
+              }
+            },
+            "argus_over_other_ratio": 1.0763343714060858,
+            "argus_over_other_ci95": [
+              0.8520418040380937,
+              1.1156687633235347
+            ],
+            "argus_relative_percent": 7.633437140608579,
+            "argus_relative_percent_ci95": [
+              -14.79581959619063,
+              11.56687633235347
+            ],
+            "other_over_argus_speedup": 0.9290793145383203
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 618.2261602021754,
+                "median_ms": 591.5287139359862,
+                "p95_ms": 669.0103250555694,
+                "total_ms": 3091.130801010877
+              },
+              "APF-enforced": {
+                "mean_ms": 733.1066762562841,
+                "median_ms": 746.9994761049747,
+                "p95_ms": 859.4660763628781,
+                "total_ms": 3665.5333812814206
+              }
+            },
+            "argus_over_other_ratio": 0.8543410885815687,
+            "argus_over_other_ci95": [
+              0.7460590068042684,
+              0.9728998932061497
+            ],
+            "argus_relative_percent": -14.565891141843135,
+            "argus_relative_percent_ci95": [
+              -25.39409931957316,
+              -2.710010679385033
+            ],
+            "other_over_argus_speedup": 1.1704926912274154
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1879.2716346215457,
+                "median_ms": 1793.014344992116,
+                "p95_ms": 2111.117937695235,
+                "total_ms": 9396.358173107728
+              },
+              "APF-enforced": {
+                "mean_ms": 3402.0335922949016,
+                "median_ms": 1993.0484401993454,
+                "p95_ms": 5836.425757734105,
+                "total_ms": 17010.167961474508
+              }
+            },
+            "argus_over_other_ratio": 0.5776387927037241,
+            "argus_over_other_ci95": [
+              0.37478562075626237,
+              1.0129032190434804
+            ],
+            "argus_relative_percent": -42.236120729627594,
+            "argus_relative_percent_ci95": [
+              -62.52143792437377,
+              1.2903219043480352
+            ],
+            "other_over_argus_speedup": 1.7311856693684848
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1879.2716346215457,
+                "median_ms": 1793.014344992116,
+                "p95_ms": 2111.117937695235,
+                "total_ms": 9396.358173107728
+              },
+              "APF-enforced": {
+                "mean_ms": 10370.978643745184,
+                "median_ms": 8509.840660961345,
+                "p95_ms": 14492.1557280235,
+                "total_ms": 51854.89321872592
+              }
+            },
+            "argus_over_other_ratio": 0.19014847873000726,
+            "argus_over_other_ci95": [
+              0.1465639275706775,
+              0.23177501986794286
+            ],
+            "argus_relative_percent": -80.98515212699927,
+            "argus_relative_percent_ci95": [
+              -85.34360724293225,
+              -76.8224980132057
+            ],
+            "other_over_argus_speedup": 5.259048122177747
+          }
+        }
+      }
+    },
+    "T7-forced-tool": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 592.9823349695653,
+                "median_ms": 605.896248947829,
+                "p95_ms": 630.6245543528348,
+                "total_ms": 2964.9116748478264
+              },
+              "Baseline": {
+                "mean_ms": 530.026096617803,
+                "median_ms": 518.1003720499575,
+                "p95_ms": 596.6046295128763,
+                "total_ms": 2650.130483089015
+              }
+            },
+            "argus_over_other_ratio": 1.0587009991431786,
+            "argus_over_other_ci95": [
+              1.0282466972392008,
+              1.227643388242267
+            ],
+            "argus_relative_percent": 5.870099914317861,
+            "argus_relative_percent_ci95": [
+              2.8246697239200813,
+              22.764338824226705
+            ],
+            "other_over_argus_speedup": 0.9445537510678783
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1771.5447924099863,
+                "median_ms": 1745.2129148878157,
+                "p95_ms": 1874.8878603801131,
+                "total_ms": 8857.723962049931
+              },
+              "Baseline": {
+                "mean_ms": 1581.778712850064,
+                "median_ms": 1557.6319540850818,
+                "p95_ms": 1656.661597173661,
+                "total_ms": 7908.89356425032
+              }
+            },
+            "argus_over_other_ratio": 1.0813516495982858,
+            "argus_over_other_ci95": [
+              1.0627510468161505,
+              1.1874625796580183
+            ],
+            "argus_relative_percent": 8.135164959828579,
+            "argus_relative_percent_ci95": [
+              6.275104681615051,
+              18.746257965801828
+            ],
+            "other_over_argus_speedup": 0.9247685527381335
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1771.5447924099863,
+                "median_ms": 1745.2129148878157,
+                "p95_ms": 1874.8878603801131,
+                "total_ms": 8857.723962049931
+              },
+              "Baseline": {
+                "mean_ms": 1581.778712850064,
+                "median_ms": 1557.6319540850818,
+                "p95_ms": 1656.661597173661,
+                "total_ms": 7908.89356425032
+              }
+            },
+            "argus_over_other_ratio": 1.0813516495982858,
+            "argus_over_other_ci95": [
+              1.0627510468161505,
+              1.1874625796580183
+            ],
+            "argus_relative_percent": 8.135164959828579,
+            "argus_relative_percent_ci95": [
+              6.275104681615051,
+              18.746257965801828
+            ],
+            "other_over_argus_speedup": 0.9247685527381335
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 592.9823349695653,
+                "median_ms": 605.896248947829,
+                "p95_ms": 630.6245543528348,
+                "total_ms": 2964.9116748478264
+              },
+              "NoNo-enforced": {
+                "mean_ms": 687.424780568108,
+                "median_ms": 591.3761199917644,
+                "p95_ms": 1106.249572429806,
+                "total_ms": 3437.12390284054
+              }
+            },
+            "argus_over_other_ratio": 0.8705425018383518,
+            "argus_over_other_ci95": [
+              0.6259879260794434,
+              1.1312409309529972
+            ],
+            "argus_relative_percent": -12.94574981616482,
+            "argus_relative_percent_ci95": [
+              -37.40120739205566,
+              13.124093095299717
+            ],
+            "other_over_argus_speedup": 1.1487089922528408
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1771.5447924099863,
+                "median_ms": 1745.2129148878157,
+                "p95_ms": 1874.8878603801131,
+                "total_ms": 8857.723962049931
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2036.4694555290043,
+                "median_ms": 1820.0457149650902,
+                "p95_ms": 2637.122982321307,
+                "total_ms": 10182.347277645022
+              }
+            },
+            "argus_over_other_ratio": 0.85856331860195,
+            "argus_over_other_ci95": [
+              0.7317802278206514,
+              1.0183654229706387
+            ],
+            "argus_relative_percent": -14.143668139805,
+            "argus_relative_percent_ci95": [
+              -26.821977217934855,
+              1.83654229706387
+            ],
+            "other_over_argus_speedup": 1.164736459540759
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1771.5447924099863,
+                "median_ms": 1745.2129148878157,
+                "p95_ms": 1874.8878603801131,
+                "total_ms": 8857.723962049931
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2036.4694555290043,
+                "median_ms": 1820.0457149650902,
+                "p95_ms": 2637.122982321307,
+                "total_ms": 10182.347277645022
+              }
+            },
+            "argus_over_other_ratio": 0.85856331860195,
+            "argus_over_other_ci95": [
+              0.7317802278206514,
+              1.0183654229706387
+            ],
+            "argus_relative_percent": -14.143668139805,
+            "argus_relative_percent_ci95": [
+              -26.821977217934855,
+              1.83654229706387
+            ],
+            "other_over_argus_speedup": 1.164736459540759
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 592.9823349695653,
+                "median_ms": 605.896248947829,
+                "p95_ms": 630.6245543528348,
+                "total_ms": 2964.9116748478264
+              },
+              "APF-enforced": {
+                "mean_ms": 605.6179083883762,
+                "median_ms": 590.57194320485,
+                "p95_ms": 693.0820705369115,
+                "total_ms": 3028.089541941881
+              }
+            },
+            "argus_over_other_ratio": 1.0296787002090273,
+            "argus_over_other_ci95": [
+              0.9097575288190993,
+              1.0661604083090834
+            ],
+            "argus_relative_percent": 2.9678700209027298,
+            "argus_relative_percent_ci95": [
+              -9.024247118090067,
+              6.616040830908343
+            ],
+            "other_over_argus_speedup": 0.9711767367791502
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1771.5447924099863,
+                "median_ms": 1745.2129148878157,
+                "p95_ms": 1874.8878603801131,
+                "total_ms": 8857.723962049931
+              },
+              "APF-enforced": {
+                "mean_ms": 2792.093222727999,
+                "median_ms": 1820.3568158205599,
+                "p95_ms": 4375.877922074869,
+                "total_ms": 13960.466113639995
+              }
+            },
+            "argus_over_other_ratio": 0.7724438421350031,
+            "argus_over_other_ci95": [
+              0.47718346900089814,
+              0.9677998643691363
+            ],
+            "argus_relative_percent": -22.755615786499696,
+            "argus_relative_percent_ci95": [
+              -52.28165309991019,
+              -3.2200135630863658
+            ],
+            "other_over_argus_speedup": 1.294592493916504
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1771.5447924099863,
+                "median_ms": 1745.2129148878157,
+                "p95_ms": 1874.8878603801131,
+                "total_ms": 8857.723962049931
+              },
+              "APF-enforced": {
+                "mean_ms": 9212.634437764063,
+                "median_ms": 8283.577712718397,
+                "p95_ms": 11000.294569972903,
+                "total_ms": 46063.17218882032
+              }
+            },
+            "argus_over_other_ratio": 0.2023826138765781,
+            "argus_over_other_ci95": [
+              0.17649086125560418,
+              0.21236006320803288
+            ],
+            "argus_relative_percent": -79.76173861234219,
+            "argus_relative_percent_ci95": [
+              -82.35091387443958,
+              -78.76399367919672
+            ],
+            "other_over_argus_speedup": 4.941135905131873
+          }
+        }
+      }
+    },
+    "T8-serial-tools": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1660.455065453425,
+                "median_ms": 1657.0762491319329,
+                "p95_ms": 1767.730348231271,
+                "total_ms": 8302.275327267125
+              },
+              "Baseline": {
+                "mean_ms": 1546.471407217905,
+                "median_ms": 1541.6378190275282,
+                "p95_ms": 1585.3557178750634,
+                "total_ms": 7732.357036089525
+              }
+            },
+            "argus_over_other_ratio": 1.0862882600790538,
+            "argus_over_other_ci95": [
+              1.0253249121868626,
+              1.1291368499420262
+            ],
+            "argus_relative_percent": 8.628826007905378,
+            "argus_relative_percent_ci95": [
+              2.5324912186862614,
+              12.913684994202622
+            ],
+            "other_over_argus_speedup": 0.9205659646245516
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2827.0555415656418,
+                "median_ms": 2798.605830874294,
+                "p95_ms": 2945.0391826219857,
+                "total_ms": 14135.277707828209
+              },
+              "Baseline": {
+                "mean_ms": 2596.618718188256,
+                "median_ms": 2601.5994960907847,
+                "p95_ms": 2646.1967050563544,
+                "total_ms": 12983.09359094128
+              }
+            },
+            "argus_over_other_ratio": 1.096727930104939,
+            "argus_over_other_ci95": [
+              1.057861679801195,
+              1.128448098916195
+            ],
+            "argus_relative_percent": 9.672793010493908,
+            "argus_relative_percent_ci95": [
+              5.786167980119505,
+              12.84480989161949
+            ],
+            "other_over_argus_speedup": 0.9118031669935827
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2827.0555415656418,
+                "median_ms": 2798.605830874294,
+                "p95_ms": 2945.0391826219857,
+                "total_ms": 14135.277707828209
+              },
+              "Baseline": {
+                "mean_ms": 2596.618718188256,
+                "median_ms": 2601.5994960907847,
+                "p95_ms": 2646.1967050563544,
+                "total_ms": 12983.09359094128
+              }
+            },
+            "argus_over_other_ratio": 1.096727930104939,
+            "argus_over_other_ci95": [
+              1.057861679801195,
+              1.128448098916195
+            ],
+            "argus_relative_percent": 9.672793010493908,
+            "argus_relative_percent_ci95": [
+              5.786167980119505,
+              12.84480989161949
+            ],
+            "other_over_argus_speedup": 0.9118031669935827
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1660.455065453425,
+                "median_ms": 1657.0762491319329,
+                "p95_ms": 1767.730348231271,
+                "total_ms": 8302.275327267125
+              },
+              "NoNo-enforced": {
+                "mean_ms": 1559.1438008937985,
+                "median_ms": 1551.3471241574734,
+                "p95_ms": 1592.98129202798,
+                "total_ms": 7795.719004468992
+              }
+            },
+            "argus_over_other_ratio": 1.0610425733544029,
+            "argus_over_other_ci95": [
+              1.0207834019505808,
+              1.1142626756989658
+            ],
+            "argus_relative_percent": 6.1042573354402885,
+            "argus_relative_percent_ci95": [
+              2.0783401950580815,
+              11.426267569896575
+            ],
+            "other_over_argus_speedup": 0.9424692515763796
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2827.0555415656418,
+                "median_ms": 2798.605830874294,
+                "p95_ms": 2945.0391826219857,
+                "total_ms": 14135.277707828209
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2825.172030972317,
+                "median_ms": 2820.9078409709036,
+                "p95_ms": 2900.463063037023,
+                "total_ms": 14125.860154861584
+              }
+            },
+            "argus_over_other_ratio": 0.9945368774783976,
+            "argus_over_other_ci95": [
+              0.985242595706842,
+              1.0161239651637102
+            ],
+            "argus_relative_percent": -0.5463122521602415,
+            "argus_relative_percent_ci95": [
+              -1.4757404293157972,
+              1.6123965163710174
+            ],
+            "other_over_argus_speedup": 1.0054931321757057
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2827.0555415656418,
+                "median_ms": 2798.605830874294,
+                "p95_ms": 2945.0391826219857,
+                "total_ms": 14135.277707828209
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2825.172030972317,
+                "median_ms": 2820.9078409709036,
+                "p95_ms": 2900.463063037023,
+                "total_ms": 14125.860154861584
+              }
+            },
+            "argus_over_other_ratio": 0.9945368774783976,
+            "argus_over_other_ci95": [
+              0.985242595706842,
+              1.0161239651637102
+            ],
+            "argus_relative_percent": -0.5463122521602415,
+            "argus_relative_percent_ci95": [
+              -1.4757404293157972,
+              1.6123965163710174
+            ],
+            "other_over_argus_speedup": 1.0054931321757057
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 1660.455065453425,
+                "median_ms": 1657.0762491319329,
+                "p95_ms": 1767.730348231271,
+                "total_ms": 8302.275327267125
+              },
+              "APF-enforced": {
+                "mean_ms": 1641.6110125835985,
+                "median_ms": 1636.3461909350008,
+                "p95_ms": 1709.6419993788004,
+                "total_ms": 8208.055062917992
+              }
+            },
+            "argus_over_other_ratio": 1.0152979943314007,
+            "argus_over_other_ci95": [
+              0.9606506808914815,
+              1.0520154261181451
+            ],
+            "argus_relative_percent": 1.5297994331400666,
+            "argus_relative_percent_ci95": [
+              -3.9349319108518466,
+              5.201542611814514
+            ],
+            "other_over_argus_speedup": 0.9849325080746616
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2827.0555415656418,
+                "median_ms": 2798.605830874294,
+                "p95_ms": 2945.0391826219857,
+                "total_ms": 14135.277707828209
+              },
+              "APF-enforced": {
+                "mean_ms": 4270.807526586577,
+                "median_ms": 3029.088486917317,
+                "p95_ms": 7066.40843693167,
+                "total_ms": 21354.037632932886
+              }
+            },
+            "argus_over_other_ratio": 0.6681508428060531,
+            "argus_over_other_ci95": [
+              0.47347549852241216,
+              0.978677728953256
+            ],
+            "argus_relative_percent": -33.184915719394695,
+            "argus_relative_percent_ci95": [
+              -52.65245014775879,
+              -2.1322271046744
+            ],
+            "other_over_argus_speedup": 1.4966680215507475
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2827.0555415656418,
+                "median_ms": 2798.605830874294,
+                "p95_ms": 2945.0391826219857,
+                "total_ms": 14135.277707828209
+              },
+              "APF-enforced": {
+                "mean_ms": 11072.79413184151,
+                "median_ms": 9506.623628083616,
+                "p95_ms": 14916.638759057969,
+                "total_ms": 55363.97065920755
+              }
+            },
+            "argus_over_other_ratio": 0.2582095686626784,
+            "argus_over_other_ci95": [
+              0.21389599854888,
+              0.30225301303249397
+            ],
+            "argus_relative_percent": -74.17904313373216,
+            "argus_relative_percent_ci95": [
+              -78.61040014511201,
+              -69.7746986967506
+            ],
+            "other_over_argus_speedup": 3.8728231690994646
+          }
+        }
+      }
+    },
+    "T9-add-memory": {
+      "modes": {
+        "Baseline": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "Argus": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "NoNo-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        },
+        "APF-enforced": {
+          "attempts": 5,
+          "correct": 5,
+          "completed": 5,
+          "compatibility_failed": 0,
+          "execution_error": 0,
+          "timeout": 0
+        }
+      },
+      "comparisons": {
+        "Baseline": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2626.557041751221,
+                "median_ms": 2678.41149517335,
+                "p95_ms": 2722.9336752090603,
+                "total_ms": 13132.785208756104
+              },
+              "Baseline": {
+                "mean_ms": 2561.0844598151743,
+                "median_ms": 2525.407890789211,
+                "p95_ms": 2677.0410059485584,
+                "total_ms": 12805.422299075872
+              }
+            },
+            "argus_over_other_ratio": 1.029795616438265,
+            "argus_over_other_ci95": [
+              0.9855083642722197,
+              1.0674170732007675
+            ],
+            "argus_relative_percent": 2.9795616438264894,
+            "argus_relative_percent_ci95": [
+              -1.4491635727780339,
+              6.741707320076751
+            ],
+            "other_over_argus_speedup": 0.9710664757524231
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4749.851186526939,
+                "median_ms": 4743.104686960578,
+                "p95_ms": 4886.281853727996,
+                "total_ms": 23749.255932634696
+              },
+              "Baseline": {
+                "mean_ms": 3699.621488666162,
+                "median_ms": 3687.1091490611434,
+                "p95_ms": 3859.6597984433174,
+                "total_ms": 18498.10744333081
+              }
+            },
+            "argus_over_other_ratio": 1.294383485748631,
+            "argus_over_other_ci95": [
+              1.2449780246925355,
+              1.3279428650579685
+            ],
+            "argus_relative_percent": 29.43834857486309,
+            "argus_relative_percent_ci95": [
+              24.49780246925355,
+              32.794286505796855
+            ],
+            "other_over_argus_speedup": 0.7725685710688986
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4749.851186526939,
+                "median_ms": 4743.104686960578,
+                "p95_ms": 4886.281853727996,
+                "total_ms": 23749.255932634696
+              },
+              "Baseline": {
+                "mean_ms": 3699.621488666162,
+                "median_ms": 3687.1091490611434,
+                "p95_ms": 3859.6597984433174,
+                "total_ms": 18498.10744333081
+              }
+            },
+            "argus_over_other_ratio": 1.294383485748631,
+            "argus_over_other_ci95": [
+              1.2449780246925355,
+              1.3279428650579685
+            ],
+            "argus_relative_percent": 29.43834857486309,
+            "argus_relative_percent_ci95": [
+              24.49780246925355,
+              32.794286505796855
+            ],
+            "other_over_argus_speedup": 0.7725685710688986
+          }
+        },
+        "NoNo-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2626.557041751221,
+                "median_ms": 2678.41149517335,
+                "p95_ms": 2722.9336752090603,
+                "total_ms": 13132.785208756104
+              },
+              "NoNo-enforced": {
+                "mean_ms": 2670.669250981882,
+                "median_ms": 2560.6106990016997,
+                "p95_ms": 3069.431027956307,
+                "total_ms": 13353.346254909411
+              }
+            },
+            "argus_over_other_ratio": 0.9805988717809967,
+            "argus_over_other_ci95": [
+              0.910549564024133,
+              1.0477978698154542
+            ],
+            "argus_relative_percent": -1.9401128219003305,
+            "argus_relative_percent_ci95": [
+              -8.9450435975867,
+              4.77978698154542
+            ],
+            "other_over_argus_speedup": 1.0197849791360318
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4749.851186526939,
+                "median_ms": 4743.104686960578,
+                "p95_ms": 4886.281853727996,
+                "total_ms": 23749.255932634696
+              },
+              "NoNo-enforced": {
+                "mean_ms": 4083.8777548167855,
+                "median_ms": 3819.7285330388695,
+                "p95_ms": 4870.787687413394,
+                "total_ms": 20419.388774083927
+              }
+            },
+            "argus_over_other_ratio": 1.1602143268929805,
+            "argus_over_other_ci95": [
+              1.0509477798982916,
+              1.2373695005784517
+            ],
+            "argus_relative_percent": 16.021432689298052,
+            "argus_relative_percent_ci95": [
+              5.094777989829158,
+              23.736950057845174
+            ],
+            "other_over_argus_speedup": 0.861909715145451
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4749.851186526939,
+                "median_ms": 4743.104686960578,
+                "p95_ms": 4886.281853727996,
+                "total_ms": 23749.255932634696
+              },
+              "NoNo-enforced": {
+                "mean_ms": 4083.8777548167855,
+                "median_ms": 3819.7285330388695,
+                "p95_ms": 4870.787687413394,
+                "total_ms": 20419.388774083927
+              }
+            },
+            "argus_over_other_ratio": 1.1602143268929805,
+            "argus_over_other_ci95": [
+              1.0509477798982916,
+              1.2373695005784517
+            ],
+            "argus_relative_percent": 16.021432689298052,
+            "argus_relative_percent_ci95": [
+              5.094777989829158,
+              23.736950057845174
+            ],
+            "other_over_argus_speedup": 0.861909715145451
+          }
+        },
+        "APF-enforced": {
+          "invocation_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 2626.557041751221,
+                "median_ms": 2678.41149517335,
+                "p95_ms": 2722.9336752090603,
+                "total_ms": 13132.785208756104
+              },
+              "APF-enforced": {
+                "mean_ms": 2615.545586217195,
+                "median_ms": 2644.4389182142913,
+                "p95_ms": 2675.430478481576,
+                "total_ms": 13077.727931085974
+              }
+            },
+            "argus_over_other_ratio": 1.013000251420748,
+            "argus_over_other_ci95": [
+              0.9709129387894231,
+              1.037859976620524
+            ],
+            "argus_relative_percent": 1.30002514207479,
+            "argus_relative_percent_ci95": [
+              -2.9087061210576914,
+              3.7859976620524094
+            ],
+            "other_over_argus_speedup": 0.9871665861854281
+          },
+          "process_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4749.851186526939,
+                "median_ms": 4743.104686960578,
+                "p95_ms": 4886.281853727996,
+                "total_ms": 23749.255932634696
+              },
+              "APF-enforced": {
+                "mean_ms": 4385.929736401886,
+                "median_ms": 3952.0136560313404,
+                "p95_ms": 5804.320983914658,
+                "total_ms": 21929.64868200943
+              }
+            },
+            "argus_over_other_ratio": 1.2164068449335086,
+            "argus_over_other_ci95": [
+              0.882540622169021,
+              1.241221323781375
+            ],
+            "argus_relative_percent": 21.64068449335086,
+            "argus_relative_percent_ci95": [
+              -11.745937783097904,
+              24.122132378137493
+            ],
+            "other_over_argus_speedup": 0.8220933679920736
+          },
+          "secured_wall_ms": {
+            "matched_successful_pairs": 5,
+            "timings": {
+              "Argus": {
+                "mean_ms": 4749.851186526939,
+                "median_ms": 4743.104686960578,
+                "p95_ms": 4886.281853727996,
+                "total_ms": 23749.255932634696
+              },
+              "APF-enforced": {
+                "mean_ms": 10623.016234347597,
+                "median_ms": 10133.12009605579,
+                "p95_ms": 12263.542519835755,
+                "total_ms": 53115.081171737984
+              }
+            },
+            "argus_over_other_ratio": 0.47206714658867943,
+            "argus_over_other_ci95": [
+              0.4014457288012439,
+              0.4805947659432736
+            ],
+            "argus_relative_percent": -52.793285341132055,
+            "argus_relative_percent_ci95": [
+              -59.855427119875614,
+              -51.940523405672636
+            ],
+            "other_over_argus_speedup": 2.1183427129516343
+          }
+        }
+      }
+    }
+  }
+}

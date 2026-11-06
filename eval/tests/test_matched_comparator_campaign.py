@@ -97,6 +97,32 @@ def test_secured_wall_includes_apf_lifecycle_only() -> None:
     )
 
 
+def test_retained_bundle_copies_inputs_and_hashes_outputs(tmp_path: Path) -> None:
+    report = load_module("matched_comparator_retention", "regenerate.py")
+    raw = tmp_path / "raw"
+    output = tmp_path / "retained"
+    raw.mkdir()
+    output.mkdir()
+    for index, filename in enumerate(report.RETAINED_INPUTS):
+        (raw / filename).write_text(f"input-{index}\n")
+    (output / "RESULTS.md").write_text("results\n")
+    (output / "statistics.json").write_text("{}\n")
+
+    report.retain_inputs_and_checksums(raw, output)
+
+    for filename in report.RETAINED_INPUTS:
+        assert (output / filename).read_bytes() == (raw / filename).read_bytes()
+    expected_files = {
+        "RESULTS.md",
+        "configuration.json",
+        "enforcement-probes.json",
+        "statistics.json",
+        "trials.json",
+    }
+    checksum_lines = (output / "SHA256SUMS").read_text().splitlines()
+    assert {line.split("  ", 1)[1] for line in checksum_lines} == expected_files
+
+
 def test_timeout_kills_entire_process_group(tmp_path: Path) -> None:
     campaign = load_module("matched_comparator_campaign_cleanup", "run_campaign.py")
     child_pid_file = tmp_path / "child.pid"
