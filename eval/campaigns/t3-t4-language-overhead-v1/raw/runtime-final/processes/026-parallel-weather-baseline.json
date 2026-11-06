@@ -1,0 +1,121 @@
+{
+  "admitted_tools": [],
+  "answers": [
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ]
+  ],
+  "demo": "parallel-weather",
+  "first_invocation_ms": 4.083306062966585,
+  "fresh_grant_call_ids": [],
+  "mode": "Baseline",
+  "policy_setup_ms": 0.00024097971618175507,
+  "preparation_ms": 0.9606869425624609,
+  "process_index": 26,
+  "route": "baseline",
+  "steady_invocation_ms": [
+    1.4836459886282682,
+    2.620014129206538,
+    1.816212898120284,
+    1.421154011040926,
+    1.9327730406075716,
+    1.604885095730424,
+    1.5168508980423212,
+    1.2367519084364176,
+    1.4823558740317822,
+    2.4521739687770605,
+    1.3854859862476587,
+    1.8887268379330635,
+    1.3307591434568167,
+    1.4052519109100103,
+    1.2552719563245773,
+    1.19308615103364,
+    1.2620140332728624,
+    1.1639499571174383,
+    1.8893780652433634,
+    1.218235120177269
+  ],
+  "steady_mean_ms": 1.5779488487169147,
+  "steady_median_ms": 1.451754942536354
+}

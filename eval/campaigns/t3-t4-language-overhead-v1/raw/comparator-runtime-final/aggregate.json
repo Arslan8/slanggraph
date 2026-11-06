@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "apf_image": "slg-apf-apps:bd035dd06",
+    "apf_policy": "eval/campaigns/langgraph-demos-v3/permissive-comparators/apf-projected-policy.json",
+    "branch": "wip",
+    "nono_executable": "eval/vendor/nono/target/release/nono",
+    "platform": "Linux-6.17.0-1033-oem-x86_64-with-glibc2.39",
+    "processes_per_cell": 30,
+    "python": "3.11.14 (main, Dec  9 2025, 19:02:23) [Clang 21.1.4 ]",
+    "revision": "b544949050a42a24e54ea1470659b7c0f68be972",
+    "runtime_boundary": "prepared graph after the first invocation; excludes comparator activation, sandbox creation, process startup, first invocation, and cleanup",
+    "runtime_repeats_per_process": 20
+  },
+  "results": {
+    "fixed-weather": {
+      "APF": {
+        "first_invocation": {
+          "max_ms": 5.232583032920957,
+          "mean_ms": 4.262243886478245,
+          "median_ms": 4.238887457177043,
+          "min_ms": 3.380815964192152,
+          "n": 30,
+          "p95_ms": 5.122487200424075
+        },
+        "runtime_invocation": {
+          "max_ms": 3.3694759476929903,
+          "mean_ms": 1.6598334764906515,
+          "median_ms": 1.5087559586390853,
+          "min_ms": 0.9709908626973629,
+          "n": 600,
+          "p95_ms": 2.576668979600072
+        }
+      },
+      "NoNo": {
+        "first_invocation": {
+          "max_ms": 4.799701040610671,
+          "mean_ms": 3.9364796364679933,
+          "median_ms": 3.946815966628492,
+          "min_ms": 3.402494126930833,
+          "n": 30,
+          "p95_ms": 4.511404084041715
+        },
+        "runtime_invocation": {
+          "max_ms": 3.5214100498706102,
+          "mean_ms": 1.6182076108331482,
+          "median_ms": 1.4428780414164066,
+          "min_ms": 0.9822070132941008,
+          "n": 600,
+          "p95_ms": 2.4995910935103893
+        }
+      }
+    },
+    "parallel-weather": {
+      "APF": {
+        "first_invocation": {
+          "max_ms": 5.241126054897904,
+          "mean_ms": 4.615949412497382,
+          "median_ms": 4.669074900448322,
+          "min_ms": 3.760298015549779,
+          "n": 30,
+          "p95_ms": 5.179178901016712
+        },
+        "runtime_invocation": {
+          "max_ms": 3.97883215919137,
+          "mean_ms": 2.0064434789431593,
+          "median_ms": 1.8382625421509147,
+          "min_ms": 1.2378180399537086,
+          "n": 600,
+          "p95_ms": 3.015610156580806
+        }
+      },
+      "NoNo": {
+        "first_invocation": {
+          "max_ms": 4.923957167193294,
+          "mean_ms": 4.1927491159488754,
+          "median_ms": 4.268056945875287,
+          "min_ms": 3.3825160935521126,
+          "n": 30,
+          "p95_ms": 4.788734950125217
+        },
+        "runtime_invocation": {
+          "max_ms": 3.9027908351272345,
+          "mean_ms": 1.9662410727081199,
+          "median_ms": 1.8112699035555124,
+          "min_ms": 1.1982209980487823,
+          "n": 600,
+          "p95_ms": 2.9552739579230547
+        }
+      }
+    }
+  }
+}

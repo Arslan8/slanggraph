@@ -299,8 +299,8 @@ def test_operator_parse_and_evaluation_errors_fail_closed(tmp_path, operator_pol
     path = tmp_path / "report.txt"
     path.write_text("must not escape")
     install_mac_policy(operator_policy)
-    security = cedar_security(reader, manifest=MANIFEST, policy=PERMIT)
     with pytest.raises(ObjectPolicyDenied, match="cedar:(validation|evaluation):"):
+        security = cedar_security(reader, manifest=MANIFEST, policy=PERMIT)
         security.host_executor.authorizer.authorize(
             principal_id="alice",
             roles=(),

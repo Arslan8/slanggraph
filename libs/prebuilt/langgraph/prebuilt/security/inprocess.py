@@ -532,6 +532,10 @@ class ManifestAdmission:
     def invoke(self, arguments: Mapping[str, object]) -> object:
         """Interpret the admitted program without invoking Python tool code."""
         self.validate()
+        return self._invoke_validated(arguments)
+
+    def _invoke_validated(self, arguments: Mapping[str, object]) -> object:
+        """Interpret after the trusted dispatcher completed the live recheck."""
         program = self.programs.get("func")
         if program is None:
             raise HostExecutionDenied(

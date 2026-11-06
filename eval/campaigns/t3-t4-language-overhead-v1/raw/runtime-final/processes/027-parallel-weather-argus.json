@@ -1,0 +1,209 @@
+{
+  "admitted_tools": [
+    "get_coolest_cities",
+    "get_weather"
+  ],
+  "answers": [
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ],
+    [
+      "It's 60 degrees and foggy.",
+      "nyc, sf"
+    ]
+  ],
+  "demo": "parallel-weather",
+  "first_invocation_ms": 17.294642981141806,
+  "fresh_grant_call_ids": [
+    [
+      "weather-0-827a393254a04744b04cd44197bae1f5",
+      "cities-0-988e599a59af49d7bbb1ad6fca1be0b3"
+    ],
+    [
+      "cities-1-cef9202fcab64c729415be94d9fb1f31",
+      "weather-1-2de32feb877045869b21aee49d038ba0"
+    ],
+    [
+      "cities-2-1e5238c213474f7f9d19b2d5782695ef",
+      "weather-2-1dd4b9d586b246bc9dd93c6315e34dcd"
+    ],
+    [
+      "weather-3-8f3ba819f4ec470a8e67f1451848e7ff",
+      "cities-3-1f7c3ef576b34ab991c8e75b7e711efc"
+    ],
+    [
+      "weather-4-96f9c4e4b639428a80e58eed1edabc66",
+      "cities-4-f8e2b1e5387c429792eb0b00ac5dbc29"
+    ],
+    [
+      "weather-5-3c36351f3e1f44c69a824383e96058ff",
+      "cities-5-bbd1630f5f5240aa9b9a33aeda24918b"
+    ],
+    [
+      "cities-6-819f4253f07b4f408128f0eb1d12e563",
+      "weather-6-31b4a662daed4037abf027629cde51de"
+    ],
+    [
+      "cities-7-132903d03818483581755cacf99661a8",
+      "weather-7-ab0c341afb984b488a9e8f9088749a38"
+    ],
+    [
+      "weather-8-3744a3b770e740d0bfaa0b9db158e74d",
+      "cities-8-449d8e3a1c314f908c862d75322ff260"
+    ],
+    [
+      "weather-9-f0476234a3c846c8a543d4d23e63b550",
+      "cities-9-adc585c988f24077ae2030c37a60aabf"
+    ],
+    [
+      "weather-10-2f06a0948eca49a1a191a977739b58fe",
+      "cities-10-53136ca193a54b658b373fbc12e6cd1f"
+    ],
+    [
+      "cities-11-3090e6e286e242fabdf57351a9142633",
+      "weather-11-a6e4037b1c654fe0bfd5bac54652f16c"
+    ],
+    [
+      "weather-12-e4691e33255442ff8eccc850c93327eb",
+      "cities-12-6537a8061fe84881ba612788f18490fb"
+    ],
+    [
+      "weather-13-02d0936f8d064ab1aa44742e59e4e241",
+      "cities-13-2e447002bf134ee8b2e4e3f1de89da09"
+    ],
+    [
+      "weather-14-b358b931b09947eb9830a1f3acdac456",
+      "cities-14-b99d8bddeed4452d87157973126ae70f"
+    ],
+    [
+      "weather-15-2729444383c248eeb927a1b6de24160b",
+      "cities-15-ed96c5ebad99466c98bcfadc1fbdfe6a"
+    ],
+    [
+      "weather-16-562dcf56c64f43d582923993a9975e05",
+      "cities-16-2f8555884ca64f8483b49ab385db835b"
+    ],
+    [
+      "weather-17-6f8f5797fb5c4af58bc83ee5f62e6112",
+      "cities-17-d70b5a7170f941de8d6091bff34f1561"
+    ],
+    [
+      "cities-18-a3da34bf5cb747dbac7766c7504ddad8",
+      "weather-18-3b2533c038304bce9adf0c329a87b070"
+    ],
+    [
+      "weather-19-c0996442e3f44b5caf9beb11f1dfca8c",
+      "cities-19-965838e0743941deb4e131a7fa016bab"
+    ],
+    [
+      "weather-20-90a50b4802b94101ab9dec4240188e81",
+      "cities-20-12da9f9580724be1a4b90a91f50af55a"
+    ]
+  ],
+  "mode": "Argus",
+  "policy_setup_ms": 0.09367289021611214,
+  "preparation_ms": 126.28915184177458,
+  "process_index": 27,
+  "route": "language",
+  "steady_invocation_ms": [
+    5.25074009783566,
+    5.523345898836851,
+    3.828474087640643,
+    3.839561017230153,
+    4.040732979774475,
+    3.7801950238645077,
+    4.330340074375272,
+    4.006547154858708,
+    3.878490999341011,
+    4.3587221298366785,
+    3.931520041078329,
+    5.124636925756931,
+    4.3306550942361355,
+    3.5317190922796726,
+    5.498641869053245,
+    4.565462004393339,
+    4.640304017812014,
+    4.331023897975683,
+    4.546181065961719,
+    4.201327916234732
+  ],
+  "steady_mean_ms": 4.376931069418788,
+  "steady_median_ms": 4.330497584305704
+}

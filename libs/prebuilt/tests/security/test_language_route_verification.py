@@ -93,6 +93,19 @@ def test_admission_must_validate_before_execution(method):
     assert any(f"{method} does not validate first" in i for i in report["issues"])
 
 
+def test_validated_sync_path_must_still_use_the_admitted_program():
+    sandbox, inprocess = sources()
+    original = "        return program.invoke(dict(arguments))"
+    assert inprocess.count(original) == 1
+    changed = inprocess.replace(original, "        return dict(arguments)")
+    report = verify_language_route(sandbox, changed)
+    assert not report["proved"]
+    assert any(
+        "invoke does not execute through program.invoke" in issue
+        for issue in report["issues"]
+    )
+
+
 def test_unparsable_source_is_unproved():
     _, inprocess = sources()
     report = verify_language_route("def (", inprocess)

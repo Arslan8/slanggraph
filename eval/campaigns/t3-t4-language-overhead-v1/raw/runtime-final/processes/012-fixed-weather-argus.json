@@ -1,0 +1,166 @@
+{
+  "admitted_tools": [
+    "get_weather"
+  ],
+  "answers": [
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ]
+  ],
+  "demo": "fixed-weather",
+  "first_invocation_ms": 16.11658907495439,
+  "fresh_grant_call_ids": [
+    [
+      "weather-0-9a8912fcfae744099e61b01b709104ce"
+    ],
+    [
+      "weather-1-85c12913272a46a08caa346b79ff0d75"
+    ],
+    [
+      "weather-2-a4c4d8875cd64dcaa46c54c94b785118"
+    ],
+    [
+      "weather-3-3bcfd45f064d4e9cb351b1998177ca4e"
+    ],
+    [
+      "weather-4-333f8e4376ad4f63a011530aaede4f55"
+    ],
+    [
+      "weather-5-d298838576e34f49a0cb62d3220ad7b6"
+    ],
+    [
+      "weather-6-fca58c0c0a6c40dc94776d9332c44a4f"
+    ],
+    [
+      "weather-7-8e4686a72116428194e5afe40fab7809"
+    ],
+    [
+      "weather-8-735950578f2a4dcbb5975cae4279cc4a"
+    ],
+    [
+      "weather-9-e686e8c56ef74bd3af569dc351c5720f"
+    ],
+    [
+      "weather-10-1bd3a1480f404ca3afd3ae5aebd59491"
+    ],
+    [
+      "weather-11-01baacf7d0b44023a6aa84c0ce603cef"
+    ],
+    [
+      "weather-12-3f4595b3e8704b73abeba9f39fa13208"
+    ],
+    [
+      "weather-13-58c0c0b0c2ab432bacd1df5b70f88de6"
+    ],
+    [
+      "weather-14-2e6360d193d0437ea51ce6ec68af26c1"
+    ],
+    [
+      "weather-15-0c19f0b14cf748dc81be40affc89b5ed"
+    ],
+    [
+      "weather-16-654ec376db324097833f4209ce902052"
+    ],
+    [
+      "weather-17-b752bc150d4c4a9da49fc9946388b267"
+    ],
+    [
+      "weather-18-b7ca4c99578048c7bbc7ebb7d18d9a2f"
+    ],
+    [
+      "weather-19-96b41fc9345d4f6192cc28c8ce746a25"
+    ],
+    [
+      "weather-20-4de642101f7348c3a08a791db06988b8"
+    ]
+  ],
+  "mode": "Argus",
+  "policy_setup_ms": 0.10249507613480091,
+  "preparation_ms": 112.81319498084486,
+  "process_index": 12,
+  "route": "language",
+  "steady_invocation_ms": [
+    3.1190221197903156,
+    2.955408999696374,
+    2.8136270120739937,
+    3.5156728699803352,
+    2.698020078241825,
+    2.135853050276637,
+    2.8392791282385588,
+    3.0146429780870676,
+    2.5865230709314346,
+    2.4764558766037226,
+    2.3525841534137726,
+    3.4096420276910067,
+    2.1582639310508966,
+    2.7144900523126125,
+    3.4427838400006294,
+    3.8895769976079464,
+    2.163612050935626,
+    2.761752111837268,
+    2.735743997618556,
+    2.1904129534959793
+  ],
+  "steady_mean_ms": 2.798668364994228,
+  "steady_median_ms": 2.748748054727912
+}

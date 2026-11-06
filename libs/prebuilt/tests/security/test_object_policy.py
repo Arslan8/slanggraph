@@ -6,6 +6,7 @@ import shutil
 import stat
 import subprocess
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -104,11 +105,13 @@ class _CountingCedarObjectAuthorizer(CedarObjectAuthorizer):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.run_count = 0
+        self.run_arguments = []
 
     def _run(
         self, executable: str, *arguments: str
     ) -> subprocess.CompletedProcess[str]:
         self.run_count += 1
+        self.run_arguments.append(arguments)
         return super()._run(executable, *arguments)
 
 
@@ -459,6 +462,71 @@ def test_cached_authorization_does_not_materialize_diagnostic_files(
     assert second.digest == authorizer.authorize(call_id="call-2", **inputs).digest
 
 
+def test_prepare_moves_immutable_cedar_validation_before_authorization(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cedar = _fake_cedar(tmp_path)
+    manifest = parse_security_manifest(
+        MANIFEST,
+        enforcers={EnforcementKind.BROKER: _Broker()},
+    )
+    permit = "permit(principal, action, resource);"
+    authorizer = _CountingCedarObjectAuthorizer(
+        manifest,
+        CedarPolicySet({"run_report": permit}, permit),
+        executable=cedar,
+    )
+    monkeypatch.setattr(
+        "langgraph.prebuilt.security.mac.runtime_mac_forbids", lambda: ""
+    )
+
+    assert authorizer.prepare() is True
+    prepared_run_count = authorizer.run_count
+    assert prepared_run_count > 0
+    assert authorizer.prepare() is True
+    assert authorizer.run_count == prepared_run_count
+
+    authorizer.run_arguments.clear()
+    authorizer.authorize(
+        principal_id="alice",
+        roles={"analyst"},
+        tool_name="run_report",
+        tool_owner="reporting",
+        call_id="call-1",
+        arguments={"quarter": "Q4"},
+    )
+
+    assert authorizer.run_arguments
+    assert {arguments[0] for arguments in authorizer.run_arguments} == {"authorize"}
+
+
+def test_concurrent_prepare_single_flights_identical_validation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cedar = _fake_cedar(tmp_path)
+    manifest = parse_security_manifest(
+        MANIFEST,
+        enforcers={EnforcementKind.BROKER: _Broker()},
+    )
+    permit = "permit(principal, action, resource);"
+    authorizer = _CountingCedarObjectAuthorizer(
+        manifest,
+        CedarPolicySet({"run_report": permit}, permit),
+        executable=cedar,
+    )
+    monkeypatch.setattr(
+        "langgraph.prebuilt.security.mac.runtime_mac_forbids", lambda: ""
+    )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        assert list(executor.map(lambda _: authorizer.prepare(), range(2))) == [
+            True,
+            True,
+        ]
+
+    assert [arguments[0] for arguments in authorizer.run_arguments] == ["validate"]
+
+
 def test_authorizer_cache_tracks_cedar_executable_identity(tmp_path: Path) -> None:
     cedar = _fake_cedar(tmp_path)
     manifest = parse_security_manifest(
@@ -479,6 +547,7 @@ def test_authorizer_cache_tracks_cedar_executable_identity(tmp_path: Path) -> No
         "arguments": {"quarter": "Q4"},
     }
 
+    authorizer.prepare()
     authorizer.authorize(call_id="call-1", **inputs)
     first_run_count = authorizer.run_count
     cedar.write_text(cedar.read_text(encoding="utf-8") + "\n", encoding="utf-8")

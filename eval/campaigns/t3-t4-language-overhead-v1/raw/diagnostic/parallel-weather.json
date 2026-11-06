@@ -1,0 +1,1024 @@
+{
+  "demo": "parallel-weather",
+  "events": [
+    {
+      "end_ms": 0.30281301587820053,
+      "name": "manifest_parse",
+      "phase": "preparation",
+      "start_ms": 0.13622501865029335,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 17.710312036797404,
+      "name": "cedar_prepare",
+      "phase": "preparation",
+      "start_ms": 0.44483598321676254,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 0.6419830024242401,
+      "name": "json_encode",
+      "phase": "preparation",
+      "start_ms": 0.6280909292399883,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 6.033109966665506,
+      "name": "policy_validate",
+      "phase": "preparation",
+      "start_ms": 0.6499749142676592,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 0.6633920129388571,
+      "name": "json_encode",
+      "phase": "preparation",
+      "start_ms": 0.6517909932881594,
+      "thread": 135365455333184
+    },
+    {
+      "command": "validate",
+      "end_ms": 6.022586952894926,
+      "name": "cedar_process",
+      "phase": "preparation",
+      "start_ms": 1.0281980503350496,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 10.131764924153686,
+      "name": "policy_validate",
+      "phase": "preparation",
+      "start_ms": 6.040914915502071,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 6.0663060285151005,
+      "name": "json_encode",
+      "phase": "preparation",
+      "start_ms": 6.045050919055939,
+      "thread": 135365455333184
+    },
+    {
+      "command": "validate",
+      "end_ms": 10.115406941622496,
+      "name": "cedar_process",
+      "phase": "preparation",
+      "start_ms": 6.172617897391319,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 14.732504030689597,
+      "name": "policy_validate",
+      "phase": "preparation",
+      "start_ms": 10.139089077711105,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 10.168428998440504,
+      "name": "json_encode",
+      "phase": "preparation",
+      "start_ms": 10.143384104594588,
+      "thread": 135365455333184
+    },
+    {
+      "command": "validate",
+      "end_ms": 14.72588605247438,
+      "name": "cedar_process",
+      "phase": "preparation",
+      "start_ms": 10.292446007952094,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 14.754574978724122,
+      "name": "json_encode",
+      "phase": "preparation",
+      "start_ms": 14.740107115358114,
+      "thread": 135365455333184
+    },
+    {
+      "command": "check-parse",
+      "end_ms": 17.530211014673114,
+      "name": "cedar_process",
+      "phase": "preparation",
+      "start_ms": 14.825317077338696,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 60.24354789406061,
+      "name": "language_prepare",
+      "phase": "preparation",
+      "start_ms": 17.726340098306537,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 56.10801209695637,
+      "name": "source_inspection",
+      "phase": "preparation",
+      "start_ms": 17.765268916264176,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 56.18167691864073,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 56.11907411366701,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 57.78676108457148,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 56.22170097194612,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 59.86080598086119,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 59.82580408453941,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 64.10050089471042,
+      "name": "language_prepare",
+      "phase": "preparation",
+      "start_ms": 60.25117193348706,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 60.35614595748484,
+      "name": "source_inspection",
+      "phase": "preparation",
+      "start_ms": 60.2686230558902,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 60.38458691909909,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 60.36270805634558,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 61.94507097825408,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 60.43005711399019,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 63.83567489683628,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 63.80992406047881,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 73.77590308897197,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 73.10114707797766,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 86.18710096925497,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 85.59168595820665,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 105.8842740021646,
+      "name": "admission_validate",
+      "phase": "preparation",
+      "start_ms": 105.79954809509218,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 105.97734106704593,
+      "name": "admission_validate",
+      "phase": "preparation",
+      "start_ms": 105.91427609324455,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 107.15881711803377,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 106.50678211823106,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 118.57935204170644,
+      "name": "admission_validate",
+      "phase": "preparation",
+      "start_ms": 118.49817703478038,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 118.66579996421933,
+      "name": "admission_validate",
+      "phase": "preparation",
+      "start_ms": 118.60557296313345,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 119.0512259490788,
+      "name": "admission_validate",
+      "phase": "preparation",
+      "start_ms": 118.97634202614427,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 119.12866099737585,
+      "name": "admission_validate",
+      "phase": "preparation",
+      "start_ms": 119.0717990975827,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 119.41628507338464,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 119.35342289507389,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 119.48851100169122,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 119.43255295045674,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 121.08254292979836,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 120.99785101599991,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 121.1609779857099,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 121.10303901135921,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 135.7999111060053,
+      "name": "tool_node",
+      "phase": "first_invocation",
+      "start_ms": 121.27923592925072,
+      "thread": 135365455333184
+    },
+    {
+      "call_id": "weather-0-fdd5417e3aa04dc788b3188c6a8760d7",
+      "end_ms": 135.54583210498095,
+      "name": "host_invoke",
+      "phase": "first_invocation",
+      "start_ms": 122.1852779854089,
+      "thread": 135365366290112,
+      "tool": "get_weather"
+    },
+    {
+      "end_ms": 135.02802792936563,
+      "name": "authorize",
+      "phase": "first_invocation",
+      "start_ms": 122.19071411527693,
+      "thread": 135365366290112
+    },
+    {
+      "call_id": "cities-0-9b65a0c1159c466780d560768ba35b76",
+      "end_ms": 134.64054302312434,
+      "name": "host_invoke",
+      "phase": "first_invocation",
+      "start_ms": 122.90297006256878,
+      "thread": 135365357897408,
+      "tool": "get_coolest_cities"
+    },
+    {
+      "end_ms": 134.1049859765917,
+      "name": "authorize",
+      "phase": "first_invocation",
+      "start_ms": 122.91528610512614,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 123.59095411375165,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.57666599564254,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 123.61607700586319,
+      "name": "policy_validate",
+      "phase": "first_invocation",
+      "start_ms": 123.59666591510177,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 123.6071209423244,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.59878793358803,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 123.62643610686064,
+      "name": "policy_validate",
+      "phase": "first_invocation",
+      "start_ms": 123.61701903864741,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 123.62356507219374,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.61769797280431,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 123.63137095235288,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.62809292972088,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 128.137594088912,
+      "name": "policy_check",
+      "phase": "first_invocation",
+      "start_ms": 123.64068394526839,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 123.64467908628285,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.6414359882474,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 123.65234107710421,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.64733894355595,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 123.75808204524219,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.74016107060015,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 123.78654791973531,
+      "name": "policy_validate",
+      "phase": "first_invocation",
+      "start_ms": 123.76286298967898,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 123.77367005683482,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.76519409008324,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 123.79621411673725,
+      "name": "policy_validate",
+      "phase": "first_invocation",
+      "start_ms": 123.78749693743885,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 123.79351910203695,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.78819403238595,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 123.80691897124052,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.80327098071575,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 127.92937108315527,
+      "name": "policy_check",
+      "phase": "first_invocation",
+      "start_ms": 123.81796492263675,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 123.82179195992649,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.81851207464933,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 123.82886605337262,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 123.82413097657263,
+      "thread": 135365357897408
+    },
+    {
+      "command": "authorize",
+      "end_ms": 127.91890511289239,
+      "name": "cedar_process",
+      "phase": "first_invocation",
+      "start_ms": 124.1628339048475,
+      "thread": 135365357897408
+    },
+    {
+      "command": "authorize",
+      "end_ms": 128.12292901799083,
+      "name": "cedar_process",
+      "phase": "first_invocation",
+      "start_ms": 124.18779591098428,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 130.7071999181062,
+      "name": "policy_check",
+      "phase": "first_invocation",
+      "start_ms": 127.93141906149685,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 127.94408202171326,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 127.93264305219054,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 127.95882089994848,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 127.95133609324694,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 131.2204550486058,
+      "name": "policy_check",
+      "phase": "first_invocation",
+      "start_ms": 128.13957803882658,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 128.15778306685388,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 128.1415899284184,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 128.17540811374784,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 128.16701689735055,
+      "thread": 135365366290112
+    },
+    {
+      "command": "authorize",
+      "end_ms": 130.69820101372898,
+      "name": "cedar_process",
+      "phase": "first_invocation",
+      "start_ms": 128.21286893449724,
+      "thread": 135365357897408
+    },
+    {
+      "command": "authorize",
+      "end_ms": 131.2091159634292,
+      "name": "cedar_process",
+      "phase": "first_invocation",
+      "start_ms": 128.3700088970363,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 133.85247206315398,
+      "name": "policy_check",
+      "phase": "first_invocation",
+      "start_ms": 130.71662094444036,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 130.7288568932563,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 130.71773503907025,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 130.74401789344847,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 130.7347770780325,
+      "thread": 135365357897408
+    },
+    {
+      "command": "authorize",
+      "end_ms": 133.8429320603609,
+      "name": "cedar_process",
+      "phase": "first_invocation",
+      "start_ms": 130.82996709272265,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 134.8128179088235,
+      "name": "policy_check",
+      "phase": "first_invocation",
+      "start_ms": 131.23048096895218,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 131.24184007756412,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 131.23161601834,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 131.2565489206463,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 131.24860706739128,
+      "thread": 135365366290112
+    },
+    {
+      "command": "authorize",
+      "end_ms": 134.80074610561132,
+      "name": "cedar_process",
+      "phase": "first_invocation",
+      "start_ms": 131.34519895538688,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 134.07515198923647,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 134.0572601184249,
+      "thread": 135365357897408
+    },
+    {
+      "call_id": "cities-0-9b65a0c1159c466780d560768ba35b76",
+      "end_ms": 134.63211292400956,
+      "name": "language_dispatch",
+      "phase": "first_invocation",
+      "start_ms": 134.11325495690107,
+      "thread": 135365357897408,
+      "tool": "get_coolest_cities"
+    },
+    {
+      "end_ms": 134.23135899938643,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 134.12471790798008,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 134.4054110813886,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 134.39864106476307,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 134.52302990481257,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 134.44093009456992,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 134.59198689088225,
+      "name": "interpret",
+      "phase": "first_invocation",
+      "start_ms": 134.527537971735,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 134.62331797927618,
+      "name": "receipt",
+      "phase": "first_invocation",
+      "start_ms": 134.59431403316557,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 134.60178393870592,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 134.5965031068772,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 134.60840308107436,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 134.60450107231736,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 135.00613602809608,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 134.9915829487145,
+      "thread": 135365366290112
+    },
+    {
+      "call_id": "weather-0-fdd5417e3aa04dc788b3188c6a8760d7",
+      "end_ms": 135.53766696713865,
+      "name": "language_dispatch",
+      "phase": "first_invocation",
+      "start_ms": 135.0335490424186,
+      "thread": 135365366290112,
+      "tool": "get_weather"
+    },
+    {
+      "end_ms": 135.18180511891842,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 135.04743110388517,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 135.2708430495113,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 135.26521809399128,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 135.3763109073043,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 135.306861018762,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 135.49892301671207,
+      "name": "interpret",
+      "phase": "first_invocation",
+      "start_ms": 135.38207695819438,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 135.52842708304524,
+      "name": "receipt",
+      "phase": "first_invocation",
+      "start_ms": 135.50066691823304,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 135.5069880373776,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 135.50244201906025,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 135.51365304738283,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 135.5105061084032,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 137.1189549099654,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 137.0047559030354,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 137.209617998451,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 137.14800006709993,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 138.1847590673715,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 138.10359709896147,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 138.2690379396081,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 138.20522790774703,
+      "thread": 135365455333184
+    },
+    {
+      "end_ms": 141.6092070285231,
+      "name": "tool_node",
+      "phase": "steady_invocation",
+      "start_ms": 138.39030591771007,
+      "thread": 135365455333184
+    },
+    {
+      "call_id": "weather-1-16366ea6f4644f1b9895cf8ff9ad29cf",
+      "end_ms": 140.6271350570023,
+      "name": "host_invoke",
+      "phase": "steady_invocation",
+      "start_ms": 138.97556299343705,
+      "thread": 135365366290112,
+      "tool": "get_weather"
+    },
+    {
+      "end_ms": 140.16246004030108,
+      "name": "authorize",
+      "phase": "steady_invocation",
+      "start_ms": 138.98853701539338,
+      "thread": 135365366290112
+    },
+    {
+      "call_id": "cities-1-6b36789aa0df41259eba0a11a4f6ecd6",
+      "end_ms": 141.45052107051015,
+      "name": "host_invoke",
+      "phase": "steady_invocation",
+      "start_ms": 139.5745489280671,
+      "thread": 135365357897408,
+      "tool": "get_coolest_cities"
+    },
+    {
+      "end_ms": 140.84465894848108,
+      "name": "authorize",
+      "phase": "steady_invocation",
+      "start_ms": 139.5849019754678,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 140.15264506451786,
+      "name": "json_encode",
+      "phase": "steady_invocation",
+      "start_ms": 140.13677090406418,
+      "thread": 135365366290112
+    },
+    {
+      "call_id": "weather-1-16366ea6f4644f1b9895cf8ff9ad29cf",
+      "end_ms": 140.61951893381774,
+      "name": "language_dispatch",
+      "phase": "steady_invocation",
+      "start_ms": 140.16820001415908,
+      "thread": 135365366290112,
+      "tool": "get_weather"
+    },
+    {
+      "end_ms": 140.2849170845002,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 140.1762270834297,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 140.46025089919567,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 140.39103011600673,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 140.58356010355055,
+      "name": "interpret",
+      "phase": "steady_invocation",
+      "start_ms": 140.46578691340983,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 140.61144599691033,
+      "name": "receipt",
+      "phase": "steady_invocation",
+      "start_ms": 140.58530796319246,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 140.5931180343032,
+      "name": "json_encode",
+      "phase": "steady_invocation",
+      "start_ms": 140.5878139194101,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 140.59884194284678,
+      "name": "json_encode",
+      "phase": "steady_invocation",
+      "start_ms": 140.59569989331067,
+      "thread": 135365366290112
+    },
+    {
+      "end_ms": 140.8301868941635,
+      "name": "json_encode",
+      "phase": "steady_invocation",
+      "start_ms": 140.80747310072184,
+      "thread": 135365357897408
+    },
+    {
+      "call_id": "cities-1-6b36789aa0df41259eba0a11a4f6ecd6",
+      "end_ms": 141.44444302655756,
+      "name": "language_dispatch",
+      "phase": "steady_invocation",
+      "start_ms": 140.85144107230008,
+      "thread": 135365357897408,
+      "tool": "get_coolest_cities"
+    },
+    {
+      "end_ms": 141.04161295108497,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 140.86145092733204,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 141.323477961123,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 141.1945871077478,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 141.41164510510862,
+      "name": "interpret",
+      "phase": "steady_invocation",
+      "start_ms": 141.33012597449124,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 141.43382711336017,
+      "name": "receipt",
+      "phase": "steady_invocation",
+      "start_ms": 141.41306490637362,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 141.41935692168772,
+      "name": "json_encode",
+      "phase": "steady_invocation",
+      "start_ms": 141.41451194882393,
+      "thread": 135365357897408
+    },
+    {
+      "end_ms": 141.42425707541406,
+      "name": "json_encode",
+      "phase": "steady_invocation",
+      "start_ms": 141.4213990792632,
+      "thread": 135365357897408
+    }
+  ],
+  "non_overlapping_breakdown": {
+    "first_invocation": {
+      "authorization": 12.62348284944892,
+      "graph_dispatch": 3.082233713939786,
+      "interpretation": 0.11684605851769447,
+      "lifecycle_and_cleanup": 0.3538867458701134,
+      "receipt": 0.020067207515239716,
+      "reconciled_ms": 17.60290889069438,
+      "serialization_and_copying": 0.22714887745678425,
+      "tool_dispatch_and_synchronization": 1.1792434379458427,
+      "total_ms": 17.60290889069438
+    },
+    "steady_invocation": {
+      "authorization": 1.8090878147631884,
+      "graph_dispatch": 2.3160139098763466,
+      "interpretation": 0.08151913061738014,
+      "lifecycle_and_cleanup": 0.4907206166535616,
+      "receipt": 0.013059237971901894,
+      "reconciled_ms": 5.534915020689368,
+      "serialization_and_copying": 0.05473708733916283,
+      "tool_dispatch_and_synchronization": 0.7697772234678268,
+      "total_ms": 5.534915020689368
+    }
+  },
+  "operation_counts": {
+    "first_invocation": {
+      "admission_validate": 8,
+      "authorize": 2,
+      "cedar_process": 6,
+      "host_invoke": 2,
+      "interpret": 2,
+      "json_encode": 28,
+      "language_dispatch": 2,
+      "policy_check": 6,
+      "policy_validate": 4,
+      "receipt": 2,
+      "tool_node": 1
+    },
+    "preparation": {
+      "admission_validate": 6,
+      "cedar_prepare": 1,
+      "cedar_process": 4,
+      "json_encode": 5,
+      "language_prepare": 2,
+      "manifest_parse": 1,
+      "policy_validate": 3,
+      "python_parse": 9,
+      "source_inspection": 2
+    },
+    "steady_invocation": {
+      "admission_validate": 8,
+      "authorize": 2,
+      "host_invoke": 2,
+      "interpret": 2,
+      "json_encode": 6,
+      "language_dispatch": 2,
+      "receipt": 2,
+      "tool_node": 1
+    }
+  },
+  "preparation_ms": 119.21032494865358,
+  "route": "language",
+  "tool_spans": [
+    {
+      "call_id": "cities-0-9b65a0c1159c466780d560768ba35b76",
+      "end_ms": 134.63211292400956,
+      "name": "language_dispatch",
+      "phase": "first_invocation",
+      "start_ms": 134.11325495690107,
+      "thread": 135365357897408,
+      "tool": "get_coolest_cities"
+    },
+    {
+      "call_id": "cities-0-9b65a0c1159c466780d560768ba35b76",
+      "end_ms": 134.64054302312434,
+      "name": "host_invoke",
+      "phase": "first_invocation",
+      "start_ms": 122.90297006256878,
+      "thread": 135365357897408,
+      "tool": "get_coolest_cities"
+    },
+    {
+      "call_id": "weather-0-fdd5417e3aa04dc788b3188c6a8760d7",
+      "end_ms": 135.53766696713865,
+      "name": "language_dispatch",
+      "phase": "first_invocation",
+      "start_ms": 135.0335490424186,
+      "thread": 135365366290112,
+      "tool": "get_weather"
+    },
+    {
+      "call_id": "weather-0-fdd5417e3aa04dc788b3188c6a8760d7",
+      "end_ms": 135.54583210498095,
+      "name": "host_invoke",
+      "phase": "first_invocation",
+      "start_ms": 122.1852779854089,
+      "thread": 135365366290112,
+      "tool": "get_weather"
+    },
+    {
+      "call_id": "weather-1-16366ea6f4644f1b9895cf8ff9ad29cf",
+      "end_ms": 140.61951893381774,
+      "name": "language_dispatch",
+      "phase": "steady_invocation",
+      "start_ms": 140.16820001415908,
+      "thread": 135365366290112,
+      "tool": "get_weather"
+    },
+    {
+      "call_id": "weather-1-16366ea6f4644f1b9895cf8ff9ad29cf",
+      "end_ms": 140.6271350570023,
+      "name": "host_invoke",
+      "phase": "steady_invocation",
+      "start_ms": 138.97556299343705,
+      "thread": 135365366290112,
+      "tool": "get_weather"
+    },
+    {
+      "call_id": "cities-1-6b36789aa0df41259eba0a11a4f6ecd6",
+      "end_ms": 141.44444302655756,
+      "name": "language_dispatch",
+      "phase": "steady_invocation",
+      "start_ms": 140.85144107230008,
+      "thread": 135365357897408,
+      "tool": "get_coolest_cities"
+    },
+    {
+      "call_id": "cities-1-6b36789aa0df41259eba0a11a4f6ecd6",
+      "end_ms": 141.45052107051015,
+      "name": "host_invoke",
+      "phase": "steady_invocation",
+      "start_ms": 139.5745489280671,
+      "thread": 135365357897408,
+      "tool": "get_coolest_cities"
+    }
+  ],
+  "windows": {
+    "first_invocation": [
+      119.25875302404165,
+      136.86166191473603
+    ],
+    "steady_invocation": [
+      136.89390197396278,
+      142.42881699465215
+    ]
+  }
+}

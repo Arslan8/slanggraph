@@ -149,9 +149,25 @@ def _choke_point(sandbox: str, inprocess: str) -> list[str]:
             "self.validate()"
         ):
             issues.append(f"ManifestAdmission.{name} does not validate first")
-        reaches = [
+        execution_methods = [method]
+        delegates = [
             node
             for node in ast.walk(method)
+            if isinstance(node, ast.Call)
+            and ast.unparse(node.func) == "self._invoke_validated"
+        ]
+        if delegates:
+            validated = _method(admission, "ManifestAdmission", "_invoke_validated")
+            if len(delegates) != 1 or validated is None:
+                issues.append(
+                    "ManifestAdmission.invoke has an invalid validated execution path"
+                )
+            else:
+                execution_methods.append(validated)
+        reaches = [
+            node
+            for selected in execution_methods
+            for node in ast.walk(selected)
             if isinstance(node, ast.Attribute) and node.attr == "invoke"
         ]
         if not reaches or any(

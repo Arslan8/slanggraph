@@ -1,0 +1,598 @@
+{
+  "demo": "fixed-weather",
+  "events": [
+    {
+      "end_ms": 0.2718281466513872,
+      "name": "manifest_parse",
+      "phase": "preparation",
+      "start_ms": 0.11833803728222847,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 13.822974171489477,
+      "name": "cedar_prepare",
+      "phase": "preparation",
+      "start_ms": 0.3834920935332775,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 0.5769359413534403,
+      "name": "json_encode",
+      "phase": "preparation",
+      "start_ms": 0.5622501485049725,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 6.309019168838859,
+      "name": "policy_validate",
+      "phase": "preparation",
+      "start_ms": 0.5850170273333788,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 0.5976930260658264,
+      "name": "json_encode",
+      "phase": "preparation",
+      "start_ms": 0.5869271699339151,
+      "thread": 133534436230976
+    },
+    {
+      "command": "validate",
+      "end_ms": 6.299674976617098,
+      "name": "cedar_process",
+      "phase": "preparation",
+      "start_ms": 0.953183975070715,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 11.136968154460192,
+      "name": "policy_validate",
+      "phase": "preparation",
+      "start_ms": 6.312601966783404,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 6.336922058835626,
+      "name": "json_encode",
+      "phase": "preparation",
+      "start_ms": 6.31571002304554,
+      "thread": 133534436230976
+    },
+    {
+      "command": "validate",
+      "end_ms": 11.127013014629483,
+      "name": "cedar_process",
+      "phase": "preparation",
+      "start_ms": 6.413061171770096,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 11.163348099216819,
+      "name": "json_encode",
+      "phase": "preparation",
+      "start_ms": 11.14556915126741,
+      "thread": 133534436230976
+    },
+    {
+      "command": "check-parse",
+      "end_ms": 13.654557056725025,
+      "name": "cedar_process",
+      "phase": "preparation",
+      "start_ms": 11.239214101806283,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 54.08858694136143,
+      "name": "language_prepare",
+      "phase": "preparation",
+      "start_ms": 13.836451107636094,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 49.91247598081827,
+      "name": "source_inspection",
+      "phase": "preparation",
+      "start_ms": 13.870258117094636,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 49.98637712560594,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 49.92399807088077,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 51.61224096082151,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 50.03821803256869,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 53.70921897701919,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 53.66411805152893,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 64.49454394169152,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 63.3719430770725,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 77.01467606239021,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 76.43328001722693,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 96.6309520881623,
+      "name": "admission_validate",
+      "phase": "preparation",
+      "start_ms": 96.53642610646784,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 97.96731709502637,
+      "name": "python_parse",
+      "phase": "preparation",
+      "start_ms": 97.28724299930036,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 109.43095805123448,
+      "name": "admission_validate",
+      "phase": "preparation",
+      "start_ms": 109.34646311216056,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 109.81917101889849,
+      "name": "admission_validate",
+      "phase": "preparation",
+      "start_ms": 109.7512231208384,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 110.10382301174104,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 110.03948305733502,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 111.662024166435,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 111.58472206443548,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 125.39250100962818,
+      "name": "tool_node",
+      "phase": "first_invocation",
+      "start_ms": 111.79292504675686,
+      "thread": 133534436230976
+    },
+    {
+      "call_id": "weather-0-e2154fd43ed74826874442d7a96f7571",
+      "end_ms": 125.17648399807513,
+      "name": "host_invoke",
+      "phase": "first_invocation",
+      "start_ms": 112.91358503513038,
+      "thread": 133534347073216,
+      "tool": "get_weather"
+    },
+    {
+      "end_ms": 124.62347815744579,
+      "name": "authorize",
+      "phase": "first_invocation",
+      "start_ms": 112.92694299481809,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 113.24125714600086,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 113.21812402456999,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 113.27254609204829,
+      "name": "policy_validate",
+      "phase": "first_invocation",
+      "start_ms": 113.24636009521782,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 113.25675714761019,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 113.24835894629359,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 113.28256013803184,
+      "name": "policy_validate",
+      "phase": "first_invocation",
+      "start_ms": 113.27352002263069,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 113.27979294583201,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 113.27436612918973,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 113.28892316669226,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 113.2844090461731,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 118.02193312905729,
+      "name": "policy_check",
+      "phase": "first_invocation",
+      "start_ms": 113.29858703538775,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 113.30300895497203,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 113.29929996281862,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 113.3096250705421,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 113.30504505895078,
+      "thread": 133534347073216
+    },
+    {
+      "command": "authorize",
+      "end_ms": 118.01168508827686,
+      "name": "cedar_process",
+      "phase": "first_invocation",
+      "start_ms": 113.53107099421322,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 121.7840751633048,
+      "name": "policy_check",
+      "phase": "first_invocation",
+      "start_ms": 118.02418995648623,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 118.03709995001554,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 118.02542814984918,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 118.05306002497673,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 118.04498615674675,
+      "thread": 133534347073216
+    },
+    {
+      "command": "authorize",
+      "end_ms": 121.77695706486702,
+      "name": "cedar_process",
+      "phase": "first_invocation",
+      "start_ms": 118.14794200472534,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 124.41866705194116,
+      "name": "policy_check",
+      "phase": "first_invocation",
+      "start_ms": 121.79211503826082,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 121.8016310594976,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 121.7928531114012,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 121.81476806290448,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 121.8070040922612,
+      "thread": 133534347073216
+    },
+    {
+      "command": "authorize",
+      "end_ms": 124.41247794777155,
+      "name": "cedar_process",
+      "phase": "first_invocation",
+      "start_ms": 121.89405201934278,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 124.60008403286338,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 124.58862201310694,
+      "thread": 133534347073216
+    },
+    {
+      "call_id": "weather-0-e2154fd43ed74826874442d7a96f7571",
+      "end_ms": 125.16817706637084,
+      "name": "language_dispatch",
+      "phase": "first_invocation",
+      "start_ms": 124.62823814712465,
+      "thread": 133534347073216,
+      "tool": "get_weather"
+    },
+    {
+      "end_ms": 124.73251414485276,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 124.63637301698327,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 124.88323613069952,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 124.87628706730902,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 124.99895202927291,
+      "name": "admission_validate",
+      "phase": "first_invocation",
+      "start_ms": 124.91980800405145,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 125.12829503975809,
+      "name": "interpret",
+      "phase": "first_invocation",
+      "start_ms": 125.00531109981239,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 125.159643124789,
+      "name": "receipt",
+      "phase": "first_invocation",
+      "start_ms": 125.12993416748941,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 125.13797613792121,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 125.13223104178905,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 125.14413194730878,
+      "name": "json_encode",
+      "phase": "first_invocation",
+      "start_ms": 125.1405889634043,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 126.63241615518928,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 126.50796002708375,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 127.64478800818324,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 127.55988608114421,
+      "thread": 133534436230976
+    },
+    {
+      "end_ms": 128.8814810104668,
+      "name": "tool_node",
+      "phase": "steady_invocation",
+      "start_ms": 127.77130212634802,
+      "thread": 133534436230976
+    },
+    {
+      "call_id": "weather-1-b0204cc3f65f49af8450cdfff394e8cb",
+      "end_ms": 128.75659903511405,
+      "name": "host_invoke",
+      "phase": "steady_invocation",
+      "start_ms": 128.085243050009,
+      "thread": 133534347073216,
+      "tool": "get_weather"
+    },
+    {
+      "end_ms": 128.36636998690665,
+      "name": "authorize",
+      "phase": "steady_invocation",
+      "start_ms": 128.0904000159353,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 128.35912313312292,
+      "name": "json_encode",
+      "phase": "steady_invocation",
+      "start_ms": 128.3465470187366,
+      "thread": 133534347073216
+    },
+    {
+      "call_id": "weather-1-b0204cc3f65f49af8450cdfff394e8cb",
+      "end_ms": 128.75004997476935,
+      "name": "language_dispatch",
+      "phase": "steady_invocation",
+      "start_ms": 128.37037001736462,
+      "thread": 133534347073216,
+      "tool": "get_weather"
+    },
+    {
+      "end_ms": 128.4737349487841,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 128.37512395344675,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 128.61847807653248,
+      "name": "admission_validate",
+      "phase": "steady_invocation",
+      "start_ms": 128.5457629710436,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 128.72169795446098,
+      "name": "interpret",
+      "phase": "steady_invocation",
+      "start_ms": 128.62332095392048,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 128.74411116354167,
+      "name": "receipt",
+      "phase": "steady_invocation",
+      "start_ms": 128.72310495004058,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 128.72954295016825,
+      "name": "json_encode",
+      "phase": "steady_invocation",
+      "start_ms": 128.72427911497653,
+      "thread": 133534347073216
+    },
+    {
+      "end_ms": 128.73510015197098,
+      "name": "json_encode",
+      "phase": "steady_invocation",
+      "start_ms": 128.73178301379085,
+      "thread": 133534347073216
+    }
+  ],
+  "non_overlapping_breakdown": {
+    "first_invocation": {
+      "authorization": 11.599024292081594,
+      "graph_dispatch": 2.815970918163657,
+      "interpretation": 0.12298393994569778,
+      "lifecycle_and_cleanup": 0.38029695861041546,
+      "receipt": 0.020420877262949944,
+      "reconciled_ms": 16.41554688103497,
+      "serialization_and_copying": 0.11374801397323608,
+      "tool_dispatch_and_synchronization": 1.3631018809974194,
+      "total_ms": 16.41554688103497
+    },
+    "steady_invocation": {
+      "authorization": 0.2633938565850258,
+      "graph_dispatch": 2.033997094258666,
+      "interpretation": 0.09837700054049492,
+      "lifecycle_and_cleanup": 0.260296743363142,
+      "receipt": 0.012425240129232407,
+      "reconciled_ms": 3.1441759783774614,
+      "serialization_and_copying": 0.02115708775818348,
+      "tool_dispatch_and_synchronization": 0.4545289557427168,
+      "total_ms": 3.1441759783774614
+    }
+  },
+  "operation_counts": {
+    "first_invocation": {
+      "admission_validate": 4,
+      "authorize": 1,
+      "cedar_process": 3,
+      "host_invoke": 1,
+      "interpret": 1,
+      "json_encode": 14,
+      "language_dispatch": 1,
+      "policy_check": 3,
+      "policy_validate": 2,
+      "receipt": 1,
+      "tool_node": 1
+    },
+    "preparation": {
+      "admission_validate": 3,
+      "cedar_prepare": 1,
+      "cedar_process": 3,
+      "json_encode": 4,
+      "language_prepare": 1,
+      "manifest_parse": 1,
+      "policy_validate": 2,
+      "python_parse": 6,
+      "source_inspection": 1
+    },
+    "steady_invocation": {
+      "admission_validate": 4,
+      "authorize": 1,
+      "host_invoke": 1,
+      "interpret": 1,
+      "json_encode": 3,
+      "language_dispatch": 1,
+      "receipt": 1,
+      "tool_node": 1
+    }
+  },
+  "preparation_ms": 109.90022402256727,
+  "route": "language",
+  "tool_spans": [
+    {
+      "call_id": "weather-0-e2154fd43ed74826874442d7a96f7571",
+      "end_ms": 125.16817706637084,
+      "name": "language_dispatch",
+      "phase": "first_invocation",
+      "start_ms": 124.62823814712465,
+      "thread": 133534347073216,
+      "tool": "get_weather"
+    },
+    {
+      "call_id": "weather-0-e2154fd43ed74826874442d7a96f7571",
+      "end_ms": 125.17648399807513,
+      "name": "host_invoke",
+      "phase": "first_invocation",
+      "start_ms": 112.91358503513038,
+      "thread": 133534347073216,
+      "tool": "get_weather"
+    },
+    {
+      "call_id": "weather-1-b0204cc3f65f49af8450cdfff394e8cb",
+      "end_ms": 128.75004997476935,
+      "name": "language_dispatch",
+      "phase": "steady_invocation",
+      "start_ms": 128.37037001736462,
+      "thread": 133534347073216,
+      "tool": "get_weather"
+    },
+    {
+      "call_id": "weather-1-b0204cc3f65f49af8450cdfff394e8cb",
+      "end_ms": 128.75659903511405,
+      "name": "host_invoke",
+      "phase": "steady_invocation",
+      "start_ms": 128.085243050009,
+      "thread": 133534347073216,
+      "tool": "get_weather"
+    }
+  ],
+  "windows": {
+    "first_invocation": [
+      109.94755011051893,
+      126.3630969915539
+    ],
+    "steady_invocation": [
+      126.39382109045982,
+      129.53799706883729
+    ]
+  }
+}

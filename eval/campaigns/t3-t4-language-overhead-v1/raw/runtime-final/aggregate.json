@@ -1,0 +1,191 @@
+{
+  "metadata": {
+    "audit": false,
+    "branch": "wip",
+    "cedar": "/home/faculty/abk6349/.cargo/bin/cedar\nCedar language version: 4.5",
+    "input": "fixed-weather calls get_weather for San Francisco; parallel-weather additionally calls get_coolest_cities",
+    "machine": "x86_64",
+    "operator_policy": "forbid blocked principal",
+    "percentile": "nearest-rank p95",
+    "platform": "Linux-6.17.0-1033-oem-x86_64-with-glibc2.39",
+    "principal": "alice with no roles/groups and a fresh session per invocation",
+    "processes_per_cell": 30,
+    "processor": "x86_64",
+    "python": "3.11.14 (main, Dec  9 2025, 19:02:23) [Clang 21.1.4 ]",
+    "python_executable": "/data/langgraph/eval/.venv/bin/python",
+    "relevant_diff_sha256": "7bb6a0c5fddd6fcf6fbc96411a31f9fd39791e638055b47b538f8798e87b3d39",
+    "revision": "b544949050a42a24e54ea1470659b7c0f68be972",
+    "steady_repeats_per_process": 20
+  },
+  "results": {
+    "fixed-weather": {
+      "Argus": {
+        "admitted_tools": [
+          [
+            "get_weather"
+          ]
+        ],
+        "first_invocation": {
+          "max_ms": 17.59653794579208,
+          "mean_ms": 15.676000427144269,
+          "median_ms": 15.640135505236685,
+          "min_ms": 13.832184951752424,
+          "n": 30,
+          "p95_ms": 17.336153192445636
+        },
+        "policy_setup": {
+          "max_ms": 0.11852593161165714,
+          "mean_ms": 0.09865992857764165,
+          "median_ms": 0.09586196392774582,
+          "min_ms": 0.08973595686256886,
+          "n": 30,
+          "p95_ms": 0.11849915608763695
+        },
+        "preparation": {
+          "max_ms": 131.4303739927709,
+          "mean_ms": 115.24428743869066,
+          "median_ms": 113.54266898706555,
+          "min_ms": 109.49486680328846,
+          "n": 30,
+          "p95_ms": 124.7206178959459
+        },
+        "route": [
+          "language"
+        ],
+        "steady_invocation": {
+          "max_ms": 4.582867957651615,
+          "mean_ms": 2.7239324311570576,
+          "median_ms": 2.6722969487309456,
+          "min_ms": 1.7353398725390434,
+          "n": 600,
+          "p95_ms": 3.72726796194911
+        }
+      },
+      "Baseline": {
+        "admitted_tools": [
+          []
+        ],
+        "first_invocation": {
+          "max_ms": 4.8464389983564615,
+          "mean_ms": 3.7738951932018003,
+          "median_ms": 3.8001725915819407,
+          "min_ms": 2.6153230573982,
+          "n": 30,
+          "p95_ms": 4.536724183708429
+        },
+        "policy_setup": {
+          "max_ms": 0.00048708170652389526,
+          "mean_ms": 0.00027291631946961087,
+          "median_ms": 0.0002605374902486801,
+          "min_ms": 0.0001739244908094406,
+          "n": 30,
+          "p95_ms": 0.0004100147634744644
+        },
+        "preparation": {
+          "max_ms": 1.1703420896083117,
+          "mean_ms": 0.9120743876943985,
+          "median_ms": 0.8844268741086125,
+          "min_ms": 0.8444469422101974,
+          "n": 30,
+          "p95_ms": 1.0966220870614052
+        },
+        "route": [
+          "baseline"
+        ],
+        "steady_invocation": {
+          "max_ms": 3.0677039176225662,
+          "mean_ms": 1.5399668326911826,
+          "median_ms": 1.4016100903972983,
+          "min_ms": 0.8482420817017555,
+          "n": 600,
+          "p95_ms": 2.430326072499156
+        }
+      }
+    },
+    "parallel-weather": {
+      "Argus": {
+        "admitted_tools": [
+          [
+            "get_coolest_cities",
+            "get_weather"
+          ]
+        ],
+        "first_invocation": {
+          "max_ms": 18.62031500786543,
+          "mean_ms": 17.39336117946853,
+          "median_ms": 17.379039549268782,
+          "min_ms": 16.097900923341513,
+          "n": 30,
+          "p95_ms": 18.333970103412867
+        },
+        "policy_setup": {
+          "max_ms": 0.10302197188138962,
+          "mean_ms": 0.09388433148463567,
+          "median_ms": 0.0935534480959177,
+          "min_ms": 0.0894470140337944,
+          "n": 30,
+          "p95_ms": 0.10180589742958546
+        },
+        "preparation": {
+          "max_ms": 193.63776920363307,
+          "mean_ms": 123.21583932110418,
+          "median_ms": 120.09118939749897,
+          "min_ms": 116.50378117337823,
+          "n": 30,
+          "p95_ms": 127.35830503515899
+        },
+        "route": [
+          "language"
+        ],
+        "steady_invocation": {
+          "max_ms": 13.986681820824742,
+          "mean_ms": 3.9572978178815297,
+          "median_ms": 3.8945390842854977,
+          "min_ms": 2.8552080038934946,
+          "n": 600,
+          "p95_ms": 4.865974886342883
+        }
+      },
+      "Baseline": {
+        "admitted_tools": [
+          []
+        ],
+        "first_invocation": {
+          "max_ms": 5.387529963627458,
+          "mean_ms": 4.20567262917757,
+          "median_ms": 4.1401875205338,
+          "min_ms": 3.5835939925163984,
+          "n": 30,
+          "p95_ms": 4.790524020791054
+        },
+        "policy_setup": {
+          "max_ms": 0.00038207508623600006,
+          "mean_ms": 0.0002753144750992457,
+          "median_ms": 0.0002789311110973358,
+          "min_ms": 0.00019813887774944305,
+          "n": 30,
+          "p95_ms": 0.00037695281207561493
+        },
+        "preparation": {
+          "max_ms": 1.198392827063799,
+          "mean_ms": 0.9772693815951546,
+          "median_ms": 0.9607969550415874,
+          "min_ms": 0.9199860505759716,
+          "n": 30,
+          "p95_ms": 1.0719490237534046
+        },
+        "route": [
+          "baseline"
+        ],
+        "steady_invocation": {
+          "max_ms": 3.886403050273657,
+          "mean_ms": 2.0013478592348597,
+          "median_ms": 1.9356380216777325,
+          "min_ms": 1.0954821482300758,
+          "n": 600,
+          "p95_ms": 3.068353049457073
+        }
+      }
+    }
+  }
+}

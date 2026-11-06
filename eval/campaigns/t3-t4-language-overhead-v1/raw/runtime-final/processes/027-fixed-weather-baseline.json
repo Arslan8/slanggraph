@@ -1,0 +1,100 @@
+{
+  "admitted_tools": [],
+  "answers": [
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ],
+    [
+      "It's 60 degrees and foggy."
+    ]
+  ],
+  "demo": "fixed-weather",
+  "first_invocation_ms": 3.790136193856597,
+  "fresh_grant_call_ids": [],
+  "mode": "Baseline",
+  "policy_setup_ms": 0.00048708170652389526,
+  "preparation_ms": 1.1703420896083117,
+  "process_index": 27,
+  "route": "baseline",
+  "steady_invocation_ms": [
+    1.2951050885021687,
+    2.281215973198414,
+    2.1453709341585636,
+    1.2613888829946518,
+    1.662387978285551,
+    2.4291560985147953,
+    1.2514428235590458,
+    1.494184136390686,
+    1.2790248729288578,
+    1.0048579424619675,
+    1.4430570881813765,
+    1.0771029628813267,
+    1.7359028570353985,
+    0.9816829115152359,
+    1.6432339325547218,
+    1.2611979618668556,
+    1.5169321559369564,
+    1.0920988861471415,
+    2.311344025656581,
+    1.362247858196497
+  ],
+  "steady_mean_ms": 1.5264467685483396,
+  "steady_median_ms": 1.4026524731889367
+}

@@ -431,6 +431,14 @@ class SecurityConfig:
             astream_output_filter=mediator.astream,
             callback_filter=mediator.callback,
             acallback_filter=mediator.acallback,
+            invoke_final_output_only=(
+                self.audit_sink is None
+                and self.observer is None
+                and all(
+                    type(module).output_emit is SecurityModule.output_emit
+                    for module in self.modules
+                )
+            ),
         )
         if self.analysis is not None:
             from langgraph.prebuilt.analysis.adapters.agent import AgentAdapter

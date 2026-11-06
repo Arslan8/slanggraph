@@ -627,6 +627,7 @@ class CedarObjectAuthorizer:
             OrderedDict()
         )
         self._cache_lock = RLock()
+        self._validation_lock = RLock()
         self.retain_authorization_artifacts = retain_authorization_artifacts
         self._artifact_root: Path | None = None
         self._artifact_directories: deque[Path] = deque(maxlen=1024)
@@ -641,6 +642,66 @@ class CedarObjectAuthorizer:
         for reason in waivers.values():
             _text(reason, "enforcement waiver reason")
         self.enforcement_waivers = MappingProxyType(waivers)
+
+    def prepare(self) -> bool:
+        """Validate immutable Cedar inputs before an invocation is bound.
+
+        The executable identity remains part of every validation cache key, so
+        replacing the Cedar executable invalidates this preparation and causes
+        the normal fail-closed checks to run again at authorization time.  The
+        operator MAC is read from the sealed runtime policy; a policy installed
+        after preparation is likewise parsed on first use.
+
+        Returns false when Cedar is unavailable.  Construction remains usable
+        for admission-only tooling, while a later authorization still refuses
+        the missing executable.
+        """
+        from langgraph.prebuilt.security.mac import runtime_mac_forbids
+
+        if self.retain_authorization_artifacts:
+            # Retained bundles describe real authorization attempts.  Do not
+            # add a synthetic preparation bundle to that diagnostic history.
+            return False
+        executable = _resolve_executable(self.executable)
+        if executable is None:
+            return False
+        engine = _engine_identity(executable)
+        if engine is None:
+            return False
+        schema = self.manifest.registry.cedar_schema()
+        bundle = _CedarAuthorizationBundle(self, schema, _json([]))
+        envelope_policy = "\n".join(
+            value
+            for value in (
+                self.policies.principal_permits,
+                self.policies.share_permits,
+            )
+            if value.strip()
+        )
+        sources = {
+            **{
+                f"owner-{name}": source
+                for name, source in self.policies.owner_permits.items()
+            },
+            "envelope": envelope_policy,
+            "mac": self.policies.mac_forbids,
+        }
+        seen: set[tuple[str, str]] = set()
+        try:
+            for name, source in sources.items():
+                if not source.strip():
+                    continue
+                identity = (schema, source)
+                if identity in seen:
+                    continue
+                seen.add(identity)
+                self._validate(executable, engine, bundle, schema, name, source)
+            self._parse_operator_policy(
+                executable, engine, bundle, runtime_mac_forbids()
+            )
+        finally:
+            bundle.close()
+        return True
 
     @property
     def artifact_root(self) -> Path:
@@ -740,26 +801,7 @@ class CedarObjectAuthorizer:
                 if not source.strip() and name == "mac":
                     continue
                 self._validate(executable, engine, bundle, schema, name, source)
-            if operator_forbids:
-                # Operator vocabulary spans graphs. A graph-local schema cannot
-                # reject a forbid merely because its action belongs to another
-                # graph; Cedar still parses it and fails closed on evaluation errors.
-                parse_key = _cedar_cache_key(engine, "parse", operator_forbids)
-                cached, _ = self._cached(parse_key)
-                if self.retain_authorization_artifacts or not cached:
-                    root, _, _ = bundle.materialize()
-                    operator_path = root / "operator-mac.cedar"
-                    operator_path.write_text(operator_forbids, encoding="utf-8")
-                if not cached:
-                    parsed = self._run(
-                        executable,
-                        "check-parse",
-                        "--policies",
-                        os.fspath(operator_path),
-                    )
-                    if parsed.returncode != 0:
-                        raise ObjectPolicyDenied("cedar:validation:operator-mac")
-                    self._remember(parse_key, True)
+            self._parse_operator_policy(executable, engine, bundle, operator_forbids)
             call_request = _call_request(principal_id, tool_name)
             if not self._allows(
                 executable,
@@ -882,6 +924,37 @@ class CedarObjectAuthorizer:
                     self._authorization_cache.popitem(last=False)
         return result
 
+    def _parse_operator_policy(
+        self,
+        executable: str,
+        engine: tuple[str, int, int, int, int, int],
+        bundle: _CedarAuthorizationBundle,
+        operator_forbids: str,
+    ) -> None:
+        if not operator_forbids:
+            return
+        # Operator vocabulary spans graphs. A graph-local schema cannot reject
+        # a forbid merely because its action belongs to another graph; Cedar
+        # still parses it and fails closed on evaluation errors.
+        with self._validation_lock:
+            parse_key = _cedar_cache_key(engine, "parse", operator_forbids)
+            cached, _ = self._cached(parse_key)
+            if self.retain_authorization_artifacts or not cached:
+                root, _, _ = bundle.materialize()
+                operator_path = root / "operator-mac.cedar"
+                operator_path.write_text(operator_forbids, encoding="utf-8")
+            if cached:
+                return
+            parsed = self._run(
+                executable,
+                "check-parse",
+                "--policies",
+                os.fspath(operator_path),
+            )
+            if parsed.returncode != 0:
+                raise ObjectPolicyDenied("cedar:validation:operator-mac")
+            self._remember(parse_key, True)
+
     def _validate(
         self,
         executable: str,
@@ -891,28 +964,29 @@ class CedarObjectAuthorizer:
         name: str,
         source: str,
     ) -> None:
-        cache_key = _cedar_cache_key(engine, "validate", schema, source)
-        cached, _ = self._cached(cache_key)
-        if cached and not self.retain_authorization_artifacts:
-            return
-        root, schema_path, _ = bundle.materialize()
-        policy_path = root / f"{name}.cedar"
-        policy_path.write_text(source, encoding="utf-8")
-        if cached:
-            return
-        result = self._run(
-            executable,
-            "validate",
-            "--policies",
-            os.fspath(policy_path),
-            "--schema",
-            os.fspath(schema_path),
-            "--schema-format",
-            "cedar",
-        )
-        if result.returncode != 0:
-            raise ObjectPolicyDenied(f"cedar:validation:{name}")
-        self._remember(cache_key, True)
+        with self._validation_lock:
+            cache_key = _cedar_cache_key(engine, "validate", schema, source)
+            cached, _ = self._cached(cache_key)
+            if cached and not self.retain_authorization_artifacts:
+                return
+            root, schema_path, _ = bundle.materialize()
+            policy_path = root / f"{name}.cedar"
+            policy_path.write_text(source, encoding="utf-8")
+            if cached:
+                return
+            result = self._run(
+                executable,
+                "validate",
+                "--policies",
+                os.fspath(policy_path),
+                "--schema",
+                os.fspath(schema_path),
+                "--schema-format",
+                "cedar",
+            )
+            if result.returncode != 0:
+                raise ObjectPolicyDenied(f"cedar:validation:{name}")
+            self._remember(cache_key, True)
 
     def _allows(
         self,
@@ -1320,7 +1394,7 @@ class _LanguageSandboxDispatcher:
         try:
             with local_resources(self.resources, principal, call, grant):
                 return HostExecutionResult(
-                    self.admission.invoke(self._arguments(call)),
+                    self.admission._invoke_validated(self._arguments(call)),
                     self._receipt(principal, call, grant),
                 )
         except ResourceReleaseError as exc:
@@ -1591,6 +1665,7 @@ def cedar_security(
         executable=executable,
         retain_authorization_artifacts=retain_authorization_artifacts,
     )
+    authorizer.prepare()
     executor = ObjectPolicyHostExecutor(
         authorizer,
         dispatcher
@@ -1673,8 +1748,10 @@ def cedar_security_many(
             for item in selected
         }
     )
+    authorizer = CedarObjectAuthorizer(parsed, policies, executable=executable)
+    authorizer.prepare()
     executor = ObjectPolicyHostExecutor(
-        CedarObjectAuthorizer(parsed, policies, executable=executable),
+        authorizer,
         _LanguageSandboxDispatchers(selected, parsed, resources),
         tool_owners={name: owner for name in names},
     )

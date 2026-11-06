@@ -449,6 +449,16 @@ def _normalize_stream_transformer_factories(
     return factories
 
 
+class _InvokeOutputCollector:
+    """Carry the one mediated final value from an internal invoke stream."""
+
+    __slots__ = ("graph", "output")
+
+    def __init__(self, graph: object) -> None:
+        self.graph = graph
+        self.output: Any = MISSING
+
+
 class Pregel(
     PregelProtocol[StateT, ContextT, InputT, OutputT],
     Generic[StateT, ContextT, InputT, OutputT],
@@ -848,6 +858,7 @@ class Pregel(
         ) = None
         self._callback_filter: Callable[..., Any] | None = None
         self._acallback_filter: Callable[..., Awaitable[Any]] | None = None
+        self._invoke_final_output_only = False
         if auto_validate:
             self.validate()
 
@@ -872,6 +883,7 @@ class Pregel(
         | None = None,
         callback_filter: Callable[..., Any] | None = None,
         acallback_filter: Callable[..., Awaitable[Any]] | None = None,
+        invoke_final_output_only: bool = False,
     ) -> None:
         """Install a trusted final emission filter before any stream item escapes."""
         if self._output_filter is not None or self._aoutput_filter is not None:
@@ -880,12 +892,15 @@ class Pregel(
             raise ValueError("stream filters require both sync and async callbacks")
         if (callback_filter is None) != (acallback_filter is None):
             raise ValueError("callback filters require sync and async delivery")
+        if type(invoke_final_output_only) is not bool:
+            raise TypeError("invoke_final_output_only must be a bool")
         self._callback_filter = callback_filter
         self._acallback_filter = acallback_filter
         self._stream_output_filter = stream_output_filter
         self._astream_output_filter = astream_output_filter
         self._output_filter = output_filter
         self._aoutput_filter = aoutput_filter
+        self._invoke_final_output_only = invoke_final_output_only
 
     def _apply_checkpointer_allowlist(
         self, checkpointer: BaseCheckpointSaver | None
@@ -2824,6 +2839,12 @@ class Pregel(
         from langgraph._internal._runtime_policy import check_runtime_policy
 
         check_runtime_policy(self)
+        collector = kwargs.pop("_invoke_output_collector", None)
+        if collector is not None and (
+            type(collector) is not _InvokeOutputCollector or collector.graph is not self
+        ):
+            raise ValueError("invalid internal invoke output collector")
+        mediate_stream = collector is None
         if (checkpoint_during := kwargs.get("checkpoint_during")) is not None:
             warnings.warn(
                 "`checkpoint_during` is deprecated and will be removed. Please use `durability` instead.",
@@ -3115,13 +3136,13 @@ class Pregel(
                             version,
                             _output_mapper,
                             _state_mapper,
-                            self._stream_output_filter is not None,
+                            self._stream_output_filter is not None and mediate_stream,
                         ):
                             yield (
                                 (self._stream_output_filter or self._output_filter)(
                                     output, config
                                 )
-                                if self._output_filter is not None
+                                if self._output_filter is not None and mediate_stream
                                 else output
                             )
                     loop.after_tick()
@@ -3140,11 +3161,11 @@ class Pregel(
                 version,
                 _output_mapper,
                 _state_mapper,
-                self._stream_output_filter is not None,
+                self._stream_output_filter is not None and mediate_stream,
             ):
                 yield (
                     (self._stream_output_filter or self._output_filter)(output, config)
-                    if self._output_filter is not None
+                    if self._output_filter is not None and mediate_stream
                     else output
                 )
             # handle exit
@@ -3168,6 +3189,8 @@ class Pregel(
                 if self._output_filter is not None
                 else loop.output
             )
+            if collector is not None:
+                collector.output = callback_output
             run_manager.on_chain_end(callback_output)
         except BaseException as e:
             if run_manager is not None:
@@ -3287,6 +3310,12 @@ class Pregel(
         from langgraph._internal._runtime_policy import check_runtime_policy
 
         check_runtime_policy(self)
+        collector = kwargs.pop("_invoke_output_collector", None)
+        if collector is not None and (
+            type(collector) is not _InvokeOutputCollector or collector.graph is not self
+        ):
+            raise ValueError("invalid internal invoke output collector")
+        mediate_stream = collector is None
         if (checkpoint_during := kwargs.get("checkpoint_during")) is not None:
             warnings.warn(
                 "`checkpoint_during` is deprecated and will be removed. Please use `durability` instead.",
@@ -3643,7 +3672,8 @@ class Pregel(
                                 version,
                                 _output_mapper,
                                 _state_mapper,
-                                self._astream_output_filter is not None,
+                                self._astream_output_filter is not None
+                                and mediate_stream,
                             ):
                                 yield (
                                     await (
@@ -3651,6 +3681,7 @@ class Pregel(
                                         or self._aoutput_filter
                                     )(o, config)
                                     if self._aoutput_filter is not None
+                                    and mediate_stream
                                     else o
                                 )
                         loop.after_tick()
@@ -3675,13 +3706,13 @@ class Pregel(
                 version,
                 _output_mapper,
                 _state_mapper,
-                self._astream_output_filter is not None,
+                self._astream_output_filter is not None and mediate_stream,
             ):
                 yield (
                     await (self._astream_output_filter or self._aoutput_filter)(
                         o, config
                     )
-                    if self._aoutput_filter is not None
+                    if self._aoutput_filter is not None and mediate_stream
                     else o
                 )
             # handle exit
@@ -3705,6 +3736,8 @@ class Pregel(
                 if self._aoutput_filter is not None
                 else loop.output
             )
+            if collector is not None:
+                collector.output = callback_output
             await run_manager.on_chain_end(callback_output)
         except BaseException as e:
             if run_manager is not None:
@@ -4127,6 +4160,18 @@ class Pregel(
         latest: dict[str, Any] | Any = None
         chunks: list[dict[str, Any] | Any] = []
         interrupts: list[Interrupt] = []
+        collector = (
+            _InvokeOutputCollector(self)
+            if stream_mode == "values"
+            and self._output_filter is not None
+            and self._invoke_final_output_only
+            else None
+        )
+        invoke_kwargs = (
+            {**kwargs, "_invoke_output_collector": collector}
+            if collector is not None
+            else kwargs
+        )
 
         if version == "v2":
             # v2: values stream parts carry interrupts directly
@@ -4142,7 +4187,7 @@ class Pregel(
                 durability=durability,
                 control=control,
                 version=version,
-                **kwargs,
+                **invoke_kwargs,
             ):
                 if stream_mode == "values":
                     latest = chunk["data"]
@@ -4165,7 +4210,7 @@ class Pregel(
                 interrupt_after=interrupt_after,
                 durability=durability,
                 control=control,
-                **kwargs,
+                **invoke_kwargs,
             ):
                 if stream_mode == "values":
                     if len(chunk) == 2:
@@ -4184,6 +4229,11 @@ class Pregel(
                         latest = payload
                 else:
                     chunks.append(chunk)
+
+        if collector is not None:
+            if collector.output is MISSING:
+                raise RuntimeError("invoke stream did not publish its final output")
+            latest = collector.output
 
         if stream_mode == "values":
             if version == "v2":
@@ -4304,6 +4354,18 @@ class Pregel(
         latest: dict[str, Any] | Any = None
         chunks: list[dict[str, Any] | Any] = []
         interrupts: list[Interrupt] = []
+        collector = (
+            _InvokeOutputCollector(self)
+            if stream_mode == "values"
+            and self._aoutput_filter is not None
+            and self._invoke_final_output_only
+            else None
+        )
+        invoke_kwargs = (
+            {**kwargs, "_invoke_output_collector": collector}
+            if collector is not None
+            else kwargs
+        )
 
         if version == "v2":
             # v2: values stream parts carry interrupts directly
@@ -4319,7 +4381,7 @@ class Pregel(
                 durability=durability,
                 control=control,
                 version=version,
-                **kwargs,
+                **invoke_kwargs,
             ):
                 if stream_mode == "values":
                     latest = chunk["data"]
@@ -4342,7 +4404,7 @@ class Pregel(
                 interrupt_after=interrupt_after,
                 durability=durability,
                 control=control,
-                **kwargs,
+                **invoke_kwargs,
             ):
                 if stream_mode == "values":
                     if len(chunk) == 2:
@@ -4361,6 +4423,11 @@ class Pregel(
                         latest = payload
                 else:
                     chunks.append(chunk)
+
+        if collector is not None:
+            if collector.output is MISSING:
+                raise RuntimeError("invoke stream did not publish its final output")
+            latest = collector.output
 
         if stream_mode == "values":
             if version == "v2":
