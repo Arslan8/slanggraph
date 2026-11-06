@@ -1,0 +1,242 @@
+[
+  {
+    "repetition": 0,
+    "position": 0,
+    "application": "T3-fixed-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 0,
+    "position": 1,
+    "application": "T3-fixed-weather",
+    "mode": "APF-enforced"
+  },
+  {
+    "repetition": 0,
+    "position": 2,
+    "application": "T4-parallel-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 0,
+    "position": 3,
+    "application": "T4-parallel-weather",
+    "mode": "APF-enforced"
+  },
+  {
+    "repetition": 0,
+    "position": 4,
+    "application": "T3-fixed-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 0,
+    "position": 5,
+    "application": "T4-parallel-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 0,
+    "position": 6,
+    "application": "T4-parallel-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 0,
+    "position": 7,
+    "application": "T3-fixed-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 1,
+    "position": 0,
+    "application": "T4-parallel-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 1,
+    "position": 1,
+    "application": "T3-fixed-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 1,
+    "position": 2,
+    "application": "T4-parallel-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 1,
+    "position": 3,
+    "application": "T3-fixed-weather",
+    "mode": "APF-enforced"
+  },
+  {
+    "repetition": 1,
+    "position": 4,
+    "application": "T3-fixed-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 1,
+    "position": 5,
+    "application": "T4-parallel-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 1,
+    "position": 6,
+    "application": "T3-fixed-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 1,
+    "position": 7,
+    "application": "T4-parallel-weather",
+    "mode": "APF-enforced"
+  },
+  {
+    "repetition": 2,
+    "position": 0,
+    "application": "T4-parallel-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 2,
+    "position": 1,
+    "application": "T3-fixed-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 2,
+    "position": 2,
+    "application": "T4-parallel-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 2,
+    "position": 3,
+    "application": "T3-fixed-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 2,
+    "position": 4,
+    "application": "T4-parallel-weather",
+    "mode": "APF-enforced"
+  },
+  {
+    "repetition": 2,
+    "position": 5,
+    "application": "T3-fixed-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 2,
+    "position": 6,
+    "application": "T4-parallel-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 2,
+    "position": 7,
+    "application": "T3-fixed-weather",
+    "mode": "APF-enforced"
+  },
+  {
+    "repetition": 3,
+    "position": 0,
+    "application": "T4-parallel-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 3,
+    "position": 1,
+    "application": "T4-parallel-weather",
+    "mode": "APF-enforced"
+  },
+  {
+    "repetition": 3,
+    "position": 2,
+    "application": "T3-fixed-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 3,
+    "position": 3,
+    "application": "T3-fixed-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 3,
+    "position": 4,
+    "application": "T3-fixed-weather",
+    "mode": "APF-enforced"
+  },
+  {
+    "repetition": 3,
+    "position": 5,
+    "application": "T4-parallel-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 3,
+    "position": 6,
+    "application": "T3-fixed-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 3,
+    "position": 7,
+    "application": "T4-parallel-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 4,
+    "position": 0,
+    "application": "T3-fixed-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 4,
+    "position": 1,
+    "application": "T4-parallel-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 4,
+    "position": 2,
+    "application": "T4-parallel-weather",
+    "mode": "APF-enforced"
+  },
+  {
+    "repetition": 4,
+    "position": 3,
+    "application": "T3-fixed-weather",
+    "mode": "Argus"
+  },
+  {
+    "repetition": 4,
+    "position": 4,
+    "application": "T4-parallel-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 4,
+    "position": 5,
+    "application": "T4-parallel-weather",
+    "mode": "NoNo-enforced"
+  },
+  {
+    "repetition": 4,
+    "position": 6,
+    "application": "T3-fixed-weather",
+    "mode": "Baseline"
+  },
+  {
+    "repetition": 4,
+    "position": 7,
+    "application": "T3-fixed-weather",
+    "mode": "APF-enforced"
+  }
+]

@@ -1,0 +1,90 @@
+{
+  "demo": "parallel-weather",
+  "mode": "Argus",
+  "isolation_route": "language",
+  "prompt": "Execute the tutorial's fixed ToolNode calls.",
+  "wall_ms": 18.2482679374516,
+  "invocation_ms": 18.2482679374516,
+  "preparation_ms": 122.47953494079411,
+  "model_time_ms": 0.0,
+  "model_calls": 0,
+  "answer": "nyc, sf",
+  "messages": [
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "acb672d8-81e8-4630-9281-23f6bbda459e",
+      "tool_calls": [
+        {
+          "name": "get_weather",
+          "args": {
+            "location": "San Francisco"
+          },
+          "id": "parallel-weather",
+          "type": "tool_call"
+        },
+        {
+          "name": "get_coolest_cities",
+          "args": {},
+          "id": "parallel-cities",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "It's 60 degrees and foggy.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "get_weather",
+      "id": "f740b899-f232-46fb-abac-0c4e7f66ec42",
+      "tool_call_id": "parallel-weather",
+      "artifact": null,
+      "status": "success"
+    },
+    {
+      "content": "nyc, sf",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "get_coolest_cities",
+      "id": "05933deb-6884-46df-879c-c7aa230be515",
+      "tool_call_id": "parallel-cities",
+      "artifact": null,
+      "status": "success"
+    }
+  ],
+  "executed_tools": [
+    "get_weather",
+    "get_coolest_cities"
+  ],
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [
+    {
+      "principal_id": "alice",
+      "tool_name": "get_weather",
+      "call_id": "parallel-weather",
+      "policy_digest": "2a3ab77a7b998b4dbd688254eec968f2d40925b0053aae05e1fe639866fb02a0",
+      "lines": [],
+      "enforcement_waivers": "{}",
+      "_digest_value": "b7f2b76e4c8e248481fe5df3871450a89d74e5d382c0007177779babdf3f60fd"
+    },
+    {
+      "principal_id": "alice",
+      "tool_name": "get_coolest_cities",
+      "call_id": "parallel-cities",
+      "policy_digest": "2a3ab77a7b998b4dbd688254eec968f2d40925b0053aae05e1fe639866fb02a0",
+      "lines": [],
+      "enforcement_waivers": "{}",
+      "_digest_value": "82ed6a17c90e82a5c91e16105e3731a905f9b8dca1f4c81c0794c44d4c8235f1"
+    }
+  ],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

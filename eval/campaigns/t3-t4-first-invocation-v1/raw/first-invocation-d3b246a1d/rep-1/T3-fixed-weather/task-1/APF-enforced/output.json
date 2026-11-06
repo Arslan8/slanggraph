@@ -1,0 +1,53 @@
+{
+  "demo": "fixed-weather",
+  "mode": "Baseline",
+  "isolation_route": "baseline",
+  "prompt": "Execute the tutorial's fixed ToolNode calls.",
+  "wall_ms": 3.6799698136746883,
+  "invocation_ms": 3.6799698136746883,
+  "preparation_ms": 1.1017511133104563,
+  "model_time_ms": 0.0,
+  "model_calls": 0,
+  "answer": "It's 60 degrees and foggy.",
+  "messages": [
+    {
+      "content": "",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "ai",
+      "name": null,
+      "id": "ed383c5e-1b34-41d5-9a7f-bff3065ffcc5",
+      "tool_calls": [
+        {
+          "name": "get_weather",
+          "args": {
+            "location": "San Francisco"
+          },
+          "id": "fixed-weather",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": null
+    },
+    {
+      "content": "It's 60 degrees and foggy.",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "tool",
+      "name": "get_weather",
+      "id": "b059a4b5-580f-4a31-80d4-3bdc3a9b32f3",
+      "tool_call_id": "fixed-weather",
+      "artifact": null,
+      "status": "success"
+    }
+  ],
+  "executed_tools": [
+    "get_weather"
+  ],
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "authorization_decisions": [],
+  "authorization_grants": [],
+  "activation_receipts": [],
+  "lowered_restrictions": []
+}

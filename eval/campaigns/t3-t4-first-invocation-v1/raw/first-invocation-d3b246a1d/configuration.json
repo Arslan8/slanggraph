@@ -1,0 +1,76 @@
+{
+  "run_id": "first-invocation-d3b246a1d",
+  "evaluated_revision": "d3b246a1d6bebd1638fe55af916cab7b2f4820e7",
+  "branch": "wip",
+  "protocol": "five repetition blocks; both workloads and all four modes shuffled within each block; fresh process per execution; jobs run sequentially",
+  "scope": [
+    "T3-fixed-weather",
+    "T4-parallel-weather"
+  ],
+  "modes": [
+    "Baseline",
+    "Argus",
+    "NoNo-enforced",
+    "APF-enforced"
+  ],
+  "repetitions": 5,
+  "execution_count": 40,
+  "shuffle_seed": 20261028,
+  "primary_timer": "first graph.invoke only, after graph/policy preparation; no warmup",
+  "secondary_timers": "preparation_ms, process_wall_ms, sandbox_preparation_ms, sandbox_cleanup_ms, and end_to_end_wall_ms retained separately",
+  "audit_enabled": false,
+  "argus_operator_mac_installed": true,
+  "argus_expected_route": "language",
+  "argus_host_fallback_allowed": false,
+  "fresh_identity": "fresh child process and principal session per execution; deterministic tutorial call labels are process-local and never reused within a process",
+  "runner_command": [
+    "/data/langgraph/eval/.venv/bin/python",
+    "eval/campaigns/t3-t4-first-invocation-v1/run_campaign.py",
+    "--run-id",
+    "first-invocation-d3b246a1d"
+  ],
+  "host": {
+    "platform": "Linux-6.17.0-1033-oem-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "python": "3.11.14 (main, Dec  9 2025, 19:02:23) [Clang 21.1.4 ]"
+  },
+  "source": {
+    "application": "eval/apps/demos/tool_calling_protected.py",
+    "application_sha256": "ed4a36b295f876f8a41f8bde2a987969653c7cd279f64851bcd3f13435563bf9",
+    "scoped_runner": "eval/campaigns/t3-t4-first-invocation-v1/run_campaign.py",
+    "executed_scoped_runner_sha256": "678f80b4a84e8aff948bc9918cdde6e68b04834852cd2ccbf3976dcbbb592b06",
+    "executed_to_artifact_change": "ruff formatting and metadata wording only; scheduling and execution logic unchanged",
+    "artifact_scoped_runner_sha256": "6e66b881bf39523e73be36f26a60734ea5e6d4f6ad3b86ab6b1d5a156cffa950",
+    "reused_runner": "eval/campaigns/langgraph-demos-v3/permissive-comparators/run_campaign.py",
+    "reused_runner_sha256": "6c4df70ff4b3d950a2cfb5382d779168cb9ba93975ceb164cd1425628f52da75",
+    "retained_campaign": "eval/campaigns/langgraph-demos-v3/raw/matched-comparators-final-c976a2070",
+    "retained_configuration_sha256": "b452081316ccd7b7246108841fa13e13ce5a1d1065b747bfa10502647f2e3b32"
+  },
+  "nono": {
+    "revision": "11d9e6b8e522a87325134e5399cc458f11e5bba7",
+    "binary": "/data/langgraph/eval/vendor/nono/target/release/nono",
+    "sha256": "1bf01dc123c9a7170fda30e7328941de3ecc7f83f95c09e083a71377f00a39c5",
+    "audit": "disabled to match final Argus configuration",
+    "rollback": "disabled because Argus does not claim rollback",
+    "network": "deny by default; direct TCP permitted only on port 11434",
+    "network_residual": "the port grant cannot restrict destination host",
+    "filesystem": "code/runtime read-only; exact external inputs read-only; only the fresh trial directory writable",
+    "trust_override": false
+  },
+  "apf_openshell": {
+    "apf_revision": "fb961f7cc78e3d5149f0505ca624d064be1866f8",
+    "openshell_revision": "e1f3c82caa3ed3b65de22889ae7ef32a774878ef",
+    "cli_sha256": "557f8e2af1d91221211bb29cc7152d975084d2a8c9ab8c549d46c4370ccf492e",
+    "endpoint": "http://127.0.0.1:18080",
+    "application_image_id": "sha256:82e95e8b7e3bb7ccdcf65c806a0b37435b0e086d36946b596e743a935eef8e19",
+    "sandbox_lifecycle": "fresh sandbox per invocation; deletion confirmed",
+    "input_binding": "each projected policy grants only the current invocation's read-only inputs",
+    "policy_source": "permissive-comparators/apf-policy.yaml",
+    "policy_source_sha256": "9517b9d70b2599ea7acc8c8f88ce01fc33e953483a9a6117d1f94e9b61285dc1",
+    "projected_policy_sha256": "5009bc201c2476e748e868b5a81dee85e904268e8554c585be9e1144509ba584",
+    "policy_semantics": "official APF compiler/OpenShell projector; code/runtime read-only; private workspace writable; best-effort Landlock; local model relay only",
+    "audit": "OpenShell defaults retained; not included in application output",
+    "cli": "/data/langgraph/eval/campaigns/remediation-v2/raw/openshell-setup/openshell",
+    "image_tag": "slg-apf-apps:bd035dd06"
+  }
+}
