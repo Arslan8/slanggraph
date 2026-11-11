@@ -108,8 +108,7 @@ def run(output: Path, source: Path, repetitions: int) -> None:
         "cases": [CASE],
         "comparison_kind": "sandbox_configuration_probe",
         "scope": (
-            "ACE ToolExecutionSandbox only; planner and information-flow analysis "
-            "are not executed"
+            "ACE ToolExecutionSandbox only; planner and information-flow analysis are not executed"
         ),
         "repetitions": repetitions,
         "configuration": "published ToolExecutionSandbox/tool-runner-image",

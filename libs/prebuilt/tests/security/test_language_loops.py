@@ -193,6 +193,48 @@ def test_nested_for_and_while_share_no_iterator_state():
     assert program.invoke({"text": "xax"}) == "6"
 
 
+def test_native_list_and_dictionary_computation_remains_inert():
+    program = lower("""def collect(count):
+    values = [int(count), 2, 3]
+    result = {"first": values[0], "size": len(values)}
+    return result
+""")
+    assert program.invoke({"count": "7"}) == {"first": 7, "size": 3}
+    assert program.proof()["result_types"] == ["dict"]
+
+
+def test_numeric_equality_is_available_to_loop_branches():
+    program = lower("""def total(count):
+    total = 0
+    for i in range(int(count)):
+        if i % 2 == 0:
+            total += i
+    return str(total)
+""")
+    assert program.invoke({"count": "8"}) == "12"
+
+
+def test_stable_terminal_alias_is_lowered_but_rebinding_refuses():
+    program = lower(
+        """def f(path):
+    reader = read_text
+    return reader(path)
+""",
+        lambda path: "value:" + path,
+    )
+    assert program.invoke({"path": "allowed"}) == "value:allowed"
+    assert program.proof()["effects"] == ["read_text"]
+    with pytest.raises(SecurityConfigurationError, match="terminal_alias_reassigned"):
+        lower(
+            """def f(path):
+    reader = read_text
+    reader = str
+    return reader(path)
+""",
+            lambda path: path,
+        )
+
+
 @tool
 def line_count(path: str) -> str:
     """Count newline-delimited records after a mediated file read."""

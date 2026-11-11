@@ -30,6 +30,7 @@ from langgraph.prebuilt.security import (
 from pydantic import BaseModel, Field
 from resource_monitors.retriever_worker import retrieve_blog_posts as broker_retrieve
 from resource_monitors.security import mediated_language_security
+from runtime_protocol import wait_for_parent
 from sklearn.feature_extraction.text import TfidfVectorizer
 from timing import ModelTiming, assert_tool_parity
 
@@ -233,6 +234,7 @@ def main() -> None:
             modules=security.modules,
         )
     preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    wait_for_parent()
     invocation_started = time.perf_counter()
     result = graph.invoke({"messages": [("user", args.prompt)]}, config)
     invocation_ms = (time.perf_counter() - invocation_started) * 1000

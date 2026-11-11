@@ -42,6 +42,8 @@ def main():
     from langchain_openai import ChatOpenAI
 
     here = Path(__file__).resolve().parent
+    sys.path.insert(0, str(here.parent / "demos"))
+    from runtime_protocol import wait_for_parent
 
     def load(name, filename):
         spec = importlib.util.spec_from_file_location(name, here / filename)
@@ -194,6 +196,7 @@ def main():
         data_raw = closed.load_dataset_baseline(request)
     if closed.normalization(request) is not None:
         data_raw = closed.json_state(data_raw.to_dict())
+    wait_for_parent()
     workflow_started = time.perf_counter()
     with events.open("a") as stream:
         stream.write(

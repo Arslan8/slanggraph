@@ -25,8 +25,8 @@ from langgraph.prebuilt.security._language_pure import pure_type
 from langgraph.prebuilt.security.errors import SecurityConfigurationError
 from langgraph.prebuilt.security.types import _decision_arguments
 
-_DATA = frozenset({"str", "int", "float", "bool", "NoneType", "dict"})
-_SCALARS = _DATA - {"dict"}
+_DATA = frozenset({"str", "int", "float", "bool", "NoneType", "dict", "list"})
+_SCALARS = _DATA - {"dict", "list"}
 _SCALAR_TYPES = (str, int, float, bool, type(None))
 
 
@@ -230,6 +230,11 @@ def derive_program(
                 if expression(part, environment) != frozenset({"str"}):
                     reject("format_requires_strings")
             result = frozenset({"str"})
+        elif rule == "list":
+            node(value, 2)
+            for part in sequence(value[1]):
+                expression(part, environment)
+            result = frozenset({"list"})
         elif rule == "dictionary":
             node(value, 2)
             keys = set()
@@ -248,11 +253,13 @@ def derive_program(
             node(value, 4)
             if type(value[1]) is not bool:
                 reject("invalid_comparison")
-            if any(
-                expression(part, environment) != frozenset({"str"})
-                for part in value[2:]
-            ):
-                reject("comparison_requires_strings")
+            left = expression(value[2], environment)
+            right = expression(value[3], environment)
+            numeric = frozenset({"int", "float"})
+            compatible = left == right and left <= _SCALARS
+            compatible = compatible or (left <= numeric and right <= numeric)
+            if not compatible:
+                reject("comparison_requires_compatible_scalars")
             result = frozenset({"bool"})
         elif rule == "pure":
             node(value, 3)

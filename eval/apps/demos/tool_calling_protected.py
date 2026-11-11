@@ -22,6 +22,7 @@ from langgraph.prebuilt.security import (
     install_mac_policy,
     with_principal,
 )
+from runtime_protocol import wait_for_parent
 from timing import ModelTiming
 
 MODEL_DIGEST = "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41"
@@ -323,6 +324,7 @@ def main() -> None:
         }
     else:
         graph_input = {"messages": [("user", prompt)]}
+    wait_for_parent()
     invocation_started = time.perf_counter()
     result = graph.invoke(graph_input, config=config)
     invocation_ms = (time.perf_counter() - invocation_started) * 1000

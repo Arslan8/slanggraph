@@ -26,6 +26,7 @@ from langgraph.prebuilt.security import (
 from pydantic import BaseModel, Field
 from resource_monitors.search_worker import frozen_search as broker_search
 from resource_monitors.security import mediated_language_security
+from runtime_protocol import wait_for_parent
 from sklearn.feature_extraction.text import TfidfVectorizer
 from timing import ModelTiming, assert_tool_parity
 from typing_extensions import TypedDict
@@ -225,6 +226,7 @@ async def run(args) -> None:
     preparation_ms = (time.perf_counter() - preparation_started) * 1000
     status = "completed"
     error = None
+    wait_for_parent()
     invocation_started = time.perf_counter()
     try:
         result = await graph.ainvoke(

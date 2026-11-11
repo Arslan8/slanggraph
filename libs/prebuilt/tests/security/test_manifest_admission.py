@@ -20,7 +20,14 @@ from langgraph.prebuilt.security import (
     cedar_security_many,
     with_principal,
 )
-from langgraph.prebuilt.security.inprocess import read_text
+from langgraph.prebuilt.security.inprocess import read_text, write_text
+from langgraph.prebuilt.security.object_policy import (
+    EnforcementKind,
+    ObjectGrant,
+    ObjectGrantLine,
+)
+from langgraph.prebuilt.security.profile import Requirement
+from langgraph.prebuilt.security.types import Tool, ToolCall, ToolDac
 from tests.security.test_object_policy import _fake_cedar
 
 PERMIT = "permit(principal, action, resource);"
@@ -56,6 +63,12 @@ def two_reads(path: str, other: str) -> str:
     """Read two monitored resources; policy may restrict either one."""
     read_text(other)
     return read_text(path)
+
+
+@tool
+def writer(path: str, value: str) -> str:
+    """Overwrite one exact file through the official resource API."""
+    return write_text(path, value)
 
 
 @tool
@@ -133,6 +146,85 @@ def test_resource_api_requires_active_grant(tmp_path):
     path.write_text("fixture")
     with pytest.raises(PermissionError, match="resource_not_granted"):
         read_text(str(path))
+
+
+def _write_invocation(path: Path, call_id: str) -> tuple[Principal, ToolCall]:
+    principal = Principal("alice", frozenset(), frozenset(), "session")
+    call = ToolCall(
+        Tool("writer", ToolDac("application", {"*": "x"}), frozenset(), ()),
+        {"path": str(path), "value": "x" * 32},
+        {},
+        call_id,
+        0,
+    )
+    return principal, call
+
+
+def _write_grant(path: Path, call_id: str) -> ObjectGrant:
+    return ObjectGrant(
+        "alice",
+        "writer",
+        call_id,
+        "policy",
+        (
+            ObjectGrantLine(
+                "write-line",
+                "fs",
+                "write",
+                str(path),
+                {},
+                Requirement.NEED,
+                EnforcementKind.LANGUAGE_SANDBOX,
+            ),
+        ),
+    )
+
+
+def test_grant_scoped_write_and_alias_restrictions(tmp_path):
+    target = tmp_path / "target.txt"
+    target.write_text("before")
+    secret = tmp_path / "secret.txt"
+    secret.write_text("secret-canary")
+    alias = tmp_path / "secret-alias.txt"
+    alias.symlink_to(secret)
+    security = cedar_security(
+        writer,
+        manifest="runs inprocess\nfs write @{path} need",
+        policy=PERMIT,
+        executable=_fake_cedar(tmp_path),
+    )
+    dispatcher = security.host_executor.dispatcher
+
+    principal, call = _write_invocation(target, "allowed")
+    result = dispatcher.invoke(principal, call, _write_grant(target, "allowed"))
+    assert result.value == "x" * 32
+    assert target.read_bytes() == b"x" * 32
+    for path in (secret, alias):
+        principal, call = _write_invocation(path, path.name)
+        with pytest.raises(HostExecutionDenied, match="resource_not_granted"):
+            dispatcher.invoke(principal, call, _write_grant(target, path.name))
+    assert secret.read_text() == "secret-canary"
+
+
+def test_write_terminal_rejects_hard_linked_target(tmp_path):
+    target = tmp_path / "target.txt"
+    target.write_text("before")
+    alias = tmp_path / "alias.txt"
+    alias.hardlink_to(target)
+    security = cedar_security(
+        writer,
+        manifest="runs inprocess\nfs write @{path} need",
+        policy=PERMIT,
+        executable=_fake_cedar(tmp_path),
+    )
+    principal, call = _write_invocation(target, "hard-link")
+    with pytest.raises(HostExecutionDenied, match="unaliased_regular_file_required"):
+        security.host_executor.dispatcher.invoke(
+            principal,
+            call,
+            _write_grant(target, "hard-link"),
+        )
+    assert target.read_text() == "before"
 
 
 def test_tool_schema_cannot_execute_unverified_validators():

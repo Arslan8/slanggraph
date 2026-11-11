@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "counting_rule": "One row per untrusted tool body; application wrappers and trusted mediator implementations are not counted as admitted tool bodies.",
+  "tool_level": {"language": 20, "host": 1, "total": 21},
+  "application_level": {"wholly_language_isolated": 12, "host_required": 1, "total": 13},
+  "rows": [
+    {"source": "sql_agent.py:list_tables", "current_verdict": "admit", "unsupported": null, "remedy": "readonly_sqlite facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_readonly_sqlite_operations"},
+    {"source": "sql_agent.py:schema", "current_verdict": "admit", "unsupported": null, "remedy": "readonly_sqlite facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_readonly_sqlite_operations"},
+    {"source": "sql_agent.py:query", "current_verdict": "admit", "unsupported": null, "remedy": "readonly_sqlite facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_readonly_sqlite_operations"},
+    {"source": "agentic_rag.py:retrieve", "current_verdict": "admit", "unsupported": null, "remedy": "registered retrieval facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_sklearn_integration_is_useful_reusable_and_grant_scoped"},
+    {"source": "plan_execute.py:search", "current_verdict": "admit", "unsupported": null, "remedy": "registered JSON search facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_sklearn_json_search_returns_only_inert_registered_fields"},
+    {"source": "multi_agent.py:search", "current_verdict": "admit", "unsupported": null, "remedy": "registered JSON search facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_sklearn_json_search_returns_only_inert_registered_fields"},
+    {"source": "multi_agent.py:execute_generated_chart", "current_verdict": "reject", "unsupported": "model-generated Python and native plotting", "remedy": "explicit Linux host sandbox", "final_verdict": "host-required", "route": "host", "test": "application D4 chart oracle and host probes"},
+    {"source": "customer_support.py:fetch_user", "current_verdict": "admit", "unsupported": null, "remedy": "airline SQLite facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_airline_resource"},
+    {"source": "customer_support.py:search_flights", "current_verdict": "admit", "unsupported": null, "remedy": "airline SQLite facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_airline_resource"},
+    {"source": "customer_support.py:update_ticket", "current_verdict": "admit", "unsupported": null, "remedy": "airline SQLite facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_airline_resource"},
+    {"source": "customer_support.py:cancel_ticket", "current_verdict": "admit", "unsupported": null, "remedy": "airline SQLite facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_airline_resource"},
+    {"source": "add_tools_protected.py:tavily_search", "current_verdict": "admit", "unsupported": null, "remedy": "registered JSON search facade", "final_verdict": "admit", "route": "language", "test": "T1 output oracle"},
+    {"source": "tool_calling_protected.py:get_weather", "current_verdict": "admit", "unsupported": null, "remedy": "pure scalar/dictionary computation", "final_verdict": "admit", "route": "language", "test": "T2 output oracle"},
+    {"source": "tool_calling_protected.py:multiply", "current_verdict": "admit", "unsupported": null, "remedy": "pure scalar computation", "final_verdict": "admit", "route": "language", "test": "T5 output oracle"},
+    {"source": "tool_calling_protected.py:add", "current_verdict": "admit", "unsupported": null, "remedy": "pure scalar computation", "final_verdict": "admit", "route": "language", "test": "T6/T8 output oracle"},
+    {"source": "tool_calling_protected.py:greet", "current_verdict": "admit", "unsupported": null, "remedy": "pure string computation", "final_verdict": "admit", "route": "language", "test": "T7 output oracle"},
+    {"source": "persistence_protected.py:tavily_search", "current_verdict": "admit", "unsupported": null, "remedy": "registered JSON search facade", "final_verdict": "admit", "route": "language", "test": "T9/T10 output oracle"},
+    {"source": "ACE:random_values.appointment_time", "current_verdict": "admit", "unsupported": null, "remedy": "random-values facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_two_tools_reuse_one_randomness_integration"},
+    {"source": "ACE:random_values.booking_reference", "current_verdict": "admit", "unsupported": null, "remedy": "random-values facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_two_tools_reuse_one_randomness_integration"},
+    {"source": "ACE:retrieval.search", "current_verdict": "admit", "unsupported": null, "remedy": "retrieval facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_sklearn_integration_is_useful_reusable_and_grant_scoped"},
+    {"source": "ACE:records.read", "current_verdict": "admit", "unsupported": null, "remedy": "SQLite record facade", "final_verdict": "admit", "route": "language", "test": "test_library_mediators.py::test_sqlite_registered_import_runs_and_checks_each_effect"}
+  ],
+  "pandas_boundary": "Generated Pandas code is not claimed as language-admitted. It remains host-isolated; dataset access and publication are mediated and the actual route is recorded per task."
+}

@@ -496,12 +496,12 @@ def _check_lifetime(fns: Mapping[str, ast.FunctionDef], issues: list[str]) -> bo
             ok = False
     finalize = fns.get("LinuxSandboxExecutor._finalize_worker")
     finalize_source = ast.unparse(finalize) if finalize else ""
-    if not all(
-        needle in finalize_source
-        for needle in ("self._schedule_committed_cleanup(", "self._cleanup_worker(")
+    if (
+        "self._cleanup_worker(**cleanup)" not in finalize_source
+        or "self._schedule_committed_cleanup(" in finalize_source
     ):
         issues.append(
-            "lifetime: finalization does not separate trusted commit cleanup from failures"
+            "lifetime: finalization does not complete cleanup before result release"
         )
         ok = False
     ainvoke = fns.get("LinuxSandboxExecutor.ainvoke")

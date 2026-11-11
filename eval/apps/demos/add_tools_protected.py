@@ -25,6 +25,7 @@ from langgraph.prebuilt.security import (
     sklearn_json_search_resource,
     with_principal,
 )
+from runtime_protocol import wait_for_parent
 from timing import ModelTiming
 from typing_extensions import TypedDict
 
@@ -156,6 +157,7 @@ def main() -> None:
     if selected is not None:
         config = with_principal(config, principal, modules=selected.modules)
     preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    wait_for_parent()
     invocation_started = time.perf_counter()
     result = graph.invoke({"messages": [("user", args.prompt)]}, config=config)
     invocation_ms = (time.perf_counter() - invocation_started) * 1000

@@ -123,6 +123,13 @@ node_modules/
 !/eval/campaigns/*/*.md
 !/eval/campaigns/*/acceptance.json
 !/eval/campaigns/remaining-v1/tasks.json
+!/eval/campaigns/argus-paper-revision-v1/retained/
+!/eval/campaigns/argus-paper-revision-v1/retained/remote-tool/
+!/eval/campaigns/argus-paper-revision-v1/retained/remote-tool/*
+!/eval/campaigns/unified-final-v1/
+!/eval/campaigns/unified-final-v1/**
+/eval/campaigns/unified-final-v1/raw-pandas-qualification/
+/eval/campaigns/unified-final-v1/results/
 /eval/reports/**
 !/eval/reports/**/
 !/eval/reports/**/*.md

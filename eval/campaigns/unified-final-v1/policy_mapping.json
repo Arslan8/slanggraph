@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "categories": ["matched-policy", "best-available-reduced-enforcement"],
+  "global_obligations": [
+    "principal-object-operation authorization",
+    "least-privilege filesystem access",
+    "least-privilege network access",
+    "child-process restriction where required",
+    "direct-access bypass prevention"
+  ],
+  "mappings": [
+    {
+      "scope": "D1,D2,D3,D5,T1,T2,T5,T6,T7,T8,T9,T10",
+      "argus": "Cedar object/action grant plus admitted language terminals and registered mediators",
+      "nono": "host filesystem/network/process policy",
+      "apf": "OpenShell projected filesystem/network/process policy",
+      "nono_category": "best-available-reduced-enforcement",
+      "apf_category": "best-available-reduced-enforcement",
+      "omitted_obligation": "typed library object/action mediation and admitted-language direct-bypass prevention",
+      "positive_test": "authorized task completes with its exact fixture and model endpoint",
+      "negative_test": "sibling fixture, source write, other network port, and direct mediator bypass are denied"
+    },
+    {
+      "scope": "D4-multi-agent",
+      "argus": "Cedar grant plus Linux generated-code sandbox and typed retrieval mediator",
+      "nono": "host filesystem/network/process policy",
+      "apf": "OpenShell projected filesystem/network/process policy",
+      "nono_category": "best-available-reduced-enforcement",
+      "apf_category": "best-available-reduced-enforcement",
+      "omitted_obligation": "typed retrieval object/action mediation",
+      "positive_test": "authorized chart generation succeeds",
+      "negative_test": "ungranted fixture, source write, child process, and network endpoint probes are denied"
+    },
+    {
+      "scope": "microbenchmark-files",
+      "argus": "exact canonical file selector and read/write operation",
+      "nono": null,
+      "apf": null,
+      "nono_category": null,
+      "apf_category": null,
+      "omitted_obligation": null,
+      "positive_test": "designated operation returns exact bytes",
+      "negative_test": "sibling secret, unauthorized operation, alternate path, and symlink are denied"
+    }
+  ]
+}

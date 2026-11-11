@@ -1,0 +1,5 @@
+{"allowed": true, "case_id": "allowed_remote_call", "city": "paris", "error": null, "expected_allowed": true, "principal": "alice", "remote_executions": 1, "result": {"city": "paris", "forecast": "clear", "source": "toy-remote-weather-v1"}}
+{"allowed": false, "case_id": "denied_principal", "city": "paris", "error": {"message": "Access denied by security: object_policy:dac:envelope:remote_weather:0", "type": "ToolMessageError"}, "expected_allowed": false, "principal": "bob", "remote_executions": 0, "result": null}
+{"allowed": false, "case_id": "denied_selector", "city": "berlin", "error": {"message": "Access denied by security: object_policy:dac:envelope:remote_weather:0", "type": "ToolMessageError"}, "expected_allowed": false, "principal": "alice", "remote_executions": 0, "result": null}
+{"allowed": false, "case_id": "replayed_capability", "expected_allowed": false, "http_status": 409, "remote_executions": 0, "result": {"error": "replayed_capability"}}
+{"allowed": false, "case_id": "tampered_arguments", "expected_allowed": false, "http_status": 401, "remote_executions": 0, "result": {"error": "invalid_signature"}}

@@ -37,6 +37,8 @@ def inert_copy(value: Any, depth: int = 0) -> Any:
     kind = type(value)
     if kind is str or kind is int or kind is bool or kind is float or value is None:
         return value
+    if kind is list:
+        return [inert_copy(child, depth + 1) for child in value]
     if type(value) is dict and all(type(key) is str for key in value):
         return {key: inert_copy(child, depth + 1) for key, child in value.items()}
     raise HostExecutionDenied("language_sandbox:non_data_result")
@@ -146,6 +148,8 @@ class LanguageProgram:
                         for part in node.values
                     ),
                 )
+            if isinstance(node, ast.List):
+                return ("list", tuple(expression(value) for value in node.elts))
             if isinstance(node, ast.Dict):
                 if any(
                     not isinstance(key, ast.Constant) or type(key.value) is not str
@@ -191,6 +195,8 @@ class LanguageProgram:
                 )
             if isinstance(node, ast.Call):
                 target = canonical_import_target(ast.unparse(node.func), aliases or {})
+                if isinstance(node.func, ast.Name):
+                    target = terminal_aliases.get(node.func.id, target)
                 if (
                     isinstance(node.func, ast.Name)
                     and target in PURE_BUILTINS
@@ -221,6 +227,45 @@ class LanguageProgram:
                 f"language_sandbox:unsupported_expression:{type(node).__name__}"
             )
 
+        parameter_names = {
+            arg.arg
+            for arg in (
+                *entry.args.posonlyargs,
+                *entry.args.args,
+                *entry.args.kwonlyargs,
+            )
+        }
+        assignment_counts: dict[str, int] = {}
+        for candidate in ast.walk(entry):
+            if isinstance(candidate, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+                targets = (
+                    candidate.targets
+                    if isinstance(candidate, ast.Assign)
+                    else (candidate.target,)
+                )
+                for target_node in targets:
+                    if isinstance(target_node, ast.Name):
+                        assignment_counts[target_node.id] = (
+                            assignment_counts.get(target_node.id, 0) + 1
+                        )
+        terminal_aliases: dict[str, str] = {}
+        for candidate in entry.body:
+            if (
+                isinstance(candidate, ast.Assign)
+                and len(candidate.targets) == 1
+                and isinstance(candidate.targets[0], ast.Name)
+            ):
+                target = canonical_import_target(
+                    ast.unparse(candidate.value), aliases or {}
+                )
+                name = candidate.targets[0].id
+                if target in terminals:
+                    if name in parameter_names or assignment_counts.get(name) != 1:
+                        raise SecurityConfigurationError(
+                            "language_sandbox:terminal_alias_reassigned"
+                        )
+                    terminal_aliases[name] = target
+
         loop_serial = 0
 
         def statements(nodes):
@@ -241,6 +286,15 @@ class LanguageProgram:
                 elif isinstance(node, ast.Assign) and all(
                     isinstance(target, ast.Name) for target in node.targets
                 ):
+                    if (
+                        len(node.targets) == 1
+                        and node.targets[0].id in terminal_aliases
+                        and terminal_aliases[node.targets[0].id]
+                        == canonical_import_target(
+                            ast.unparse(node.value), aliases or {}
+                        )
+                    ):
+                        continue
                     output.append(
                         (
                             "assign",
@@ -432,13 +486,23 @@ class LanguageProgram:
                         "language_sandbox:format_requires_strings"
                     )
                 return "".join(parts)
+            if kind == "list":
+                return [expression(part) for part in node[1]]
             if kind == "dictionary":
                 return {key: expression(part) for key, part in node[1]}
             if kind == "compare":
                 left, right = expression(node[2]), expression(node[3])
-                if type(left) is not str or type(right) is not str:
+                if type(left) not in {str, int, float, bool, type(None)} or type(
+                    right
+                ) not in {str, int, float, bool, type(None)}:
                     raise HostExecutionDenied(
-                        "language_sandbox:comparison_requires_strings"
+                        "language_sandbox:comparison_requires_scalars"
+                    )
+                if type(left) is not type(right) and not (
+                    type(left) in {int, float} and type(right) in {int, float}
+                ):
+                    raise HostExecutionDenied(
+                        "language_sandbox:comparison_requires_compatible_scalars"
                     )
                 return (left == right) if node[1] else (left != right)
             if kind == "pure":

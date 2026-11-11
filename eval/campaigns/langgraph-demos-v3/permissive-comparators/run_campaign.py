@@ -18,6 +18,8 @@ from pathlib import Path
 
 import yaml
 
+from slanggraph_eval.ready_process import ReadyProcessResult, run_ready_process
+
 CAMPAIGN = Path(__file__).resolve().parent
 V3 = CAMPAIGN.parent
 ROOT = V3.parents[2]
@@ -29,11 +31,11 @@ APF_POLICY = CAMPAIGN / "apf-policy.yaml"
 APF_PROJECTED_POLICY = CAMPAIGN / "apf-projected-policy.json"
 APF_EXPORTER = ROOT / "eval/remaining/apf_probe/target/debug/export_policy"
 DEFAULT_OPENSHELL_IMAGE_ID = (
-    "sha256:82e95e8b7e3bb7ccdcf65c806a0b37435b0e086d36946b596e743a935eef8e19"
+    "sha256:71b2246e9c313c22051684459d6c5e009a97cf05305d263abe1049c2330dfe19"
 )
 SEED = 20261028
 MODES = ("Baseline", "Argus", "NoNo-enforced", "APF-enforced")
-APF_IMAGE = "slg-apf-apps:bd035dd06"
+APF_IMAGE = "slg-unified-final-v1:ready-v1"
 MODEL_RELAY = (
     "/data/langgraph/eval/campaigns/langgraph-demos-v3/permissive-comparators/model_relay.py"
 )
@@ -123,6 +125,118 @@ def run_with_process_group_cleanup(
         timed_out=False,
         cleanup_confirmed=True,
         process_group_id=process.pid,
+    )
+
+
+def run_apf_ready_process(
+    command: list[str],
+    *,
+    cwd: Path,
+    cli: Path,
+    endpoint: str,
+    sandbox: str,
+    ready_path: Path,
+    go_path: Path,
+    preflight_timeout: float,
+    runtime_timeout: float,
+    cleanup_grace_seconds: float = 5.0,
+) -> ReadyProcessResult:
+    """Use APF-visible files because OpenShell exec does not stream child stdio."""
+    preflight_started = time.monotonic_ns()
+    process = subprocess.Popen(
+        command,
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+    )
+    deadline = time.monotonic() + preflight_timeout
+    ready_observed = False
+    while process.poll() is None and time.monotonic() < deadline:
+        probe = openshell_exec(
+            cli,
+            endpoint,
+            sandbox,
+            ["/bin/cat", str(ready_path)],
+            timeout=5,
+            cwd=None,
+        )
+        if probe.returncode == 0:
+            try:
+                ready_observed = json.loads(probe.stdout) == {
+                    "argus_eval_protocol": 1,
+                    "state": "ready",
+                }
+            except json.JSONDecodeError:
+                ready_observed = False
+            if ready_observed:
+                break
+        time.sleep(0.01)
+    preflight_ns = time.monotonic_ns() - preflight_started
+    if not ready_observed:
+        preflight_timed_out = process.poll() is None
+        cleanup_confirmed = _terminate_process_group(process, cleanup_grace_seconds)
+        stdout, stderr = process.communicate()
+        now = time.monotonic_ns()
+        return ReadyProcessResult(
+            returncode=process.returncode,
+            stdout=stdout,
+            stderr=stderr,
+            timed_out=preflight_timed_out,
+            ready_observed=False,
+            cleanup_confirmed=cleanup_confirmed,
+            process_group_id=process.pid,
+            preflight_ns=preflight_ns,
+            runtime_start_ns=now,
+            runtime_end_ns=now,
+        )
+
+    runtime_start_ns = time.monotonic_ns()
+    go = openshell_exec(
+        cli,
+        endpoint,
+        sandbox,
+        ["/usr/bin/touch", str(go_path)],
+        timeout=30,
+        cwd=None,
+    )
+    if go.returncode != 0:
+        cleanup_confirmed = _terminate_process_group(process, cleanup_grace_seconds)
+        stdout, stderr = process.communicate()
+        runtime_end_ns = time.monotonic_ns()
+        return ReadyProcessResult(
+            returncode=process.returncode,
+            stdout=stdout,
+            stderr=f"{stderr}\nfailed to release APF timing barrier: {go.stderr}",
+            timed_out=False,
+            ready_observed=True,
+            cleanup_confirmed=cleanup_confirmed,
+            process_group_id=process.pid,
+            preflight_ns=preflight_ns,
+            runtime_start_ns=runtime_start_ns,
+            runtime_end_ns=runtime_end_ns,
+        )
+    timed_out = False
+    try:
+        stdout, stderr = process.communicate(timeout=runtime_timeout)
+        cleanup_confirmed = True
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        cleanup_confirmed = _terminate_process_group(process, cleanup_grace_seconds)
+        stdout, stderr = process.communicate()
+    runtime_end_ns = time.monotonic_ns()
+    return ReadyProcessResult(
+        returncode=None if timed_out else process.returncode,
+        stdout=stdout,
+        stderr=stderr,
+        timed_out=timed_out,
+        ready_observed=True,
+        cleanup_confirmed=cleanup_confirmed,
+        process_group_id=process.pid,
+        preflight_ns=preflight_ns,
+        runtime_start_ns=runtime_start_ns,
+        runtime_end_ns=runtime_end_ns,
     )
 
 
@@ -366,6 +480,8 @@ def execute_external(
         }
     else:
         inner_trial = Path("/workspace/results")
+        apf_ready = inner_trial / "runtime-ready.json"
+        apf_go = inner_trial / "runtime-go"
         sandbox = apf_sandbox_name(root, job)
         subprocess.run(
             [*openshell_prefix(openshell, endpoint), "sandbox", "delete", sandbox],
@@ -435,29 +551,54 @@ def execute_external(
             "--workdir",
             "/data/langgraph",
             "--",
+            "/usr/bin/env",
+            "ARGUS_EVAL_READY_PROTOCOL=1",
+            f"ARGUS_EVAL_READY_FILE={apf_ready}",
+            f"ARGUS_EVAL_GO_FILE={apf_go}",
             *inner_command,
         ]
 
-    started = time.perf_counter()
     timed_out = False
     timeout_cleanup_confirmed = None
+    ready_observed = False
+    runtime_start_ns = time.monotonic_ns()
+    runtime_end_ns = runtime_start_ns
+    child_preflight_ns = 0
     if job.mode == "APF-enforced" and setup.returncode != 0:
         returncode = setup.returncode
         stdout = setup.stdout
         stderr = "\n".join(setup_errors)
         process_wall_ms = 0.0
     else:
-        completed = run_with_process_group_cleanup(
-            executed_command,
-            cwd=execution_cwd,
-            env=execution_env,
-            timeout=timeout + (30 if job.mode == "APF-enforced" else 0),
-        )
+        if job.mode == "APF-enforced":
+            completed = run_apf_ready_process(
+                executed_command,
+                cwd=execution_cwd,
+                cli=openshell,
+                endpoint=endpoint,
+                sandbox=sandbox,
+                ready_path=apf_ready,
+                go_path=apf_go,
+                preflight_timeout=timeout + 30,
+                runtime_timeout=timeout,
+            )
+        else:
+            completed = run_ready_process(
+                executed_command,
+                cwd=execution_cwd,
+                env=execution_env,
+                preflight_timeout=timeout,
+                runtime_timeout=timeout,
+            )
         timed_out = completed.timed_out
         timeout_cleanup_confirmed = completed.cleanup_confirmed
+        ready_observed = completed.ready_observed
+        child_preflight_ns = completed.preflight_ns
+        runtime_start_ns = completed.runtime_start_ns
+        runtime_end_ns = completed.runtime_end_ns
         returncode = completed.returncode
         stdout, stderr = completed.stdout, completed.stderr
-        process_wall_ms = timeout * 1000.0 if timed_out else (time.perf_counter() - started) * 1000
+        process_wall_ms = completed.runtime_ns / 1_000_000
 
     if job.mode == "APF-enforced" and setup.returncode == 0:
         retrieval_error = read_apf_output(
@@ -491,6 +632,10 @@ def execute_external(
         if not cleanup_confirmed:
             retrieval_error += f"\nfailed to delete sandbox {sandbox}: {cleanup.stderr}"
 
+    if ready_observed:
+        runtime_end_ns = time.monotonic_ns()
+        process_wall_ms = (runtime_end_ns - runtime_start_ns) / 1_000_000
+
     inner = json.loads(output.read_text()) if output.exists() else {}
     if timed_out:
         status = "timeout"
@@ -516,6 +661,11 @@ def execute_external(
         "status": status,
         "correct": correct,
         "process_wall_ms": process_wall_ms,
+        "preflight_ns": int(sandbox_preparation_ms * 1_000_000) + child_preflight_ns,
+        "runtime_start_ns": runtime_start_ns,
+        "runtime_end_ns": runtime_end_ns,
+        "runtime_ns": runtime_end_ns - runtime_start_ns,
+        "ready_observed": ready_observed,
         "timeout_cap_seconds": timeout,
         "censored": timed_out,
         "timeout_cleanup_confirmed": timeout_cleanup_confirmed,
@@ -525,7 +675,9 @@ def execute_external(
         "sandbox_preparation_ms": sandbox_preparation_ms,
         "sandbox_cleanup_ms": cleanup_ms,
         "sandbox_cleanup_confirmed": cleanup_confirmed,
-        "end_to_end_wall_ms": sandbox_preparation_ms + process_wall_ms + cleanup_ms,
+        "end_to_end_wall_ms": (
+            sandbox_preparation_ms + child_preflight_ns / 1_000_000 + process_wall_ms
+        ),
         "model_time_ms": inner.get("model_time_ms"),
         "model_calls": inner.get("model_calls"),
         "application_route": inner.get("isolation_route"),

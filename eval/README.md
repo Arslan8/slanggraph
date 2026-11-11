@@ -60,6 +60,14 @@ preflight failure and earlier single-session estimates remain available in the
 new measurements. The [native-chain report](reports/native-chain-v2/report.md)
 uses an explicitly separate exec-enabled profile.
 
+The paper-revision campaign also includes a deterministic
+[remote-tool deployment case](campaigns/argus-paper-revision-v1/README.md#tool-deployment-coverage).
+It sends an authorized tool request to a separate loopback HTTP service process,
+so the evaluation covers in-process, local executable, and server-hosted tool
+shapes without relying on a live external system. The case is explicitly scoped
+to authorization and request-bound delegation; it is not evidence that local
+isolation confines or verifies the remote service.
+
 ## Application study
 
 The new local-model application study is documented in [APPLICATIONS.md](APPLICATIONS.md).

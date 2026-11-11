@@ -7,6 +7,6 @@ resource enforcement. The old `security.inprocess` import remains compatible.
 from langgraph.prebuilt.security.inprocess import (
     ManifestAdmission as LanguageSandboxAdmission,
 )
-from langgraph.prebuilt.security.inprocess import read_text
+from langgraph.prebuilt.security.inprocess import read_text, write_text
 
-__all__ = ["LanguageSandboxAdmission", "read_text"]
+__all__ = ["LanguageSandboxAdmission", "read_text", "write_text"]

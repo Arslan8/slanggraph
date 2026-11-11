@@ -148,7 +148,11 @@ def capture_lean_worker(
     data = binary.read_bytes()
     if not data or hashlib.sha256(data).hexdigest() != expected_digest:
         raise ValueError("The selected Lean worker bytes do not match the pin")
-    target = output / ("libargus_worker_route" + binary.suffix if binary.suffix in {".so", ".dylib"} else "workerRoute")
+    target = output / (
+        "libargus_worker_route" + binary.suffix
+        if binary.suffix in {".so", ".dylib"}
+        else "workerRoute"
+    )
     with target.open("xb") as stream:
         stream.write(data)
     target.chmod(0o500)

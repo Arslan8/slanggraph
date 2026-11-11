@@ -8,6 +8,7 @@ macOS is outside this campaign. No Linux result below depends on macOS evidence.
 | Linux object broker without checker | Present | May be present | May be present | Present | Present | Checker absent | Present | **No** |
 | Direct Linux sandbox + Lean | Cedar/profile route | Route-dependent | Supported | bubblewrap/Landlock/seccomp | Exact files, not the record-broker composition | Lean integrated | Audit/cleanup | **No** for the paper's record-mediation configuration |
 | Authorization-only or isolation-only ablation | Partial | No | No | At most one layer | Direct bypass remains or useful access is denied | Incomplete | Partial | **No** |
+| Toy remote HTTP tool | Required | Not exercised | Open admission; evaluation dispatcher is not admitted by the closed production inventory | Remote service is a separate process; no local confinement claim | Request-bound HMAC delegation; service checks exact principal, tool, call, selector, arguments, and one-use nonce | Synthetic evaluation receipt; no worker lifecycle claim | Service request observation and clean process exit | **No**; deployment-shape evidence only |
 
 The complete label is conjunctive. `preflight.py` requires every component and
 then validates four checker-backed calls plus independent SQLite state. The
@@ -28,3 +29,12 @@ Landlock executor without a `LeanLifecycleChecker`. The complete route now
 requires the checker, projects canonical resource rules, checks the grant before
 effects, checks lifecycle state before `GO` and result release, and retains the
 certificates. Missing or altered obligations are rejected before tool execution.
+
+The toy remote row closes an evaluation-coverage gap; it does not extend the
+complete production configuration. Its five deterministic cases are retained
+under `retained/remote-tool/`. The local controller performs the real Cedar
+decision before issuing a request, while the toy service is trusted to verify
+the delegated scope. A real remote deployment would additionally need a
+supported dispatcher, service identity and attestation, key management,
+transport security, availability handling, and evidence for the remote
+implementation.

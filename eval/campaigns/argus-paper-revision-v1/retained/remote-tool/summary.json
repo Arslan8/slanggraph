@@ -1,0 +1,11 @@
+{
+  "allowed_cases": 1,
+  "cases": 5,
+  "deployment": "toy remote HTTP service",
+  "live_external_system": false,
+  "passed": true,
+  "remote_executions": 1,
+  "scope": "call authorization and request-bound delegation only; the remote service and its tool implementation are trusted and not locally confined",
+  "separate_service_process": true,
+  "service_process_exitcode": 0
+}

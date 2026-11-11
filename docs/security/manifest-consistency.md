@@ -68,7 +68,7 @@ Isolated `runs linux`/`runs broker` tools retain their host confinement path.
 Only approved framework APIs are modeled during admission. The local file API is:
 
 ```python
-from langgraph.prebuilt.security.language_sandbox import read_text
+from langgraph.prebuilt.security.language_sandbox import read_text, write_text
 
 @tool
 def read_document(path: str) -> str:
@@ -79,6 +79,9 @@ def read_document(path: str) -> str:
 Declare `fs read @{path} need` in its manifest. `read_text` checks the current
 invocation's surviving grant; an optional permission removed by MAC cannot be
 used. Import this function directly at module scope (an alias is supported).
+For an existing designated output, `write_text(path, value)` is modeled by
+`fs write @{path} need`; it rejects symbolic and hard-link aliases and closes
+the pinned write descriptor before the result is released.
 Direct `open`, `Path.read_text`, arbitrary helpers, and unregistered resource
 APIs are rejected. Source availability alone does not approve a helper or its
 transitive libraries: without a reviewed terminal contract or complete supported
@@ -310,8 +313,9 @@ class directive is `enforced_by language_sandbox`. `trusted_tool` is a deprecate
 parser alias and `EnforcementKind.TRUSTED_TOOL` is a compatibility alias; new
 receipts and generated declarations use `language_sandbox`. `runs inprocess`
 continues to describe location, not an enforcement mechanism. The canonical
-resource API import is `langgraph.prebuilt.security.language_sandbox.read_text`;
-the older `security.inprocess` import remains compatible.
+resource API imports are `langgraph.prebuilt.security.language_sandbox.read_text`
+and `langgraph.prebuilt.security.language_sandbox.write_text`; the older
+`security.inprocess` import remains compatible.
 
 Checking `eval` and `exec` is insufficient. The executable boundary is an
 immutable data program lowered from the checked AST, with no Python bytecode

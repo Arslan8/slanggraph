@@ -12,6 +12,12 @@ def keyword : Code := (.seq .pure (.seq (.seq .pure (.seq (.effect "read_text") 
 example : check ["read_text"] keyword = true := by decide
 def dictionary : Code := (.seq (.seq (.seq .pure (.seq (.effect "read_text") .pure)) .pure) .pure)
 example : check ["read_text"] dictionary = true := by decide
+def list_dictionary : Code := (.seq (.seq (.seq .pure (.seq (.effect "read_text") .pure)) (.seq .pure .pure)) (.seq (.seq (.seq .pure (.seq .pure .pure)) (.seq (.seq .pure .pure) .pure)) .pure))
+example : check ["read_text"] list_dictionary = true := by decide
+def terminal_alias : Code := (.seq (.seq .pure (.seq (.effect "read_text") .pure)) .pure)
+example : check ["read_text"] terminal_alias = true := by decide
+def numeric_equality : Code := (.seq .pure (.seq .pure (.seq (.seq .pure .pure) (.seq (.seq .pure .pure) (.seq (.seq (.repeat (.seq (.seq .pure (.seq .pure (.seq .pure .pure))) (.seq .pure (.seq (.seq .pure (.seq .pure .pure)) (.seq (.seq (.seq (.seq .pure (.seq .pure .pure)) (.seq .pure .pure)) (.choice (.seq (.seq .pure (.seq .pure .pure)) .pure) .pure)) .pure))))) (.seq (.seq .pure (.seq .pure (.seq .pure .pure))) .pure)) (.seq (.seq .pure (.seq (.effect "read_text") .pure)) .pure))))))
+example : check ["read_text"] numeric_equality = true := by decide
 def while_reads : Code := (.seq .pure (.seq (.seq (.repeat (.seq (.seq .pure (.seq (.seq .pure .pure) .pure)) (.seq (.seq .pure (.seq (.effect "read_text") .pure)) (.seq (.seq .pure (.seq .pure .pure)) .pure)))) (.seq (.seq .pure (.seq (.seq .pure .pure) .pure)) .pure)) (.seq .pure .pure)))
 example : check ["read_text"] while_reads = true := by decide
 def for_reads : Code := (.seq .pure (.seq (.seq .pure .pure) (.seq (.seq .pure .pure) (.seq (.seq (.repeat (.seq (.seq .pure (.seq .pure (.seq .pure .pure))) (.seq .pure (.seq (.seq .pure (.seq .pure .pure)) (.seq (.seq .pure (.seq (.effect "read_text") .pure)) .pure))))) (.seq (.seq .pure (.seq .pure (.seq .pure .pure))) .pure)) (.seq .pure .pure)))))

@@ -173,7 +173,7 @@ _HOST_CONTROL_CLASSES = (
 _LANGUAGE_SANDBOX_CORE_CLASSES = (
     ObjectClass(
         name="fs",
-        operations=frozenset({"read"}),
+        operations=frozenset({"read", "write"}),
         object_kind="path",
         normalizer="fs.realpath",
         enforced_by=EnforcementKind.LANGUAGE_SANDBOX,

@@ -14,6 +14,7 @@ from langgraph.prebuilt.security.execution import HostExecutionDenied
 PURE_BUILTINS = frozenset({"int", "float", "str", "bool", "len"})
 _NUMERIC = frozenset({"int", "float"})
 _SCALARS = frozenset({"str", "int", "float", "bool", "NoneType"})
+_DATA = _SCALARS | {"dict", "list"}
 _OPS = {
     "add": operator.add,
     "sub": operator.sub,
@@ -61,7 +62,7 @@ def pure_type(op: str, arguments: list[frozenset[str]]) -> frozenset[str]:
         return frozenset({op})
     if op in {"int", "float"} and left <= {"str", "int", "float", "bool"}:
         return frozenset({op})
-    if op == "len" and left == {"str"}:
+    if op == "len" and left in ({"str"}, {"list"}, {"dict"}):
         return frozenset({"int"})
     if op == "not" and left == {"bool"}:
         return frozenset({"bool"})
@@ -69,8 +70,13 @@ def pure_type(op: str, arguments: list[frozenset[str]]) -> frozenset[str]:
         return left
     if len(arguments) == 2:
         right = arguments[1]
-        if op == "getitem" and left == {"str"} and right == {"int"}:
-            return frozenset({"str"})
+        if op == "getitem":
+            if left == {"str"} and right == {"int"}:
+                return frozenset({"str"})
+            if left == {"list"} and right == {"int"}:
+                return _DATA
+            if left == {"dict"} and right == {"str"}:
+                return _DATA
         if op == "add" and left == right == {"str"}:
             return frozenset({"str"})
         if op in {"lt", "le", "gt", "ge"} and (
@@ -94,9 +100,31 @@ def pure_eval(op: str, arguments: list[object]) -> object:
     kinds = []
     for value in arguments:
         # Do not access __name__ on an attacker-controlled metaclass.
-        if not any(type(value) is k for k in (str, int, float, bool, type(None))):
+        if not any(
+            type(value) is k for k in (str, int, float, bool, type(None), list, dict)
+        ):
             raise HostExecutionDenied("language_sandbox:non_data_operand")
         kinds.append(frozenset({type(value).__name__}))
+    if op == "getitem" and len(arguments) == 2:
+        container, key = arguments
+        try:
+            pure_type(op, kinds)
+            if type(container) is list:
+                return list.__getitem__(container, key)
+            if type(container) is dict:
+                return dict.__getitem__(container, key)
+            if type(container) is str:
+                return str.__getitem__(container, key)
+        except (
+            SecurityConfigurationError,
+            ValueError,
+            TypeError,
+            IndexError,
+            KeyError,
+        ):
+            raise HostExecutionDenied(
+                "language_sandbox:invalid_pure_operation"
+            ) from None
     try:
         pure_type(op, kinds)
         return _OPS[op](*arguments)

@@ -25,6 +25,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt.security import Principal, install_mac_policy, with_principal
+from runtime_protocol import wait_for_parent
 from timing import ModelTiming
 from typing_extensions import TypedDict
 
@@ -116,6 +117,7 @@ def main() -> None:
     if selected is not None:
         config = with_principal(config, principal, modules=selected.modules)
     preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    wait_for_parent()
     invocation_started = time.perf_counter()
     first = graph.invoke(
         {

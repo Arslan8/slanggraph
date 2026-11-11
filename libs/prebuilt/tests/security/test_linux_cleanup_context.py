@@ -12,9 +12,8 @@ import hashlib
 import os
 import subprocess
 import sys
-import time
 from pathlib import Path
-from threading import Event, RLock
+from threading import RLock
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -55,31 +54,30 @@ print(json.dumps({"status": "ok", "result": "useful-result"}), flush=True)
 """
 
 
-def test_committed_worker_cleanup_runs_off_the_invocation_path(monkeypatch):
+def test_committed_worker_cleanup_finishes_before_result_release(monkeypatch):
     executor = object.__new__(LinuxSandboxExecutor)
-    executor._reaper_lock = RLock()
-    executor._reaper_threads = set()
-    started = Event()
-    release = Event()
+    cleaned = []
 
-    def cleanup(**_):
-        started.set()
-        assert release.wait(2)
+    def cleanup(**values):
+        cleaned.append(values)
 
     monkeypatch.setattr(executor, "_cleanup_worker", cleanup)
-    executor._schedule_committed_cleanup({})
-    assert started.wait(1)
-    with executor._reaper_lock:
-        assert len(executor._reaper_threads) == 1
-    release.set()
-    deadline = time.monotonic() + 2
-    while time.monotonic() < deadline:
-        with executor._reaper_lock:
-            if not executor._reaper_threads:
-                break
-        time.sleep(0.001)
-    with executor._reaper_lock:
-        assert not executor._reaper_threads
+    executor._finalize_worker(
+        status_read=1,
+        status_write=2,
+        inherited_fds=(),
+        process=None,
+        child_pid=None,
+        child_start_time=None,
+        artifact_directory=None,
+        host=Mock(),
+        receipt=None,
+        leases=(),
+        active_error=None,
+        success_committed=True,
+    )
+    assert len(cleaned) == 1
+    assert cleaned[0]["active_error"] is None
 
 
 @pytest.fixture
@@ -200,11 +198,6 @@ def worker(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         return original_cleanup(**kwargs)
 
     monkeypatch.setattr(executor, "_cleanup_worker", cleanup)
-    monkeypatch.setattr(
-        executor,
-        "_schedule_committed_cleanup",
-        lambda values: executor._cleanup_worker(**values),
-    )
     harness.run = lambda: executor._run_worker(
         harness.principal,
         harness.call,

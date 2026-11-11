@@ -28,6 +28,7 @@ from resource_monitors.security import mediated_language_security
 from resource_monitors.sql_worker import list_tables as broker_list_tables
 from resource_monitors.sql_worker import query as broker_query
 from resource_monitors.sql_worker import schema as broker_schema
+from runtime_protocol import wait_for_parent
 from timing import ModelTiming, assert_tool_parity
 
 MODEL = {
@@ -321,6 +322,7 @@ def main() -> None:
             modules=security.modules,
         )
     preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    wait_for_parent()
     invocation_started = time.perf_counter()
     result = graph.invoke({"messages": [("user", args.prompt)]}, config=config)
     invocation_ms = (time.perf_counter() - invocation_started) * 1000

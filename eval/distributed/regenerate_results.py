@@ -219,12 +219,8 @@ def external_probes(rows: list[dict]) -> list[dict]:
             "case_id": case,
             "trials": len(selected),
             "tool_executed": sum(bool(row.get("tool_executed")) for row in selected),
-            "unauthorized_effects": sum(
-                bool(row.get("unauthorized_effect")) for row in selected
-            ),
-            "classification": sorted(
-                {str(row.get("classification")) for row in selected}
-            ),
+            "unauthorized_effects": sum(bool(row.get("unauthorized_effect")) for row in selected),
+            "classification": sorted({str(row.get("classification")) for row in selected}),
             "full_system_comparison": False,
         }
         for (system, kind, case), selected in sorted(groups.items())
@@ -252,18 +248,10 @@ def fare_results(rows: list[dict]) -> list[dict]:
             "authorization_failures": sum(
                 bool(row.get("authorization_failure")) for row in selected
             ),
-            "activation_failures": sum(
-                bool(row.get("activation_failure")) for row in selected
-            ),
-            "execution_failures": sum(
-                bool(row.get("execution_failure")) for row in selected
-            ),
-            "protected_activations": sum(
-                bool(row.get("activation_receipts")) for row in selected
-            ),
-            "selection_control": all(
-                bool(row.get("selection_control")) for row in selected
-            ),
+            "activation_failures": sum(bool(row.get("activation_failure")) for row in selected),
+            "execution_failures": sum(bool(row.get("execution_failure")) for row in selected),
+            "protected_activations": sum(bool(row.get("activation_receipts")) for row in selected),
+            "selection_control": all(bool(row.get("selection_control")) for row in selected),
             "metro_omitted": sum(
                 not bool(row.get("security_outcome", {}).get("metro_not_omitted"))
                 for row in selected
@@ -278,9 +266,7 @@ def fare_results(rows: list[dict]) -> list[dict]:
 
 
 def fare_negative_control(rows: list[dict]) -> dict:
-    selected = [
-        row for row in rows if row.get("record_type") == "operator_negative_control"
-    ]
+    selected = [row for row in rows if row.get("record_type") == "operator_negative_control"]
     return {
         "trials": len(selected),
         "denied_before_activation": sum(
@@ -288,9 +274,7 @@ def fare_negative_control(rows: list[dict]) -> dict:
         ),
         "body_executed": sum(bool(row.get("body_executed")) for row in selected),
         "grants_issued": sum(len(row.get("authorization_grants", [])) for row in selected),
-        "activation_receipts": sum(
-            len(row.get("activation_receipts", [])) for row in selected
-        ),
+        "activation_receipts": sum(len(row.get("activation_receipts", [])) for row in selected),
     }
 
 

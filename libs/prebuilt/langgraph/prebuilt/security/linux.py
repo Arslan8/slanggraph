@@ -22,7 +22,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from pathlib import Path
-from threading import RLock, Thread, current_thread
+from threading import RLock
 from types import MappingProxyType
 from typing import Any
 
@@ -495,8 +495,6 @@ class LinuxSandboxExecutor:
             str, tuple[tuple[OstreeDeploymentManager, DeploymentLease], ...]
         ] = {}
         self._termination_lock = RLock()
-        self._reaper_lock = RLock()
-        self._reaper_threads: set[Thread] = set()
         self.worker_pool_capacity = worker_pool_capacity
         self.worker_pool_idle_s = worker_pool_idle_s
         self.integrity_recheck = recheck_mode
@@ -551,10 +549,6 @@ class LinuxSandboxExecutor:
             except OSError:
                 pass
             self._release_deployment_leases(worker.leases)
-        with self._reaper_lock:
-            reapers = tuple(self._reaper_threads)
-        for reaper in reapers:
-            reaper.join(timeout=2.0)
 
     def prewarm(
         self,
@@ -1864,6 +1858,7 @@ class LinuxSandboxExecutor:
         active_error: BaseException | None,
         success_committed: bool,
     ) -> None:
+        del success_committed
         cleanup = {
             "status_read": status_read,
             "status_write": status_write,
@@ -1877,35 +1872,10 @@ class LinuxSandboxExecutor:
             "leases": leases,
             "active_error": active_error,
         }
-        if success_committed and active_error is None:
-            self._schedule_committed_cleanup(cleanup)
-        else:
-            self._cleanup_worker(**cleanup)
-
-    def _schedule_committed_cleanup(self, cleanup: Mapping[str, Any]) -> None:
-        """Reap a worker after its trusted result-and-exit commit off-path."""
-
-        def reap() -> None:
-            try:
-                self._cleanup_worker(**cleanup)
-            except Exception:
-                # _cleanup_worker retains recovery evidence and deployment
-                # leases when termination cannot be established.
-                pass
-            finally:
-                with self._reaper_lock:
-                    self._reaper_threads.discard(current_thread())
-
-        reaper = Thread(target=reap, name="argus-linux-reaper", daemon=True)
-        with self._reaper_lock:
-            self._reaper_threads.add(reaper)
-        try:
-            reaper.start()
-        except BaseException:
-            with self._reaper_lock:
-                self._reaper_threads.discard(reaper)
-            self._cleanup_worker(**cleanup)
-            raise
+        # Cleanup is part of the caller-facing result boundary. In particular,
+        # deployment leases cannot remain active after a committed result is
+        # released, even when the worker has already reported its own exit.
+        self._cleanup_worker(**cleanup)
 
     def _cleanup_worker(
         self,

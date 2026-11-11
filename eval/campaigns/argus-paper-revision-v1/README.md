@@ -53,6 +53,13 @@ application route, and reproduction commands are in `OPTIMIZED_LINUX_REPORT.md`.
      --acknowledge-controlled-host
    ```
 
+6. Run the deterministic remote-tool deployment case:
+
+   ```sh
+   uv run --project eval python -m slanggraph_eval.remote_tool \
+     --output /tmp/argus-remote-tool
+   ```
+
 The qualification establishes only an otherwise-quiet selected CPU. This host
 is shared and dynamically frequency-scaled; that limitation is recorded and
 must accompany timing results.
@@ -62,6 +69,27 @@ LangGraph with the same `ToolNode`, request, SQLite workload, and result shape.
 It runs in a separate clean interpreter because the sealed operator MAC must
 refuse unsecured graphs in the protected interpreter. Raw SQLite timing is
 retained only as a diagnostic and is never used as the Argus baseline.
+
+## Tool deployment coverage
+
+The evaluation now has an explicit case for each of the three deployment
+shapes discussed in the paper:
+
+| Deployment shape | Evaluation case | Boundary exercised |
+| --- | --- | --- |
+| Tool executes in the controller process | Distributed-monitor `language` route | Admitted in-process language program and mediated terminal |
+| Tool executes as a local binary/worker | This campaign's Alice/Bob example and application route | Cedar, isolated Linux worker, typed resource broker, Lean lifecycle checks |
+| Tool is implemented by another server | `retained/remote-tool/` | `ToolNode` and Cedar followed by request-bound delegation over HTTP to a separate toy service process |
+
+The remote case intentionally uses a deterministic loopback weather service,
+not a live external system. One allowed call executes remotely; a denied
+principal and denied selector produce no remote request, and the service rejects
+a replayed capability and a post-authorization argument change. This is evidence
+for call authorization and scoped delegation across the server boundary only.
+The evaluation-only HTTP dispatcher is not a supported production adapter,
+closed admission does not admit it, and Argus does not confine or prove the
+remote implementation. The service, transport, signing-key custody, and service
+enforcement are trusted premises for this case.
 
 ## Evidence map
 
@@ -76,6 +104,8 @@ retained only as a diagnostic and is never used as the Argus baseline.
   analysis.
 - `PROOF_MAP.md`: exact theorem/checker/assumption map.
 - `RUNNING_EXAMPLE.md`: readable Alice/Bob end-to-end trace.
+- `retained/remote-tool/`: toy remote-server plan, five trial records, and
+  machine-readable summary.
 - `generated/application-inventory.json` and `generated/patches/`: exact
   inventory and adaptation patches.
 - `raw/`: complete preflight/example plus retained campaign records or compact

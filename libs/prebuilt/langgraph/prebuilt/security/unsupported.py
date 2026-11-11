@@ -321,6 +321,14 @@ _ENTRIES: tuple[UnsupportedFeature, ...] = (
         "runtime",
     ),
     UnsupportedFeature(
+        "inprocess:descriptor_write_unsupported",
+        _U,
+        "descriptor-pinned resource write outside Linux and macOS",
+        "in-process resource mediation",
+        "descriptor writes require a supported descriptor filesystem without a pathname fallback",
+        "runtime",
+    ),
+    UnsupportedFeature(
         "object_policy:typed_constraints_unsupported",
         _U,
         "typed policy constraints on an object policy invocation",

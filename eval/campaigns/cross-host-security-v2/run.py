@@ -274,16 +274,26 @@ def main():
         checker = Path(os.environ["ARGUS_LIFECYCLE_CHECKER"]).resolve(strict=True)
         images = output / "native"
         images.mkdir()
-        shutil.copy2(checker, images / "workerRoute")
+        shared = checker.suffix == ".so"
+        checker_target = images / ("core.so" if shared else "workerRoute")
+        shutil.copy2(checker, checker_target)
+        native = {
+            "binary": str(checker),
+            "sha256": host.sha(checker),
+            "protocol": "worker-route-grant-v3",
+            "interface": "compiled-shared-library" if shared else "executable",
+        }
+        if shared:
+            manifest = json.loads(checker.with_suffix(checker.suffix + ".json").read_text())
+            runtime = Path(manifest["native_runtime"]).resolve(strict=True)
+            shutil.copy2(runtime, images / "runtime.so")
+            native.update(
+                native_runtime=str(runtime),
+                native_runtime_sha256=host.sha(runtime),
+            )
         dump(
             output / "native-configuration.json",
-            {
-                "lean": {
-                    "binary": str(checker),
-                    "sha256": host.sha(checker),
-                    "protocol": "worker-route-grant-v3",
-                }
-            },
+            {"lean": native},
         )
     cedar = shutil.which("cedar")
     dump(

@@ -200,6 +200,8 @@ def effect_expr(node):
         return ".pure"
     if kind == "join":
         return effect_sequence(effect_expr(p) for p in node[1])
+    if kind == "list":
+        return effect_sequence(effect_expr(p) for p in node[1])
     if kind == "dictionary":
         return effect_sequence(effect_expr(p) for _, p in node[1])
     if kind == "compare":
@@ -236,6 +238,24 @@ def effect_stmts(body):
 EFFECT_USEFUL = {
     **USEFUL,
     "dictionary": "def dictionary(path):\n    return {'result': read_text(path)}\n",
+    "list_dictionary": (
+        "def list_dictionary(path):\n"
+        "    values = [read_text(path), 'fixed']\n"
+        "    return {'first': values[0], 'size': len(values)}\n"
+    ),
+    "terminal_alias": (
+        "def terminal_alias(path):\n"
+        "    reader = read_text\n"
+        "    return reader(path)\n"
+    ),
+    "numeric_equality": (
+        "def numeric_equality(path, count):\n"
+        "    total = 0\n"
+        "    for i in range(int(count)):\n"
+        "        if i % 2 == 0:\n"
+        "            total += i\n"
+        "    return read_text(path)\n"
+    ),
     "while_reads": "def reads(path, count):\n    i = 0\n    while i < int(count):\n        read_text(path)\n        i += 1\n    return path\n",
     "for_reads": "def reads(path, count):\n    for i in range(int(count)):\n        read_text(path)\n    return path\n",
     "string_loop": "def count(path):\n    text = read_text(path)\n    n = 0\n    for c in text:\n        if c == 'x':\n            n += 1\n    return str(n)\n",

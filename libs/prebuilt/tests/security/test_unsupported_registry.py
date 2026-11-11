@@ -163,6 +163,7 @@ def test_registry_records_are_consistent():
     for code in (
         "host:special_resource_unsupported",
         "inprocess:descriptor_read_unsupported",
+        "inprocess:descriptor_write_unsupported",
         "object_policy:typed_constraints_unsupported",
         "admission:unsupported_node_body",
         "admission:unsupported_branch",

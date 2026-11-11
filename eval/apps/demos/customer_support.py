@@ -48,6 +48,7 @@ from resource_monitors.travel_worker import (
 from resource_monitors.travel_worker import (
     update_ticket_to_new_flight as broker_update,
 )
+from runtime_protocol import wait_for_parent
 from sklearn.feature_extraction.text import TfidfVectorizer
 from timing import ModelTiming, assert_tool_parity
 from typing_extensions import TypedDict
@@ -434,6 +435,7 @@ def main() -> None:
         record_audit=args.audit,
     )
     preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    wait_for_parent()
     invocation_started = time.perf_counter()
     result = drive(graph, args.task_id, security)
     invocation_ms = (time.perf_counter() - invocation_started) * 1000

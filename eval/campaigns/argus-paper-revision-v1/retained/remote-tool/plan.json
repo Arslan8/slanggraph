@@ -1,0 +1,15 @@
+{
+  "cases": [
+    "allowed_remote_call",
+    "denied_principal",
+    "denied_selector",
+    "replayed_capability",
+    "tampered_arguments"
+  ],
+  "classes": "class remote_weather {\n  operations invoke\n  object city\n  normalizer identity\n  attrs\n  enforced_by broker\n  lowering toy.http.hmac.v1\n}",
+  "evaluator_sha256": "ad9d8a5811beba656cbcd10e9c09d7e0fee91c4caef90de24a6e0e12b05f0635",
+  "external_dependencies": [],
+  "manifest": "runs broker\nremote_weather invoke @{city} need\nreturns normal",
+  "policy": "permit(\n  principal == slangGraph::User::\"alice\",\n  action == slangGraph::Action::\"remote_weather::invoke\",\n  resource\n) when { resource.selector == \"paris\" };",
+  "transport": "loopback HTTP to a separate service process"
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "campaign_id": "unified-final-v1",
+  "config_id": "f316fd8436da569eabb33e56d9d352027162b3204eee62da3ba07fb111912894",
+  "local_qualification_date": "2026-11-08",
+  "host": {
+    "os": "Ubuntu 24.04",
+    "kernel": "6.17.0-1033-oem",
+    "cpu": "Intel(R) Xeon(R) w5-3435X",
+    "logical_cpus": 32,
+    "ram_gib": 62
+  },
+  "available_and_pinned": {
+    "model_name": "qwen3:8b",
+    "model_digest_matches": true,
+    "cedar": true,
+    "bubblewrap": true,
+    "compiled_checker": true,
+    "nono_0_80_0": true,
+    "openshell_0_1_3": true
+  },
+  "supporting_validation": {
+    "scheduled_request_records": 5635,
+    "generated_programs": 10000,
+    "admitted": 8000,
+    "rejected": 2000,
+    "timeouts": 0,
+    "crashes": 0,
+    "mismatches": 0,
+    "security_violations": 0,
+    "targeted_tests_passed": 62,
+    "targeted_tests_skipped": 2,
+    "parent_timer_unit_probe": true,
+    "pool_exhaustion_unit_probe": true
+  },
+  "qualification_passed": false,
+  "blockers": [
+    "No macOS Tahoe 26.7.2 shared-case pilot evidence is available on this Linux host.",
+    "The current macrobenchmark application runner lacks a parent-controlled READY/submit/result handshake.",
+    "The current nono and APF/OpenShell adapters lack the same parent-controlled runtime boundary.",
+    "The current Pandas runner exposes child-internal invocation timing rather than the frozen parent boundary.",
+    "The new identical-source baseline/language/host file microbenchmark is not implemented.",
+    "The sustained runner does not yet account for drain and restoration of the initial ready-worker inventory."
+  ],
+  "collection_started": false,
+  "disposition": "fail-closed; freeze and collection were not permitted, and no historical measurements were imported"
+}

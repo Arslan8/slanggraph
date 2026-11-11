@@ -39,6 +39,7 @@ from resource_monitors.backends import (
 from resource_monitors.python_worker import python_repl_tool as broker_python
 from resource_monitors.search_worker import frozen_search as broker_search
 from resource_monitors.security import monitored_security
+from runtime_protocol import wait_for_parent
 from sklearn.feature_extraction.text import TfidfVectorizer
 from timing import ModelTiming, assert_tool_parity
 
@@ -322,6 +323,7 @@ def main() -> None:
             modules=security.modules,
         )
     preparation_ms = (time.perf_counter() - preparation_started) * 1000
+    wait_for_parent()
     invocation_started = time.perf_counter()
     try:
         result = graph.invoke({"messages": [("user", args.prompt)]}, config)

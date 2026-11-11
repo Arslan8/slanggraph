@@ -86,9 +86,10 @@ def forbidden(row):
     if case in {"pump_calibrate", "direct_device"}:
         return after["pump"]["calibration"] != before["pump"]["calibration"]
     if case == "direct_shm":
-        # SHM contains metadata, not a Bob canary. Test the separately stated
-        # prohibition on direct access; never claim SHM proved Bob disclosure.
-        return any('"hex"' in str(value) and len(str(value)) > 100 for value in output)
+        # This fixture has no distinct protected SHM canary. Retain the trial as
+        # a diagnostic, but make its positive control fail closed so classify()
+        # excludes it from prevention counts until the oracle is repaired.
+        return False
     return (
         visible(output, bob)
         or after["records"].get("bob") != before["records"].get("bob")
@@ -378,16 +379,23 @@ def verify(root):
         from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 
         native = json.loads((root / "native-configuration.json").read_text())["lean"]
-        checker = (
-            LeanLifecycleChecker(str(root / "native/workerRoute"), native["sha256"])
-            if config["host"] == "linux"
-            else LeanLifecycleChecker(
+        if config["host"] == "linux" and native.get("interface") == "compiled-shared-library":
+            checker = LeanLifecycleChecker(
+                str(root / "native/core.so"),
+                native["sha256"],
+                str(root / "native/runtime.so"),
+                native["native_runtime_sha256"],
+            )
+            checker.require_inline()
+        elif config["host"] == "linux":
+            checker = LeanLifecycleChecker(str(root / "native/workerRoute"), native["sha256"])
+        else:
+            checker = LeanLifecycleChecker(
                 str(root / "native/core.dylib"),
                 native["sha256"],
                 str(root / "native/runtime.dylib"),
                 native["native_runtime_sha256"],
             )
-        )
         for row in rows:
             for dispatcher in (row.get("evidence") or {}).get("dispatchers", []):
                 for trace in dispatcher["lifecycle"]:

@@ -81,3 +81,19 @@ Compact fresh ordinary-app records are committed under
 `retained/applications/`; Pandas before/intermediate/after records and their
 configuration evidence are under `retained/pandas/`. Expanded local records
 remain in the corresponding `raw/` campaign directories.
+
+## Toy remote-tool deployment
+
+The application cohort above covers compatibility and the protected local
+worker route; it is not repurposed as remote-service evidence. A separate,
+deterministic weather tool now exercises the missing deployment shape: a
+compiled `ToolNode` obtains a real Cedar decision and calls a tool implemented
+by a separate HTTP service process. The retained five-case result is 5/5:
+the one permitted call returns the expected forecast, denied principal and
+selector calls cause zero service executions, and replayed or tampered
+delegations are rejected by the service.
+
+This is intentionally a toy integration rather than a live third-party system.
+It measures placement of the authorization boundary and request-bound
+delegation, not remote-code containment or production readiness. See
+`retained/remote-tool/` and `slanggraph_eval.remote_tool`.

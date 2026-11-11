@@ -74,7 +74,19 @@ def dispatcher(code, mediators, timeout):
     from langgraph.prebuilt.security.lean_lifecycle import LeanLifecycleChecker
 
     checker_path = Path(os.environ["ARGUS_LIFECYCLE_CHECKER"]).resolve(strict=True)
-    checker = LeanLifecycleChecker(str(checker_path), sha(checker_path))
+    if checker_path.suffix == ".so":
+        manifest_path = checker_path.with_suffix(checker_path.suffix + ".json")
+        manifest = json.loads(manifest_path.read_text())
+        runtime = Path(manifest["native_runtime"]).resolve(strict=True)
+        checker = LeanLifecycleChecker(
+            str(checker_path),
+            sha(checker_path),
+            str(runtime),
+            sha(runtime),
+        )
+        checker.require_inline()
+    else:
+        checker = LeanLifecycleChecker(str(checker_path), sha(checker_path))
     return ObjectBrokerDispatcher(
         specs,
         runtime_roots=roots(code),

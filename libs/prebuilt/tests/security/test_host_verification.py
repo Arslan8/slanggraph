@@ -195,6 +195,12 @@ def test_known_unsafe_pattern_match_still_proves_nothing() -> None:
             "            if not execution.done():",
             "cancellation_lifetime",
         ),
+        (
+            "linux",
+            "        self._cleanup_worker(**cleanup)\n",
+            "",
+            "cancellation_lifetime",
+        ),
     ],
 )
 def test_risky_mutation_fails_relevant_review_hint(

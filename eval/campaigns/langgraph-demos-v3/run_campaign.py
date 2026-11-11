@@ -9,9 +9,10 @@ import random
 import shutil
 import subprocess
 import sys
-import time
 from dataclasses import dataclass
 from pathlib import Path
+
+from slanggraph_eval.ready_process import run_ready_process
 
 CAMPAIGN = Path(__file__).resolve().parent
 ROOT = CAMPAIGN.parents[2]
@@ -69,6 +70,7 @@ def common_metadata() -> dict:
             "plan_execute.py",
             "multi_agent.py",
             "customer_support.py",
+            "runtime_protocol.py",
         )
     ]
     return {
@@ -105,7 +107,7 @@ def common_metadata() -> dict:
         "source_digests": {str(path.relative_to(ROOT)): sha256(path) for path in scripts},
         "worker_route_digest": sha256(WORKER),
         "timeouts_seconds": {"D1-D3_and_T1-T10": 180, "D4-D5": 300},
-        "primary_timer": "application-reported invocation wall clock after preparation",
+        "primary_timer": "parent monotonic GO through safe result return after child READY",
         "secondary_timers": (
             "application preparation and parent subprocess wall clock are retained separately"
         ),
@@ -358,34 +360,17 @@ def execute(job: Job, root: Path, tasks: dict) -> dict:
     trial.mkdir(parents=True, exist_ok=False)
     cmd, timeout = command(job, trial, tasks)
     output = trial / "output.json"
-    started = time.perf_counter()
-    timed_out = False
-    try:
-        completed = subprocess.run(
-            cmd,
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False,
-        )
-        returncode = completed.returncode
-        stdout, stderr = completed.stdout, completed.stderr
-        wall_ms = (time.perf_counter() - started) * 1000
-    except subprocess.TimeoutExpired as error:
-        timed_out = True
-        returncode = None
-        stdout = (
-            (error.stdout or b"").decode()
-            if isinstance(error.stdout, bytes)
-            else error.stdout or ""
-        )
-        stderr = (
-            (error.stderr or b"").decode()
-            if isinstance(error.stderr, bytes)
-            else error.stderr or ""
-        )
-        wall_ms = timeout * 1000.0
+    completed = run_ready_process(
+        cmd,
+        cwd=ROOT,
+        env=None,
+        preflight_timeout=timeout,
+        runtime_timeout=timeout,
+    )
+    timed_out = completed.timed_out
+    returncode = completed.returncode
+    stdout, stderr = completed.stdout, completed.stderr
+    wall_ms = completed.runtime_ns / 1_000_000
     inner = json.loads(output.read_text()) if output.exists() else {}
     if timed_out:
         status = "timeout"
@@ -415,6 +400,12 @@ def execute(job: Job, root: Path, tasks: dict) -> dict:
         "correct": correct,
         "wall_ms": wall_ms,
         "process_wall_ms": wall_ms,
+        "preflight_ns": completed.preflight_ns,
+        "runtime_start_ns": completed.runtime_start_ns,
+        "runtime_end_ns": completed.runtime_end_ns,
+        "runtime_ns": completed.runtime_ns,
+        "ready_observed": completed.ready_observed,
+        "cleanup_confirmed": completed.cleanup_confirmed,
         "timeout_cap_seconds": timeout,
         "censored": timed_out,
         "returncode": returncode,

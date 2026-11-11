@@ -33,7 +33,7 @@ security = cedar_security(
 The helper derives the internal tool identity from `greet.name` and behaves as
 if the body had been wrapped in a `tool greet { ... }` block. `runs` must resolve
 to `inprocess`. The helper pre-registers its core classes, currently `fs` with
-the `read` operation. Additional resource classes are passed through `classes=`
+the `read` and `write` operations. Additional resource classes are passed through `classes=`
 and must use `enforced_by language_sandbox`. Other enforcement loci use the
 standalone form and lower-level host API.
 
@@ -69,7 +69,7 @@ class automatically:
 
 | Class | Operations | Object | Normalizer | Enforced by |
 | --- | --- | --- | --- | --- |
-| `fs` | `read` | `path` | `fs.realpath` | `language_sandbox` |
+| `fs` | `read`, `write` | `path` | `fs.realpath` | `language_sandbox` |
 
 Therefore a normal tool manifest can simply write `fs read @{path} need`.
 Standalone parsing does not assume an enforcement host and consequently does
@@ -93,6 +93,12 @@ secrecy, a historical inode identity, or immutable file contents. Invalid UTF-8
 produces a payload-free `HostExecutionDenied`: the exposed exception has no
 decoder exception in its cause or context containing file bytes. Owned
 descriptors close on success and failure.
+
+The built-in `write_text(path, value)` terminal similarly requires an exact
+matching `fs write` grant. It overwrites one existing regular UTF-8 file through
+a pinned descriptor and closes it before returning. It rejects symlinked paths,
+multi-linked files, non-string arguments, and payloads larger than 1 MiB. It
+does not expose file handles, create files, or fall back to a pathname write.
 
 ## Lexical syntax
 

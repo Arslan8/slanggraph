@@ -135,6 +135,75 @@ def read_text(path: str) -> str:
 _READ_TEXT_CODE = read_text.__code__
 
 
+def write_text(path: str, value: str) -> str:
+    """Overwrite one grant-named regular file through a pinned descriptor.
+
+    The target must already exist, have exactly one link, and resolve without a
+    symlink component. The admitted program receives no descriptor or module
+    object. Closing the descriptor is part of this terminal's return boundary.
+    """
+    if type(path) is not str or type(value) is not str:
+        raise HostExecutionDenied("inprocess:resource_must_be_string")
+    encoded = value.encode("utf-8")
+    if len(encoded) > 1_048_576:
+        raise HostExecutionDenied("inprocess:write_too_large")
+    grant = _active_grant.get()
+    if grant is None:
+        raise HostExecutionDenied("inprocess:resource_not_granted")
+    if sys.platform not in {"linux", "darwin"}:
+        raise HostExecutionDenied("inprocess:descriptor_write_unsupported")
+    try:
+        canonical = str(Path(path).resolve(strict=True))
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise HostExecutionDenied("inprocess:resource_unavailable") from exc
+    if not any(
+        line.class_name == "fs"
+        and line.operation == "write"
+        and line.selector == canonical
+        for line in grant.lines
+    ):
+        raise HostExecutionDenied("inprocess:resource_not_granted")
+    pinned = None
+    writable = None
+    try:
+        pinned = open_path_descriptor(canonical, no_symlinks=True)
+        identity = os.fstat(pinned)
+        if not stat.S_ISREG(identity.st_mode) or identity.st_nlink != 1:
+            raise HostExecutionDenied("inprocess:unaliased_regular_file_required")
+        descriptor_root = "/proc/self/fd" if sys.platform == "linux" else "/dev/fd"
+        writable = os.open(
+            f"{descriptor_root}/{pinned}",
+            os.O_WRONLY | os.O_TRUNC | os.O_CLOEXEC | os.O_NOCTTY,
+        )
+        opened = os.fstat(writable)
+        if not stat.S_ISREG(opened.st_mode) or (
+            opened.st_dev,
+            opened.st_ino,
+        ) != (identity.st_dev, identity.st_ino):
+            raise HostExecutionDenied("inprocess:resource_identity_changed")
+        remaining = memoryview(encoded)
+        while remaining:
+            written = os.write(writable, remaining)
+            if written <= 0:
+                raise HostExecutionDenied("inprocess:descriptor_write_unavailable")
+            remaining = remaining[written:]
+        return value
+    except HostExecutionDenied:
+        raise
+    except OSError as exc:
+        raise HostExecutionDenied("inprocess:descriptor_write_unavailable") from exc
+    finally:
+        try:
+            if writable is not None:
+                os.close(writable)
+        finally:
+            if pinned is not None:
+                os.close(pinned)
+
+
+_WRITE_TEXT_CODE = write_text.__code__
+
+
 def _code_identity(code: CodeType) -> tuple:
     """Compare loaded code using native data without candidate equality hooks."""
     budget = 10_000
@@ -329,25 +398,59 @@ class ManifestAdmission:
             # Only framework resource APIs are terminals, not arbitrary helpers
             # supplied by the tool author. Bind their actual identities as well
             # as their source spelling. Other calls remain unknown.
+            terminal_definitions = (
+                (
+                    read_text,
+                    "read",
+                    _READ_TEXT_CODE,
+                    TerminalContract((("path", "str"),), frozenset({"str"})),
+                ),
+                (
+                    write_text,
+                    "write",
+                    _WRITE_TEXT_CODE,
+                    TerminalContract(
+                        (("path", "str"), ("value", "str")),
+                        frozenset({"str"}),
+                    ),
+                ),
+            )
             terminals = {
                 name: value
                 for name, value in function.__globals__.items()
-                if value is read_text and name in function.__code__.co_names
+                if any(value is definition[0] for definition in terminal_definitions)
+                and name in function.__code__.co_names
             }
-            if terminals and read_text.__code__ is not _READ_TEXT_CODE:
+            selected_definitions = {
+                name: next(
+                    definition
+                    for definition in terminal_definitions
+                    if value is definition[0]
+                )
+                for name, value in terminals.items()
+            }
+            if any(
+                terminal.__code__ is not selected_definitions[name][2]
+                for name, terminal in terminals.items()
+            ):
                 raise SecurityConfigurationError("language_sandbox:monitor_changed")
             execution_terminals = {
                 name: _freeze_terminal(value) for name, value in terminals.items()
             }
             terminal_contracts = {
-                name: TerminalContract((("path", "str"),), frozenset({"str"}))
-                for name in terminals
+                name: selected_definitions[name][3] for name in terminals
             }
             self.terminal_codes.extend(
                 (value, value.__code__) for value in terminals.values()
             )
             operations = tuple(
-                ManifestOperation(name, "fs", "read", "path") for name in terminals
+                ManifestOperation(
+                    name,
+                    "fs",
+                    selected_definitions[name][1],
+                    "path",
+                )
+                for name in terminals
             )
             clients = {}
             for name in function.__code__.co_names:
@@ -369,9 +472,25 @@ class ManifestAdmission:
                                 tuple(zip(model.parameters, model.parameter_types)),
                                 frozenset({model.result_type})
                                 if model.result_type
-                                in {"str", "int", "float", "bool", "NoneType", "dict"}
+                                in {
+                                    "str",
+                                    "int",
+                                    "float",
+                                    "bool",
+                                    "NoneType",
+                                    "dict",
+                                    "list",
+                                }
                                 else frozenset(
-                                    {"str", "int", "float", "bool", "NoneType", "dict"}
+                                    {
+                                        "str",
+                                        "int",
+                                        "float",
+                                        "bool",
+                                        "NoneType",
+                                        "dict",
+                                        "list",
+                                    }
                                 ),
                             )
                             for model in binding.models(name)
@@ -415,9 +534,25 @@ class ManifestAdmission:
                         tuple(zip(model.parameters, model.parameter_types)),
                         frozenset({model.result_type})
                         if model.result_type
-                        in {"str", "int", "float", "bool", "NoneType", "dict"}
+                        in {
+                            "str",
+                            "int",
+                            "float",
+                            "bool",
+                            "NoneType",
+                            "dict",
+                            "list",
+                        }
                         else frozenset(
-                            {"str", "int", "float", "bool", "NoneType", "dict"}
+                            {
+                                "str",
+                                "int",
+                                "float",
+                                "bool",
+                                "NoneType",
+                                "dict",
+                                "list",
+                            }
                         ),
                     )
             for name in (PURE_BUILTINS | {"range"}) & set(function.__code__.co_names):
