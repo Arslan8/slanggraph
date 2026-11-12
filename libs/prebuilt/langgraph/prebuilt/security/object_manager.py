@@ -198,7 +198,15 @@ class CheckpointEnvelope:
 class ObjectManagerHost:
     """Trusted framework-object effects after HostRouter authorization."""
 
-    __slots__ = ("_checkpoint_key", "_state", "_store", "_tools", "_restored", "_lock")
+    __slots__ = (
+        "_checkpoint_key",
+        "_state",
+        "_store",
+        "_tools",
+        "_restored",
+        "_historical_restores",
+        "_lock",
+    )
 
     def __init__(
         self,
@@ -217,6 +225,7 @@ class ObjectManagerHost:
         # tip that this host sealed while still rejecting a second restore of
         # that tip as a replay.
         self._restored: dict[tuple[str, str], tuple[int, str, int, str]] = {}
+        self._historical_restores: dict[tuple[str, str], set[tuple[int, str]]] = {}
         self._lock = RLock()
 
     def dispatch(self, principal: Principal, request: FrameworkRequest) -> object:
@@ -372,10 +381,18 @@ class ObjectManagerHost:
         ):
             self._register_checkpoint(principal, request.value)
             return request.value
-        if request.operation in (
-            StateOperation.CHECKPOINT_READ,
-            StateOperation.CHECKPOINT_WRITE,
-        ):
+        if request.operation is StateOperation.CHECKPOINT_READ:
+            candidate = request.metadata.get("historical_restore")
+            if candidate is not None:
+                if not isinstance(candidate, CheckpointEnvelope):
+                    raise PermissionError("checkpoint:malformed_history_authorization")
+                authenticate_checkpoint(self._checkpoint_key, candidate, principal)
+                key = (principal.user_id, principal.session_id)
+                self._historical_restores.setdefault(key, set()).add(
+                    (candidate.sequence, candidate.digest)
+                )
+            return request.value
+        if request.operation is StateOperation.CHECKPOINT_WRITE:
             return request.value
         raise PermissionError("state:unsupported_operation")
 
@@ -421,6 +438,22 @@ class ObjectManagerHost:
         authenticate_checkpoint(self._checkpoint_key, checkpoint, principal)
         key = (principal.user_id, principal.session_id)
         prior = self._restored.get(key)
+        historical = (checkpoint.sequence, checkpoint.digest)
+        candidates = self._historical_restores.get(key)
+        if candidates is not None and historical in candidates:
+            candidates.remove(historical)
+            if not candidates:
+                self._historical_restores.pop(key, None)
+            # An authorized history read permits one explicit branch from that
+            # authenticated checkpoint.  Reset the local issued tip so new
+            # checkpoints must extend the selected historical state.
+            self._restored[key] = (
+                checkpoint.sequence,
+                checkpoint.digest,
+                checkpoint.sequence,
+                checkpoint.digest,
+            )
+            return
         if prior is not None:
             restored_sequence, restored_digest, issued_sequence, issued_digest = prior
             if checkpoint.sequence <= restored_sequence:

@@ -21,7 +21,7 @@ spec:
       - /data/langgraph/eval/campaigns/langgraph-demos-v3/permissive-comparators/model_relay.py
       - /data/langgraph/libs
     read_write:
-      - /workspace
+      - /data/langgraph/.argus-eval-results
       - /tmp
       - /dev/null
   landlock:

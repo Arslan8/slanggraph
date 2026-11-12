@@ -2387,7 +2387,10 @@ class _LinuxBubblewrapAdapter:
         for (domain, selector), granted in operations.items():
             if domain is AuthorityDomain.RUNTIME:
                 continue
-            required = {"read", "write", "truncate"}
+            # A write-only tool must not gain read authority merely because
+            # the kernel adapter uses a writable bind mount.  Landlock can
+            # enforce write/truncate independently of read.
+            required = {"write", "truncate"}
             path = _canonical_existing_path(selector)
             if path.is_dir():
                 required.update({"create", "delete"})

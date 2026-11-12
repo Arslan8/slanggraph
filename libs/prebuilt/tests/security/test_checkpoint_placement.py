@@ -100,6 +100,42 @@ async def _history(checkpointer, config, asynchronous: bool):
 
 
 @pytest.mark.parametrize("asynchronous", [False, True])
+async def test_authenticated_history_can_branch_once(asynchronous: bool) -> None:
+    saver = InMemorySaver()
+    graph = _graph(saver)
+    config = _config()
+    if asynchronous:
+        await graph.ainvoke({"value": 0}, config)
+        await graph.ainvoke({"value": 10}, config)
+        history = [state async for state in graph.aget_state_history(config)]
+    else:
+        graph.invoke({"value": 0}, config)
+        graph.invoke({"value": 10}, config)
+        history = list(graph.get_state_history(config))
+    selected = next(
+        state
+        for state in history
+        if state.values.get("value") == 0 and state.next == ("increment",)
+    )
+    replay = with_principal(
+        selected.config,
+        Principal("alice", frozenset({"user"}), frozenset(), "session-1"),
+    )
+
+    if asynchronous:
+        branched = await graph.ainvoke(None, replay)
+    else:
+        branched = graph.invoke(None, replay)
+    assert branched["value"] == 1
+
+    with pytest.raises(PermissionError, match="checkpoint:replay"):
+        if asynchronous:
+            await graph.ainvoke(None, replay)
+        else:
+            graph.invoke(None, replay)
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
 async def test_graph_checkpoint_restore_is_hash_chained_and_principal_bound(
     asynchronous: bool,
 ) -> None:

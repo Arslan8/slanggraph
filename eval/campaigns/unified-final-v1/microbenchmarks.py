@@ -40,6 +40,7 @@ from langgraph.prebuilt.security.types import Tool, ToolCall, ToolDac
 from micro_workload import read_file, write_file
 
 WORKLOAD_SOURCE = HERE / "micro_workload.py"
+HOST_ADAPTER_SOURCE = HERE / "micro_host_adapter.py"
 CHECKER = HERE.parents[2] / "proofs/worker-route/.lake/build/lib/libargus_worker_route.so"
 CHECKER_MANIFEST = CHECKER.with_suffix(CHECKER.suffix + ".json")
 
@@ -95,7 +96,7 @@ def _call(workload: Workload, path: Path, call_id: str) -> ToolCall:
 def _policy(path: Path, workload: Workload, route: str) -> str:
     operations = [workload.operation]
     if route == "linux" and workload.operation == "write":
-        operations = ["read", "write", "truncate"]
+        operations = ["write", "truncate"]
     selector = json.dumps(str(path.resolve()))
     return "\n".join(
         (
@@ -110,7 +111,7 @@ def _policy(path: Path, workload: Workload, route: str) -> str:
 def _manifest(workload: Workload, route: str) -> str:
     operations = [workload.operation]
     if route == "linux" and workload.operation == "write":
-        operations = ["read", "write", "truncate"]
+        operations = ["write", "truncate"]
     return "\n".join(
         [f"runs {route}", *(f"fs {operation} @{{path}} need" for operation in operations)]
     )
@@ -118,7 +119,9 @@ def _manifest(workload: Workload, route: str) -> str:
 
 def _load_baseline_module(label: str):
     name = f"unified_final_micro_{label}_{uuid.uuid4().hex}"
-    spec = importlib.util.spec_from_file_location(name, WORKLOAD_SOURCE)
+    # Baseline and host execute the same minimal native useful operation.  The
+    # language route expresses that operation through its registered facade.
+    spec = importlib.util.spec_from_file_location(name, HOST_ADAPTER_SOURCE)
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load shared microbenchmark source")
     module = importlib.util.module_from_spec(spec)
@@ -220,17 +223,17 @@ class HostRoute(Route):
         )
         checker.require_inline()
         self.checker = checker
-        digest = hashlib.sha256(WORKLOAD_SOURCE.read_bytes()).hexdigest()
+        digest = hashlib.sha256(HOST_ADAPTER_SOURCE.read_bytes()).hexdigest()
         entrypoint = (
-            "micro_workload:host_read_file"
+            "micro_host_adapter:host_read_file"
             if workload.operation == "read"
-            else "micro_workload:host_write_file"
+            else "micro_host_adapter:host_write_file"
         )
         self.dispatcher = LinuxObjectDispatcher(
             {
                 f"micro_{workload.operation}": LinuxToolSpec(
                     entrypoint,
-                    WORKLOAD_SOURCE,
+                    HOST_ADAPTER_SOURCE,
                     digest,
                 )
             },
@@ -425,19 +428,31 @@ def security_probes(
         route.close()
 
 
-def collect_request_latency(result: Path) -> dict[str, Any]:
+def collect_request_latency(
+    result: Path, *, selected_modes: frozenset[str] | None = None
+) -> dict[str, Any]:
     config = load_config(result / "configuration.json")
     prepared = json.loads((result / "prepared.json").read_text())
     by_group: dict[tuple[int, str, str], list[Any]] = defaultdict(list)
     for cell in request_cells(config, 3):
+        if selected_modes is not None and cell.mode not in selected_modes:
+            continue
         by_group[(cell.session, cell.workload, cell.mode)].append(cell)
     specs = workloads(config)
     records = []
     probes = []
-    root = result / "microbenchmarks" / "request-latency"
+    evidence_root = result / "microbenchmarks" / "request-latency"
+    evidence_root.mkdir(parents=True, exist_ok=False)
+    # Keep bind-mount destinations short.  Deep result-directory paths can
+    # intermittently fail inside bubblewrap before the allowed file is opened;
+    # fixtures are transient inputs, while all records remain in the result.
+    result_key = hashlib.sha256(str(result.resolve()).encode()).hexdigest()[:8]
+    root = Path("/tmp") / f"argus-ufv1-micro-{prepared['build_id'][:12]}-{result_key}"
     root.mkdir(parents=True, exist_ok=False)
     for session in range(config["performance"]["sessions"]):
         modes = list(config["evaluations"][2]["modes"])
+        if selected_modes is not None:
+            modes = [mode for mode in modes if mode in selected_modes]
         random.Random(config["random_seed"] + session).shuffle(modes)
         for workload_id, workload in specs.items():
             for mode in modes:
@@ -632,6 +647,7 @@ def collect_sustained(
     warmup_seconds: float | None = None,
     issue_seconds: float | None = None,
     sessions: int | None = None,
+    selected_modes: frozenset[str] | None = None,
 ) -> dict[str, Any]:
     config = load_config(result / "configuration.json")
     prepared = json.loads((result / "prepared.json").read_text())
@@ -640,12 +656,17 @@ def collect_sustained(
     warmup = spec["warmup_seconds"] if warmup_seconds is None else warmup_seconds
     issue = spec["issue_seconds"] if issue_seconds is None else issue_seconds
     count = spec["sessions"] if sessions is None else sessions
-    root = result / "microbenchmarks" / "sustained"
+    evidence_root = result / "microbenchmarks" / "sustained"
+    evidence_root.mkdir(parents=True, exist_ok=False)
+    result_key = hashlib.sha256(str(result.resolve()).encode()).hexdigest()[:8]
+    root = Path("/tmp") / f"argus-ufv1-sustained-{prepared['build_id'][:12]}-{result_key}"
     root.mkdir(parents=True, exist_ok=False)
     rows = []
     for session in range(count):
         for concurrency in spec["concurrency"]:
             modes = list(config["evaluations"][2]["modes"])
+            if selected_modes is not None:
+                modes = [mode for mode in modes if mode in selected_modes]
             random.Random(config["random_seed"] + session * 100 + concurrency).shuffle(modes)
             for mode in modes:
                 folder = root / f"session-{session}" / f"c{concurrency}" / mode

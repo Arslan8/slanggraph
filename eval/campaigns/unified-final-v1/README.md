@@ -1,8 +1,10 @@
 # Unified final Argus evaluation campaign
 
 This directory is the sole configuration and reporting authority for the final
-four-evaluation campaign. It does not combine historical measurements with new
-records. `configuration.json` freezes the cohort, sampling, seeds, timeouts,
+four-evaluation campaign. A corrected result may retain only explicitly compatible
+`final-r2` cells through `retain_compatible.py`; source identities and exact
+invalidation rules are recorded in `retained-lineage.json`. `configuration.json`
+freezes the cohort, sampling, seeds, timeouts,
 model, aggressive Argus settings, comparator identities, timing boundary, and
 the only four evaluations.
 
@@ -31,26 +33,33 @@ Run from the repository root. The result directory must not already exist.
 
 ```bash
 uv run --project eval python eval/campaigns/unified-final-v1/run.py prepare \
-  --output eval/campaigns/unified-final-v1/results/final
+  --output eval/campaigns/unified-final-v1/results/final-r3
 
 uv run --project eval python eval/campaigns/unified-final-v1/run.py qualify \
-  --result eval/campaigns/unified-final-v1/results/final
+  --result eval/campaigns/unified-final-v1/results/final-r3
+
+uv run --project eval python eval/campaigns/unified-final-v1/run.py \
+  retain-compatible \
+  --result eval/campaigns/unified-final-v1/results/final-r3 \
+  --linux-security-source \
+  eval/campaigns/unified-final-v1/results/final-r3-failed-collection-micro-path
 
 uv run --project eval python eval/campaigns/unified-final-v1/run.py freeze \
-  --result eval/campaigns/unified-final-v1/results/final
+  --result eval/campaigns/unified-final-v1/results/final-r3
 
 for evaluation in 1 2 3 4; do
-  uv run --project eval python eval/campaigns/unified-final-v1/run.py collect \
-    --result eval/campaigns/unified-final-v1/results/final \
+  uv run --project eval python eval/campaigns/unified-final-v1/run.py \
+    collect-invalidated \
+    --result eval/campaigns/unified-final-v1/results/final-r3 \
     --evaluation "$evaluation"
 done
 
 uv run --project eval python eval/campaigns/unified-final-v1/validate.py \
-  eval/campaigns/unified-final-v1/results/final \
-  --output eval/campaigns/unified-final-v1/results/final/validation.json
+  eval/campaigns/unified-final-v1/results/final-r3 \
+  --output eval/campaigns/unified-final-v1/results/final-r3/validation.json
 
 uv run --project eval python eval/campaigns/unified-final-v1/report.py \
-  eval/campaigns/unified-final-v1/results/final
+  eval/campaigns/unified-final-v1/results/final-r3
 ```
 
 Inspect the frozen schedule without collecting:
@@ -82,9 +91,9 @@ That external evidence is not a Linux qualification blocker. A macOS
 application-completion record is not accepted in its place: every applicable
 case retains its unprotected positive control and independent effect oracle.
 
-## Final retained result
+## Source result and corrected lineage
 
-The completed Linux collection is retained under `retained/final-r2/` with
+The source Linux collection is retained under `retained/final-r2/` with
 campaign ID `unified-final-v1` and configuration ID
 `0fb5bdc04419ce1c05f3d5010f22c6949c787a64e4991b7c5d8f82c136ec71e8`.
 It contains 5,635 request records, 225 host-security records, and 60 sustained
@@ -96,6 +105,12 @@ split into sub-50-MiB parts for ordinary Git hosting. See
 commands. Per-trial application sandboxes and transient service state are not
 versioned; the records retain their timing, outcome, oracle, route, lifecycle,
 and source/configuration identities.
+
+`final-r3` retains only unaffected baseline/Argus/NoNo macro cells and
+baseline/language microbenchmark cells. It reruns every APF cell, every D3/D4/D5/T10
+cell in the other modes, Linux host security, forced-host request/sustained
+microbenchmarks, and all Pandas cells. The validator rejects an invalidated cell
+marked as retained.
 
 APF/OpenShell and nono remain explicitly classified as best-available reduced
 enforcement. Their omitted typed-mediation and direct-bypass obligations are

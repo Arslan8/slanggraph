@@ -7,6 +7,7 @@ import json
 import sys
 import uuid
 from pathlib import Path
+from collections.abc import Callable
 from typing import Any
 
 from campaign import (
@@ -36,9 +37,19 @@ def _runner():
 
 
 def _policy_gap(workload: str) -> str:
-    if workload == "D4-multi-agent":
-        return "typed retrieval object/action mediation"
-    return "typed library object/action mediation and admitted-language direct-bypass prevention"
+    gaps = {
+        "D1-sql": "query-level read-only SQL actions and prevention of direct database reads",
+        "D2-rag": "registered retriever/top-k action mediation and prevention of direct corpus reads",
+        "D3-plan-execute": "registered frozen-search action mediation and prevention of direct corpus reads",
+        "D4-multi-agent": "typed retrieval action mediation inside the generated-code workflow",
+        "D5-support": "passenger/row ownership, typed travel actions, and prevention of direct SQLite access",
+        "T9-add-memory": "principal-bound authenticated checkpoint-chain enforcement",
+        "T10-time-travel": "principal-bound authenticated checkpoint history and one-use branch authorization",
+    }
+    return gaps.get(
+        workload,
+        "tool-call object/action authorization and admitted-language direct-bypass prevention",
+    )
 
 
 def _inner(raw: dict[str, Any]) -> dict[str, Any]:
@@ -133,34 +144,52 @@ def execute_cell(module: Any, root: Path, tasks: dict[str, Any], cell: Cell) -> 
 
 
 def qualification_pilot() -> dict[str, Any]:
-    """Exercise one admitted-language and one required-host live application."""
+    """Exercise every frozen macro task once in every scheduled condition."""
     module = _runner()
     tasks = json.loads((module.V1 / "tasks.json").read_text())
     root = module.V3 / "raw" / f"qualification-macro-{uuid.uuid4().hex}"
     root.mkdir(parents=True, exist_ok=False)
-    cells = (
-        Cell(1, "argus", "T5-prebuilt-multiply", "1", 0, 0, "measured", 0),
-        Cell(1, "argus", "D4-multi-agent", "1", 0, 0, "measured", 0),
+    cells = tuple(
+        Cell(1, mode, application["id"], str(task), 0, 0, "measured", 0)
+        for application in load_config()["evaluations"][0]["applications"]
+        for task in range(1, int(application["tasks"]) + 1)
+        for mode in ("baseline", "argus", "nono", "apf")
     )
     rows = [execute_cell(module, root, tasks, cell) for cell in cells]
-    passed = all(
-        row["outcome"] == "completed"
-        and row["oracle_passed"]
+    execution_success = [
+        row["application_status"] == "completed"
         and row["ready_observed"] is True
         and row["runtime_ns"] > 0
-        and row["route"] == expected_route(load_config(), cell)
-        and row["counters"]["authorization_checks"] > 0
+        for row in rows
+    ]
+    passed = all(
+        execution_ok
+        and (
+            row["route"] == expected_route(load_config(), cell)
+            or cell.mode == "baseline" and row["route"] == "baseline"
+        )
         and row["counters"]["cleanup_completed"] > 0
-        for row, cell in zip(rows, cells, strict=True)
+        and (
+            cell.mode != "argus"
+            or not row["executed_tools"]
+            or row["counters"]["authorization_checks"] > 0
+        )
+        for row, cell, execution_ok in zip(rows, cells, execution_success, strict=True)
     )
     return {
         "raw_evidence": str(root.relative_to(ROOT)),
+        "scheduled_cells": len(cells),
+        "execution_successes": sum(execution_success),
+        "answer_correct": sum(row["oracle_passed"] for row in rows),
+        "answer_errors": sum(not row["oracle_passed"] for row in rows),
         "rows": rows,
         "passed": passed,
     }
 
 
-def collect(result: Path) -> dict[str, Any]:
+def collect(
+    result: Path, *, cell_filter: Callable[[Cell], bool] | None = None
+) -> dict[str, Any]:
     config = load_config(result / "configuration.json")
     freeze = json.loads((result / "freeze.json").read_text())
     module = _runner()
@@ -178,6 +207,8 @@ def collect(result: Path) -> dict[str, Any]:
     failures = 0
     with output.open("a") as stream:
         for cell in request_cells(config, 1):
+            if cell_filter is not None and not cell_filter(cell):
+                continue
             record = execute_cell(module, raw_root, tasks, cell)
             record["build_id"] = freeze["build_id"]
             record["config_id"] = freeze["config_id"]

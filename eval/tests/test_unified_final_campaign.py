@@ -175,3 +175,14 @@ def test_inventory_counts_actual_rows() -> None:
         "host_required": 1,
         "total": 13,
     }
+
+
+def test_host_write_policy_does_not_grant_read() -> None:
+    from microbenchmarks import Workload, _manifest, _policy
+
+    workload = Workload("write-32", "write", 32, b"x" * 32)
+    policy = _policy(Path("/tmp/designated-output"), workload, "linux")
+    manifest = _manifest(workload, "linux")
+    assert "fs::read" not in policy
+    assert "fs read" not in manifest
+    assert "fs::write" in policy and "fs::truncate" in policy

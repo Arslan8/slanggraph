@@ -393,6 +393,7 @@ def test_host_fixed_slot_layout_is_derived_without_claiming_runtime_admission():
         "_store",
         "_tools",
         "_restored",
+        "_historical_restores",
         "_lock",
     ]
     assert report["host_layout"]["instance_method_shadowing"] is False

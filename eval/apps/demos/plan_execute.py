@@ -51,6 +51,7 @@ class PlanExecute(TypedDict):
     past_steps: Annotated[list[tuple], operator.add]
     response: str
     messages: list
+    termination_reason: str
 
 
 class Plan(BaseModel):
@@ -174,13 +175,32 @@ If no more steps are needed, respond to the user. Otherwise return only steps st
 
     async def plan_step(state: PlanExecute):
         plan = await model_timing.ainvoke(planner, {"messages": [("user", state["input"])]})
-        return {"plan": plan.steps}
+        steps = [step.strip() for step in plan.steps if step.strip()]
+        if not steps:
+            steps = [
+                "Use the frozen search tool to find the facts needed for the objective, "
+                "then answer the objective."
+            ]
+            return {"plan": steps, "termination_reason": "empty_plan_recovered"}
+        return {"plan": steps}
 
     async def replan_step(state: PlanExecute):
         output = await model_timing.ainvoke(replanner, state)
         if isinstance(output.action, Response):
-            return {"response": output.action.response}
-        return {"plan": output.action.steps}
+            response = output.action.response.strip()
+            if response:
+                return {"response": response, "termination_reason": "model_response"}
+        else:
+            steps = [step.strip() for step in output.action.steps if step.strip()]
+            completed = {str(step).strip() for step, _ in state["past_steps"]}
+            if steps and steps[0] not in completed and steps != state["plan"]:
+                if len(state["past_steps"]) < 8:
+                    return {"plan": steps}
+        # A structured-output model can emit an empty/repeated plan forever.
+        # Preserve its latest substantive answer as the application result so
+        # this is scored as model accuracy, not a framework execution crash.
+        response = str(state["past_steps"][-1][1]) if state["past_steps"] else ""
+        return {"response": response, "termination_reason": "no_progress"}
 
     def should_end(state: PlanExecute):
         return END if state.get("response") else "prepare_agent"
@@ -236,6 +256,7 @@ async def run(args) -> None:
                 "past_steps": [],
                 "response": "",
                 "messages": [],
+                "termination_reason": "",
             },
             config,
         )

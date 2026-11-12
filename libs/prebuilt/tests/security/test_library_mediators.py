@@ -299,7 +299,9 @@ def test_airline_sqlite_binds_principal_and_checks_mutation_grant(tmp_path):
             INSERT INTO tickets VALUES ('T1', 'B1', 'P1');
             INSERT INTO flights VALUES (1, 'F1', 'SFO', 'JFK', '2027-01-01T12:00:00+00:00', '2027-01-01T18:00:00+00:00');
             INSERT INTO flights VALUES (2, 'F2', 'SFO', 'JFK', '2027-01-02T12:00:00+00:00', '2027-01-02T18:00:00+00:00');
+            INSERT INTO flights VALUES (3, 'F3', 'JFK', 'SFO', '2027-01-03T12:00:00+00:00', '2027-01-03T18:00:00+00:00');
             INSERT INTO ticket_flights VALUES ('T1', 1, 'Economy');
+            INSERT INTO ticket_flights VALUES ('T1', 3, 'Economy');
             INSERT INTO boarding_passes VALUES ('T1', 1, '1A');
             """
         )
@@ -319,3 +321,13 @@ def test_airline_sqlite_binds_principal_and_checks_mutation_grant(tmp_path):
     update = _dispatcher(change_flight, resource, resource.permission("update_ticket"))
     with pytest.raises(HostExecutionDenied, match="not_granted"):
         _invoke(update, change_flight, {"ticket_no": "T1", "flight_id": 2}, ())
+    assert "successfully updated" in _invoke(
+        update,
+        change_flight,
+        {"ticket_no": "T1", "flight_id": 2},
+        (_line(resource, "update_ticket", resource._object_id),),
+    )
+    with sqlite3.connect(database) as connection:
+        assert connection.execute(
+            "SELECT flight_id FROM ticket_flights WHERE ticket_no = 'T1' ORDER BY flight_id"
+        ).fetchall() == [(2,), (3,)]

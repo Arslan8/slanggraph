@@ -1,0 +1,11 @@
+{
+  "campaign_id": "unified-final-v1",
+  "complete_requested": true,
+  "config_id": "d8fdb318506dd84466339a78d433c290b467bbde379a379b5fef0798c33f468c",
+  "errors": [],
+  "passed": true,
+  "records": 5635,
+  "schema_version": 1,
+  "security_records": 225,
+  "sustained_records": 60
+}

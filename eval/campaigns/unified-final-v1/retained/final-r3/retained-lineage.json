@@ -1,0 +1,25 @@
+{
+  "compatibility_rules": {
+    "evaluation_1": "retain baseline/Argus/NoNo except D3, D4, D5, and T10; APF image/timer changes invalidate every APF cell",
+    "evaluation_2": "retain the freshly rerun Linux cases only when supplied from the qualified, frozen pre-micro-path-fix result",
+    "evaluation_3": "retain baseline and forced-language; rerun forced-host after adapter, permission, and lifecycle changes",
+    "evaluation_4": "retain none after Pandas workflow/oracle fixes"
+  },
+  "linux_security_source": "eval/campaigns/unified-final-v1/results/final-r3-failed-collection-micro-path",
+  "retained_linux_security_records": 225,
+  "retained_request_records": 1995,
+  "retained_sustained_records": 40,
+  "schema_version": 1,
+  "source": "retained/final-r2",
+  "source_campaign_id": "unified-final-v1",
+  "source_config_id": "0fb5bdc04419ce1c05f3d5010f22c6949c787a64e4991b7c5d8f82c136ec71e8",
+  "source_records_sha256": "cd26814222dbff4402a8e463439555a6c27192fc454e46e7da44b54728845295",
+  "source_sustained_parts_sha256": {
+    "sustained.jsonl.zst.part-00": "46efaaad7498196c29b21ff90cbf005b5ea90de38cbd56e967271a7e2cd95905",
+    "sustained.jsonl.zst.part-01": "b6cfe30347cce442c78aa6ae1e1cce08491217926191a9daa1a2e5a5bf1a88a0",
+    "sustained.jsonl.zst.part-02": "6f9eb961c7d1c5259448fa7d8fb701f32b2da3af180e56f4dda3f95df9135164",
+    "sustained.jsonl.zst.part-03": "6f214106e2d1c38f615b9a0cbeaa3db7dd664d66be3e22a9089acea6e74cc7b5"
+  },
+  "target_build_id": "0bcca90c2988dea43e299c993f175bd8488cbc6d228687a5ac9e3b2fd47c6542",
+  "target_config_id": "d8fdb318506dd84466339a78d433c290b467bbde379a379b5fef0798c33f468c"
+}

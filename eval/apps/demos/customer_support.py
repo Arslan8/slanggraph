@@ -187,7 +187,54 @@ def build(
 
     baseline_fetch = namespace["fetch_user_flight_information"]
     baseline_search = namespace["search_flights"]
-    baseline_update = namespace["update_ticket_to_new_flight"]
+    tutorial_update = namespace["update_ticket_to_new_flight"]
+
+    def update_one_itinerary_leg(ticket_no: str, new_flight_id: int) -> str:
+        """Update only the ticket leg whose route matches the replacement flight."""
+        connection = sqlite3.connect(database)
+        try:
+            owner = connection.execute(
+                "SELECT 1 FROM tickets WHERE ticket_no = ? AND passenger_id = ?",
+                (ticket_no, PASSENGER),
+            ).fetchone()
+            replacement = connection.execute(
+                "SELECT departure_airport, arrival_airport, scheduled_departure "
+                "FROM flights WHERE flight_id = ?",
+                (new_flight_id,),
+            ).fetchone()
+            if owner is None:
+                return "Current signed-in passenger does not own this ticket."
+            if replacement is None:
+                return "Invalid new flight ID provided."
+            departure = pd.Timestamp(replacement[2])
+            if departure.tzinfo is None:
+                departure = departure.tz_localize(FROZEN_NOW.tzinfo)
+            if (departure - FROZEN_NOW).total_seconds() < 3 * 3600:
+                return "Not permitted to reschedule to a flight less than 3 hours away."
+            current = connection.execute(
+                "SELECT tf.flight_id FROM ticket_flights AS tf "
+                "JOIN flights AS f ON f.flight_id = tf.flight_id "
+                "WHERE tf.ticket_no = ? AND f.departure_airport = ? "
+                "AND f.arrival_airport = ? ORDER BY f.scheduled_departure LIMIT 1",
+                (ticket_no, replacement[0], replacement[1]),
+            ).fetchone()
+            if current is None:
+                return "No matching existing ticket leg found for the new flight route."
+            connection.execute(
+                "UPDATE ticket_flights SET flight_id = ? "
+                "WHERE ticket_no = ? AND flight_id = ?",
+                (new_flight_id, ticket_no, current[0]),
+            )
+            connection.commit()
+        finally:
+            connection.close()
+        return "Ticket successfully updated to new flight."
+
+    baseline_update = tool(
+        "update_ticket_to_new_flight",
+        description=tutorial_update.description,
+        args_schema=tutorial_update.args_schema,
+    )(update_one_itinerary_leg)
     baseline_cancel = namespace["cancel_ticket"]
     dispatcher = security = audit = None
     if mode == "Baseline":

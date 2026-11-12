@@ -232,7 +232,11 @@ class PersistentPythonBackend(PythonSessionAPI):
         )
         ruleset.close()
         self.lock = threading.Lock()
-        ready = self._readline(20)
+        # Matplotlib's first font-cache construction is preparation, not
+        # request work, and can exceed 20 seconds on a cold or loaded host.
+        # Keep it outside the runtime barrier while retaining a finite startup
+        # failure bound.
+        ready = self._readline(60)
         if ready != {"status": "ready"}:
             self.close()
             raise RuntimeError(f"python session failed to activate: {ready!r}")
@@ -352,27 +356,33 @@ class TravelSQLiteBackend(TravelAPI):
                 (ticket_no, passenger_id),
             ).fetchone()
             flight = connection.execute(
-                "SELECT scheduled_departure FROM flights WHERE flight_id = ?",
+                "SELECT departure_airport, arrival_airport, scheduled_departure "
+                "FROM flights WHERE flight_id = ?",
                 (new_flight_id,),
             ).fetchone()
             if owner is None:
                 return "Current signed-in passenger does not own this ticket."
             if flight is None:
                 return "Invalid new flight ID provided."
-            departure = datetime.fromisoformat(flight[0])
+            departure = datetime.fromisoformat(flight[2])
             frozen = self.frozen_now
             if departure.tzinfo is None and frozen.tzinfo is not None:
                 departure = departure.replace(tzinfo=frozen.tzinfo)
             if (departure - frozen).total_seconds() < 3 * 3600:
                 return "Not permitted to reschedule to a flight less than 3 hours away."
             current = connection.execute(
-                "SELECT 1 FROM ticket_flights WHERE ticket_no = ?", (ticket_no,)
+                "SELECT tf.flight_id FROM ticket_flights AS tf "
+                "JOIN flights AS f ON f.flight_id = tf.flight_id "
+                "WHERE tf.ticket_no = ? AND f.departure_airport = ? "
+                "AND f.arrival_airport = ? ORDER BY f.scheduled_departure LIMIT 1",
+                (ticket_no, flight[0], flight[1]),
             ).fetchone()
             if current is None:
-                return "No existing ticket found for the given ticket number."
+                return "No matching existing ticket leg found for the new flight route."
             connection.execute(
-                "UPDATE ticket_flights SET flight_id = ? WHERE ticket_no = ?",
-                (new_flight_id, ticket_no),
+                "UPDATE ticket_flights SET flight_id = ? "
+                "WHERE ticket_no = ? AND flight_id = ?",
+                (new_flight_id, ticket_no, current[0]),
             )
         return "Ticket successfully updated to new flight."
 

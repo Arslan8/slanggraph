@@ -172,29 +172,33 @@ def airline_sqlite_resource(
                     (ticket_no, passenger_id),
                 ).fetchone()
                 flight = connection.execute(
-                    "SELECT scheduled_departure FROM flights WHERE flight_id = ?",
+                    "SELECT departure_airport, arrival_airport, scheduled_departure "
+                    "FROM flights WHERE flight_id = ?",
                     (new_flight_id,),
                 ).fetchone()
                 if owner is None:
                     return "Current signed-in passenger does not own this ticket."
                 if flight is None:
                     return "Invalid new flight ID provided."
-                departure = datetime.fromisoformat(flight[0])
+                departure = datetime.fromisoformat(flight[2])
                 now = frozen_now
                 if departure.tzinfo is None and now.tzinfo is not None:
                     departure = departure.replace(tzinfo=now.tzinfo)
                 if (departure - now).total_seconds() < 3 * 3600:
                     return "Not permitted to reschedule to a flight less than 3 hours away."
-                if (
-                    connection.execute(
-                        "SELECT 1 FROM ticket_flights WHERE ticket_no = ?", (ticket_no,)
-                    ).fetchone()
-                    is None
-                ):
-                    return "No existing ticket found for the given ticket number."
+                current = connection.execute(
+                    "SELECT tf.flight_id FROM ticket_flights AS tf "
+                    "JOIN flights AS f ON f.flight_id = tf.flight_id "
+                    "WHERE tf.ticket_no = ? AND f.departure_airport = ? "
+                    "AND f.arrival_airport = ? ORDER BY f.scheduled_departure LIMIT 1",
+                    (ticket_no, flight[0], flight[1]),
+                ).fetchone()
+                if current is None:
+                    return "No matching existing ticket leg found for the new flight route."
                 connection.execute(
-                    "UPDATE ticket_flights SET flight_id = ? WHERE ticket_no = ?",
-                    (new_flight_id, ticket_no),
+                    "UPDATE ticket_flights SET flight_id = ? "
+                    "WHERE ticket_no = ? AND flight_id = ?",
+                    (new_flight_id, ticket_no, current[0]),
                 )
             return "Ticket successfully updated to new flight."
 

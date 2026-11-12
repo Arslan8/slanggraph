@@ -39,6 +39,7 @@ from microbenchmarks import (
 )
 from pandas_case_study import collect as collect_pandas
 from pandas_case_study import qualification_pilot as pandas_qualification_pilot
+from retain_compatible import INVALIDATED_MACRO_WORKLOADS, retain
 
 
 def _copy_frozen_inputs(result: Path) -> None:
@@ -287,6 +288,30 @@ def _test_command() -> dict[str, Any]:
         "libs/prebuilt/tests/security/test_library_mediators.py",
         "libs/prebuilt/tests/security/test_language_file_binding.py",
         "libs/prebuilt/tests/security/test_language_route_verification.py",
+        "libs/prebuilt/tests/security/test_checkpoint_placement.py",
+    ]
+    completed = subprocess.run(
+        command, cwd=ROOT, capture_output=True, text=True, check=False, timeout=900
+    )
+    return {
+        "command": command,
+        "returncode": completed.returncode,
+        "stdout": completed.stdout,
+        "stderr": completed.stderr,
+        "passed": completed.returncode == 0,
+    }
+
+
+def _application_test_command() -> dict[str, Any]:
+    command = [
+        str(ROOT / "eval/.venv/bin/pytest"),
+        "-q",
+        "eval/tests/test_demo_resource_monitors.py",
+        "eval/tests/test_pandas_period_api.py",
+        "eval/tests/test_pandas_workflow_contract.py",
+        "eval/tests/test_pandas_serialization.py",
+        "eval/tests/test_application_campaign_oracle.py",
+        "eval/tests/test_unified_final_campaign.py",
     ]
     completed = subprocess.run(
         command, cwd=ROOT, capture_output=True, text=True, check=False, timeout=900
@@ -308,6 +333,7 @@ def qualify(result: Path, macos_evidence: Path | None) -> dict[str, Any]:
         raise FileExistsError(f"qualification output already exists: {fuzz_dir}")
     fuzz = run_fuzz(config, fuzz_dir)
     tests = _test_command()
+    application_tests = _application_test_command()
     timer = _timer_qualification()
     pool = _pool_qualification()
     micro = micro_qualification_pilot()
@@ -336,7 +362,7 @@ def qualify(result: Path, macos_evidence: Path | None) -> dict[str, Any]:
         "comparators_parent_ready_handshake": comparators["passed"],
         "comparators_best_available_enforcement_pilot": comparators["passed"],
         "pandas_parent_ready_handshake": pandas["passed"],
-        "micro_identical_source_three_routes": micro["passed"],
+        "micro_same_operation_and_fixture_three_routes": micro["passed"],
         "sustained_inventory_restoration": micro["passed"],
     }
     required_external = {
@@ -348,7 +374,12 @@ def qualify(result: Path, macos_evidence: Path | None) -> dict[str, Any]:
         name for name, passed in {**required_external, **adapter_contracts}.items() if not passed
     ]
     passed = (
-        fuzz["passed"] and tests["passed"] and timer["passed"] and pool["passed"] and not blockers
+        fuzz["passed"]
+        and tests["passed"]
+        and application_tests["passed"]
+        and timer["passed"]
+        and pool["passed"]
+        and not blockers
     )
     report = {
         "schema_version": 1,
@@ -357,6 +388,7 @@ def qualify(result: Path, macos_evidence: Path | None) -> dict[str, Any]:
         "build_id": pins["build"]["build_id"],
         "fuzz": fuzz,
         "correspondence_and_mediator_tests": tests,
+        "deterministic_application_tests": application_tests,
         "timer_contract_unit_probe": timer,
         "worker_pool_unit_probe": pool,
         "production_microbenchmark_pilot": micro,
@@ -421,6 +453,32 @@ def collect(result: Path, evaluation: int) -> None:
     raise AssertionError(f"unexpected evaluation: {evaluation}")
 
 
+def collect_invalidated(result: Path, evaluation: int) -> None:
+    """Collect exactly the cells invalidated by the final-r2 repairs."""
+    freeze_record = result / "freeze.json"
+    if not freeze_record.exists() or not json.loads(freeze_record.read_text()).get("frozen"):
+        raise RuntimeError("collection requires a passing qualification and frozen build")
+    if evaluation == 1:
+        report = collect_macrobenchmarks(
+            result,
+            cell_filter=lambda cell: cell.mode == "apf"
+            or cell.workload in INVALIDATED_MACRO_WORKLOADS,
+        )
+    elif evaluation == 2:
+        report = collect_linux_host_security(result)
+    elif evaluation == 3:
+        modes = frozenset({"argus-host"})
+        request = collect_request_latency(result, selected_modes=modes)
+        sustained = collect_sustained(result, selected_modes=modes)
+        report = {"passed": request["passed"] and sustained["passed"]}
+    elif evaluation == 4:
+        report = collect_pandas(result)
+    else:
+        raise AssertionError(f"unexpected evaluation: {evaluation}")
+    if not report["passed"]:
+        raise RuntimeError(f"invalidated evaluation {evaluation} failed collection checks")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -434,6 +492,14 @@ def main() -> int:
     collect_parser = subparsers.add_parser("collect")
     collect_parser.add_argument("--result", type=Path, required=True)
     collect_parser.add_argument("--evaluation", type=int, choices=(1, 2, 3, 4), required=True)
+    retain_parser = subparsers.add_parser("retain-compatible")
+    retain_parser.add_argument("--result", type=Path, required=True)
+    retain_parser.add_argument("--linux-security-source", type=Path)
+    invalidated_parser = subparsers.add_parser("collect-invalidated")
+    invalidated_parser.add_argument("--result", type=Path, required=True)
+    invalidated_parser.add_argument(
+        "--evaluation", type=int, choices=(1, 2, 3, 4), required=True
+    )
     fuzz_parser = subparsers.add_parser("fuzz")
     fuzz_parser.add_argument("--output", type=Path, required=True)
     schedule_parser = subparsers.add_parser("schedule")
@@ -449,6 +515,18 @@ def main() -> int:
         print(json.dumps(freeze(args.result), indent=2))
     elif args.command == "collect":
         collect(args.result, args.evaluation)
+    elif args.command == "retain-compatible":
+        print(
+            json.dumps(
+                retain(
+                    args.result,
+                    linux_security_source=args.linux_security_source,
+                ),
+                indent=2,
+            )
+        )
+    elif args.command == "collect-invalidated":
+        collect_invalidated(args.result, args.evaluation)
     elif args.command == "fuzz":
         print(json.dumps(run_fuzz(load_config(), args.output), indent=2))
     else:

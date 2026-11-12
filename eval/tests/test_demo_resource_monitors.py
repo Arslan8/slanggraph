@@ -78,7 +78,12 @@ def test_travel_monitor_binds_logical_principal_and_preserves_mutations(
             "INSERT INTO flights VALUES (2, 'F2', 'A', 'B', ?, ?)",
             (departure.isoformat(), (departure + timedelta(hours=1)).isoformat()),
         )
+        connection.execute(
+            "INSERT INTO flights VALUES (3, 'F3', 'B', 'A', ?, ?)",
+            (departure.isoformat(), (departure + timedelta(hours=1)).isoformat()),
+        )
         connection.execute("INSERT INTO ticket_flights VALUES ('T1', 1, 'Economy')")
+        connection.execute("INSERT INTO ticket_flights VALUES ('T1', 3, 'Economy')")
         connection.execute("INSERT INTO boarding_passes VALUES ('T1', 1, '1A')")
 
     backend = TravelSQLiteBackend(database, "P1", now)
@@ -88,8 +93,8 @@ def test_travel_monitor_binds_logical_principal_and_preserves_mutations(
     assert "successfully updated" in backend.update_ticket("T1", 2, "alice")
     with sqlite3.connect(database) as connection:
         assert connection.execute(
-            "SELECT flight_id FROM ticket_flights WHERE ticket_no = 'T1'"
-        ).fetchone() == (2,)
+            "SELECT flight_id FROM ticket_flights WHERE ticket_no = 'T1' ORDER BY flight_id"
+        ).fetchall() == [(2,), (3,)]
     assert "successfully cancelled" in backend.cancel_ticket("T1", "alice")
 
 
@@ -124,6 +129,34 @@ def test_persistent_python_monitor_preserves_state_and_denies_sibling_file(
         denied_write = json.loads(backend.execute(f"open({str(forbidden)!r}, 'w').write('forged')"))
         assert denied_write["error"].startswith("PermissionError:")
         assert forbidden.read_text() == "not-readable"
+    finally:
+        backend.close()
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux host qualification")
+def test_persistent_python_monitor_produces_exact_chart_oracle(tmp_path: Path) -> None:
+    roots = tuple(
+        Path(item).resolve()
+        for item in sys.path
+        if item and Path(item).is_dir() and not Path(item).resolve().is_relative_to(tmp_path)
+    )
+    artifact = tmp_path / "chart.png"
+    observer = tmp_path / "observer.json"
+    backend = PersistentPythonBackend(artifact, observer, runtime_roots=roots)
+    expected = [2_722_793_515_171.76, 2_647_926_055_110.05, 2_966_433_692_008.09,
+                2_794_788_137_066.94, 3_056_250_648_138.29]
+    try:
+        result = json.loads(
+            backend.execute(
+                "plt.plot(['2019','2020','2021','2022','2023'], " + repr(expected) + ")"
+            )
+        )
+        assert "error" not in result
+        assert result["lines"] == [
+            {"x": ["2019", "2020", "2021", "2022", "2023"], "y": expected}
+        ]
+        assert json.loads(observer.read_text()) == {"lines": result["lines"]}
+        assert artifact.stat().st_size > 0
     finally:
         backend.close()
 

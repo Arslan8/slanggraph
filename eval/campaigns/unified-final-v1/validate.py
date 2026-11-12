@@ -248,6 +248,52 @@ def validate_sustained(
     return errors
 
 
+def validate_retained_lineage(
+    result: Path,
+    records: list[dict[str, Any]],
+    security: list[dict[str, Any]],
+    sustained: list[dict[str, Any]],
+) -> list[str]:
+    retained_requests = [row for row in records if row.get("retained_from")]
+    retained_security = [row for row in security if row.get("retained_from")]
+    retained_sustained = [row for row in sustained if row.get("retained_from")]
+    if not retained_requests and not retained_security and not retained_sustained:
+        return []
+    errors = []
+    lineage_path = result / "retained-lineage.json"
+    if not lineage_path.is_file():
+        return ["retained samples lack retained-lineage.json"]
+    lineage = json.loads(lineage_path.read_text())
+    for index, row in enumerate(retained_requests):
+        allowed = (
+            row["evaluation"] == 1
+            and row["mode"] != "apf"
+            and row["workload"]
+            not in {"D3-plan-execute", "D4-multi-agent", "D5-support", "T10-time-travel"}
+        ) or (row["evaluation"] == 3 and row["mode"] in {"baseline", "argus-language"})
+        if not allowed:
+            errors.append(f"retained request {index} belongs to an invalidated cell")
+        if not row.get("source_config_id") or not row.get("source_build_id"):
+            errors.append(f"retained request {index} lacks source identity")
+    for index, row in enumerate(retained_sustained):
+        if row["mode"] not in {"baseline", "argus-language"}:
+            errors.append(f"retained sustained sample {index} belongs to an invalidated mode")
+        if not row.get("source_config_id") or not row.get("source_build_id"):
+            errors.append(f"retained sustained sample {index} lacks source identity")
+    for index, row in enumerate(retained_security):
+        if row.get("backend") != "linux":
+            errors.append(f"retained security sample {index} is not a Linux case")
+        if not row.get("source_config_id") or not row.get("source_build_id"):
+            errors.append(f"retained security sample {index} lacks source identity")
+    if len(retained_requests) != lineage.get("retained_request_records"):
+        errors.append("retained request count disagrees with lineage manifest")
+    if len(retained_sustained) != lineage.get("retained_sustained_records"):
+        errors.append("retained sustained count disagrees with lineage manifest")
+    if len(retained_security) != lineage.get("retained_linux_security_records", 0):
+        errors.append("retained Linux-security count disagrees with lineage manifest")
+    return errors
+
+
 def validate_directory(result: Path, *, complete: bool = True) -> dict[str, Any]:
     config = load_config(result / "configuration.json")
     records = read_jsonl(result / "records.jsonl")
@@ -256,6 +302,7 @@ def validate_directory(result: Path, *, complete: bool = True) -> dict[str, Any]
     errors = validate_request_records(records, config, complete=complete)
     errors.extend(validate_security(security, config, complete))
     errors.extend(validate_sustained(sustained, config, complete))
+    errors.extend(validate_retained_lineage(result, records, security, sustained))
     qualification = result / "qualification.json"
     if complete and (
         not qualification.exists() or not json.loads(qualification.read_text()).get("passed")

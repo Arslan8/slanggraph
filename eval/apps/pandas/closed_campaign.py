@@ -76,7 +76,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--repetitions", type=int, default=5)
     parser.add_argument("--pilot", action="store_true")
-    parser.add_argument("--manifest", choices=sorted(MANIFESTS), default="v22")
+    parser.add_argument("--manifest", choices=sorted(MANIFESTS), default="v23")
     parser.add_argument(
         "--runtime-manifest",
         type=Path,

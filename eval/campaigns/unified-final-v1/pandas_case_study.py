@@ -35,9 +35,9 @@ def _rows(output: Path) -> list[dict[str, Any]]:
 
 
 def qualification_pilot() -> dict[str, Any]:
-    """Run one live matched task and both frozen unauthorized-resource controls."""
+    """Run all ten live tasks in both modes and both resource controls."""
     output = RAW / f"unified-final-qualification-{uuid.uuid4().hex}"
-    matched = _run(output, "--pilot", "--repetitions", "1", "--configuration", "matched")
+    matched = _run(output, "--repetitions", "1", "--configuration", "matched")
     rows = _rows(output)
     attacks = []
     for attack in ("read_bob", "update_bob"):
@@ -66,7 +66,7 @@ def qualification_pilot() -> dict[str, Any]:
         )
     passed = (
         matched.returncode == 0
-        and len(rows) == 2
+        and len(rows) == 20
         and all(
             row["status"] == "completed"
             and row["legitimate_result"]

@@ -63,8 +63,6 @@ def aggregate_periods(
     _missing_value=None,
 ):
     """Aggregate observed rows before completing and formatting calendar buckets."""
-    import pandas as pd
-
     if operation not in {"sum", "mean", "count", "min", "max"}:
         raise ValueError("Unsupported period aggregation")
     if frequency not in {"D", "W", "M", "Q", "Y"}:

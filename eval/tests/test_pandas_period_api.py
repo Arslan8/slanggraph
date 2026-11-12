@@ -33,7 +33,7 @@ def test_partial_months_duplicates_and_empty_buckets():
     assert mean.amount.iloc[0] == 9
     assert mean.amount.iloc[1] is None
     assert mean.amount.iloc[2] == 31
-    validate_output_data({"data_wrangled": mean.to_dict()})
+    validate_output_data(codec._to_jsonable({"data_wrangled": mean.to_dict()}))
 
 
 def test_null_groups_and_invalid_requests():
@@ -52,7 +52,11 @@ def test_helper_globals_remain_restricted():
     source = """
 def _to_jsonable(obj):
     return obj
-_SAFE_BUILTINS = {"dict": dict}
+_SAFE_BUILTINS = {
+    "dict": dict, "isinstance": isinstance, "list": list, "tuple": tuple,
+    "len": len, "ValueError": ValueError, "float": float, "str": str,
+    "object": object,
+}
 pd = None
 np = None
 def run():
@@ -72,7 +76,11 @@ def test_v2_period_helper_uses_a_json_safe_null_sentinel():
     source = """
 def _to_jsonable(obj):
     return obj
-_SAFE_BUILTINS = {"dict": dict}
+_SAFE_BUILTINS = {
+    "dict": dict, "isinstance": isinstance, "list": list, "tuple": tuple,
+    "len": len, "ValueError": ValueError, "float": float, "str": str,
+    "object": object,
+}
 pd = None
 np = None
 def run():
@@ -82,7 +90,8 @@ def run():
     scope = {}
     exec(codec.repair_runner(source, computation_api="period-aggregation-v2"), scope)
     helper = scope["run"]()["aggregate_periods"]
+    helper.__globals__["pd"] = pd
     frame = pd.DataFrame({"date": ["2026-01-01", "2026-02-01"], "sales": [1, None]})
     result = helper(frame, "date", "sales", operation="mean")
     assert result.sales.iloc[1] == codec.JSON_NULL_SENTINEL
-    validate_output_data({"data_wrangled": result.to_dict()})
+    validate_output_data(codec._to_jsonable({"data_wrangled": result.to_dict()}))

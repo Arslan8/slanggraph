@@ -31,7 +31,7 @@ APF_POLICY = CAMPAIGN / "apf-policy.yaml"
 APF_PROJECTED_POLICY = CAMPAIGN / "apf-projected-policy.json"
 APF_EXPORTER = ROOT / "eval/remaining/apf_probe/target/debug/export_policy"
 DEFAULT_OPENSHELL_IMAGE_ID = (
-    "sha256:71b2246e9c313c22051684459d6c5e009a97cf05305d263abe1049c2330dfe19"
+    "sha256:dae4acb90df1b41025c47d210fc4db9cde0eab88dc45ba81e58572d48e836ac5"
 )
 SEED = 20261028
 MODES = ("Baseline", "Argus", "NoNo-enforced", "APF-enforced")
@@ -452,6 +452,11 @@ def execute_external(
     inputs = resource_inputs(job, trial, tasks)
     if job.mode == "NoNo-enforced":
         (trial / "tmp").mkdir()
+        runtime_reads = (
+            ("/usr/share/fonts", "/etc/fonts")
+            if job.application == "D4-multi-agent"
+            else ()
+        )
         executed_command = [
             str(nono),
             "run",
@@ -459,6 +464,7 @@ def execute_external(
             "--allow",
             str(trial),
             *[item for path in READ_ONLY_CODE for item in ("--read", str(path))],
+            *[item for path in runtime_reads for item in ("--read", path)],
             "--read",
             PYTHON_RUNTIME,
             *[item for path in inputs for item in ("--read-file", str(path))],
@@ -479,7 +485,11 @@ def execute_external(
             "PYTHONDONTWRITEBYTECODE": "1",
         }
     else:
-        inner_trial = Path("/workspace/results")
+        # OpenShell's download command only exports paths beneath the sandbox
+        # workspace.  Keep result files in a pre-created, policy-writable
+        # directory under that workspace so output and binary artifacts cross
+        # the same caller-facing boundary.
+        inner_trial = Path("/data/langgraph/.argus-eval-results")
         apf_ready = inner_trial / "runtime-ready.json"
         apf_go = inner_trial / "runtime-go"
         sandbox = apf_sandbox_name(root, job)
@@ -555,6 +565,8 @@ def execute_external(
             "ARGUS_EVAL_READY_PROTOCOL=1",
             f"ARGUS_EVAL_READY_FILE={apf_ready}",
             f"ARGUS_EVAL_GO_FILE={apf_go}",
+            f"MPLCONFIGDIR={inner_trial / 'matplotlib'}",
+            "TMPDIR=/tmp",
             *inner_command,
         ]
 
@@ -617,6 +629,13 @@ def execute_external(
                 trial,
             )
 
+        # The caller cannot safely consume the result until it has crossed the
+        # APF boundary.  Retrieval is recurring request work; sandbox deletion
+        # is teardown of the already completed logical session.
+        if ready_observed:
+            runtime_end_ns = time.monotonic_ns()
+            process_wall_ms = (runtime_end_ns - runtime_start_ns) / 1_000_000
+
     if sandbox is not None:
         cleanup_started = time.perf_counter()
         cleanup = subprocess.run(
@@ -632,7 +651,7 @@ def execute_external(
         if not cleanup_confirmed:
             retrieval_error += f"\nfailed to delete sandbox {sandbox}: {cleanup.stderr}"
 
-    if ready_observed:
+    if ready_observed and job.mode != "APF-enforced":
         runtime_end_ns = time.monotonic_ns()
         process_wall_ms = (runtime_end_ns - runtime_start_ns) / 1_000_000
 
@@ -675,8 +694,13 @@ def execute_external(
         "sandbox_preparation_ms": sandbox_preparation_ms,
         "sandbox_cleanup_ms": cleanup_ms,
         "sandbox_cleanup_confirmed": cleanup_confirmed,
+        "sandbox_cleanup_in_primary_timer": False,
+        "result_retrieval_in_primary_timer": job.mode == "APF-enforced",
         "end_to_end_wall_ms": (
-            sandbox_preparation_ms + child_preflight_ns / 1_000_000 + process_wall_ms
+            sandbox_preparation_ms
+            + child_preflight_ns / 1_000_000
+            + process_wall_ms
+            + cleanup_ms
         ),
         "model_time_ms": inner.get("model_time_ms"),
         "model_calls": inner.get("model_calls"),
