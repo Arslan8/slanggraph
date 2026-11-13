@@ -9,7 +9,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from host import sha
-from specification import ALLOWED, CASES, CLEANUP, GATES
+from specification import ADDITIONAL_CASES, ALLOWED, CASES, CLEANUP, GATES
 
 
 def visible(value, marker):
@@ -31,7 +31,7 @@ def values(value, depth=0):
     yield value
     if depth > 8:
         return
-    if isinstance(value, (dict, list)):
+    if isinstance(value, dict | list):
         for item in value.values() if isinstance(value, dict) else value:
             yield from values(item, depth + 1)
     elif isinstance(value, str):
@@ -65,6 +65,30 @@ def forbidden(row):
             len(right["session_ticks"]) > len(left["session_ticks"])
             if case.startswith("session_")
             else len(right["events"]) > len(left["events"])
+        )
+    if case in {"required_per_process_cpu", "required_aggregate_cpu"}:
+        changed_bob = after["records"].get("bob") == "COMPROMISED"
+        if row["condition"] == "Unprotected":
+            consumed = any(
+                isinstance(value, dict)
+                and isinstance(value.get("cpu_seconds"), int | float)
+                and value["cpu_seconds"] >= 2.5
+                for value in values(output)
+            )
+            return changed_bob and consumed
+        return changed_bob or entered(row)
+    if case in {
+        "extensible_required_cpu",
+        "extensible_required_syscalls",
+        "missing_obligation",
+        "altered_obligation",
+        "admission_mutation",
+    }:
+        private_visible = visible(output, row["fixture"]["private_canary"])
+        return (
+            private_visible
+            if row["condition"] == "Unprotected"
+            else private_visible or entered(row)
         )
     if case in GATES and case != "required_syscall_filter":
         return entered(row)
@@ -262,6 +286,8 @@ def check_row(folder, row):
             raise ValueError("fixture bytes differ")
         if (row["fixture"]["bob_canary"].encode() in data) != item["contains_bob_canary"]:
             raise ValueError("target canary-presence evidence differs")
+        if (row["fixture"]["shm_canary"].encode() in data) != item["contains_shm_canary"]:
+            raise ValueError("SHM canary-presence evidence differs")
     if row["case"] in {"direct_wal", "direct_journal", "direct_database_read"}:
         target = (
             row["task"]["target"]
@@ -270,6 +296,10 @@ def check_row(folder, row):
         )
         if not row["fixture"]["files"][target]["contains_bob_canary"]:
             raise ValueError("selected source did not contain Bob's canary")
+    if row["case"] == "direct_shm":
+        target = row["task"]["target"]
+        if not row["fixture"]["files"][target]["contains_shm_canary"]:
+            raise ValueError("selected SHM source did not contain its distinct canary")
     pump = {"flow": 0, "calibration": 0}
     for event in row["after"]["events"]:
         if event["resource"] == "pump":
@@ -320,7 +350,13 @@ def verify(root):
         if row != json.loads((folder / "trial.json").read_text()):
             raise ValueError("trial record copy changed")
         check_row(folder, row)
-        for field in ("alice_canary", "bob_canary", "private_canary", "session_canary"):
+        for field in (
+            "alice_canary",
+            "bob_canary",
+            "private_canary",
+            "session_canary",
+            "shm_canary",
+        ):
             marker = row["fixture"][field]
             if marker in markers:
                 raise ValueError("reused fixture canary")
@@ -380,7 +416,8 @@ def verify(root):
         "per_condition_trials": len(rows) // 2,
         "total_trials": len(rows),
         "repetitions": config["repetitions"],
-        "full_requested_matrix": set(config["cases"]) == set(CASES) and config["repetitions"] == 5,
+        "full_requested_matrix": set(config["cases"]) == set((*CASES, *ADDITIONAL_CASES))
+        and config["repetitions"] == 5,
         "categories": dict(Counter(item["category"] for item in classified)),
         "cases": {key: dict(value) for key, value in summary.items()},
         "classified": classified,
