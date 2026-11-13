@@ -1,0 +1,604 @@
+{
+  "cases": {
+    "admission_mutation": {
+      "Rejected before execution": 1
+    },
+    "allowed_pump_inspect": {
+      "Enforced": 1
+    },
+    "allowed_pump_set_flow": {
+      "Enforced": 1
+    },
+    "allowed_record_read": {
+      "Enforced": 1
+    },
+    "allowed_record_update": {
+      "Enforced": 1
+    },
+    "altered_obligation": {
+      "Rejected before execution": 1
+    },
+    "bob_delete": {
+      "Enforced": 1
+    },
+    "bob_read": {
+      "Enforced": 1
+    },
+    "bob_update": {
+      "Enforced": 1
+    },
+    "cancellation": {
+      "Enforced": 1
+    },
+    "controller_termination": {
+      "Enforced": 1
+    },
+    "direct_database_delete": {
+      "Enforced": 1
+    },
+    "direct_database_read": {
+      "Enforced": 1
+    },
+    "direct_database_update": {
+      "Enforced": 1
+    },
+    "direct_device": {
+      "Enforced": 1
+    },
+    "direct_journal": {
+      "Enforced": 1
+    },
+    "direct_shm": {
+      "Enforced": 1
+    },
+    "direct_wal": {
+      "Enforced": 1
+    },
+    "extensible_required_cpu": {
+      "Rejected before execution": 1
+    },
+    "extensible_required_syscalls": {
+      "Rejected before execution": 1
+    },
+    "identity_invocation": {
+      "Enforced": 1
+    },
+    "identity_principal": {
+      "Enforced": 1
+    },
+    "identity_session": {
+      "Enforced": 1
+    },
+    "identity_tool": {
+      "Enforced": 1
+    },
+    "live_network": {
+      "Enforced": 1
+    },
+    "missing_obligation": {
+      "Rejected before execution": 1
+    },
+    "old_invocation_reuse": {
+      "Enforced": 1
+    },
+    "outside_artifact_write": {
+      "Enforced": 1
+    },
+    "private_file_read": {
+      "Enforced": 1
+    },
+    "process_exec": {
+      "Enforced": 1
+    },
+    "process_fork": {
+      "Enforced": 1
+    },
+    "process_subprocess": {
+      "Enforced": 1
+    },
+    "pump_calibrate": {
+      "Enforced": 1
+    },
+    "required_aggregate_cpu": {
+      "Rejected before execution": 1
+    },
+    "required_per_process_cpu": {
+      "Rejected before execution": 1
+    },
+    "required_syscall_filter": {
+      "Rejected before execution": 1
+    },
+    "retry_after_denial": {
+      "Enforced": 1
+    },
+    "session_cancellation": {
+      "Enforced": 1
+    },
+    "session_controller_termination": {
+      "Enforced": 1
+    },
+    "session_other_artifact": {
+      "Enforced": 1
+    },
+    "session_other_artifact_write": {
+      "Enforced": 1
+    },
+    "session_other_variable": {
+      "Enforced": 1
+    },
+    "session_own_state": {
+      "Enforced": 1
+    },
+    "session_timeout": {
+      "Enforced": 1
+    },
+    "timeout": {
+      "Enforced": 1
+    }
+  },
+  "categories": {
+    "Enforced": 37,
+    "Rejected before execution": 8
+  },
+  "classified": [
+    {
+      "allowed_success": true,
+      "case": "allowed_record_read",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": null,
+      "reason": "allowed result and independent state agree",
+      "repetition": 0
+    },
+    {
+      "allowed_success": true,
+      "case": "allowed_record_update",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": null,
+      "reason": "allowed result and independent state agree",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "bob_read",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "bob_update",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "bob_delete",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "direct_database_read",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "direct_database_update",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "direct_database_delete",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "direct_wal",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "direct_shm",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "direct_journal",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "retry_after_denial",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": true,
+      "case": "allowed_pump_inspect",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": null,
+      "reason": "allowed result and independent state agree",
+      "repetition": 0
+    },
+    {
+      "allowed_success": true,
+      "case": "allowed_pump_set_flow",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": null,
+      "reason": "allowed result and independent state agree",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "pump_calibrate",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "direct_device",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "identity_principal",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "identity_tool",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "identity_invocation",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "identity_session",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "old_invocation_reuse",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "private_file_read",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "outside_artifact_write",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "live_network",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "process_fork",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "process_subprocess",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "process_exec",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "timeout",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "cancellation",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "controller_termination",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": true,
+      "case": "session_own_state",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": null,
+      "reason": "allowed result and independent state agree",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "session_other_variable",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "session_other_artifact",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "session_other_artifact_write",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "session_timeout",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "session_cancellation",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "session_controller_termination",
+      "category": "Enforced",
+      "control_effect": true,
+      "protected_entered": true,
+      "protected_forbidden_effect": false,
+      "reason": "execution observed; independent resource oracle found no forbidden effect",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "required_aggregate_cpu",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_aggregate_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "required_syscall_filter",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_syscall_filter\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "extensible_required_cpu",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"extensible_required_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: macos_object:unsupported_filesystem_authority\"}",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "extensible_required_syscalls",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"extensible_required_syscalls\", \"message_status\": \"error\", \"result\": \"Access denied by security: macos_object:unsupported_filesystem_authority\"}",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "missing_obligation",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"missing_obligation\", \"message_status\": \"error\", \"result\": \"Access denied by security: host:lean_lifecycle_refused\"}",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "altered_obligation",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"altered_obligation\", \"message_status\": \"error\", \"result\": \"Access denied by security: host:lean_lifecycle_refused\"}",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "admission_mutation",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"admission_mutation\", \"error\": {\"type\": \"PermissionError\", \"message\": \"admission:descriptor_changed\", \"termination_confirmed\": null, \"receipt\": null}}",
+      "repetition": 0
+    },
+    {
+      "allowed_success": null,
+      "case": "required_per_process_cpu",
+      "category": "Rejected before execution",
+      "control_effect": true,
+      "protected_entered": false,
+      "protected_forbidden_effect": false,
+      "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_per_process_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+      "repetition": 0
+    }
+  ],
+  "distinct_cases": 45,
+  "evidence_valid": true,
+  "full_requested_matrix": false,
+  "host": "macos",
+  "linux_executed_here": false,
+  "native_success_certificates_replayed": 34,
+  "per_condition_trials": 45,
+  "repetitions": 1,
+  "total_trials": 90
+}

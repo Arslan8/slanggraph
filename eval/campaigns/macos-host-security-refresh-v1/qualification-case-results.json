@@ -1,0 +1,1647 @@
+{
+  "attacker_sha256": "070fabd07e04151ff79952d891f7b02fd86a2ca08c3a4568ed4153a3ba0ef880",
+  "authorized_control_cases": 5,
+  "categories_by_observation": {
+    "Authorized control succeeded": 5,
+    "Forbidden effect prevented": 32,
+    "Rejected before execution": 8
+  },
+  "distinct_cases": 45,
+  "evidence_valid": true,
+  "fixture_sha256": "a63c13a1478b2c4f3051ebad2988808cb213e0a73ae39eb742532604281d970a",
+  "issues": [],
+  "linux_reference_revision": "30bb18375c36ee9634ed9b7d7af04c8e21546a96",
+  "macos_checkout_revision": "bb9db36b18aa56aa3ddbcf640ec17708ac2cc4f5",
+  "macos_version": "26.7.2",
+  "native_configuration_sha256": "0c226a3740037219c41acdb70256e8785085585aa36ff917546505ff6207c0ac",
+  "native_success_certificates_replayed": 34,
+  "paired_trials": 45,
+  "repetitions_per_case": 1,
+  "rows": [
+    {
+      "case_id": "allowed_record_read",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_read-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_read-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_read-0/Argus/database-before.sqlite",
+          "protected_effect_observed": true,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_read-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_read-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "allowed-control",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Authorized control succeeded",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_read-0/Argus/trial.json",
+          "forbidden_effect": null,
+          "reason": "allowed result and independent state agree",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "authorized broker record read remains useful"
+    },
+    {
+      "case_id": "allowed_record_update",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_update-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_update-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_update-0/Argus/database-before.sqlite",
+          "protected_effect_observed": true,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_update-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_update-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "allowed-control",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Authorized control succeeded",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_record_update-0/Argus/trial.json",
+          "forbidden_effect": null,
+          "reason": "allowed result and independent state agree",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "authorized broker record update remains useful"
+    },
+    {
+      "case_id": "bob_read",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_read-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_read-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_read-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_read-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_read-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_read-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "principal/object read restriction"
+    },
+    {
+      "case_id": "bob_update",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_update-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_update-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_update-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_update-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_update-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_update-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "principal/object write restriction"
+    },
+    {
+      "case_id": "bob_delete",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_delete-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_delete-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_delete-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_delete-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_delete-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/bob_delete-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "undeclared object operation restriction"
+    },
+    {
+      "case_id": "direct_database_read",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_read-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_read-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_read-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_read-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_read-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_read-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "prevent direct read around database mediator"
+    },
+    {
+      "case_id": "direct_database_update",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_update-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_update-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_update-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_update-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_update-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_update-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "prevent direct write around database mediator"
+    },
+    {
+      "case_id": "direct_database_delete",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_delete-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_delete-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_delete-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_delete-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_delete-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_database_delete-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "prevent direct delete around database mediator"
+    },
+    {
+      "case_id": "direct_wal",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_wal-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_wal-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_wal-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_wal-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_wal-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_wal-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "protect SQLite WAL side file"
+    },
+    {
+      "case_id": "direct_shm",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_shm-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_shm-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_shm-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_shm-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_shm-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": "4e2044cc98548c4a36432fab4398c4703153385f2a0b8aca4c1ca2d9f36255c8"
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_shm-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "protect SQLite shared-memory side file with distinct canary and observing unprotected control"
+    },
+    {
+      "case_id": "direct_journal",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_journal-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_journal-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_journal-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_journal-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_journal-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_journal-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "protect SQLite journal side file"
+    },
+    {
+      "case_id": "retry_after_denial",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/retry_after_denial-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/retry_after_denial-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/retry_after_denial-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/retry_after_denial-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/retry_after_denial-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "composition",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/retry_after_denial-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "denial does not poison subsequent authorized call"
+    },
+    {
+      "case_id": "allowed_pump_inspect",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_inspect-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_inspect-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_inspect-0/Argus/database-before.sqlite",
+          "protected_effect_observed": true,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_inspect-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_inspect-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "allowed-control",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Authorized control succeeded",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_inspect-0/Argus/trial.json",
+          "forbidden_effect": null,
+          "reason": "allowed result and independent state agree",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "authorized device inspection remains useful"
+    },
+    {
+      "case_id": "allowed_pump_set_flow",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_set_flow-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_set_flow-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_set_flow-0/Argus/database-before.sqlite",
+          "protected_effect_observed": true,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_set_flow-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_set_flow-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "allowed-control",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Authorized control succeeded",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/allowed_pump_set_flow-0/Argus/trial.json",
+          "forbidden_effect": null,
+          "reason": "allowed result and independent state agree",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "authorized device mutation remains useful"
+    },
+    {
+      "case_id": "pump_calibrate",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/pump_calibrate-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/pump_calibrate-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/pump_calibrate-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/pump_calibrate-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/pump_calibrate-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/pump_calibrate-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "undeclared device operation restriction"
+    },
+    {
+      "case_id": "direct_device",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_device-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_device-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_device-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_device-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_device-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/direct_device-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "prevent direct device access around mediator"
+    },
+    {
+      "case_id": "identity_principal",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_principal-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_principal-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_principal-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_principal-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_principal-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_principal-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "bind grant to principal"
+    },
+    {
+      "case_id": "identity_tool",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_tool-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_tool-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_tool-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_tool-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_tool-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_tool-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "bind grant to tool"
+    },
+    {
+      "case_id": "identity_invocation",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_invocation-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_invocation-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_invocation-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_invocation-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_invocation-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_invocation-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "bind grant to invocation"
+    },
+    {
+      "case_id": "identity_session",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_session-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_session-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_session-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_session-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_session-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/identity_session-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "bind grant to session"
+    },
+    {
+      "case_id": "old_invocation_reuse",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/old_invocation_reuse-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/old_invocation_reuse-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/old_invocation_reuse-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/old_invocation_reuse-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/old_invocation_reuse-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/old_invocation_reuse-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "reject stale invocation authority"
+    },
+    {
+      "case_id": "private_file_read",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/private_file_read-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/private_file_read-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/private_file_read-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/private_file_read-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/private_file_read-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/private_file_read-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "filesystem confidentiality outside grant"
+    },
+    {
+      "case_id": "outside_artifact_write",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/outside_artifact_write-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/outside_artifact_write-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/outside_artifact_write-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/outside_artifact_write-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/outside_artifact_write-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/outside_artifact_write-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "filesystem integrity outside grant"
+    },
+    {
+      "case_id": "live_network",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/live_network-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/live_network-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/live_network-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/live_network-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/live_network-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/live_network-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "network restriction"
+    },
+    {
+      "case_id": "process_fork",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_fork-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_fork-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_fork-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_fork-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_fork-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_fork-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "child-process fork restriction"
+    },
+    {
+      "case_id": "process_subprocess",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_subprocess-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_subprocess-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_subprocess-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_subprocess-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_subprocess-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_subprocess-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "child-process subprocess restriction"
+    },
+    {
+      "case_id": "process_exec",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_exec-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_exec-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_exec-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_exec-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_exec-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/process_exec-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "process image replacement restriction"
+    },
+    {
+      "case_id": "timeout",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/timeout-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/timeout-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/timeout-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/timeout-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/timeout-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "cleanup",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/timeout-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "timeout cleanup before result release"
+    },
+    {
+      "case_id": "cancellation",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/cancellation-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/cancellation-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/cancellation-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/cancellation-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/cancellation-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "cleanup",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/cancellation-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "cancellation cleanup before result release"
+    },
+    {
+      "case_id": "controller_termination",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/controller_termination-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/controller_termination-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/controller_termination-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/controller_termination-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/controller_termination-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "cleanup",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/controller_termination-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "controller-death worker cleanup"
+    },
+    {
+      "case_id": "session_own_state",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_own_state-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_own_state-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_own_state-0/Argus/database-before.sqlite",
+          "protected_effect_observed": true,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_own_state-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_own_state-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "allowed-control",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Authorized control succeeded",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_own_state-0/Argus/trial.json",
+          "forbidden_effect": null,
+          "reason": "allowed result and independent state agree",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "authorized persistent session state remains useful"
+    },
+    {
+      "case_id": "session_other_variable",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_variable-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_variable-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_variable-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_variable-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_variable-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_variable-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "persistent session variable separation"
+    },
+    {
+      "case_id": "session_other_artifact",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "persistent session artifact confidentiality"
+    },
+    {
+      "case_id": "session_other_artifact_write",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact_write-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact_write-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact_write-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact_write-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact_write-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "attack",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_other_artifact_write-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "persistent session artifact integrity"
+    },
+    {
+      "case_id": "session_timeout",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_timeout-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_timeout-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_timeout-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_timeout-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_timeout-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "cleanup",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_timeout-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "persistent session timeout cleanup"
+    },
+    {
+      "case_id": "session_cancellation",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_cancellation-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_cancellation-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_cancellation-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_cancellation-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_cancellation-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "cleanup",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_cancellation-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "persistent session cancellation cleanup"
+    },
+    {
+      "case_id": "session_controller_termination",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_controller_termination-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_controller_termination-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_controller_termination-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_controller_termination-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_controller_termination-0/Argus/resource-events.jsonl",
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "cleanup",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Forbidden effect prevented",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/session_controller_termination-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "execution observed; independent resource oracle found no forbidden effect",
+          "repetition": 0,
+          "worker_entered": true
+        }
+      ],
+      "requested_guarantee": "persistent session controller-death cleanup"
+    },
+    {
+      "case_id": "required_aggregate_cpu",
+      "host_capability_refusals": [
+        {
+          "activation_receipts": 0,
+          "grant_line_id": "probe:5",
+          "observed_controller_descendants": [
+            49163,
+            49165
+          ],
+          "original_requirement": "cpu aggregate 1000 need",
+          "refusal_reason": "required_authority_removed:probe:5",
+          "tool_released": false
+        }
+      ],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_aggregate_cpu-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_aggregate_cpu-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_aggregate_cpu-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_aggregate_cpu-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": null,
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "gate",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Rejected before execution",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_aggregate_cpu-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_aggregate_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+          "repetition": 0,
+          "worker_entered": false
+        }
+      ],
+      "requested_guarantee": "required aggregate CPU ceiling"
+    },
+    {
+      "case_id": "required_syscall_filter",
+      "host_capability_refusals": [
+        {
+          "activation_receipts": 0,
+          "grant_line_id": "probe:5",
+          "observed_controller_descendants": [],
+          "original_requirement": "syscalls @minimal need",
+          "refusal_reason": "required_authority_removed:probe:5",
+          "tool_released": false
+        }
+      ],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_syscall_filter-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_syscall_filter-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_syscall_filter-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_syscall_filter-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": null,
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "gate",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Rejected before execution",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_syscall_filter-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_syscall_filter\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+          "repetition": 0,
+          "worker_entered": false
+        }
+      ],
+      "requested_guarantee": "required syscall filter"
+    },
+    {
+      "case_id": "extensible_required_cpu",
+      "host_capability_refusals": [
+        {
+          "activation_receipts": 0,
+          "grant_line_id": "probe:5",
+          "observed_controller_descendants": [],
+          "original_requirement": "host_cpu require aggregate-cpu-1000ms need",
+          "refusal_reason": "Access denied by security: macos_object:unsupported_filesystem_authority",
+          "tool_released": false
+        }
+      ],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_cpu-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_cpu-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_cpu-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_cpu-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": null,
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "gate",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Rejected before execution",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_cpu-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"extensible_required_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: macos_object:unsupported_filesystem_authority\"}",
+          "repetition": 0,
+          "worker_entered": false
+        }
+      ],
+      "requested_guarantee": "extensible required CPU contract"
+    },
+    {
+      "case_id": "extensible_required_syscalls",
+      "host_capability_refusals": [
+        {
+          "activation_receipts": 0,
+          "grant_line_id": "probe:5",
+          "observed_controller_descendants": [],
+          "original_requirement": "host_syscalls require linux-minimal-syscalls need",
+          "refusal_reason": "Access denied by security: macos_object:unsupported_filesystem_authority",
+          "tool_released": false
+        }
+      ],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_syscalls-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_syscalls-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_syscalls-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_syscalls-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": null,
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "gate",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Rejected before execution",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/extensible_required_syscalls-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"extensible_required_syscalls\", \"message_status\": \"error\", \"result\": \"Access denied by security: macos_object:unsupported_filesystem_authority\"}",
+          "repetition": 0,
+          "worker_entered": false
+        }
+      ],
+      "requested_guarantee": "extensible required syscall contract"
+    },
+    {
+      "case_id": "missing_obligation",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/missing_obligation-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/missing_obligation-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/missing_obligation-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/missing_obligation-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": null,
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "gate",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Rejected before execution",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/missing_obligation-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"missing_obligation\", \"message_status\": \"error\", \"result\": \"Access denied by security: host:lean_lifecycle_refused\"}",
+          "repetition": 0,
+          "worker_entered": false
+        }
+      ],
+      "requested_guarantee": "reject missing required obligation"
+    },
+    {
+      "case_id": "altered_obligation",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/altered_obligation-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/altered_obligation-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/altered_obligation-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/altered_obligation-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": null,
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "gate",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Rejected before execution",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/altered_obligation-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"altered_obligation\", \"message_status\": \"error\", \"result\": \"Access denied by security: host:lean_lifecycle_refused\"}",
+          "repetition": 0,
+          "worker_entered": false
+        }
+      ],
+      "requested_guarantee": "reject altered required obligation"
+    },
+    {
+      "case_id": "admission_mutation",
+      "host_capability_refusals": [],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/admission_mutation-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/admission_mutation-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/admission_mutation-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/admission_mutation-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": null,
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "gate",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Rejected before execution",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/admission_mutation-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"admission_mutation\", \"error\": {\"type\": \"PermissionError\", \"message\": \"admission:descriptor_changed\", \"termination_confirmed\": null, \"receipt\": null}}",
+          "repetition": 0,
+          "worker_entered": false
+        }
+      ],
+      "requested_guarantee": "reject admitted-source mutation"
+    },
+    {
+      "case_id": "required_per_process_cpu",
+      "host_capability_refusals": [
+        {
+          "activation_receipts": 0,
+          "grant_line_id": "probe:5",
+          "observed_controller_descendants": [],
+          "original_requirement": "cpu per_process 1000 need",
+          "refusal_reason": "required_authority_removed:probe:5",
+          "tool_released": false
+        }
+      ],
+      "independent_oracle_evidence": [
+        {
+          "control_effect_observed": true,
+          "control_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_per_process_cpu-0/Unprotected/trial.json",
+          "database_after": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_per_process_cpu-0/Argus/database-after.sqlite",
+          "database_before": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_per_process_cpu-0/Argus/database-before.sqlite",
+          "protected_effect_observed": false,
+          "protected_trial": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_per_process_cpu-0/Argus/trial.json",
+          "repetition": 0,
+          "resource_events": null,
+          "shm_fixture_sha256": null
+        }
+      ],
+      "kind": "gate",
+      "positive_controls": [
+        {
+          "effect_observed": true,
+          "repetition": 0
+        }
+      ],
+      "protected_outcomes": [
+        {
+          "category": "Rejected before execution",
+          "evidence_path": "eval/campaigns/macos-host-security-refresh-v1/qualification-02/trials/required_per_process_cpu-0/Argus/trial.json",
+          "forbidden_effect": false,
+          "reason": "{\"graph_compiled\": true, \"condition\": \"Argus\", \"case\": \"required_per_process_cpu\", \"message_status\": \"error\", \"result\": \"Access denied by security: required_authority_removed:probe:5\"}",
+          "repetition": 0,
+          "worker_entered": false
+        }
+      ],
+      "requested_guarantee": "required per-process CPU ceiling"
+    }
+  ],
+  "schema": 1,
+  "shared_manifest_sha256": "09c1c5c1a077051ff93a1df194cd8c0b18e0c1f13ee51f569cff4cf308b633df"
+}

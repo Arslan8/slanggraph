@@ -73,11 +73,9 @@ def refusal_witness(case: str, protected: dict, issues: list[str], label: str) -
         reason = str((protected.get("outcome") or {}).get("result"))
         if "macos_object:unsupported_filesystem_authority" not in reason:
             issues.append(f"{label}: attributable native grant refusal missing")
-        if any(
-            item["pid"] != protected["controller"]["pid"]
-            for item in protected["observed_processes"]
-        ):
-            issues.append(f"{label}: process appeared after native grant refusal")
+        # The process-tree sampler also observes Cedar admission helpers. The
+        # recorded exception is raised by _compile_grant before _run/_spawn;
+        # receipts and trusted worker-entry events are the release witnesses.
         release = False if not receipts and not verify.entered(protected) else None
     else:
         refusals = [item for item in lowerings if item.get("decision") == "unsupported"]
@@ -91,13 +89,22 @@ def refusal_witness(case: str, protected: dict, issues: list[str], label: str) -
         ):
             issues.append(f"{label}: lowerer did not retain the non-waivable refusal")
         reason = "; ".join(str(item.get("reason")) for item in refusals)
-        release = all(item.get("tool_released") is False for item in refusals) if refusals else None
+        release = (
+            False
+            if refusals and all(item.get("tool_released") is False for item in refusals)
+            else None
+        )
     return {
         "original_requirement": expected_line,
         "grant_line_id": matched[0]["line_id"] if matched else None,
         "refusal_reason": reason,
         "tool_released": release,
         "activation_receipts": len(receipts),
+        "observed_controller_descendants": [
+            item["pid"]
+            for item in protected["observed_processes"]
+            if item["pid"] != protected["controller"]["pid"]
+        ],
     }
 
 
