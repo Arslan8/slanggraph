@@ -151,6 +151,7 @@ def validate_security(
             "oracle_passed",
             "positive_control_passed",
             "obligation",
+            "source_category",
         }
         missing = required.difference(record)
         if missing:
@@ -171,10 +172,24 @@ def validate_security(
             errors.append(f"security record {index} lacks a working positive control")
         if (
             record["applicable"]
-            and record["outcome"] == "prevented"
+            and record["outcome"] in {"prevented", "rejected"}
             and not record["oracle_passed"]
         ):
-            errors.append(f"security record {index} claims prevention without effect oracle")
+            errors.append(f"security record {index} claims decisive enforcement without oracle")
+        expected = {
+            ("Enforced", True): "allowed",
+            ("Enforced", False): "prevented",
+            ("Rejected before execution", False): "rejected",
+            ("Failed", False): "failed",
+            ("Inconclusive", False): "inconclusive",
+        }.get((record["source_category"], record.get("allowed_success") is not None))
+        if expected is None or record["outcome"] != expected:
+            errors.append(
+                f"security record {index} loses source category "
+                f"{record['source_category']!r} as {record['outcome']!r}"
+            )
+        if record["outcome"] == "rejected" and record.get("protected_entered") is not False:
+            errors.append(f"security record {index} rejection entered protected execution")
     if any(count != 1 for count in keys.values()):
         errors.append("duplicate host-security samples")
     if complete:
@@ -264,23 +279,33 @@ def validate_retained_lineage(
     if not lineage_path.is_file():
         return ["retained samples lack retained-lineage.json"]
     lineage = json.loads(lineage_path.read_text())
+    all_performance = lineage.get("retention_scope") == "all-performance"
     for index, row in enumerate(retained_requests):
-        allowed = (
-            row["evaluation"] == 1
-            and row["mode"] != "apf"
-            and row["workload"]
-            not in {"D3-plan-execute", "D4-multi-agent", "D5-support", "T10-time-travel"}
-        ) or (row["evaluation"] == 3 and row["mode"] in {"baseline", "argus-language"})
+        allowed = all_performance and row["evaluation"] in {1, 3, 4}
+        if not all_performance:
+            allowed = (
+                row["evaluation"] == 1
+                and row["mode"] != "apf"
+                and row["workload"]
+                not in {
+                    "D3-plan-execute",
+                    "D4-multi-agent",
+                    "D5-support",
+                    "T10-time-travel",
+                }
+            ) or (row["evaluation"] == 3 and row["mode"] in {"baseline", "argus-language"})
         if not allowed:
             errors.append(f"retained request {index} belongs to an invalidated cell")
         if not row.get("source_config_id") or not row.get("source_build_id"):
             errors.append(f"retained request {index} lacks source identity")
     for index, row in enumerate(retained_sustained):
-        if row["mode"] not in {"baseline", "argus-language"}:
+        if not all_performance and row["mode"] not in {"baseline", "argus-language"}:
             errors.append(f"retained sustained sample {index} belongs to an invalidated mode")
         if not row.get("source_config_id") or not row.get("source_build_id"):
             errors.append(f"retained sustained sample {index} lacks source identity")
     for index, row in enumerate(retained_security):
+        if all_performance:
+            errors.append(f"retained security sample {index} violates final-r4 invalidation")
         if row.get("backend") != "linux":
             errors.append(f"retained security sample {index} is not a Linux case")
         if not row.get("source_config_id") or not row.get("source_build_id"):

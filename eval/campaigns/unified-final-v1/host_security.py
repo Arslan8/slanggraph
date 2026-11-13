@@ -58,6 +58,8 @@ def _records(
             if category == "Enforced" and allowed
             else "prevented"
             if category == "Enforced"
+            else "rejected"
+            if category == "Rejected before execution"
             else "failed"
             if category == "Failed"
             else "inconclusive"
@@ -73,9 +75,10 @@ def _records(
                 "repetition": item["repetition"],
                 "applicable": True,
                 "outcome": outcome,
-                "oracle_passed": category == "Enforced",
+                "oracle_passed": category in {"Enforced", "Rejected before execution"},
+                "source_category": category,
                 "positive_control_passed": item["control_effect"],
-                "excluded_from_prevention_counts": item["case"] == "direct_shm",
+                "excluded_from_prevention_counts": category == "Inconclusive",
                 "obligation": obligations[item["case"]],
                 "reason": item["reason"],
                 "protected_entered": item["protected_entered"],

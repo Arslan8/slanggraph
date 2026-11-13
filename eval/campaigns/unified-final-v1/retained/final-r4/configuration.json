@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "campaign_id": "unified-final-v1",
+  "protocol_status": "qualification-required",
+  "random_seed": 20261108,
+  "performance": {
+    "sessions": 5,
+    "warmups_per_workload_per_session": 1,
+    "measured_repetitions_per_workload_per_session": 6,
+    "bootstrap_draws": 10000,
+    "sequential_conditions": true,
+    "primary_timer": "parent-monotonic-submit-to-safe-result-return",
+    "apf_result_retrieval_timed": true,
+    "logical_session_teardown_timed": false,
+    "preflight_excluded": true,
+    "retries": 0
+  },
+  "model": {
+    "name": "qwen3:8b",
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "temperature": 0,
+    "generation_seed": 20261005,
+    "reasoning_effort": "none",
+    "base_url": "http://127.0.0.1:11434/v1",
+    "timeout_seconds": 300
+  },
+  "argus": {
+    "optimization": "aggressive",
+    "cedar_backend": "aggressive",
+    "integrity_recheck": "preflight-only",
+    "checker_protocol": "worker-route-grant-v3",
+    "checker_interface": "compiled-shared-library",
+    "audit": "mandatory-only",
+    "worker_pool_size": 8,
+    "provisioner_count": 1,
+    "forbid_normal_or_debug_fallback": true,
+    "forbid_silent_host_fallback": true,
+    "immutable_artifact_hashing": "preflight-only"
+  },
+  "evaluations": [
+    {
+      "id": 1,
+      "name": "macrobenchmarks",
+      "modes": ["baseline", "argus", "nono", "apf"],
+      "applications": [
+        {"id": "D1-sql", "name": "SQL agent", "description": "Answers questions over the frozen Chinook database.", "tasks": 5, "argus_route": "language"},
+        {"id": "D2-rag", "name": "Agentic RAG", "description": "Retrieves from a frozen document collection.", "tasks": 5, "argus_route": "language"},
+        {"id": "D3-plan-execute", "name": "Plan and execute", "description": "Plans and answers a multi-step Olympics query.", "tasks": 5, "argus_route": "language"},
+        {"id": "D4-multi-agent", "name": "Multi-agent chart", "description": "Retrieves GDP data and executes generated chart code.", "tasks": 5, "argus_route": "host"},
+        {"id": "D5-support", "name": "Customer support", "description": "Runs frozen airline support workflows.", "tasks": 5, "argus_route": "language"},
+        {"id": "T1-add-tools", "name": "Add tools", "description": "Searches for Olympics host and currency facts.", "tasks": 1, "argus_route": "language"},
+        {"id": "T2-custom-weather", "name": "Custom weather", "description": "Calls a deterministic weather tool.", "tasks": 1, "argus_route": "language"},
+        {"id": "T5-prebuilt-multiply", "name": "Prebuilt multiply", "description": "Runs deterministic scalar multiplication.", "tasks": 1, "argus_route": "language"},
+        {"id": "T6-return-direct", "name": "Return direct", "description": "Returns a deterministic tool result directly.", "tasks": 1, "argus_route": "language"},
+        {"id": "T7-forced-tool", "name": "Forced tool", "description": "Executes a required greeting tool.", "tasks": 1, "argus_route": "language"},
+        {"id": "T8-serial-tools", "name": "Serial tools", "description": "Executes deterministic arithmetic tools in sequence.", "tasks": 1, "argus_route": "language"},
+        {"id": "T9-add-memory", "name": "Add memory", "description": "Combines search with checkpointed memory.", "tasks": 1, "argus_route": "language"},
+        {"id": "T10-time-travel", "name": "Time travel", "description": "Replays an authenticated checkpoint branch.", "tasks": 1, "argus_route": "language"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "host-security",
+      "backends": ["linux"],
+      "external_test_backends": ["macos"],
+      "repetitions_per_case": 5,
+      "manifest": "host_cases.json"
+    },
+    {
+      "id": 3,
+      "name": "microbenchmarks",
+      "modes": ["baseline", "argus-language", "argus-host"],
+      "workloads": [
+        {"id": "read-32", "operation": "read", "bytes": 32},
+        {"id": "read-64k", "operation": "read", "bytes": 65536},
+        {"id": "write-32", "operation": "write", "bytes": 32}
+      ],
+      "native_adapter": "micro_host_adapter.py",
+      "write_workload_effects": ["write"],
+      "write_kernel_rights": ["write", "truncate"],
+      "sustained": {
+        "workload": "read-32",
+        "concurrency": [1, 2, 4, 8],
+        "sessions": 5,
+        "warmup_seconds": 10,
+        "issue_seconds": 60,
+        "closed_loop": true
+      }
+    },
+    {
+      "id": 4,
+      "name": "pandas",
+      "modes": ["baseline", "argus"],
+      "manifest": "v23",
+      "workflow_contract": "preserve-request-v6",
+      "computation_api": "period-aggregation-v2",
+      "tasks": ["monthly_total", "monthly_mean", "regional_totals", "product_totals", "top_products", "date_filtered_total", "grouped_mean", "missing_count", "duplicate_count", "monthly_chart"]
+    }
+  ],
+  "admission_fuzz": {
+    "seeds": [2026110801, 2026110802, 2026110803, 2026110804, 2026110805],
+    "programs_per_seed": 2000,
+    "watchdog_seconds": 2
+  },
+  "comparators": {
+    "nono": {"product": "nono", "version": "0.80.0", "audit": false, "rollback": false},
+    "apf": {
+      "product": "NVIDIA OpenShell/APF",
+      "version": "0.1.3",
+      "endpoint": "http://127.0.0.1:18080",
+      "image": "slg-unified-final-v1:ready-v1",
+      "image_id": "sha256:dae4acb90df1b41025c47d210fc4db9cde0eab88dc45ba81e58572d48e836ac5"
+    }
+  },
+  "source_adapters": {
+    "applications": "eval/campaigns/langgraph-demos-v3/run_campaign.py",
+    "comparators": "eval/campaigns/langgraph-demos-v3/permissive-comparators/run_campaign.py",
+    "host_security": "eval/campaigns/cross-host-security-v2/run.py",
+    "pandas": "eval/apps/pandas/closed_campaign.py"
+  },
+  "timeout_seconds": {"ordinary": 180, "D4-multi-agent": 300, "D5-support": 300, "pandas": 300}
+}

@@ -7,13 +7,18 @@ import subprocess
 import sys
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from langgraph.prebuilt.security.broker import CredentialBroker, GitHubAppIssuer
 from langgraph.prebuilt.security.capabilities import probe_landlock_abi
 from langgraph.prebuilt.security.cedar import CedarPolicyBackend
-from langgraph.prebuilt.security.enforcement import AuthorityDomain, GrantRule
+from langgraph.prebuilt.security.enforcement import (
+    AuthorityDomain,
+    GrantRule,
+    SupportLevel,
+)
 from langgraph.prebuilt.security.landlock import (
     LandlockSandboxExecutor,
     build_ruleset,
@@ -212,6 +217,50 @@ principal alice {
         runtime_roots=(fixture.parent,),
     )
     assert isinstance(executor.policy_backend, CedarPolicyBackend)
+
+
+def test_aggregate_cpu_is_exact_under_single_process_invariant() -> None:
+    fixture = Path(__file__).with_name("fixtures") / "linux_tools.py"
+    profiles = parse_profiles(
+        """
+tool environment {
+  owner analyst
+  grant analyst: call
+  runs linux
+  syscalls @minimal
+}
+principal alice {
+  roles analyst
+}
+"""
+    )
+    executor = LandlockSandboxExecutor(
+        profiles,
+        {
+            "environment": LinuxToolSpec(
+                "linux_tools:environment_probe",
+                fixture,
+                hashlib.sha256(fixture.read_bytes()).hexdigest(),
+            )
+        },
+        runtime_roots=(fixture.parent,),
+        policy_backend=TypedPolicyBackend(),
+    )
+    rule = GrantRule(
+        "aggregate",
+        AuthorityDomain.RESOURCE_LIMIT,
+        "limit",
+        "aggregate_cpu_ms",
+        {"maximum": 1_000},
+    )
+
+    support, mechanism = executor._assess_rule(rule)
+
+    assert support is SupportLevel.EXACT
+    assert mechanism == "rlimit_cpu:single-process-aggregate"
+    limits = executor._limits(SimpleNamespace(rules=(rule,)))
+    assert limits["cpu_ms"] == 1_000
+    assert "aggregate_cpu_ms" not in limits
 
 
 def test_landlock_executor_assigns_worker_to_attested_cgroup(

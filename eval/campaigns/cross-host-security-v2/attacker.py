@@ -126,7 +126,7 @@ def run(task: dict):
             return {"created": True, "child_pid": pid}
 
         return attempt(fork_under_required_filter)
-    if case == "required_per_process_cpu":
+    if case in {"required_per_process_cpu", "required_aggregate_cpu"}:
 
         def exceed_total_cpu_limit():
             started = time.process_time()

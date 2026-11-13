@@ -39,7 +39,11 @@ from microbenchmarks import (
 )
 from pandas_case_study import collect as collect_pandas
 from pandas_case_study import qualification_pilot as pandas_qualification_pilot
-from retain_compatible import INVALIDATED_MACRO_WORKLOADS, retain
+from retain_compatible import (
+    INVALIDATED_MACRO_WORKLOADS,
+    retain,
+    retain_final_r3_performance,
+)
 
 
 def _copy_frozen_inputs(result: Path) -> None:
@@ -495,11 +499,11 @@ def main() -> int:
     retain_parser = subparsers.add_parser("retain-compatible")
     retain_parser.add_argument("--result", type=Path, required=True)
     retain_parser.add_argument("--linux-security-source", type=Path)
+    retain_r3_parser = subparsers.add_parser("retain-final-r3-performance")
+    retain_r3_parser.add_argument("--result", type=Path, required=True)
     invalidated_parser = subparsers.add_parser("collect-invalidated")
     invalidated_parser.add_argument("--result", type=Path, required=True)
-    invalidated_parser.add_argument(
-        "--evaluation", type=int, choices=(1, 2, 3, 4), required=True
-    )
+    invalidated_parser.add_argument("--evaluation", type=int, choices=(1, 2, 3, 4), required=True)
     fuzz_parser = subparsers.add_parser("fuzz")
     fuzz_parser.add_argument("--output", type=Path, required=True)
     schedule_parser = subparsers.add_parser("schedule")
@@ -525,6 +529,8 @@ def main() -> int:
                 indent=2,
             )
         )
+    elif args.command == "retain-final-r3-performance":
+        print(json.dumps(retain_final_r3_performance(args.result), indent=2))
     elif args.command == "collect-invalidated":
         collect_invalidated(args.result, args.evaluation)
     elif args.command == "fuzz":

@@ -437,25 +437,25 @@ def _markdown(summary: dict[str, Any]) -> str:
             lines.extend(
                 [
                     "",
-                    "| Backend | Distinct cases | Prevented | Allowed controls | "
-                    "Inconclusive | Positive controls |",
-                    "| --- | ---: | ---: | ---: | ---: | ---: |",
+                    "| Backend | Distinct cases | Prevented | Rejected before execution | "
+                    "Allowed controls | Inconclusive | Positive controls |",
+                    "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
                 ]
             )
             for backend, total in evaluation["distinct_cases"].items():
                 outcomes = evaluation["distinct_outcomes"][backend]
                 lines.append(
                     f"| {backend} | {total} | {outcomes.get('prevented', 0)} | "
-                    f"{outcomes.get('allowed', 0)} | {outcomes.get('inconclusive', 0)} | "
+                    f"{outcomes.get('rejected', 0)} | {outcomes.get('allowed', 0)} | "
+                    f"{outcomes.get('inconclusive', 0)} | "
                     f"{evaluation['positive_control_cases'][backend]}/{total} |"
                 )
             lines.extend(
                 [
                     "",
-                    "The direct-shared-memory probe is inconclusive and excluded from prevention "
-                    "counts because its positive control did not observe the protected canary. "
-                    "The macOS manifest and runner are supplied for the other student; no macOS "
-                    "outcomes are claimed in this Linux collection.",
+                    "Required-obligation rejections are reported separately from "
+                    "effect-level prevention. The macOS manifest and runner are supplied "
+                    "for the other student; no macOS outcomes are claimed here.",
                 ]
             )
         else:

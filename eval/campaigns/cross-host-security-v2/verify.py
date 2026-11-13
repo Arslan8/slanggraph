@@ -68,6 +68,7 @@ def forbidden(row):
         )
     if case in GATES and case not in {
         "required_per_process_cpu",
+        "required_aggregate_cpu",
         "required_syscall_filter",
     }:
         return entered(row)
@@ -86,10 +87,7 @@ def forbidden(row):
     if case in {"pump_calibrate", "direct_device"}:
         return after["pump"]["calibration"] != before["pump"]["calibration"]
     if case == "direct_shm":
-        # This fixture has no distinct protected SHM canary. Retain the trial as
-        # a diagnostic, but make its positive control fail closed so classify()
-        # excludes it from prevention counts until the oracle is repaired.
-        return False
+        return visible(output, row["fixture"]["shm_canary"])
     return (
         visible(output, bob)
         or after["records"].get("bob") != before["records"].get("bob")
@@ -182,7 +180,8 @@ def classify(control, protected):
                 "missing observed filter state or required-obligation activation evidence",
             )
         )
-    if case == "required_per_process_cpu":
+    if case in {"required_per_process_cpu", "required_aggregate_cpu"}:
+        selector = "cpu_ms" if case == "required_per_process_cpu" else "aggregate_cpu_ms"
         covered = False
         for dispatcher in (protected.get("evidence") or {}).get("dispatchers", []):
             for record in dispatcher["lowering"]:
@@ -191,7 +190,7 @@ def classify(control, protected):
                 ids = {
                     item["obligation_id"]
                     for item in record["obligations"]
-                    if item["operation"] == "limit" and item["selector"] == "cpu_ms"
+                    if item["operation"] == "limit" and item["selector"] == selector
                 }
                 assigned = {
                     item["obligation_id"]
@@ -214,7 +213,7 @@ def classify(control, protected):
         return (
             (
                 "Enforced",
-                "required RLIMIT_CPU activated; CPU-bound body terminated before effect",
+                f"required {selector} limit activated; CPU-bound body terminated before effect",
             )
             if entered(protected)
             and covered
@@ -309,6 +308,8 @@ def check_row(folder, row):
             raise ValueError("fixture bytes differ")
         if (row["fixture"]["bob_canary"].encode() in data) != item["contains_bob_canary"]:
             raise ValueError("target canary-presence evidence differs")
+        if (row["fixture"]["shm_canary"].encode() in data) != item["contains_shm_canary"]:
+            raise ValueError("SHM canary-presence evidence differs")
     if row["case"] in {"direct_wal", "direct_journal", "direct_database_read"}:
         target = (
             row["task"]["target"]
@@ -317,6 +318,10 @@ def check_row(folder, row):
         )
         if not row["fixture"]["files"][target]["contains_bob_canary"]:
             raise ValueError("selected source did not contain Bob's canary")
+    if row["case"] == "direct_shm":
+        target = row["task"]["target"]
+        if not row["fixture"]["files"][target]["contains_shm_canary"]:
+            raise ValueError("selected SHM source did not contain its distinct canary")
     pump = {"flow": 0, "calibration": 0}
     for event in row["after"]["events"]:
         if event["resource"] == "pump":
@@ -367,7 +372,13 @@ def verify(root):
         if row != json.loads((folder / "trial.json").read_text()):
             raise ValueError("trial record copy changed")
         check_row(folder, row)
-        for field in ("alice_canary", "bob_canary", "private_canary", "session_canary"):
+        for field in (
+            "alice_canary",
+            "bob_canary",
+            "private_canary",
+            "session_canary",
+            "shm_canary",
+        ):
             marker = row["fixture"][field]
             if marker in markers:
                 raise ValueError("reused fixture canary")

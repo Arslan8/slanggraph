@@ -1,0 +1,78 @@
+{
+  "schema_version": 2,
+  "categories": ["matched-policy", "best-available-reduced-enforcement"],
+  "global_obligations": ["principal-object-operation authorization", "least-privilege filesystem access", "least-privilege network access", "child-process restriction where required", "direct-access bypass prevention"],
+  "mappings": [
+    {
+      "scope": "D1-sql",
+      "required_restrictions": "read-only list/schema/query actions on the designated database; no mutation, sibling-file access, child process, or non-model network",
+      "argus": "typed SQLite mediator, exact database grant, and admitted-language terminals",
+      "nono": "read-only fixture mount plus filesystem, process, and network sandbox",
+      "apf": "read-only projected fixture mount plus OpenShell process/network policy",
+      "nono_category": "best-available-reduced-enforcement", "apf_category": "best-available-reduced-enforcement",
+      "omitted_obligation": "query-level read-only SQL actions and prevention of direct database reads",
+      "positive_test": "reference SELECTs and model SQL task complete", "negative_test": "SQL mutation, sibling fixture, source write, child process, and other network port are denied"
+    },
+    {
+      "scope": "D2-rag",
+      "required_restrictions": "search only designated frozen documents through the registered top-k retriever",
+      "argus": "typed retriever mediator and admitted-language terminal",
+      "nono": "read-only document mounts plus filesystem/process/network sandbox", "apf": "read-only projected document mounts plus OpenShell process/network policy",
+      "nono_category": "best-available-reduced-enforcement", "apf_category": "best-available-reduced-enforcement",
+      "omitted_obligation": "registered retriever/top-k action mediation and prevention of direct corpus reads",
+      "positive_test": "fixed retriever query returns the independently selected document", "negative_test": "sibling document, source write, child process, and other network port are denied"
+    },
+    {
+      "scope": "D3-plan-execute",
+      "required_restrictions": "search only the designated Olympics corpus through the registered search action",
+      "argus": "typed frozen-search mediator and admitted-language terminal",
+      "nono": "read-only corpus mount plus filesystem/process/network sandbox", "apf": "read-only projected corpus mount plus OpenShell process/network policy",
+      "nono_category": "best-available-reduced-enforcement", "apf_category": "best-available-reduced-enforcement",
+      "omitted_obligation": "registered frozen-search action mediation and prevention of direct corpus reads",
+      "positive_test": "fixed 1996 sequence yields Atlanta, United States, and USD", "negative_test": "sibling corpus, source write, child process, and other network port are denied"
+    },
+    {
+      "scope": "D4-multi-agent",
+      "required_restrictions": "typed frozen-data retrieval; generated Python may write only chart outputs and may not use network, child processes, or sibling files",
+      "argus": "typed retrieval mediator plus persistent Landlock/seccomp Python session",
+      "nono": "application sandbox with frozen input/output mounts and process/network restrictions", "apf": "OpenShell projected input/output mounts and process/network policy",
+      "nono_category": "best-available-reduced-enforcement", "apf_category": "best-available-reduced-enforcement",
+      "omitted_obligation": "typed retrieval action mediation inside the generated-code workflow",
+      "positive_test": "fixed search, handoff, and chart program produces the exact five-point series", "negative_test": "sibling read/write, child process, and network probes are denied"
+    },
+    {
+      "scope": "D5-support",
+      "required_restrictions": "principal-owned itinerary fetch/search/update/cancel actions; sensitive changes require the application approval interrupt",
+      "argus": "typed passenger-bound travel mediator plus admitted-language terminals",
+      "nono": "writable copied database plus filesystem/process/network sandbox", "apf": "writable projected copied database plus OpenShell process/network policy",
+      "nono_category": "best-available-reduced-enforcement", "apf_category": "best-available-reduced-enforcement",
+      "omitted_obligation": "passenger/row ownership, typed travel actions, and prevention of direct SQLite access",
+      "positive_test": "fixed fetch/search/update/cancel sequences preserve the itinerary oracle", "negative_test": "other passenger, sibling database, source write, child process, and other network port are denied where expressible"
+    },
+    {
+      "scope": "T1-add-tools,T2-custom-weather,T5-prebuilt-multiply,T6-return-direct,T7-forced-tool,T8-serial-tools",
+      "required_restrictions": "only registered pure tools and declared operations; no direct filesystem, process, or non-model network effects",
+      "argus": "tool-call object/action grant plus admitted-language execution",
+      "nono": "filesystem/process/network application sandbox", "apf": "OpenShell filesystem/process/network application policy",
+      "nono_category": "best-available-reduced-enforcement", "apf_category": "best-available-reduced-enforcement",
+      "omitted_obligation": "tool-call object/action authorization and admitted-language direct-bypass prevention",
+      "positive_test": "fixed valid calls return exact deterministic results", "negative_test": "sibling fixture, source write, child process, and other network port are denied"
+    },
+    {
+      "scope": "T9-add-memory,T10-time-travel",
+      "required_restrictions": "registered search plus principal-bound authenticated checkpoint write/read/restore; historical branch authorization is one use",
+      "argus": "typed search mediator and authenticated checkpoint chain bound to principal/session",
+      "nono": "filesystem/process/network sandbox around ordinary checkpointing", "apf": "OpenShell filesystem/process/network policy around ordinary checkpointing",
+      "nono_category": "best-available-reduced-enforcement", "apf_category": "best-available-reduced-enforcement",
+      "omitted_obligation": "principal-bound authenticated checkpoint history and branch authorization",
+      "positive_test": "fixed checkpoint/resume returns London and preserves authenticated history", "negative_test": "tampered, cross-principal, broken-chain, and replayed checkpoints are denied by Argus; comparator gap retained"
+    },
+    {
+      "scope": "microbenchmark-files",
+      "required_restrictions": "exact designated path and exact read or write effect; sibling, alternate path, symlink, hardlink, and opposite operation denied",
+      "argus": "exact canonical selector with language facade or Linux Landlock worker", "nono": null, "apf": null,
+      "nono_category": null, "apf_category": null, "omitted_obligation": null,
+      "positive_test": "designated operation returns exact bytes", "negative_test": "sibling secret, unauthorized operation, alternate path, symlink, and hardlink are denied"
+    }
+  ]
+}

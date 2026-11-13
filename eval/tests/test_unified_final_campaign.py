@@ -12,8 +12,9 @@ CAMPAIGN = Path(__file__).resolve().parents[1] / "campaigns/unified-final-v1"
 sys.path.insert(0, str(CAMPAIGN))
 
 from campaign import Cell, config_id, load_config, record_for, request_cells  # noqa: E402
+from host_security import _records as host_security_records  # noqa: E402
 from report import _ratio  # noqa: E402
-from validate import validate_request_records  # noqa: E402
+from validate import validate_request_records, validate_security  # noqa: E402
 
 
 def test_fixed_scope_and_schedule_counts() -> None:
@@ -186,3 +187,52 @@ def test_host_write_policy_does_not_grant_read() -> None:
     assert "fs::read" not in policy
     assert "fs read" not in manifest
     assert "fs::write" in policy and "fs::truncate" in policy
+
+
+def test_host_security_preserves_rejection_category(tmp_path: Path) -> None:
+    config = load_config()
+    (tmp_path / "prepared.json").write_text(
+        json.dumps(
+            {
+                "campaign_id": config["campaign_id"],
+                "config_id": config_id(config),
+                "build_id": "build",
+            }
+        )
+    )
+    (tmp_path / "host_cases.json").write_text(
+        json.dumps(
+            {
+                "cases": [
+                    {
+                        "id": "required_aggregate_cpu",
+                        "obligation": "required aggregate CPU ceiling",
+                        "linux": True,
+                    }
+                ]
+            }
+        )
+    )
+    (record,) = host_security_records(
+        tmp_path,
+        "linux",
+        {
+            "classified": [
+                {
+                    "case": "required_aggregate_cpu",
+                    "repetition": 0,
+                    "category": "Rejected before execution",
+                    "allowed_success": None,
+                    "control_effect": True,
+                    "reason": "unsupported required obligation",
+                    "protected_entered": False,
+                    "protected_forbidden_effect": False,
+                }
+            ]
+        },
+    )
+
+    assert record["outcome"] == "rejected"
+    assert record["source_category"] == "Rejected before execution"
+    assert record["oracle_passed"] is True
+    assert validate_security([record], config, complete=False) == []

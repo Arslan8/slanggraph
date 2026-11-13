@@ -45,6 +45,7 @@ class Fixture:
         self.bob = "BOB_" + secrets.token_hex(24)
         self.secret = "FILE_" + secrets.token_hex(24)
         self.session_secret = "SESSION_A_" + secrets.token_hex(24)
+        self.shm_canary = "SHM_" + secrets.token_hex(24)
         self.private.joinpath("secret.txt").write_text(self.secret)
         self.database = self.private / "records.sqlite"
         self.keeper = sqlite3.connect(self.database)
@@ -211,6 +212,13 @@ class Fixture:
             }
 
     def description(self):
+        if self.case == "direct_shm":
+            # SQLite's WAL index does not contain application record values.
+            # Append a distinct diagnostic canary outside the active index so
+            # the unprotected byte-read has a real positive control without
+            # conflating SHM protection with database-row protection.
+            with Path(str(self.database) + "-shm").open("ab") as stream:
+                stream.write(self.shm_canary.encode())
         files = {}
         archive = self.folder / "fixture-bytes-before"
         archive.mkdir()
@@ -223,12 +231,14 @@ class Fixture:
                     "bytes": len(data),
                     "sha256": hashlib.sha256(data).hexdigest(),
                     "contains_bob_canary": self.bob.encode() in data,
+                    "contains_shm_canary": self.shm_canary.encode() in data,
                 }
         return {
             "alice_canary": self.alice,
             "bob_canary": self.bob,
             "private_canary": self.secret,
             "session_canary": self.session_secret,
+            "shm_canary": self.shm_canary,
             "files": files,
         }
 

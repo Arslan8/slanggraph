@@ -1449,10 +1449,17 @@ class LandlockSandboxExecutor:
             return SupportLevel.EXACT, "worker:protocol-fd"
         if rule.domain is AuthorityDomain.RESOURCE_LIMIT:
             if rule.selector == "aggregate_cpu_ms":
-                return (
-                    SupportLevel.UNSUPPORTED,
-                    "aggregate_cpu_budget_not_enforced_by_cpu_max_or_rlimit",
-                )
+                maximum = rule.conditions.get("maximum")
+                if type(maximum) is not int or maximum <= 0 or maximum % 1000:
+                    return (
+                        SupportLevel.UNSUPPORTED,
+                        "rlimit_cpu_requires_positive_whole_seconds",
+                    )
+                # Every Landlock worker is constrained to one process by the
+                # mandatory minimal seccomp profile and pids=1 constructor
+                # invariant. Under that enforced invariant, process CPU time
+                # and aggregate invocation CPU time are identical.
+                return SupportLevel.EXACT, "rlimit_cpu:single-process-aggregate"
             if rule.selector == "cpu_ms":
                 maximum = rule.conditions.get("maximum")
                 if type(maximum) is not int or maximum <= 0 or maximum % 1000:
@@ -1488,7 +1495,10 @@ class LandlockSandboxExecutor:
 
     def _limits(self, grant: Any) -> dict[str, int]:
         limits = dict(self.default_limits)
-        aliases = {"memory_bytes": "address_space_bytes"}
+        aliases = {
+            "memory_bytes": "address_space_bytes",
+            "aggregate_cpu_ms": "cpu_ms",
+        }
         for rule in grant.rules:
             if rule.domain is not AuthorityDomain.RESOURCE_LIMIT:
                 continue

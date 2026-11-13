@@ -1,0 +1,27 @@
+{
+  "compatibility_rules": {
+    "evaluation_2": "retain none; rerun every Linux case after shared lowering/oracle changes",
+    "evaluations_1_3_4": "unaffected by aggregate-CPU obligation lowering, SHM security oracle, and security-category reporting repairs"
+  },
+  "retained_linux_security_records": 0,
+  "retained_micro_security_probe_records": 15,
+  "retained_pandas_security_probes": 2,
+  "retained_request_records": 5635,
+  "retained_sustained_records": 60,
+  "retention_scope": "all-performance",
+  "schema_version": 2,
+  "source": "retained/final-r3",
+  "source_campaign_id": "unified-final-v1",
+  "source_config_id": "d8fdb318506dd84466339a78d433c290b467bbde379a379b5fef0798c33f468c",
+  "source_micro_security_sha256": "43d1ae4325f1fdefb0b84667bf806dfb595387e9a14dcdb237797193f59090a6",
+  "source_pandas_security_sha256": "a47d35df2ebe047ad74b14d41f6fe0c24db4fac0b31f459a7582dd8b6776ecb1",
+  "source_records_sha256": "c09b4337ed68f6f1092c3be6f235007f0716a1d2143aba34ac2c8d9d947f10b3",
+  "source_sustained_parts_sha256": {
+    "sustained.jsonl.zst.part-00": "4d5d66d82d6866ebe65cb3310461a978e534a9d0c58d2bf8bae682fbcaf2c770",
+    "sustained.jsonl.zst.part-01": "303d5310cbad84dcacd79087afcda96fb287e7af84e733c641b23d89641d307b",
+    "sustained.jsonl.zst.part-02": "376ce24d7f37dfd410e65fa214d9a0b6a8ef6ef7280e2b5a981a39b71a780812",
+    "sustained.jsonl.zst.part-03": "efd4686783d8e3a5729b667c9849ed70dd49da26294675b4cae7ac8d053dc194"
+  },
+  "target_build_id": "85a93be0f72c7c2ea305256780779786b75c5dcd2aa4078ca9ee0b1e0cbf8391",
+  "target_config_id": "d8fdb318506dd84466339a78d433c290b467bbde379a379b5fef0798c33f468c"
+}
